@@ -112,8 +112,9 @@ are required:
 
 # Elliptic Curve VOPRF
 
-Let G be a group with two distinct hash functions H_1 and H_2 that map arbitrary
-input onto G. Let L be the security parameter. Let x be the signer's private key,
+Let G be a group with two distinct hash functions H_1 and H_2, where H_1 maps arbitrary
+input onto G and H_2 maps arbitrary input to a fixed-length output, e.g., SHA256.
+Let L be the security parameter. Let x be the signer's private key,
 and Y = xG be its corresponding public key. Let t be the requestor's input to
 the VOPRF protocol. (Commonly, it is generated as a random L-bit string, though
 this is not required.) The protocol works by having the requestor randomly blind
@@ -135,20 +136,37 @@ and output the VOPRF value. This general flow is shown below.
 
 The specific steps and computations in this protocol are enumerated below.
 
+((TODO: change this into a series of algorithms))
+
 1. Requestor computes T = H_1(t) and a random element r from G. (The latter is the
 blinding factor.) The requestor computes M = rT.
 2. Requestor sends M to the signer. 
 3. Signer computes Z = xM = rxT. 
 4. Signer sends Z to the requestor.
 5. Requestor unblinds Z to compute N = r^(-1)Z = xT.
-6. Requestor outputs the pair (t, N).
+6. Requestor outputs the pair (t, H_2(N)).
 
 ## Group Instantiations
 
-- EC-VOPRF-CURVE25519-SHA256:
-- EC-VOPRF-CURVE25519-SHA512:
-- EC-VOPRF-ED25519-SHA256:
-- EC-VOPRF-ED25519-SHA512:
+EC-VOPRF-CURVE25519-SHA256:
+- G: Curve25519 {{RFC7748}}
+- H_1: TBD
+- H_2: SHA256
+
+EC-VOPRF-CURVE25519-SHA512:
+- G: Curve25519 {{RFC7748}}
+- H_1: TBD
+- H_2: SHA512
+
+EC-VOPRF-ED25519-SHA256:
+- G: Ed25519 {{RFC8032}} 
+- H_1: TBD
+- H_2: SHA256
+
+EC-VOPRF-ED25519-SHA512:
+- G: Ed25519 {{RFC8032}} 
+- H_1: TBD
+- H_2: SHA512
 
 # Private Key Proofs
 
@@ -156,7 +174,7 @@ In some cases, it may be desireable for the requestor to have proof that the sig
 used its private key to compute Z. To do so, we extend the protocol in the previous
 section with a non-interactive discrete logarithm equality (DLEQ) proof. 
 
-XXX
+((TODO: write me))
 
 # IANA Considerations
 
