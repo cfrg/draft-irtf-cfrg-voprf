@@ -13,6 +13,14 @@ pi: [toc, sortrefs, symrefs]
 
 author:
  -
+    ins: S. Goldberg
+    name: Sharon Goldberg
+    org: Boston University
+    street: 111 Cummington St, MCS135
+    city: Boston
+    country: United States of America
+    email: goldbe@cs.bu.edu
+ -
     ins: N. Sullivan
     name: Nick Sullivan
     org: Cloudflare
@@ -31,9 +39,22 @@ author:
 
 normative:
   RFC2119:
+  RFC7748:
+  RFC8032:
   PrivacyPass:
     title: Privacy Pass
     target: https://github.com/privacypass/challenge-bypass-server
+  ChaumPedersen:
+    title: Wallet Databases with Observers
+    target: https://chaum.com/publications/Wallet_Databases.pdf
+    authors:
+      -
+        ins: D. Chaum
+        org: CWI, The Netherlands
+      -
+        ins: T. P. Pedersen
+        org: Aarhus University, Denmark
+  
   ChaumBlindSignature:
     title: Blind Signatures for Untraceable Payments
     target: http://sceweb.sce.uhcl.edu/yang/teaching/csci5234WebSecurityFall2011/Chaum-blind-signatures.PDF
@@ -88,9 +109,11 @@ Let m be a message to be signed by a server. It is assumed to be a member of the
 RSA group. Also, let N be the RSA modulus, and e and d be the public and private keys, 
 respectively. The Requestor and Signer engage in the following protocol given input m. 
 
-1. Requestor generates a random blinding element r from the RSA group, and compute m' = m^r (mod N). Send m' to the Signer.
+1. Requestor generates a random blinding element r from the RSA group, and 
+compute m' = m^r (mod N). Send m' to the Signer.
 2. Signer uses m' to compute s' = (m')^d (mod N), and sends s' to the Requestor.
-3. Requestor removes the blinding factor r to obtain the original signature as s = (s')^(r^-1) (mod N).
+3. Requestor removes the blinding factor r to obtain the original 
+signature as s = (s')^(r^-1) (mod N).
 
 By the properties of RSA, s is clearly a valid signature for m. 
 (V)OPRF protocols differ from blind signatures in the same way that 
@@ -142,39 +165,73 @@ The specific steps and computations in this protocol are enumerated below.
 blinding factor.) The requestor computes M = rT.
 2. Requestor sends M to the signer. 
 3. Signer computes Z = xM = rxT. 
-4. Signer sends Z to the requestor.
+4. Signer sends (Z, Y) to the requestor.
 5. Requestor unblinds Z to compute N = r^(-1)Z = xT.
 6. Requestor outputs the pair (t, H_2(N)).
 
-## Group Instantiations
+## Group and Hash Function Instantiations
+
+This section specifies supported VOPRF group and hash function instantiations.
 
 EC-VOPRF-CURVE25519-SHA256:
+
 - G: Curve25519 {{RFC7748}}
 - H_1: TBD
 - H_2: SHA256
 
 EC-VOPRF-CURVE25519-SHA512:
+
 - G: Curve25519 {{RFC7748}}
 - H_1: TBD
 - H_2: SHA512
 
 EC-VOPRF-ED25519-SHA256:
+
 - G: Ed25519 {{RFC8032}} 
 - H_1: TBD
 - H_2: SHA256
 
 EC-VOPRF-ED25519-SHA512:
+
 - G: Ed25519 {{RFC8032}} 
 - H_1: TBD
 - H_2: SHA512
 
-# Private Key Proofs
+# Discrete Logarithm Proofs
 
-In some cases, it may be desireable for the requestor to have proof that the signer
-used its private key to compute Z. To do so, we extend the protocol in the previous
-section with a non-interactive discrete logarithm equality (DLEQ) proof. 
+In some cases, it may be desireable for the Requestor to have proof that the Signer
+used its private key to compute Z. Specifically, this is done by confirming
+that log_G(Y) == log_G(Z). This may be used, for example, to ensure that the
+Signer uses the same private key for computing the VOPRF output. This proof must
+not reveal the Signer's long-term private key to the Requestor. Consequently,
+we extend the protocol in the previous section with a (non-interactive) discrete 
+logarithm equality (DLEQ) algorithm built on a Chaum-Pedersen {{ChaumPedersen}} proof.
+This proof works as follows.
 
-((TODO: write me))
+Input: 
+
+  D: generator of G with prime order q
+  E: orthogonal generator of G
+  Y: Signer public key
+  Z: Point on G
+
+Output:
+
+  True if log_G(Y) == log_G(Z), False otherwise
+
+Steps:
+
+1. Signer samples a random element k from Z_q and computes A = kD and B = kE.
+2. Signer constructs the challenge c = H_3(D,E,M,Z,A,B).
+3. Signer computes s = (k - cx) (mod q).
+4. Signer sends (c, s) to the Requestor.
+5. Requestor computes A' = (sD + cY) and B' = (sE + cZ).
+6. Requestor computes c' = H_3(D,E,M,Z,A',B')
+7. Output c == c'.
+
+XXX
+
+# Batched Discrete Logarithm Proofs
 
 # IANA Considerations
 
