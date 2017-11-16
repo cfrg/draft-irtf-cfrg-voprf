@@ -66,13 +66,13 @@ protocol {{PrivacyPass}}. This document is structured as follows:
 
 ## Terminology
 
-XXX
+The following terms are used throughout this document.
 
-- PRF:
-- VOPRF:
-- DLEQ: 
-- Prover: The Prover holds the private VRF key SK and public VRF key PK.
-- Verifier: The Verifier holds the public VRF key PK.
+- PRF: Pseudorandom Function.
+- VOPRF: Verifiable Oblivious Pseudorandom Function.
+- DLEQ: Discrete Logarithm Equality.
+- Signer: The Signer holds the private OPRF key x.
+- Requestor: The Requestor engages with the Signer to compute F(x, m).
 
 ## Requirements
 
@@ -86,13 +86,11 @@ VOPRFs are related to, e.g., RSA-based blind signature schemes {{ChaumBlindSigna
 Such a scheme works as follows. 
 Let m be a message to be signed by a server. It is assumed to be a member of the 
 RSA group. Also, let N be the RSA modulus, and e and d be the public and private keys, 
-respectively. The requestor and signer engage in the following protocol.
+respectively. The Requestor and Signer engage in the following protocol given input m. 
 
-1. Generate a random blinding element r from the RSA group.
-2. Send m' to the server.
-3. Sign m' by computing s' = (m')^d (mod; N)
-4. Send s' to the client.
-5. Remove the blinding factor r to obtain the original signature as s = (s')^{r^-1}.
+1. Requestor generates a random blinding element r from the RSA group, and compute m' = m^r (mod N). Send m' to the Signer.
+2. Signer uses m' to compute s' = (m')^d (mod N), and sends s' to the Requestor.
+3. Requestor removes the blinding factor r to obtain the original signature as s = (s')^(r^-1) (mod N).
 
 By the properties of RSA, s is clearly a valid signature for m. 
 (V)OPRF protocols differ from blind signatures in the same way that 
