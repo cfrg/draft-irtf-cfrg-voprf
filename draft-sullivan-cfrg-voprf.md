@@ -157,6 +157,13 @@ and output the VOPRF value. This general flow is shown below.
     N = Zr^(-1)    
 ~~~
 
+The actual PRF function computed is as follows:
+
+~~~
+((TODO: this is not right...))
+F(k, x) = y = H_2(x, xH_1(t))
+~~~
+
 The specific steps and computations in this protocol are enumerated below.
 
 ((TODO: change this into a series of algorithms))
