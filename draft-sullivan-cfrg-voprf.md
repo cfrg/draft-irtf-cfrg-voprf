@@ -12,22 +12,22 @@ stand_alone: yes
 pi: [toc, sortrefs, symrefs]
 
 author:
-  -
+ -
     ins: N. Sullivan
     name: Nick Sullivan
     org: Cloudflare
-    street: XXX
-    city: XXX
+    street: 101 Townsend St
+    city: San Francisco
     country: United States of America
-    email: XXX
-  -
+    email: nick@cloudflare.com
+ -
     ins: C. A. Wood
     name: Christopher A. Wood
-    org: Apple
-    street: XXX
-    city: XXX
+    org: Apple Inc.
+    street: 1 Infinite Loop
+    city: Cupertino, Califoarnia 95014
     country: United States of America
-    email: XXX
+    email: cawood@apple.com
 
 normative:
   RFC2119:
