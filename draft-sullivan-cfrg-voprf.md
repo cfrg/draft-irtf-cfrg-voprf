@@ -159,8 +159,8 @@ and output the VOPRF value. This general flow is shown below.
 
 The actual PRF function computed is as follows:
 
+<!-- this is not right -->
 ~~~
-((TODO: this is not right...))
 F(k, x) = y = H_2(x, xH_1(t))
 ~~~
 
@@ -236,9 +236,11 @@ Steps:
 6. Requestor computes c' = H_3(D,E,M,Z,A',B')
 7. Output c == c'.
 
-XXX
+((TODO: insert explanatory text))
 
 # Batched Discrete Logarithm Proofs
+
+((TODO: writeme))
 
 # IANA Considerations
 
