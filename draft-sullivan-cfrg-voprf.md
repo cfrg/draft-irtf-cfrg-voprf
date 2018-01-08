@@ -159,7 +159,6 @@ and output the VOPRF value. This general flow is shown below.
 
 The actual PRF function computed is as follows:
 
-<!-- this is not right -->
 ~~~
 F(k, x) = y = H_2(x, xH_1(t))
 ~~~
@@ -180,6 +179,30 @@ blinding factor.) The requestor computes M = rT.
 
 This section specifies supported VOPRF group and hash function instantiations.
 
+EC-VOPRF-P256-SHA256:
+
+- G: P-256 {{XXX}}
+- H_1: TBD
+- H_2: SHA256
+
+EC-VOPRF-P256-SHA512:
+
+- G: P-256 {{XXX}}
+- H_1: TBD
+- H_2: SHA512
+
+EC-VOPRF-P384-SHA256:
+
+- G: P-384 {{XXX}}
+- H_1: TBD
+- H_2: SHA256
+
+EC-VOPRF-P384-SHA512:
+
+- G: P-384 {{XXX}}
+- H_1: TBD
+- H_2: SHA512
+
 EC-VOPRF-CURVE25519-SHA256:
 
 - G: Curve25519 {{RFC7748}}
@@ -192,21 +215,35 @@ EC-VOPRF-CURVE25519-SHA512:
 - H_1: TBD
 - H_2: SHA512
 
-EC-VOPRF-ED25519-SHA256:
+EC-VOPRF-CURVE448-SHA256:
 
-- G: Ed25519 {{RFC8032}} 
+- G: Curve448 {{RFC7748}} 
 - H_1: TBD
 - H_2: SHA256
 
-EC-VOPRF-ED25519-SHA512:
+EC-VOPRF-CURVE448-SHA512:
 
-- G: Ed25519 {{RFC8032}} 
+- G: Curve448 {{RFC7748}} 
 - H_1: TBD
 - H_2: SHA512
 
+# IANA Considerations
+
+TODO
+
+# Security Considerations
+
+TODO
+
+# Acknowledgments
+
+TODO
+
+---back
+
 # Discrete Logarithm Proofs
 
-In some cases, it may be desireable for the Requestor to have proof that the Signer
+In some cases, it may be desirable for the Requestor to have proof that the Signer
 used its private key to compute Z. Specifically, this is done by confirming
 that log_G(Y) == log_G(Z). This may be used, for example, to ensure that the
 Signer uses the same private key for computing the VOPRF output. This proof must
@@ -237,20 +274,3 @@ Steps:
 7. Output c == c'.
 
 ((TODO: insert explanatory text))
-
-# Batched Discrete Logarithm Proofs
-
-((TODO: writeme))
-
-# IANA Considerations
-
-TODO
-
-# Security Considerations
-
-TODO
-
-# Acknowledgments
-
-TODO
-
