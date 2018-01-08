@@ -65,16 +65,22 @@ normative:
 
 --- abstract
 
-XXX
+TODO
 
 --- middle
 
 # Introduction
 
-A Verifiable Oblivious Pseudorandom Function (VOPRF) is a two-party protocol
-between a requestor and signer for obliviously computing a verifiable, 
-public-key, cryptographic hash. The signer uses its private key to help the
-requestor compute the VOPRF output without learning the requestor's input. 
+A pseudorandom function (PRF) F(k, x) is an efficiently computable function with
+secret key k on input x whose output is indistinguishable from any element in
+F's range for some random key k. An oblivious PRF (OPRF) is a two-party protocol between 
+a requester R and signer S wherein both parties cooperate to compute F(k, x) with S's 
+secret key k and R's input x such only R learns F(k, x) without learning anything about k. 
+Specifically, S uses its private key to help R compute F(k, x) output without learning 
+the requestor's input. R blinds (and unblinds) its input such that S learns nothing.
+
+Verifiable OPRFs (VOPRFs) are OPRF protocols wherein R can prove to S that its value 
+F(k, x) was indeed computed over some input x without tracing back to the original computation. 
 VOPRFs are useful for producing tokens that are verifiable by the signer yet 
 unlinkable to the original requestor. They are used in the Privacy Pass 
 protocol {{PrivacyPass}}. This document is structured as follows:
@@ -91,9 +97,9 @@ The following terms are used throughout this document.
 
 - PRF: Pseudorandom Function.
 - VOPRF: Verifiable Oblivious Pseudorandom Function.
+- Requestor (R): Protocol initiator when computing F(k, x).
+- Signer (S): Holder of private VOPRF key k.
 - DLEQ: Discrete Logarithm Equality.
-- Signer: The Signer holds the private OPRF key x.
-- Requestor: The Requestor engages with the Signer to compute F(x, m).
 
 ## Requirements
 
@@ -103,7 +109,7 @@ document are to be interpreted as described in {{RFC2119}}.
 
 # Background
 
-VOPRFs are related to, e.g., RSA-based blind signature schemes {{ChaumBlindSignature}}.
+VOPRFs are functionally related to RSA-based blind signature schemes, e.g., {{ChaumBlindSignature}}.
 Such a scheme works as follows. 
 Let m be a message to be signed by a server. It is assumed to be a member of the 
 RSA group. Also, let N be the RSA modulus, and e and d be the public and private keys, 
@@ -117,7 +123,8 @@ signature as s = (s')^(r^-1) (mod N).
 
 By the properties of RSA, s is clearly a valid signature for m. 
 (V)OPRF protocols differ from blind signatures in the same way that 
-traditional digital signatures differ from PRFs. 
+traditional digital signatures differ from PRFs. This is discussed more
+in the following section.
 
 # Security Properties
 
@@ -130,15 +137,15 @@ to that of a PRF. Specifically:
 Additionally, since this is an oblivious protocol, the following security properties
 are required:
 
-- The signer must learn nothing about the requestor's input.
-- The requestor must learn nothing about the signer's private key.
+- S must learn nothing about the R's input.
+- R must learn nothing about the S's private key.
 
-# Elliptic Curve VOPRF
+# Elliptic Curve VOPRF Overview
 
 Let G be a group with two distinct hash functions H_1 and H_2, where H_1 maps arbitrary
 input onto G and H_2 maps arbitrary input to a fixed-length output, e.g., SHA256.
-Let L be the security parameter. Let x be the signer's private key,
-and Y = xG be its corresponding public key. Let t be the requestor's input to
+Let L be the security parameter. Let k be the signer's private key,
+and Y = kG be its corresponding public key. Let x be the requestor's input to
 the VOPRF protocol. (Commonly, it is generated as a random L-bit string, though
 this is not required.) The protocol works by having the requestor randomly blind
 its input for the signer. The latter then applies its private key to the blinded
@@ -148,10 +155,10 @@ and output the VOPRF value. This general flow is shown below.
 ~~~
     Requestor               Signer
      r <-$ G
-     M = rH_1(t) 
+     M = rH_1(x) 
                    M
                 ------->    
-                           Z = xM
+                           Z = kM
                    Z
                 <-------
     N = Zr^(-1)    
@@ -160,12 +167,30 @@ and output the VOPRF value. This general flow is shown below.
 The actual PRF function computed is as follows:
 
 ~~~
-F(k, x) = y = H_2(x, xH_1(t))
+F(k, x) = y = H_2(k, kH_1(x))
 ~~~
 
-The specific steps and computations in this protocol are enumerated below.
+Note that R finishes this computation upon receiving kH_1(x) from S. 
 
-((TODO: change this into a series of algorithms))
+This protocol may be decomposed into a series of steps, as described below:
+
+- Blind(x): Compute and return a blind, r, and blinded representation of x, M.
+- Sign(M): Sign input M using secret key k to produce Z.
+- Unlind(Z, r): Unblind blinded signature Z with blind r, yielding N.
+- Finalize(N): Finalize N to produce PRF output F(k, x).
+
+Protocol correctness may be stated as follows. For any key k and input
+x, and (r, M) = Blind(x), it must be true that:
+
+~~~
+Finalize(Sign(M), r) = F(k, x)
+~~~
+
+with overwhelming probability. 
+
+## Algorithmic Details
+
+This section provides algorithms for each step in the VOPRF protocol.
 
 1. Requestor computes T = H_1(t) and a random element r from G. (The latter is the
 blinding factor.) The requestor computes M = rT.
@@ -174,6 +199,38 @@ blinding factor.) The requestor computes M = rT.
 4. Signer sends (Z, Y) to the requestor.
 5. Requestor unblinds Z to compute N = r^(-1)Z = xT.
 6. Requestor outputs the pair (t, H_2(N)).
+
+### ECVOPRF_Blind
+
+XXX
+
+~~~
+Input:
+
+ x - PRF input element
+
+Output:
+
+ r - blind of x
+ M - blinded representation of x using blind r
+
+Steps:
+
+ 1.  r <-$ Fp
+ 2.  M := rx
+ 5.  Output (r, M)
+
+### ECVOPRF_Sign
+
+TODO(caw)
+
+### ECVOPRF_Unblind
+
+TODO(caw)
+
+### ECVOPRF_Finalize
+
+TODO(caw)
 
 ## Group and Hash Function Instantiations
 
