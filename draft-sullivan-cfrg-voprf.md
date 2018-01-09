@@ -54,7 +54,6 @@ normative:
       -
         ins: T. P. Pedersen
         org: Aarhus University, Denmark
-  
   ChaumBlindSignature:
     title: Blind Signatures for Untraceable Payments
     target: http://sceweb.sce.uhcl.edu/yang/teaching/csci5234WebSecurityFall2011/Chaum-blind-signatures.PDF
@@ -85,17 +84,17 @@ VOPRFs are useful for producing tokens that are verifiable by the signer yet
 unlinkable to the original requestor. They are used in the Privacy Pass 
 protocol {{PrivacyPass}}. This document is structured as follows:
 
-- Section XXX: Describe background and work related to VOPRF protocols.
-- Section XXX: Discuss the security properties of such protocols.
-- Section XXX: Specify a VOPRF protocol based on elliptic curve groups. 
-- Section XXX: Specify a VOPRF extension that permits signers to prove the private key was integrated into the VOPRF computation.
-- Section XXX: Discuss implementation status and existing use cases.
+- Section {{background}}: Describe background, related related, and use cases of VOPRF protocols.
+- Section {{properties}}: Discuss the security properties of such protocols.
+- Section {{protocol}}: Specify a VOPRF protocol based on elliptic curve groups. 
+<!-- - Section XXX: Specify a VOPRF extension that permits signers to prove the private key was integrated into the VOPRF computation. -->
 
 ## Terminology
 
 The following terms are used throughout this document.
 
 - PRF: Pseudorandom Function.
+- OPRF: Oblivious PRF.
 - VOPRF: Verifiable Oblivious Pseudorandom Function.
 - Requestor (R): Protocol initiator when computing F(k, x).
 - Signer (S): Holder of private VOPRF key k.
@@ -107,7 +106,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
 document are to be interpreted as described in {{RFC2119}}.
 
-# Background
+# Background {#background}
 
 VOPRFs are functionally related to RSA-based blind signature schemes, e.g., {{ChaumBlindSignature}}.
 Such a scheme works as follows. 
@@ -125,14 +124,14 @@ By the properties of RSA, s is clearly a valid signature for m.
 (V)OPRF protocols differ from blind signatures in the same way that 
 traditional digital signatures differ from PRFs. This is discussed more
 in the following section.
-
-# Security Properties
+  
+# Security Properties {#properties}
 
 The security properties of a VOPRF protocol with functionality y = F(k, x) are similar 
 to that of a PRF. Specifically:
 
 - Given value x, it is infeasible to learn y = F(k, x) without knowledge of k.
-- The output y = F(k, x) is indistinguishable from a random value in the domain of F. 
+- Output y = F(k, x) is indistinguishable from a random value in the domain of F. 
 
 Additionally, since this is an oblivious protocol, the following security properties
 are required:
@@ -140,17 +139,20 @@ are required:
 - S must learn nothing about the R's input.
 - R must learn nothing about the S's private key.
 
-# Elliptic Curve VOPRF Overview
+# Elliptic Curve VOPRF Protocol {#protocol}
 
-Let G be a group with two distinct hash functions H_1 and H_2, where H_1 maps arbitrary
-input onto G and H_2 maps arbitrary input to a fixed-length output, e.g., SHA256.
-Let L be the security parameter. Let k be the signer's private key,
+In this section we describe the ECVOPRF protocol. 
+Let G be an elliptic curve group over base field F, of order p, 
+with two distinct hash functions H_1 and H_2, where H_1 maps 
+arbitrary input onto G and H_2 maps arbitrary input to a fixed-length output, e.g., SHA256.
+Let L be the security parameter. Let k be the signer's secret key,
 and Y = kG be its corresponding public key. Let x be the requestor's input to
-the VOPRF protocol. (Commonly, it is generated as a random L-bit string, though
-this is not required.) The protocol works by having the requestor randomly blind
-its input for the signer. The latter then applies its private key to the blinded
-value and returns the result, at which point the requestor can remove the blind
-and output the VOPRF value. This general flow is shown below.
+the VOPRF protocol. (Commonly, it is a random L-bit string, though this 
+is not required.) ECVOPRF begins with the requestor randomly blinding
+its input for the signer. The latter then applies its secret key to the blinded
+value and returns the result. To finish the computation, the requestor then 
+removes its blind and hashes the result using H_2 to yield an output. 
+This flow is illustrated below.
 
 ~~~
     Requestor               Signer
@@ -170,17 +172,18 @@ The actual PRF function computed is as follows:
 F(k, x) = y = H_2(k, kH_1(x))
 ~~~
 
-Note that R finishes this computation upon receiving kH_1(x) from S. 
+Note that R finishes this computation upon receiving kH_1(x) from S. The output
+from S is not the PRF value.
 
 This protocol may be decomposed into a series of steps, as described below:
 
-- Blind(x): Compute and return a blind, r, and blinded representation of x, M.
-- Sign(M): Sign input M using secret key k to produce Z.
-- Unlind(Z, r): Unblind blinded signature Z with blind r, yielding N.
-- Finalize(N): Finalize N to produce PRF output F(k, x).
+- ECVOPRF_Blind(x): Compute and return a blind, r, and blinded representation of x, M.
+- ECVOPRF_Sign(M): Sign input M using secret key k to produce Z.
+- ECVOPRF_Unblind(Z, r): Unblind blinded signature Z with blind r, yielding N.
+- ECVOPRF_Finalize(N): Finalize N to produce PRF output F(k, x).
 
-Protocol correctness may be stated as follows. For any key k and input
-x, and (r, M) = Blind(x), it must be true that:
+Protocol correctness requires that, for any key k, input x, and (r, M) = Blind(x), 
+it must be true that:
 
 ~~~
 Finalize(Sign(M), r) = F(k, x)
@@ -188,7 +191,7 @@ Finalize(Sign(M), r) = F(k, x)
 
 with overwhelming probability. 
 
-## Algorithmic Details
+## Algorithmic Details 
 
 This section provides algorithms for each step in the VOPRF protocol.
 
@@ -202,35 +205,74 @@ blinding factor.) The requestor computes M = rT.
 
 ### ECVOPRF_Blind
 
-XXX
-
 ~~~
 Input:
 
- x - PRF input element
+ x - R's PRF input.
 
 Output:
 
- r - blind of x
- M - blinded representation of x using blind r
+ r - Random scalar in [1, p - 1]
+ M - Blinded representation of x using blind r, a point on G.
 
 Steps:
 
  1.  r <-$ Fp
  2.  M := rx
  5.  Output (r, M)
+~~~
 
 ### ECVOPRF_Sign
 
-TODO(caw)
+~~~
+Input:
+
+ M - Point on G.
+
+Output:
+
+ Z - Scalar multiplication of k and M, point on G.
+
+Steps:
+
+ 1. Z := kM
+ 2. Output Z
+~~~
 
 ### ECVOPRF_Unblind
 
-TODO(caw)
+~~~
+Input:
+
+ Z - Point on G.
+ r - Random scalar in [1, p - 1].
+
+Output:
+
+ N - Unblinded signature, point on G.
+
+Steps:
+
+ 1. N := (-r)Z
+ 2. Output N
+~~~
 
 ### ECVOPRF_Finalize
 
-TODO(caw)
+~~~
+Input:
+
+ N - Point on G.
+
+Output:
+
+ y - Random element in {0,1}^L
+
+Steps:
+
+ 1. y := H_2(N)
+ 2. Output y
+~~~
 
 ## Group and Hash Function Instantiations
 
@@ -238,50 +280,50 @@ This section specifies supported VOPRF group and hash function instantiations.
 
 EC-VOPRF-P256-SHA256:
 
-- G: P-256 {{XXX}}
-- H_1: TBD
+- G: P-256
+- H_1: ((TODO: reference hash-to-curve draft))
 - H_2: SHA256
 
 EC-VOPRF-P256-SHA512:
 
-- G: P-256 {{XXX}}
-- H_1: TBD
+- G: P-256
+- H_1: ((TODO: reference hash-to-curve draft))
 - H_2: SHA512
 
 EC-VOPRF-P384-SHA256:
 
-- G: P-384 {{XXX}}
-- H_1: TBD
+- G: P-384
+- H_1: ((TODO: reference hash-to-curve draft))
 - H_2: SHA256
 
 EC-VOPRF-P384-SHA512:
 
-- G: P-384 {{XXX}}
-- H_1: TBD
+- G: P-384
+- H_1: ((TODO: reference hash-to-curve draft))
 - H_2: SHA512
 
 EC-VOPRF-CURVE25519-SHA256:
 
 - G: Curve25519 {{RFC7748}}
-- H_1: TBD
+- H_1: ((TODO: reference hash-to-curve draft))
 - H_2: SHA256
 
 EC-VOPRF-CURVE25519-SHA512:
 
 - G: Curve25519 {{RFC7748}}
-- H_1: TBD
+- H_1: ((TODO: reference hash-to-curve draft))
 - H_2: SHA512
 
 EC-VOPRF-CURVE448-SHA256:
 
 - G: Curve448 {{RFC7748}} 
-- H_1: TBD
+- H_1: ((TODO: reference hash-to-curve draft))
 - H_2: SHA256
 
 EC-VOPRF-CURVE448-SHA512:
 
 - G: Curve448 {{RFC7748}} 
-- H_1: TBD
+- H_1: ((TODO: reference hash-to-curve draft))
 - H_2: SHA512
 
 # IANA Considerations
@@ -296,7 +338,7 @@ TODO
 
 TODO
 
----back
+--- back
 
 # Discrete Logarithm Proofs
 
