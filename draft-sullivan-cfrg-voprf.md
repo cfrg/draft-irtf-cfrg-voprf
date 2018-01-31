@@ -373,3 +373,107 @@ Steps:
 7. Output c == c'.
 
 ((TODO: insert explanatory text))
+
+# Tamarin Model
+
+~~~
+theory VOPRFs
+begin
+
+/*
+Protocol:
+ Requestor               Signer
+     r <-$ G
+     M = rH_1(x) 
+                   M
+                ------->    
+                           Z = kM
+                   Z
+                <-------
+    N = Zr^(-1)    
+*/
+
+builtins: hashing, asymmetric-encryption, diffie-hellman
+
+/* Generate ephemeral keypair */
+rule generate_ephemeral:
+   [ Fr(~secretk)] 
+   -->
+   [ Keys(~secretk, 'g'^~secretk) ]
+
+/* Key Reveals */
+rule key_reveal:
+   [ Keys(~secretk, 'g'^~secretk) ]--[ Key_reveal(~secretk) ]-> [ Out(~secretk) ]
+
+/* Signed message reveal */
+rule Message_reveal:
+  let token = ('g'^~secretk)^~x
+  in
+  [ Finalize(token) ] --[ Reveal_message(token)]-> [ Out(token)]
+
+/* Protocol rules */
+rule SendRandomBlindedValue:
+  let blinded_input = ('g'^~x)^~r
+  in
+    [ 
+      Fr(~r), // choose random r
+      Fr(~x)  // choose random x -- this is supposed to be input to the protocol, though that is not necessary.
+    ]
+    -->
+    [ 
+      Out(blinded_input), // output g^{xr}
+      StoreBlindedValue(~r, ~x)
+    ]
+
+rule SendRandomFixedValue:
+  let x = h('voprf')
+      blinded_input = ('g'^x)^~r
+  in
+    [ 
+      Fr(~r) // choose random r
+    ]
+    -->
+    [ 
+      Out(blinded_input), // output g^{xm}
+      StoreBlindedValue(~r, x)
+    ]
+
+rule SignAndSendBlindedValue:
+    let blinded_value = ('g'^~x)^~r
+    in
+    [
+      Keys(~secretk, 'g'^~secretk),
+      In(blinded_value)
+    ]
+    -->
+    [
+      Out(blinded_value^~secretk)
+    ]
+
+rule UnblindAndFinalizeSignedValue:
+  let signed_value = (('g'^~x)^~r)^~secretk
+  in
+    [ 
+      StoreBlindedValue(~r, ~x),
+      In(signed_value)
+    ]
+    --[ Finalize(signed_value^inv(~r)) ]->
+    [
+      // pass
+    ]
+
+// Message secrecy lemma
+lemma message_secrecy:
+  "(All #i1 t .
+    (
+      Finalize(t) @ i1 
+      &
+      not ( (Ex A #ia . Key_reveal( A ) @ ia ) 
+          | (Ex B #ib . Reveal_message( B ) @ ib )
+          )
+    )
+    ==> not (Ex #i2. K( t ) @ i2 )
+  )"
+
+end
+~~~
