@@ -312,7 +312,7 @@ Input:
 
 Output:
 
-  True if log_G(Y) == log_G(Z), False otherwise
+  D: DLEQ proof
 
 Steps:
 
@@ -320,7 +320,7 @@ Steps:
 2. A = kD and B = kE.
 2. c = H_3(G,E,M,Z,A,B)
 3. s = (k - cx) (mod q)
-4. Output (c, s)
+4. Output D = (c, s)
 ~~~
 
 ## DLEQ_Verify
@@ -332,6 +332,7 @@ Input:
   E: Orthogonal generator of G
   Y: Signer public key
   Z: Point on G
+  D: DLEQ proof composed of tuple (c, s)
 
 Output:
 
