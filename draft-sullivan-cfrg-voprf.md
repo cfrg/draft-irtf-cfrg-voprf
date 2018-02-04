@@ -86,7 +86,7 @@ protocol {{PrivacyPass}}. This document is structured as follows:
 
 - Section {{background}}: Describe background, related related, and use cases of VOPRF protocols.
 - Section {{properties}}: Discuss the security properties of such protocols.
-- Section {{protocol}}: Specify a VOPRF protocol based on elliptic curve groups. 
+- Section {{protocol}}: Specify a VOPRF protocol based on elliptic curves. 
 <!-- - Section XXX: Specify a VOPRF extension that permits signers to prove the private key was integrated into the VOPRF computation. -->
 
 ## Terminology
@@ -140,11 +140,17 @@ are required:
 - S must learn nothing about the R's input.
 - R must learn nothing about the S's private key.
 
+Lastly, as a verifiable function, we require R to be able to verify that
+S used its private key k associated with public Y (=kG) to perfrom the OPRF
+computation. Specifically, R must only finish the protocol if S provides a valid
+proof, and S must not be able to participate in the protocol without using its
+known public key. 
+
 # Elliptic Curve VOPRF Protocol {#protocol}
 
 In this section we describe the ECVOPRF protocol. 
 Let G be an elliptic curve group over base field F, of order p, 
-with two distinct hash functions H_1 and H_2, where H_1 maps 
+with two distinct hash functions H_1, H_2, and H_3, where H_1 maps 
 arbitrary input onto G and H_2 maps arbitrary input to a fixed-length output, e.g., SHA256.
 Let L be the security parameter. Let k be the signer's secret key,
 and Y = kG be its corresponding public key. Let x be the requestor's input to
@@ -162,9 +168,10 @@ This flow is illustrated below.
                    M
                 ------->    
                            Z = kM
-                   Z
+                           D = DLEQ(Z/M == Y/G)
+                   Z,D
                 <-------
-    N = Zr^(-1)    
+    N = Zr^(-1)
 ~~~
 
 The actual PRF function computed is as follows:
@@ -179,15 +186,15 @@ from S is not the PRF value.
 This protocol may be decomposed into a series of steps, as described below:
 
 - ECVOPRF_Blind(x): Compute and return a blind, r, and blinded representation of x, M.
-- ECVOPRF_Sign(M): Sign input M using secret key k to produce Z.
-- ECVOPRF_Unblind(Z, r): Unblind blinded signature Z with blind r, yielding N.
+- ECVOPRF_Sign(M): Sign input M using secret key k to produce Z, generate a proof D of DLEQ(Z/M == Y/G), and output (Z, D).
+- ECVOPRF_Unblind((Z, D), r): Unblind blinded signature Z with blind r, yielding N. Output N if D is a valid proof. Otherwise, output an error.
 - ECVOPRF_Finalize(N): Finalize N to produce PRF output F(k, x).
 
-Protocol correctness requires that, for any key k, input x, and (r, M) = Blind(x), 
+Protocol correctness requires that, for any key k, input x, and (r, M) = ECVOPRF_Blind(x), 
 it must be true that:
 
 ~~~
-Finalize(Sign(M), r) = F(k, x)
+ECVOPRF_Finalize(ECVOPRF_Unblind(ECVOPRF_Sign(M), M, r)) = F(k, x)
 ~~~
 
 with overwhelming probability. 
@@ -233,11 +240,13 @@ Input:
 Output:
 
  Z - Scalar multiplication of k and M, point on G.
+ D - DLEQ proof that log_G(Y) == log_M(Z).
 
 Steps:
 
  1. Z := kM
- 2. Output Z
+ 2. D = DLEQ_Generate(Y, M, Z)
+ 2. Output (Z, D)
 ~~~
 
 ### ECVOPRF_Unblind
@@ -246,6 +255,8 @@ Steps:
 Input:
 
  Z - Point on G.
+ D - DLEQ proof that log_G(Y) == log_M(Z).
+ M - Blinded representation of x using blind r, a point on G.
  r - Random scalar in [1, p - 1].
 
 Output:
@@ -255,7 +266,8 @@ Output:
 Steps:
 
  1. N := (-r)Z
- 2. Output N
+ 2. If DLEQ_Validate(Y, M, Z) output N.
+ 3. Output "error"
 ~~~
 
 ### ECVOPRF_Finalize
@@ -263,16 +275,74 @@ Steps:
 ~~~
 Input:
 
- N - Point on G.
+ N - Point on G, or "error".
 
 Output:
 
- y - Random element in {0,1}^L
+ y - Random element in {0,1}^L, or "error"
 
 Steps:
 
- 1. y := H_2(N)
- 2. Output y
+ 1. If N == "error", output "error".
+ 2. y := H_2(N)
+ 3. Output y
+~~~
+
+# Discrete Logarithm Proofs
+
+In some cases, it may be desirable for the Requestor to have proof that the Signer
+used its private key to compute Z. Specifically, this is done by confirming
+that log_G(Y) == log_G(Z). This may be used, for example, to ensure that the
+Signer uses the same private key for computing the VOPRF output. This proof must
+not reveal the Signer's long-term private key to the Requestor. Consequently,
+we extend the protocol in the previous section with a (non-interactive) discrete 
+logarithm equality (DLEQ) algorithm built on a Chaum-Pedersen {{ChaumPedersen}} proof.
+This proof is divided into two procedures: DLEQ_Generate and DLEQ_Verify. These are specified
+below.
+
+## DLEQ_Generate
+
+~~~
+Input: 
+
+  G: Generator of group with prime order q
+  E: Orthogonal generator of G
+  Y: Signer public key
+  Z: Point on G
+
+Output:
+
+  True if log_G(Y) == log_G(Z), False otherwise
+
+Steps:
+
+1. k <-$ Z_q
+2. A = kD and B = kE.
+2. c = H_3(G,E,M,Z,A,B)
+3. s = (k - cx) (mod q)
+4. Output (c, s)
+~~~
+
+## DLEQ_Verify
+
+~~~
+Input: 
+
+  G: Generator of group with prime order q
+  E: Orthogonal generator of G
+  Y: Signer public key
+  Z: Point on G
+
+Output:
+
+  True if log_G(Y) == log_G(Z), False otherwise
+
+Steps:
+
+1. A' = (sG + cY)
+2. B' = (sE + cZ)
+3. c' = H_3(G,E,M,Z,A',B')
+4. Output c == c'
 ~~~
 
 ## Group and Hash Function Instantiations
@@ -340,40 +410,6 @@ TODO
 TODO
 
 --- back
-
-# Discrete Logarithm Proofs
-
-In some cases, it may be desirable for the Requestor to have proof that the Signer
-used its private key to compute Z. Specifically, this is done by confirming
-that log_G(Y) == log_G(Z). This may be used, for example, to ensure that the
-Signer uses the same private key for computing the VOPRF output. This proof must
-not reveal the Signer's long-term private key to the Requestor. Consequently,
-we extend the protocol in the previous section with a (non-interactive) discrete 
-logarithm equality (DLEQ) algorithm built on a Chaum-Pedersen {{ChaumPedersen}} proof.
-This proof works as follows.
-
-Input: 
-
-  D: generator of G with prime order q
-  E: orthogonal generator of G
-  Y: Signer public key
-  Z: Point on G
-
-Output:
-
-  True if log_G(Y) == log_G(Z), False otherwise
-
-Steps:
-
-1. Signer samples a random element k from Z_q and computes A = kD and B = kE.
-2. Signer constructs the challenge c = H_3(D,E,M,Z,A,B).
-3. Signer computes s = (k - cx) (mod q).
-4. Signer sends (c, s) to the Requestor.
-5. Requestor computes A' = (sD + cY) and B' = (sE + cZ).
-6. Requestor computes c' = H_3(D,E,M,Z,A',B')
-7. Output c == c'.
-
-((TODO: insert explanatory text))
 
 # Tamarin Model
 
