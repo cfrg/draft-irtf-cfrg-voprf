@@ -98,6 +98,7 @@ The following terms are used throughout this document.
 - VOPRF: Verifiable Oblivious Pseudorandom Function.
 - Requestor (R): Protocol initiator when computing F(k, x).
 - Signer (S): Holder of private VOPRF key k.
+- NIZK: Non-interactive zero knowledge.
 - DLEQ: Discrete Logarithm Equality.
 
 ## Requirements
