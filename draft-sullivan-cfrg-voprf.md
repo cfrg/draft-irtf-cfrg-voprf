@@ -1,7 +1,7 @@
 ---
 title: Verifiable Oblivious Pseudorandom Functions (VOPRFs)
 abbrev: VOPRFs
-docname: draft-wood-cfrg-voprf
+docname: draft-sullivan-cfrg-voprf
 date:
 category: info
 
@@ -12,14 +12,6 @@ stand_alone: yes
 pi: [toc, sortrefs, symrefs]
 
 author:
- -
-    ins: S. Goldberg
-    name: Sharon Goldberg
-    org: Boston University
-    street: 111 Cummington St, MCS135
-    city: Boston
-    country: United States of America
-    email: goldbe@cs.bu.edu
  -
     ins: N. Sullivan
     name: Nick Sullivan
@@ -186,8 +178,10 @@ from S is not the PRF value.
 This protocol may be decomposed into a series of steps, as described below:
 
 - ECVOPRF_Blind(x): Compute and return a blind, r, and blinded representation of x, M.
-- ECVOPRF_Sign(M): Sign input M using secret key k to produce Z, generate a proof D of DLEQ(Z/M == Y/G), and output (Z, D).
-- ECVOPRF_Unblind((Z, D), r): Unblind blinded signature Z with blind r, yielding N. Output N if D is a valid proof. Otherwise, output an error.
+- ECVOPRF_Sign(M): Sign input M using secret key k to produce Z, generate a 
+proof D of DLEQ(Z/M == Y/G), and output (Z, D).
+- ECVOPRF_Unblind((Z, D), r): Unblind blinded signature Z with blind r, yielding N. 
+Output N if D is a valid proof. Otherwise, output an error.
 - ECVOPRF_Finalize(N): Finalize N to produce PRF output F(k, x).
 
 Protocol correctness requires that, for any key k, input x, and (r, M) = ECVOPRF_Blind(x), 
