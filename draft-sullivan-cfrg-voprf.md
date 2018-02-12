@@ -65,21 +65,26 @@ TODO
 A pseudorandom function (PRF) F(k, x) is an efficiently computable function with
 secret key k on input x whose output is indistinguishable from any element in
 F's range for some random key k. An oblivious PRF (OPRF) is a two-party protocol between 
-a requester R and signer S wherein both parties cooperate to compute F(k, x) with S's 
-secret key k and R's input x such only R learns F(k, x) without learning anything about k. 
-Specifically, S uses its private key to help R compute F(k, x) output without learning 
-the requestor's input. R blinds (and unblinds) its input such that S learns nothing.
+a prover P and verifier V wherein both parties cooperate to compute F(k, x) with P's 
+secret key k and V's input x such only V learns F(k, x) without learning anything about k. 
+A Verifiable OPRF (VOPRF) is an OPRF wherein P can prove to V that its value F(k, x) 
+was computed using key k, which is bound to its trusted public key Y = kG. Informally,
+this is done by presenting a non-interactive zero-knowledge (NIZK) proof of equality
+between (G, Y) and (Z, M), where Z = kM. 
 
-Verifiable OPRFs (VOPRFs) are OPRF protocols wherein R can prove to S that its value 
-F(k, x) was indeed computed over some input x without tracing back to the original computation. 
-VOPRFs are useful for producing tokens that are verifiable by the signer yet 
-unlinkable to the original requestor. They are used in the Privacy Pass 
-protocol {{PrivacyPass}}. This document is structured as follows:
+VOPRFs are useful for producing tokens that are verifiable by V. This may be needed,
+for example, if V wants assurance that P did not use a unique key in its computation,
+i.e., if V wants key consistency from P. This propery is necessary in some applications,
+e.g., the Privacy Pass protocol {{PrivacyPass}}, wherein this VOPRF is used to generate 
+one-time authentic tokens to bypass CAPTCHA challenges.
+
+This document is structured as follows:
 
 - Section {{background}}: Describe background, related related, and use cases of VOPRF protocols.
-- Section {{properties}}: Discuss the security properties of such protocols.
+- Section {{properties}}: Discuss security properties of VOPRFs.
 - Section {{protocol}}: Specify a VOPRF protocol based on elliptic curves. 
-<!-- - Section XXX: Specify a VOPRF extension that permits signers to prove the private key was integrated into the VOPRF computation. -->
+- Section {{dleq}}: Specify the NIZK discrete logarithm equality construction used for verifying
+protocol outputs. 
 
 ## Terminology
 
@@ -140,9 +145,8 @@ known public key.
 
 # Elliptic Curve VOPRF Protocol {#protocol}
 
-In this section we describe the ECVOPRF protocol. 
-Let G be an elliptic curve group over base field F, of order p, 
-with two distinct hash functions H_1, H_2, and H_3, where H_1 maps 
+In this section we describe the ECVOPRF protocol. Let G be an elliptic curve group over 
+base field F, of prime order p, with two distinct hash functions H_1 and H_2, where H_1 maps 
 arbitrary input onto G and H_2 maps arbitrary input to a fixed-length output, e.g., SHA256.
 Let L be the security parameter. Let k be the signer's secret key,
 and Y = kG be its corresponding public key. Let x be the requestor's input to
@@ -166,7 +170,7 @@ This flow is illustrated below.
     N = Zr^(-1)
 ~~~
 
-The actual PRF function computed is as follows:
+DLEQ(Z/M == Y/G) is described in Section {{dleq}}. The actual PRF function computed is as follows:
 
 ~~~
 F(k, x) = y = H_2(k, kH_1(x))
@@ -197,13 +201,14 @@ with overwhelming probability.
 
 This section provides algorithms for each step in the VOPRF protocol.
 
-1. Requestor computes T = H_1(t) and a random element r from G. (The latter is the
+1. V computes T = H_1(t) and a random element r from G. (The latter is the
 blinding factor.) The requestor computes M = rT.
-2. Requestor sends M to the signer. 
-3. Signer computes Z = xM = rxT. 
-4. Signer sends (Z, Y) to the requestor.
-5. Requestor unblinds Z to compute N = r^(-1)Z = xT.
-6. Requestor outputs the pair (t, H_2(N)).
+2. V sends M to P. 
+3. P computes Z = xM = rxT, and D = DLEQ(Z/M == Y/G).
+4. P sends (Z, D) to V.
+5. V verifies D using Y. If invalid, V outputs an error.
+6. V unblinds Z to compute N = r^(-1)Z = xT.
+7. V outputs the pair H_2(N).
 
 ### ECVOPRF_Blind
 
@@ -220,7 +225,7 @@ Output:
 Steps:
 
  1.  r <-$ Fp
- 2.  M := rx
+ 2.  M := rH_1(x)
  5.  Output (r, M)
 ~~~
 
@@ -260,7 +265,7 @@ Output:
 Steps:
 
  1. N := (-r)Z
- 2. If DLEQ_Validate(Y, M, Z) output N.
+ 2. If DLEQ_Verify(G, Y, M, Z, D) output N.
  3. Output "error"
 ~~~
 
@@ -282,13 +287,14 @@ Steps:
  3. Output y
 ~~~
 
-# Discrete Logarithm Proofs
+# NIZK Discrete Logarithm Equality Proof {#dleq}
 
-In some cases, it may be desirable for the Requestor to have proof that the Signer
-used its private key to compute Z. Specifically, this is done by confirming
-that log_G(Y) == log_G(Z). This may be used, for example, to ensure that the
-Signer uses the same private key for computing the VOPRF output. This proof must
-not reveal the Signer's long-term private key to the Requestor. Consequently,
+In some cases, it may be desirable for the V to have proof that P
+used its private key to compute Z from M. Specifically, this is done by confirming
+that log_G(Y) == log_M(Z). This may be used, for example, to ensure that 
+P uses the same private key for computing the VOPRF output and does not
+attempt to "tag" individual verifiers with select keys. This proof must
+not reveal the P's long-term private key to V. Consequently,
 we extend the protocol in the previous section with a (non-interactive) discrete 
 logarithm equality (DLEQ) algorithm built on a Chaum-Pedersen {{ChaumPedersen}} proof.
 This proof is divided into two procedures: DLEQ_Generate and DLEQ_Verify. These are specified
@@ -300,20 +306,20 @@ below.
 Input: 
 
   G: Generator of group with prime order q
-  E: Orthogonal generator of G
   Y: Signer public key
+  M: Point on G
   Z: Point on G
 
 Output:
 
-  D: DLEQ proof
+  D: DLEQ proof (c, s)
 
 Steps:
 
-1. k <-$ Z_q
-2. A = kD and B = kE.
+1. r <-$ Z_q
+2. A = rG and B = rM.
 2. c = H_3(G,E,M,Z,A,B)
-3. s = (k - cx) (mod q)
+3. s = (r - ck) (mod q)
 4. Output D = (c, s)
 ~~~
 
@@ -323,19 +329,19 @@ Steps:
 Input: 
 
   G: Generator of group with prime order q
-  E: Orthogonal generator of G
   Y: Signer public key
+  M: Point on G
   Z: Point on G
-  D: DLEQ proof composed of tuple (c, s)
+  D: DLEQ proof (c, s)
 
 Output:
 
-  True if log_G(Y) == log_G(Z), False otherwise
+  True if log_G(Y) == log_M(Z), False otherwise
 
 Steps:
 
 1. A' = (sG + cY)
-2. B' = (sE + cZ)
+2. B' = (sM + cZ)
 3. c' = H_3(G,E,M,Z,A',B')
 4. Output c == c'
 ~~~
