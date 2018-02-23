@@ -56,7 +56,12 @@ normative:
 
 --- abstract
 
-TODO
+A Verifiable Oblivious Pseudorandom Function (VOPRF) is a two-party
+protocol for computing a PRF in which the secret key holder learns
+nothing of the input while simultaneously providing proof that its
+private key was used during execution. VOPRFs are useful for computing
+one-time unlinkable tokens that are verifiable by secret key holders.
+This document specifies a VOPRF construction based on Elliptic Curves.
 
 --- middle
 
@@ -86,7 +91,7 @@ This document is structured as follows:
 - Section {{dleq}}: Specify the NIZK discrete logarithm equality construction used for verifying
 protocol outputs. 
 
-## Terminology
+## Terminology {#terminology}
 
 The following terms are used throughout this document.
 
@@ -131,17 +136,15 @@ to that of a PRF. Specifically:
 - Given value x, it is infeasible to learn y = F(k, x) without knowledge of k.
 - Output y = F(k, x) is indistinguishable from a random value in the domain of F. 
 
-Additionally, since this is an oblivious protocol, the following security properties
-are required:
+Additionally, we require the following additional properties:
 
-- S must learn nothing about the R's input.
-- R must learn nothing about the S's private key.
-
-Lastly, as a verifiable function, we require R to be able to verify that
-S used its private key k associated with public Y (=kG) to perfrom the OPRF
-computation. Specifically, R must only finish the protocol if S provides a valid
-proof, and S must not be able to participate in the protocol without using its
-known public key. 
+- Non-malleable: Given (x, y = F(k, x)), V must not be able to generate (x', y') where 
+x' != x and y' = F(k, x'). 
+- Verifiable:: V must only complete execution of the protocol if it asserts
+that P used its secret key k, associated with public key Y = kG, in execution.
+- Oblivious: P must learn nothing about the V's input, and V must learn nothing about the P's private key.
+- Unlinkable: Given (x, y = F(k, x)), if V reveals x to P, P cannot link x to
+the protocol instance in which y = F(k, x) was computed.
 
 # Elliptic Curve VOPRF Protocol {#protocol}
 
@@ -398,24 +401,40 @@ EC-VOPRF-CURVE448-SHA512:
 - H_1: ((TODO: reference hash-to-curve draft))
 - H_2: SHA512
 
-# IANA Considerations
-
-TODO
-
 # Security Considerations
 
-TODO
+- key generation and secrecy
+- hashing to curve reliance
+
+## Timing Attacks
+
+To ensure no information is leaked during protocol execution, all operations
+MUST be constant time.
+
+XXX
+
+# Privacy Considerations
+
+## Key Consistency
+
+DLEQ proofs are essential to the protocol to allow V to check that P's designated private 
+key was used in the computation. A side effect of this property is that it prevents P
+from using unique key for select verifiers as a way of "tagging" them. If all verifiers
+expect use of a certain private key, e.g., by locating P's public key key published from
+a trusted registry, then P cannot present unique keys to an indivdual verifier.
+
+## XXX
 
 # Acknowledgments
 
-TODO
+This document is a direct result of the Privacy Pass team.
 
 --- back
 
 # Test Vectors
 
-This section includes test vectors for the primary VOPRF protocol, excluding DLEQ output. 
-((TODO: add DLEQ vectors.))
+This section includes test vectors for the primary VOPRF protocol, 
+excluding DLEQ output. ((TODO: add DLEQ vectors.))
 
 ~~~
 P-224
