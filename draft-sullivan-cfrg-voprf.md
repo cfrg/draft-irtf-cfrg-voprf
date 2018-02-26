@@ -75,7 +75,7 @@ secret key k and V's input x such only V learns F(k, x) without learning anythin
 A Verifiable OPRF (VOPRF) is an OPRF wherein P can prove to V that its value F(k, x) 
 was computed using key k, which is bound to its trusted public key Y = kG. Informally,
 this is done by presenting a non-interactive zero-knowledge (NIZK) proof of equality
-between (G, Y) and (Z, M), where Z = kM. 
+between (G, Y) and (Z, M), where Z = kM for some point M. 
 
 VOPRFs are useful for producing tokens that are verifiable by V. This may be needed,
 for example, if V wants assurance that P did not use a unique key in its computation,
