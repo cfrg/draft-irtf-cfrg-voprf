@@ -24,8 +24,8 @@ author:
     ins: C. A. Wood
     name: Christopher A. Wood
     org: Apple Inc.
-    street: 1 Infinite Loop
-    city: Cupertino, Califoarnia 95014
+    street: One Apple Park Way
+    city: Cupertino, California 95014
     country: United States of America
     email: cawood@apple.com
 
@@ -98,8 +98,8 @@ The following terms are used throughout this document.
 - PRF: Pseudorandom Function.
 - OPRF: Oblivious PRF.
 - VOPRF: Verifiable Oblivious Pseudorandom Function.
-- Requestor (R): Protocol initiator when computing F(k, x).
-- Signer (S): Holder of private VOPRF key k.
+- Verifier (V): Protocol initiator when computing F(k, x).
+- Prover (P): Holder of secret key k.
 - NIZK: Non-interactive zero knowledge.
 - DLEQ: Discrete Logarithm Equality.
 
@@ -115,18 +115,17 @@ VOPRFs are functionally related to RSA-based blind signature schemes, e.g., {{Ch
 Such a scheme works as follows. 
 Let m be a message to be signed by a server. It is assumed to be a member of the 
 RSA group. Also, let N be the RSA modulus, and e and d be the public and private keys, 
-respectively. The Requestor and Signer engage in the following protocol given input m. 
+respectively. A prover P and verifier V engage in the following protocol given input m. 
 
-1. Requestor generates a random blinding element r from the RSA group, and 
-compute m' = m^r (mod N). Send m' to the Signer.
-2. Signer uses m' to compute s' = (m')^d (mod N), and sends s' to the Requestor.
-3. Requestor removes the blinding factor r to obtain the original 
-signature as s = (s')^(r^-1) (mod N).
+1. V generates a random blinding element r from the RSA group, and 
+compute m' = m^r (mod N). Send m' to the P.
+2. P uses m' to compute s' = (m')^d (mod N), and sends s' to the V.
+3. V removes the blinding factor r to obtain the original signature as s = (s')^(r^-1) (mod N).
 
 By the properties of RSA, s is clearly a valid signature for m. 
-(V)OPRF protocols differ from blind signatures in the same way that 
-traditional digital signatures differ from PRFs. This is discussed more
-in the following section.
+OPRF protocols differ from blind signatures in the same way that 
+traditional digital signatures differ from PRFs. This is discussed 
+more in the following section.
   
 # Security Properties {#properties}
 
@@ -161,30 +160,32 @@ removes its blind and hashes the result using H_2 to yield an output.
 This flow is illustrated below.
 
 ~~~
-    Requestor               Signer
+     Verifier              Prover
+  ------------------------------------
      r <-$ G
      M = rH_1(x) 
                    M
                 ------->    
                            Z = kM
-                           D = DLEQ(Z/M == Y/G)
+                           D = DLEQ_Generate(Z/M == Y/G)
                    Z,D
                 <-------
-    N = Zr^(-1)
+    b = DLEQ_Verify(M, Z, D)
+    Output H_2(x, Zr^(-1)) if b=1, else "error"
 ~~~
 
 DLEQ(Z/M == Y/G) is described in Section {{dleq}}. The actual PRF function computed is as follows:
 
 ~~~
-F(k, x) = y = H_2(k, kH_1(x))
+F(k, x) = H_2(x, N) = H_2(x, kH_1(x))
 ~~~
 
-Note that R finishes this computation upon receiving kH_1(x) from S. The output
-from S is not the PRF value.
+Note that V finishes this computation upon receiving kH_1(x) from P. The output
+from P is not the PRF value.
 
 This protocol may be decomposed into a series of steps, as described below:
 
-- ECVOPRF_Blind(x): Compute and return a blind, r, and blinded representation of x, M.
+- ECVOPRF_Blind(x): Compute and return a blind, r, and blinded representation of x, denoted M.
 - ECVOPRF_Sign(M): Sign input M using secret key k to produce Z, generate a 
 proof D of DLEQ(Z/M == Y/G), and output (Z, D).
 - ECVOPRF_Unblind((Z, D), r): Unblind blinded signature Z with blind r, yielding N. 
@@ -195,7 +196,7 @@ Protocol correctness requires that, for any key k, input x, and (r, M) = ECVOPRF
 it must be true that:
 
 ~~~
-ECVOPRF_Finalize(ECVOPRF_Unblind(ECVOPRF_Sign(M), M, r)) = F(k, x)
+ECVOPRF_Finalize(x, ECVOPRF_Unblind(ECVOPRF_Sign(M), M, r)) = F(k, x)
 ~~~
 
 with overwhelming probability. 
@@ -204,14 +205,14 @@ with overwhelming probability.
 
 This section provides algorithms for each step in the VOPRF protocol.
 
-1. V computes T = H_1(t) and a random element r from G. (The latter is the
-blinding factor.) The requestor computes M = rT.
+1. V computes X = H_1(x) and a random element r from G. (The latter is the
+blinding factor.) The requestor computes M = rX.
 2. V sends M to P. 
-3. P computes Z = xM = rxT, and D = DLEQ(Z/M == Y/G).
+3. P computes Z = kM = rkX, and D = DLEQ(Z/M == Y/G).
 4. P sends (Z, D) to V.
 5. V verifies D using Y. If invalid, V outputs an error.
-6. V unblinds Z to compute N = r^(-1)Z = xT.
-7. V outputs the pair H_2(N).
+6. V unblinds Z to compute N = r^(-1)Z = kX.
+7. V outputs the pair H_2(x, N).
 
 ### ECVOPRF_Blind
 
@@ -277,6 +278,7 @@ Steps:
 ~~~
 Input:
 
+ x - PRF input string.
  N - Point on G, or "error".
 
 Output:
@@ -286,7 +288,7 @@ Output:
 Steps:
 
  1. If N == "error", output "error".
- 2. y := H_2(N)
+ 2. y := H_2(x, N)
  3. Output y
 ~~~
 
@@ -358,60 +360,74 @@ EC-VOPRF-P256-SHA256:
 - G: P-256
 - H_1: ((TODO: reference hash-to-curve draft))
 - H_2: SHA256
+- H_3: SHA256
 
 EC-VOPRF-P256-SHA512:
 
 - G: P-256
 - H_1: ((TODO: reference hash-to-curve draft))
 - H_2: SHA512
+- H_3: SHA512
 
 EC-VOPRF-P384-SHA256:
 
 - G: P-384
 - H_1: ((TODO: reference hash-to-curve draft))
 - H_2: SHA256
+- H_3: SHA256
 
 EC-VOPRF-P384-SHA512:
 
 - G: P-384
 - H_1: ((TODO: reference hash-to-curve draft))
 - H_2: SHA512
+- H_3: SHA512
 
 EC-VOPRF-CURVE25519-SHA256:
 
 - G: Curve25519 {{RFC7748}}
 - H_1: ((TODO: reference hash-to-curve draft))
 - H_2: SHA256
+- H_3: SHA256
 
 EC-VOPRF-CURVE25519-SHA512:
 
 - G: Curve25519 {{RFC7748}}
 - H_1: ((TODO: reference hash-to-curve draft))
 - H_2: SHA512
+- H_3: SHA512
 
 EC-VOPRF-CURVE448-SHA256:
 
 - G: Curve448 {{RFC7748}} 
 - H_1: ((TODO: reference hash-to-curve draft))
 - H_2: SHA256
+- H_3: SHA256
 
 EC-VOPRF-CURVE448-SHA512:
 
 - G: Curve448 {{RFC7748}} 
 - H_1: ((TODO: reference hash-to-curve draft))
 - H_2: SHA512
+- H_3: SHA512
 
 # Security Considerations
 
-- key generation and secrecy
-- hashing to curve reliance
+Security of the protocol depends on P's secrecy of k. Best practices recommend P 
+regularly rotate k so as to keep its window of composmise small. Moreover, it each
+key should be generated from a source of safe, cryptographic randomness. 
 
-## Timing Attacks
+Another critical aspect of this protocol is reliance on {{H2C}} for mapping
+arbitrary input to points on a curve. Security requires this mapping be pre-image
+and collision resistant. 
+
+## Timing Leaks
 
 To ensure no information is leaked during protocol execution, all operations
-MUST be constant time.
-
-XXX
+that use secret data MUST be constant time. Operations that SHOULD be constant
+time include: H_1() (hashing arbitrary strings to curves) and DLEQ_Generate().
+Draft {{H2C}} describes various algorithms for constant-time implementations of 
+H_1 that suffice. 
 
 # Privacy Considerations
 
@@ -423,18 +439,18 @@ from using unique key for select verifiers as a way of "tagging" them. If all ve
 expect use of a certain private key, e.g., by locating P's public key key published from
 a trusted registry, then P cannot present unique keys to an indivdual verifier.
 
-## XXX
-
 # Acknowledgments
 
-This document is a direct result of the Privacy Pass team.
+This document resulted from the work of the Privacy Pass team {{PrivacyPass}}. 
 
 --- back
 
 # Test Vectors
 
 This section includes test vectors for the primary VOPRF protocol, 
-excluding DLEQ output. ((TODO: add DLEQ vectors.))
+excluding DLEQ output. 
+
+((TODO: add DLEQ vectors))
 
 ~~~
 P-224
@@ -567,6 +583,10 @@ Y: 04006b0413e2686c4bb62340706de7723471080093422f02dd125c3e72f3507b9200d11481468
 ~~~
 
 # Tamarin Model
+
+This section includes a work-in-progress Tamarin model for the VOPRF protocol without DLEQ proofs.
+
+((TODO: model DLEQ proofs))
 
 ~~~
 theory VOPRFs
