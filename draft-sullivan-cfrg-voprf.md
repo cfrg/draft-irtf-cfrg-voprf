@@ -153,10 +153,10 @@ was computed.
 
 # Elliptic Curve VOPRF Protocol {#protocol}
 
-In this section we describe the ECVOPRF protocol. Let GG be a prime-order subgroup with prime order 
-q of an elliptic curve over base field F, with two distinct hash functions H_1 and H_2, where H_1 maps
+In this section we describe the ECVOPRF protocol. Let GG be a prime-order subgroup 
+of an elliptic curve over base field GF(p) for prime p, with two distinct hash functions H_1 and H_2, where H_1 maps
 arbitrary input onto GG and H_2 maps arbitrary input to a fixed-length output, e.g., SHA256.
-It should be noted that all hash functions in the protocol are assumed to be random oracles.
+All hash functions in the protocol are assumed to be random oracles.
 Let L be the security parameter. Let k be the prover's (P) secret key,
 and Y = kG be its corresponding public key for some generator G taken from the group GG. 
 Let x be the verifier's (V) input to the VOPRF protocol. (Commonly, it is a random L-bit
@@ -217,7 +217,7 @@ with overwhelming probability.
 
 This section provides algorithms for each step in the VOPRF protocol.
 
-1. V computes X = H_1(x) and a random element r (blinding factor) from Z_p, and computes M = rX.
+1. V computes X = H_1(x) and a random element r (blinding factor) from GF(p), and computes M = rX.
 2. V sends M to P. 
 3. P computes Z = kM = rkX, and D = DLEQ(Z/M == Y/G).
 4. P sends (Z, D) to V.
@@ -239,7 +239,7 @@ Output:
 
 Steps:
 
- 1.  r <-$ Z_p
+ 1.  r <-$ GF(p)
  2.  M := rH_1(x)
  5.  Output (r, M)
 ~~~
@@ -321,7 +321,7 @@ These are specified below.
 ~~~
 Input: 
 
-  G: Generator of group GG with prime order q.
+  G: Generator of group GG with prime order p.
   Y: Signer public key.
   M: Point in GG.
   Z: Point in GG.
@@ -333,7 +333,7 @@ Output:
 
 Steps:
 
-1. r <-$ Z_p
+1. r <-$ GF(p)
 2. A = rG and B = rM.
 2. c = H_3(G,Y,M,Z,A,B)
 3. s = (r - ck) (mod p)
@@ -345,7 +345,7 @@ Steps:
 ~~~
 Input: 
 
-  G: Generator of group GG with prime order q.
+  G: Generator of group GG with prime order p.
   Y: Signer public key.
   M: Point in GG.
   Z: Point in GG.
