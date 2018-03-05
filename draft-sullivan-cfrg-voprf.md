@@ -33,7 +33,7 @@ normative:
   RFC2119:
   RFC7748:
   RFC8032:
-  I-D.cfrg-sullivan-cfrg-voprf:
+  I-D.sullivan-cfrg-voprf:
   PrivacyPass:
     title: Privacy Pass
     target: https://github.com/privacypass/challenge-bypass-server
@@ -367,56 +367,56 @@ This section specifies supported VOPRF group and hash function instantiations.
 EC-VOPRF-P256-SHA256:
 
 - G: P-256
-- H_1: ((TODO: choose from {{I-D.cfrg-sullivan-cfrg-voprf}}
+- H_1: ((TODO: choose from {{I-D.sullivan-cfrg-voprf}}
 - H_2: SHA256
 - H_3: SHA256
 
 EC-VOPRF-P256-SHA512:
 
 - G: P-256
-- H_1: ((TODO: choose from {{I-D.cfrg-sullivan-cfrg-voprf}}
+- H_1: ((TODO: choose from {{I-D.sullivan-cfrg-voprf}}
 - H_2: SHA512
 - H_3: SHA512
 
 EC-VOPRF-P384-SHA256:
 
 - G: P-384
-- H_1: ((TODO: choose from {{I-D.cfrg-sullivan-cfrg-voprf}}
+- H_1: ((TODO: choose from {{I-D.sullivan-cfrg-voprf}}
 - H_2: SHA256
 - H_3: SHA256
 
 EC-VOPRF-P384-SHA512:
 
 - G: P-384
-- H_1: ((TODO: choose from {{I-D.cfrg-sullivan-cfrg-voprf}}
+- H_1: ((TODO: choose from {{I-D.sullivan-cfrg-voprf}}
 - H_2: SHA512
 - H_3: SHA512
 
 EC-VOPRF-CURVE25519-SHA256:
 
 - G: Curve25519 {{RFC7748}}
-- H_1: ((TODO: choose from {{I-D.cfrg-sullivan-cfrg-voprf}}
+- H_1: ((TODO: choose from {{I-D.sullivan-cfrg-voprf}}
 - H_2: SHA256
 - H_3: SHA256
 
 EC-VOPRF-CURVE25519-SHA512:
 
 - G: Curve25519 {{RFC7748}}
-- H_1: ((TODO: choose from {{I-D.cfrg-sullivan-cfrg-voprf}}
+- H_1: ((TODO: choose from {{I-D.sullivan-cfrg-voprf}}
 - H_2: SHA512
 - H_3: SHA512
 
 EC-VOPRF-CURVE448-SHA256:
 
 - G: Curve448 {{RFC7748}} 
-- H_1: ((TODO: choose from {{I-D.cfrg-sullivan-cfrg-voprf}}
+- H_1: ((TODO: choose from {{I-D.sullivan-cfrg-voprf}}
 - H_2: SHA256
 - H_3: SHA256
 
 EC-VOPRF-CURVE448-SHA512:
 
 - G: Curve448 {{RFC7748}} 
-- H_1: ((TODO: choose from {{I-D.cfrg-sullivan-cfrg-voprf}}
+- H_1: ((TODO: choose from {{I-D.sullivan-cfrg-voprf}}
 - H_2: SHA512
 - H_3: SHA512
 
