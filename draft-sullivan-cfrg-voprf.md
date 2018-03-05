@@ -451,6 +451,10 @@ a trusted registry, then P cannot present unique keys to an indivdual verifier.
 
 This document resulted from the work of the Privacy Pass team {{PrivacyPass}}. 
 
+# Contributors 
+
+Alex Davidson contributed to earlier versions of this document.
+
 --- back
 
 # Test Vectors
@@ -590,110 +594,3 @@ Y: 04006b0413e2686c4bb62340706de7723471080093422f02dd125c3e72f3507b9200d11481468
    240183d777181259761741343959d476bbc2591a1af0a516e6403a6b81423234746d7a2e8c2ce60a
 ~~~
 
-# Tamarin Model
-
-This section includes a work-in-progress Tamarin model for the VOPRF protocol without DLEQ proofs.
-
-((TODO: model DLEQ proofs))
-
-~~~
-theory VOPRFs
-begin
-
-/*
-Protocol:
- Requestor               Signer
-     r <-$ G
-     M = rH_1(x) 
-                   M
-                ------->    
-                           Z = kM
-                   Z
-                <-------
-    N = Zr^(-1)    
-*/
-
-builtins: hashing, asymmetric-encryption, diffie-hellman
-
-/* Generate ephemeral keypair */
-rule generate_ephemeral:
-   [ Fr(~secretk)] 
-   -->
-   [ Keys(~secretk, 'g'^~secretk) ]
-
-/* Key Reveals */
-rule key_reveal:
-   [ Keys(~secretk, 'g'^~secretk) ]--[ Key_reveal(~secretk) ]-> [ Out(~secretk) ]
-
-/* Signed message reveal */
-rule Message_reveal:
-  let token = ('g'^~secretk)^~x
-  in
-  [ Finalize(token) ] --[ Reveal_message(token)]-> [ Out(token)]
-
-/* Protocol rules */
-rule SendRandomBlindedValue:
-  let blinded_input = ('g'^~x)^~r
-  in
-    [ 
-      Fr(~r), // choose random r
-      Fr(~x)  // choose random x -- this is supposed to be input to the protocol, though that is not necessary.
-    ]
-    -->
-    [ 
-      Out(blinded_input), // output g^{xr}
-      StoreBlindedValue(~r, ~x)
-    ]
-
-rule SendRandomFixedValue:
-  let x = h('voprf')
-      blinded_input = ('g'^x)^~r
-  in
-    [ 
-      Fr(~r) // choose random r
-    ]
-    -->
-    [ 
-      Out(blinded_input), // output g^{xm}
-      StoreBlindedValue(~r, x)
-    ]
-
-rule SignAndSendBlindedValue:
-    let blinded_value = ('g'^~x)^~r
-    in
-    [
-      Keys(~secretk, 'g'^~secretk),
-      In(blinded_value)
-    ]
-    -->
-    [
-      Out(blinded_value^~secretk)
-    ]
-
-rule UnblindAndFinalizeSignedValue:
-  let signed_value = (('g'^~x)^~r)^~secretk
-  in
-    [ 
-      StoreBlindedValue(~r, ~x),
-      In(signed_value)
-    ]
-    --[ Finalize(signed_value^inv(~r)) ]->
-    [
-      // pass
-    ]
-
-// Message secrecy lemma
-lemma message_secrecy:
-  "(All #i1 t .
-    (
-      Finalize(t) @ i1 
-      &
-      not ( (Ex A #ia . Key_reveal( A ) @ ia ) 
-          | (Ex B #ib . Reveal_message( B ) @ ib )
-          )
-    )
-    ==> not (Ex #i2. K( t ) @ i2 )
-  )"
-
-end
-~~~
