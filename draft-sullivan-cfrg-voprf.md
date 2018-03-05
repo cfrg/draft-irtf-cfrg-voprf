@@ -153,8 +153,8 @@ was computed.
 
 # Elliptic Curve VOPRF Protocol {#protocol}
 
-In this section we describe the ECVOPRF protocol. Let GG be an elliptic curve group over 
-base field F, of prime order p, with two distinct hash functions H_1 and H_2, where H_1 maps 
+In this section we describe the ECVOPRF protocol. Let GG be a prime-order subgroup of an elliptic curve over
+base field F, with two distinct hash functions H_1 and H_2, where H_1 maps
 arbitrary input onto GG and H_2 maps arbitrary input to a fixed-length output, e.g., SHA256.
 It should be noted that all hash functions in the protocol are assumed to be random oracles.
 Let L be the security parameter. Let k be the prover's (P) secret key,
