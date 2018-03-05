@@ -228,8 +228,8 @@ Internet-Draft                   VOPRFs                       March 2018
 
 4.  Elliptic Curve VOPRF Protocol
 
-   In this section we describe the ECVOPRF protocol.  Let GG be an
-   elliptic curve group over base field F, of prime order p, with two
+   In this section we describe the ECVOPRF protocol.  Let GG be a prime-
+   order subgroup of an elliptic curve over base field F, with two
    distinct hash functions H_1 and H_2, where H_1 maps arbitrary input
    onto GG and H_2 maps arbitrary input to a fixed-length output, e.g.,
    SHA256.  It should be noted that all hash functions in the protocol
