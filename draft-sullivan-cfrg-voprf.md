@@ -426,7 +426,7 @@ Security of the protocol depends on P's secrecy of k. Best practices recommend P
 regularly rotate k so as to keep its window of compromise small. Moreover, it each
 key should be generated from a source of safe, cryptographic randomness. 
 
-Another critical aspect of this protocol is reliance on {{H2C}} for mapping
+Another critical aspect of this protocol is reliance on {{I-D.sullivan-cfrg-voprf}} for mapping
 arbitrary input to points on a curve. Security requires this mapping be pre-image
 and collision resistant. 
 
@@ -435,8 +435,8 @@ and collision resistant.
 To ensure no information is leaked during protocol execution, all operations
 that use secret data MUST be constant time. Operations that SHOULD be constant
 time include: H_1() (hashing arbitrary strings to curves) and DLEQ_Generate().
-Draft {{H2C}} describes various algorithms for constant-time implementations of 
-H_1 that suffice. 
+{{I-D.sullivan-cfrg-voprf}} describes various algorithms for constant-time 
+implementations of H_1. 
 
 # Privacy Considerations
 
