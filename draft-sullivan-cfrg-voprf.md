@@ -124,12 +124,9 @@ compute m' = m^r (mod N). Send m' to the P.
 2. P uses m' to compute s' = (m')^d (mod N), and sends s' to the V.
 3. V removes the blinding factor r to obtain the original signature as s = (s')^(r^-1) (mod N).
 
-By the properties of RSA, s is clearly a valid signature for m. 
-OPRF protocols differ from blind signatures in the same way that 
-traditional digital signatures differ from PRFs. This is discussed 
-more in the following section.
-
-ALEX: I'm not sure I understand the comment above? How are PRFs and digital signatures similar at all?
+By the properties of RSA, s is clearly a valid signature for m. OPRF protocols are the symmetric
+equivalent to blind signatures in the same way that PRFs are the symmetric equivalent traditional
+digital signatures. This is discussed more in the following section.
   
 # Security Properties {#properties}
 
@@ -151,13 +148,14 @@ was computed.
 
 # Elliptic Curve VOPRF Protocol {#protocol}
 
-In this section we describe the ECVOPRF protocol. Let G be an elliptic curve group over 
+In this section we describe the ECVOPRF protocol. Let GG be an elliptic curve group over 
 base field F, of prime order p, with two distinct hash functions H_1 and H_2, where H_1 maps 
-arbitrary input onto G and H_2 maps arbitrary input to a fixed-length output, e.g., SHA256.
+arbitrary input onto GG and H_2 maps arbitrary input to a fixed-length output, e.g., SHA256.
+It should be noted that all hash functions in the protocol are assumed to be random oracles.
 Let L be the security parameter. Let k be the signer's secret key,
-and Y = kG be its corresponding public key. Let x be the requestor's (V) input to
-the VOPRF protocol. (Commonly, it is a random L-bit string, though this 
-is not required.) ECVOPRF begins with the requestor randomly blinding
+and Y = kG be its corresponding public key for some generator G taken from the group GG. 
+Let x be the requestor's (V) input to the VOPRF protocol. (Commonly, it is a random L-bit
+string, though this is not required.) ECVOPRF begins with the requestor randomly blinding
 its input for the signer. The latter then applies its secret key to the blinded
 value and returns the result. To finish the computation, the requestor then 
 removes its blind and hashes the result using H_2 to yield an output. 
@@ -178,22 +176,16 @@ This flow is illustrated below.
     Output H_2(x, Zr^(-1)) if b=1, else "error"
 ~~~
 
-ALEX: G is used twice above (once for the group and once for the commitment)
-
 DLEQ(Z/M == Y/G) is described in Section {{dleq}}. Intuitively, the DLEQ proof allows P to prove
 to V in NIZK that the same key k is the exponent of both Y and M. In other words, computing the
 discrete logarithm of Y and Z (with respect to G and M, respectively) results in the same value.
 The committed value Y should be public before the protocol is initiated.
-
-(ALEX: I thought it would be better if the DLEQ is explained intuitively a bit earlier.)
 
 The actual PRF function computed is as follows:
 
 ~~~
 F(k, x) = H_2(x, N) = H_2(x, kH_1(x))
 ~~~
-
-ALEX: I guess the hash functions here are assumed to be random oracles?
 
 Note that V finishes this computation upon receiving kH_1(x) from P. The output
 from P is not the PRF value.
@@ -325,10 +317,11 @@ below.
 ~~~
 Input: 
 
-  G: Generator of group with prime order q
+  G: Generator of group GG with prime order q
   Y: Signer public key
   M: Point on G
   Z: Point on G
+  H_3: A hash function from GG to a bitstring of length L modelled as a random oracle
 
 Output:
 
@@ -338,7 +331,7 @@ Steps:
 
 1. r <-$ Z_q
 2. A = rG and B = rM.
-2. c = H_3(G,E,M,Z,A,B)
+2. c = H_3(G,Y,M,Z,A,B)
 3. s = (r - ck) (mod q)
 4. Output D = (c, s)
 ~~~
