@@ -10,7 +10,7 @@ Expires: September 6, 2018                                    Apple Inc.
 
 
           Verifiable Oblivious Pseudorandom Functions (VOPRFs)
-                    draft-sullivan-cfrg-voprf-latest
+                    draft-sullivan-cfrg-voprf-00
 
 Abstract
 

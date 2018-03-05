@@ -1,7 +1,7 @@
 ---
 title: Verifiable Oblivious Pseudorandom Functions (VOPRFs)
 abbrev: VOPRFs
-docname: draft-sullivan-cfrg-voprf
+docname: draft-sullivan-cfrg-voprf-latest
 date:
 category: info
 
