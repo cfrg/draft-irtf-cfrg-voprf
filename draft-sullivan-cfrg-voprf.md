@@ -333,10 +333,10 @@ Output:
 
 Steps:
 
-1. r <-$ Z_q
+1. r <-$ Z_p
 2. A = rG and B = rM.
 2. c = H_3(G,Y,M,Z,A,B)
-3. s = (r - ck) (mod q)
+3. s = (r - ck) (mod p)
 4. Output D = (c, s)
 ~~~
 
