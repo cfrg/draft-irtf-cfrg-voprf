@@ -69,13 +69,13 @@ key holders. This document specifies a VOPRF construction based on Elliptic Curv
 # Introduction
 
 A pseudorandom function (PRF) F(k, x) is an efficiently computable function with
-secret key k on input x. F is pseudorandom if the output y = F(k, x) is indistinguishable
+secret key k on input x. Roughly, F is pseudorandom if the output y = F(k, x) is indistinguishable
 from uniformly sampling any element in F's range for random choice of k. An oblivious PRF
 (OPRF) is a two-party protocol between a prover P and verifier V where P holds a PRF key k
 and V holds some input x. The protocol allows both parties to cooperate in computing F(k, x)
 with P's secret key k and V's input x such that: V learns F(k, x) without learning anything
 about k; and P does not learn anything about x. A Verifiable OPRF (VOPRF) is an OPRF
-wherein P can prove to V that its value F(k, x) was computed using key k, which is bound to
+wherein P can prove to V that F(k, x) was computed using key k, which is bound to
 a trusted public key Y = kG. Informally, this is done by presenting a non-interactive
 zero-knowledge (NIZK) proof of equality between (G, Y) and (Z, M), where Z = kM for some
 point M.
@@ -86,7 +86,9 @@ i.e., if V wants key consistency from P. This property is necessary in some appl
 e.g., the Privacy Pass protocol {{PrivacyPass}}, wherein this VOPRF is used to generate 
 one-time authentic tokens to bypass CAPTCHA challenges.
 
-This document is structured as follows:
+This document introduces a VOPRF protocol built on Elliptic Curves, called ECVOPRF. It describes
+the protocol, its security properties, and provides preliminary test vectors for 
+experimentation. This rest of document is structured as follows:
 
 - Section {{background}}: Describe background, related related, and use cases of VOPRF protocols.
 - Section {{properties}}: Discuss security properties of VOPRFs.
@@ -213,7 +215,7 @@ with overwhelming probability.
 
 This section provides algorithms for each step in the VOPRF protocol.
 
-1. V computes X = H_1(x) and a random element r from G. (The latter is the
+1. V computes X = H_1(x) and a random element r from Z_p. (The latter is the
 blinding factor.) The requestor computes M = rX.
 2. V sends M to P. 
 3. P computes Z = kM = rkX, and D = DLEQ(Z/M == Y/G).
@@ -231,12 +233,12 @@ Input:
 
 Output:
 
- r - Random scalar in [1, p - 1]
- M - Blinded representation of x using blind r, a point on G.
+ r - Random scalar in [1, p - 1].
+ M - Blinded representation of x using blind r, a point in GG.
 
 Steps:
 
- 1.  r <-$ Fp
+ 1.  r <-$ Z_p
  2.  M := rH_1(x)
  5.  Output (r, M)
 ~~~
@@ -246,11 +248,11 @@ Steps:
 ~~~
 Input:
 
- M - Point on G.
+ M - Point in G.
 
 Output:
 
- Z - Scalar multiplication of k and M, point on G.
+ Z - Scalar multiplication of k and M, point in GG.
  D - DLEQ proof that log_G(Y) == log_M(Z).
 
 Steps:
@@ -265,19 +267,19 @@ Steps:
 ~~~
 Input:
 
- Z - Point on G.
+ Z - Point in GG.
  D - DLEQ proof that log_G(Y) == log_M(Z).
- M - Blinded representation of x using blind r, a point on G.
+ M - Blinded representation of x using blind r, a point in G.
  r - Random scalar in [1, p - 1].
 
 Output:
 
- N - Unblinded signature, point on G.
+ N - Unblinded signature, point in GG.
 
 Steps:
 
  1. N := (-r)Z
- 2. If DLEQ_Verify(G, Y, M, Z, D) output N.
+ 2. If DLEQ_Verify(G, Y, M, Z, D) output N
  3. Output "error"
 ~~~
 
@@ -287,7 +289,7 @@ Steps:
 Input:
 
  x - PRF input string.
- N - Point on G, or "error".
+ N - Point in GG, or "error".
 
 Output:
 
@@ -303,30 +305,30 @@ Steps:
 # NIZK Discrete Logarithm Equality Proof {#dleq}
 
 In some cases, it may be desirable for the V to have proof that P
-used its private key to compute Z from M. Specifically, this is done by confirming
-that log_G(Y) == log_M(Z). This may be used, for example, to ensure that 
+used its private key to compute Z from M. This is done by proving
+log_G(Y) == log_M(Z). This may be used, for example, to ensure that 
 P uses the same private key for computing the VOPRF output and does not
 attempt to "tag" individual verifiers with select keys. This proof must
 not reveal the P's long-term private key to V. Consequently,
 we extend the protocol in the previous section with a (non-interactive) discrete 
 logarithm equality (DLEQ) algorithm built on a Chaum-Pedersen {{ChaumPedersen}} proof.
-This proof is divided into two procedures: DLEQ_Generate and DLEQ_Verify. These are specified
-below.
+This proof is divided into two procedures: DLEQ_Generate and DLEQ_Verify. 
+These are specified below.
 
 ## DLEQ_Generate
 
 ~~~
 Input: 
 
-  G: Generator of group GG with prime order q
-  Y: Signer public key
-  M: Point on G
-  Z: Point on G
-  H_3: A hash function from GG to a bitstring of length L modelled as a random oracle
+  G: Generator of group GG with prime order q.
+  Y: Signer public key.
+  M: Point in GG.
+  Z: Point in GG.
+  H_3: A hash function from GG to a bitstring of length L modelled as a random oracle.
 
 Output:
 
-  D: DLEQ proof (c, s)
+  D: DLEQ proof (c, s).
 
 Steps:
 
@@ -342,15 +344,15 @@ Steps:
 ~~~
 Input: 
 
-  G: Generator of group with prime order q
-  Y: Signer public key
-  M: Point on G
-  Z: Point on G
-  D: DLEQ proof (c, s)
+  G: Generator of group GG with prime order q.
+  Y: Signer public key.
+  M: Point in GG.
+  Z: Point in GG.
+  D: DLEQ proof (c, s).
 
 Output:
 
-  True if log_G(Y) == log_M(Z), False otherwise
+  True if log_G(Y) == log_M(Z), False otherwise.
 
 Steps:
 
@@ -426,9 +428,9 @@ Security of the protocol depends on P's secrecy of k. Best practices recommend P
 regularly rotate k so as to keep its window of compromise small. Moreover, it each
 key should be generated from a source of safe, cryptographic randomness. 
 
-Another critical aspect of this protocol is reliance on {{I-D.sullivan-cfrg-hash-to-curve}} for mapping
-arbitrary input to points on a curve. Security requires this mapping be pre-image
-and collision resistant. 
+Another critical aspect of this protocol is reliance on {{I-D.sullivan-cfrg-hash-to-curve}} 
+for mapping arbitrary input to points on a curve. Security requires this mapping be 
+pre-image and collision resistant. 
 
 ## Timing Leaks
 
