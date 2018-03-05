@@ -57,29 +57,31 @@ normative:
 --- abstract
 
 A Verifiable Oblivious Pseudorandom Function (VOPRF) is a two-party
-protocol for computing a PRF in which the secret key holder learns
-nothing of the input while simultaneously providing proof that its
-private key was used during execution. VOPRFs are useful for computing
-one-time unlinkable tokens that are verifiable by secret key holders.
-This document specifies a VOPRF construction based on Elliptic Curves.
+protocol for computing the output of a PRF that is symmetrically verifiable.
+In summary, the PRF key holder learns nothing of the input while simultaneously
+providing proof that its private key was used during execution. VOPRFs are
+useful for computing one-time unlinkable tokens that are verifiable by secret
+key holders. This document specifies a VOPRF construction based on Elliptic Curves.
 
 --- middle
 
 # Introduction
 
 A pseudorandom function (PRF) F(k, x) is an efficiently computable function with
-secret key k on input x whose output is indistinguishable from any element in
-F's range for some random key k. An oblivious PRF (OPRF) is a two-party protocol between 
-a prover P and verifier V wherein both parties cooperate to compute F(k, x) with P's 
-secret key k and V's input x such only V learns F(k, x) without learning anything about k. 
-A Verifiable OPRF (VOPRF) is an OPRF wherein P can prove to V that its value F(k, x) 
-was computed using key k, which is bound to its trusted public key Y = kG. Informally,
-this is done by presenting a non-interactive zero-knowledge (NIZK) proof of equality
-between (G, Y) and (Z, M), where Z = kM for some point M. 
+secret key k on input x. F is pseudorandom if the output y = F(k, x) is indistinguishable
+from uniformly sampling any element in F's range for random choice of k. An oblivious PRF
+(OPRF) is a two-party protocol between a prover P and verifier V where P holds a PRF key k
+and V holds some input x. The protocol allows both parties to cooperate in computing F(k, x)
+with P's secret key k and V's input x such that: V learns F(k, x) without learning anything
+about k; and P does not learn anything about x. A Verifiable OPRF (VOPRF) is an OPRF
+wherein P can prove to V that its value F(k, x) was computed using key k, which is bound to
+a trusted public key Y = kG. Informally, this is done by presenting a non-interactive
+zero-knowledge (NIZK) proof of equality between (G, Y) and (Z, M), where Z = kM for some
+point M.
 
 VOPRFs are useful for producing tokens that are verifiable by V. This may be needed,
 for example, if V wants assurance that P did not use a unique key in its computation,
-i.e., if V wants key consistency from P. This propery is necessary in some applications,
+i.e., if V wants key consistency from P. This property is necessary in some applications,
 e.g., the Privacy Pass protocol {{PrivacyPass}}, wherein this VOPRF is used to generate 
 one-time authentic tokens to bypass CAPTCHA challenges.
 
@@ -122,38 +124,38 @@ compute m' = m^r (mod N). Send m' to the P.
 2. P uses m' to compute s' = (m')^d (mod N), and sends s' to the V.
 3. V removes the blinding factor r to obtain the original signature as s = (s')^(r^-1) (mod N).
 
-By the properties of RSA, s is clearly a valid signature for m. 
-OPRF protocols differ from blind signatures in the same way that 
-traditional digital signatures differ from PRFs. This is discussed 
-more in the following section.
+By the properties of RSA, s is clearly a valid signature for m. OPRF protocols are the symmetric
+equivalent to blind signatures in the same way that PRFs are the symmetric equivalent traditional
+digital signatures. This is discussed more in the following section.
   
 # Security Properties {#properties}
 
-The security properties of a VOPRF protocol with functionality y = F(k, x) are similar 
-to that of a PRF. Specifically:
+The security properties of a VOPRF protocol with functionality y = F(k, x) include those of
+a standard PRF. Specifically:
 
-- Given value x, it is infeasible to learn y = F(k, x) without knowledge of k.
+- Given value x, it is infeasible to compute y = F(k, x) without knowledge of k.
 - Output y = F(k, x) is indistinguishable from a random value in the domain of F. 
 
 Additionally, we require the following additional properties:
 
 - Non-malleable: Given (x, y = F(k, x)), V must not be able to generate (x', y') where 
 x' != x and y' = F(k, x'). 
-- Verifiable:: V must only complete execution of the protocol if it asserts
+- Verifiable: V must only complete execution of the protocol if it asserts
 that P used its secret key k, associated with public key Y = kG, in execution.
-- Oblivious: P must learn nothing about the V's input, and V must learn nothing about the P's private key.
-- Unlinkable: Given (x, y = F(k, x)), if V reveals x to P, P cannot link x to
-the protocol instance in which y = F(k, x) was computed.
+- Oblivious: P must learn nothing about V's input, and V must learn nothing about P's private key.
+- Unlinkable: If V reveals x to P, P cannot link x to the protocol instance in which y = F(k, x)
+was computed.
 
 # Elliptic Curve VOPRF Protocol {#protocol}
 
-In this section we describe the ECVOPRF protocol. Let G be an elliptic curve group over 
+In this section we describe the ECVOPRF protocol. Let GG be an elliptic curve group over 
 base field F, of prime order p, with two distinct hash functions H_1 and H_2, where H_1 maps 
-arbitrary input onto G and H_2 maps arbitrary input to a fixed-length output, e.g., SHA256.
+arbitrary input onto GG and H_2 maps arbitrary input to a fixed-length output, e.g., SHA256.
+It should be noted that all hash functions in the protocol are assumed to be random oracles.
 Let L be the security parameter. Let k be the signer's secret key,
-and Y = kG be its corresponding public key. Let x be the requestor's input to
-the VOPRF protocol. (Commonly, it is a random L-bit string, though this 
-is not required.) ECVOPRF begins with the requestor randomly blinding
+and Y = kG be its corresponding public key for some generator G taken from the group GG. 
+Let x be the requestor's (V) input to the VOPRF protocol. (Commonly, it is a random L-bit
+string, though this is not required.) ECVOPRF begins with the requestor randomly blinding
 its input for the signer. The latter then applies its secret key to the blinded
 value and returns the result. To finish the computation, the requestor then 
 removes its blind and hashes the result using H_2 to yield an output. 
@@ -170,11 +172,16 @@ This flow is illustrated below.
                            D = DLEQ_Generate(Z/M == Y/G)
                    Z,D
                 <-------
-    b = DLEQ_Verify(M, Z, D)
+    b = DLEQ_Verify(M, Z, D, Y)
     Output H_2(x, Zr^(-1)) if b=1, else "error"
 ~~~
 
-DLEQ(Z/M == Y/G) is described in Section {{dleq}}. The actual PRF function computed is as follows:
+DLEQ(Z/M == Y/G) is described in Section {{dleq}}. Intuitively, the DLEQ proof allows P to prove
+to V in NIZK that the same key k is the exponent of both Y and M. In other words, computing the
+discrete logarithm of Y and Z (with respect to G and M, respectively) results in the same value.
+The committed value Y should be public before the protocol is initiated.
+
+The actual PRF function computed is as follows:
 
 ~~~
 F(k, x) = H_2(x, N) = H_2(x, kH_1(x))
@@ -188,7 +195,7 @@ This protocol may be decomposed into a series of steps, as described below:
 - ECVOPRF_Blind(x): Compute and return a blind, r, and blinded representation of x, denoted M.
 - ECVOPRF_Sign(M): Sign input M using secret key k to produce Z, generate a 
 proof D of DLEQ(Z/M == Y/G), and output (Z, D).
-- ECVOPRF_Unblind((Z, D), r): Unblind blinded signature Z with blind r, yielding N. 
+- ECVOPRF_Unblind((Z, D), r, Y, G, M): Unblind blinded signature Z with blind r, yielding N. 
 Output N if D is a valid proof. Otherwise, output an error.
 - ECVOPRF_Finalize(N): Finalize N to produce PRF output F(k, x).
 
@@ -219,7 +226,7 @@ blinding factor.) The requestor computes M = rX.
 ~~~
 Input:
 
- x - R's PRF input.
+ x - V's PRF input.
 
 Output:
 
@@ -248,7 +255,7 @@ Output:
 Steps:
 
  1. Z := kM
- 2. D = DLEQ_Generate(Y, M, Z)
+ 2. D = DLEQ_Generate(Y, G, M, Z)
  2. Output (Z, D)
 ~~~
 
@@ -310,10 +317,11 @@ below.
 ~~~
 Input: 
 
-  G: Generator of group with prime order q
+  G: Generator of group GG with prime order q
   Y: Signer public key
   M: Point on G
   Z: Point on G
+  H_3: A hash function from GG to a bitstring of length L modelled as a random oracle
 
 Output:
 
@@ -323,7 +331,7 @@ Steps:
 
 1. r <-$ Z_q
 2. A = rG and B = rM.
-2. c = H_3(G,E,M,Z,A,B)
+2. c = H_3(G,Y,M,Z,A,B)
 3. s = (r - ck) (mod q)
 4. Output D = (c, s)
 ~~~
@@ -414,7 +422,7 @@ EC-VOPRF-CURVE448-SHA512:
 # Security Considerations
 
 Security of the protocol depends on P's secrecy of k. Best practices recommend P 
-regularly rotate k so as to keep its window of composmise small. Moreover, it each
+regularly rotate k so as to keep its window of compromise small. Moreover, it each
 key should be generated from a source of safe, cryptographic randomness. 
 
 Another critical aspect of this protocol is reliance on {{H2C}} for mapping
