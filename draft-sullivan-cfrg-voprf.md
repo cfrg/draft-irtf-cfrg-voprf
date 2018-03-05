@@ -34,6 +34,8 @@ normative:
   RFC7748:
   RFC8032:
   I-D.draft-sullivan-cfrg-hash-to-curve:
+    title: Hashing to Elliptic Curves
+    target: https://datatracker.ietf.org/doc/I-D.draft-sullivan-cfrg-hash-to-curve/
   PrivacyPass:
     title: Privacy Pass
     target: https://github.com/privacypass/challenge-bypass-server
@@ -53,7 +55,7 @@ normative:
     authors:
       -
         ins: D. Chaum
-        org: University of California, Santa Barabara, USA
+        org: University of California, Santa Barbara, USA
 
 --- abstract
 
@@ -155,12 +157,12 @@ In this section we describe the ECVOPRF protocol. Let GG be an elliptic curve gr
 base field F, of prime order p, with two distinct hash functions H_1 and H_2, where H_1 maps 
 arbitrary input onto GG and H_2 maps arbitrary input to a fixed-length output, e.g., SHA256.
 It should be noted that all hash functions in the protocol are assumed to be random oracles.
-Let L be the security parameter. Let k be the signer's secret key,
+Let L be the security parameter. Let k be the prover's (P) secret key,
 and Y = kG be its corresponding public key for some generator G taken from the group GG. 
-Let x be the requestor's (V) input to the VOPRF protocol. (Commonly, it is a random L-bit
-string, though this is not required.) ECVOPRF begins with the requestor randomly blinding
+Let x be the verifier's (V) input to the VOPRF protocol. (Commonly, it is a random L-bit
+string, though this is not required.) ECVOPRF begins with V randomly blinding
 its input for the signer. The latter then applies its secret key to the blinded
-value and returns the result. To finish the computation, the requestor then 
+value and returns the result. To finish the computation, V then 
 removes its blind and hashes the result using H_2 to yield an output. 
 This flow is illustrated below.
 
@@ -215,8 +217,7 @@ with overwhelming probability.
 
 This section provides algorithms for each step in the VOPRF protocol.
 
-1. V computes X = H_1(x) and a random element r from Z_p. (The latter is the
-blinding factor.) The requestor computes M = rX.
+1. V computes X = H_1(x) and a random element r (blinding factor) from Z_p, and computes M = rX.
 2. V sends M to P. 
 3. P computes Z = kM = rkX, and D = DLEQ(Z/M == Y/G).
 4. P sends (Z, D) to V.
@@ -324,7 +325,7 @@ Input:
   Y: Signer public key.
   M: Point in GG.
   Z: Point in GG.
-  H_3: A hash function from GG to a bitstring of length L modelled as a random oracle.
+  H_3: A hash function from GG to a bitstring of length L modeled as a random oracle.
 
 Output:
 
@@ -428,7 +429,7 @@ Security of the protocol depends on P's secrecy of k. Best practices recommend P
 regularly rotate k so as to keep its window of compromise small. Moreover, it each
 key should be generated from a source of safe, cryptographic randomness. 
 
-Another critical aspect of this protocol is reliance on {{I-D.sullivan-cfrg-hash-to-curve}} 
+Another critical aspect of this protocol is reliance on {{I-D.draft-sullivan-cfrg-hash-to-curve}} 
 for mapping arbitrary input to points on a curve. Security requires this mapping be 
 pre-image and collision resistant. 
 
@@ -437,7 +438,7 @@ pre-image and collision resistant.
 To ensure no information is leaked during protocol execution, all operations
 that use secret data MUST be constant time. Operations that SHOULD be constant
 time include: H_1() (hashing arbitrary strings to curves) and DLEQ_Generate().
-{{I-D.sullivan-cfrg-hash-to-curve}} describes various algorithms for constant-time 
+{{I-D.draft-sullivan-cfrg-hash-to-curve}} describes various algorithms for constant-time 
 implementations of H_1. 
 
 # Privacy Considerations
@@ -448,7 +449,7 @@ DLEQ proofs are essential to the protocol to allow V to check that P's designate
 key was used in the computation. A side effect of this property is that it prevents P
 from using unique key for select verifiers as a way of "tagging" them. If all verifiers
 expect use of a certain private key, e.g., by locating P's public key key published from
-a trusted registry, then P cannot present unique keys to an indivdual verifier.
+a trusted registry, then P cannot present unique keys to an individual verifier.
 
 # Acknowledgments
 
