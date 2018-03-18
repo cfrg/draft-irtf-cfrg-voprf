@@ -28,6 +28,14 @@ author:
     city: Cupertino, California 95014
     country: United States of America
     email: cawood@apple.com
+ -
+    ins: A. Davidson
+    name: Alex Davidson
+    org: ISG, Royal Holloway, University of London
+    street: Egham Hill
+    city: Twickenham, TW20 0EX
+    country: United Kingdom
+    email: alex.davidson.2014@rhul.ac.uk
 
 normative:
   RFC2119:
@@ -169,7 +177,7 @@ This flow is illustrated below.
 ~~~
      Verifier              Prover
   ------------------------------------
-     r <-$ G
+     r <-$ GG
      M = rH_1(x) 
                    M
                 ------->    
