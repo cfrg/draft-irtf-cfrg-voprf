@@ -1,7 +1,7 @@
 ---
-title: Verifiable Oblivious Pseudorandom Functions (VOPRFs)
-abbrev: VOPRFs
-docname: draft-sullivan-cfrg-voprf-latest
+title: Elliptic Curve Verifiable Oblivious Pseudorandom Functions (ECVOPRFs)
+abbrev: ECVOPRFs
+docname: draft-sullivan-cfrg-ecvoprf-latest
 date:
 category: info
 
@@ -113,6 +113,7 @@ The following terms are used throughout this document.
 - PRF: Pseudorandom Function.
 - OPRF: Oblivious PRF.
 - VOPRF: Verifiable Oblivious Pseudorandom Function.
+- ECVOPRF: A VOPRF built on Elliptic Curves.
 - Verifier (V): Protocol initiator when computing F(k, x).
 - Prover (P): Holder of secret key k.
 - NIZK: Non-interactive zero knowledge.
@@ -167,7 +168,7 @@ arbitrary input onto GG and H_2 maps arbitrary input to a fixed-length output, e
 All hash functions in the protocol are assumed to be random oracles.
 Let L be the security parameter. Let k be the prover's (P) secret key,
 and Y = kG be its corresponding public key for some generator G taken from the group GG. 
-Let x be the verifier's (V) input to the VOPRF protocol. (Commonly, it is a random L-bit
+Let x be the verifier's (V) input to the ECVOPRF protocol. (Commonly, it is a random L-bit
 string, though this is not required.) ECVOPRF begins with V randomly blinding
 its input for the signer. The latter then applies its secret key to the blinded
 value and returns the result. To finish the computation, V then 
@@ -223,7 +224,7 @@ with overwhelming probability.
 
 ## Algorithmic Details 
 
-This section provides algorithms for each step in the VOPRF protocol.
+This section provides algorithms for each step in the ECVOPRF protocol.
 
 1. V computes X = H_1(x) and a random element r (blinding factor) from GF(p), and computes M = rX.
 2. V sends M to P. 
@@ -316,7 +317,7 @@ Steps:
 In some cases, it may be desirable for the V to have proof that P
 used its private key to compute Z from M. This is done by proving
 log_G(Y) == log_M(Z). This may be used, for example, to ensure that 
-P uses the same private key for computing the VOPRF output and does not
+P uses the same private key for computing the ECVOPRF output and does not
 attempt to "tag" individual verifiers with select keys. This proof must
 not reveal the P's long-term private key to V. Consequently,
 we extend the protocol in the previous section with a (non-interactive) discrete 
@@ -373,61 +374,61 @@ Steps:
 
 ## Group and Hash Function Instantiations
 
-This section specifies supported VOPRF group and hash function instantiations.
+This section specifies supported ECVOPRF group and hash function instantiations.
 
-EC-VOPRF-P256-SHA256:
-
-- G: P-256
-- H_1: ((TODO: choose from {{I-D.draft-sullivan-cfrg-hash-to-curve}}
-- H_2: SHA256
-- H_3: SHA256
-
-EC-VOPRF-P256-SHA512:
+ECVOPRF-P256-SHA256:
 
 - G: P-256
-- H_1: ((TODO: choose from {{I-D.draft-sullivan-cfrg-hash-to-curve}}
+- H_1: ((TODO: choose from {{I-D.draft-irtf-cfrg-hash-to-curve}}
+- H_2: SHA256
+- H_3: SHA256
+
+ECVOPRF-P256-SHA512:
+
+- G: P-256
+- H_1: ((TODO: choose from {{I-D.draft-irtf-cfrg-hash-to-curve}}
 - H_2: SHA512
 - H_3: SHA512
 
-EC-VOPRF-P384-SHA256:
+ECVOPRF-P384-SHA256:
 
 - G: P-384
-- H_1: ((TODO: choose from {{I-D.draft-sullivan-cfrg-hash-to-curve}}
+- H_1: ((TODO: choose from {{I-D.draft-irtf-cfrg-hash-to-curve}}
 - H_2: SHA256
 - H_3: SHA256
 
-EC-VOPRF-P384-SHA512:
+ECVOPRF-P384-SHA512:
 
 - G: P-384
-- H_1: ((TODO: choose from {{I-D.draft-sullivan-cfrg-hash-to-curve}}
+- H_1: ((TODO: choose from {{I-D.draft-irtf-cfrg-hash-to-curve}}
 - H_2: SHA512
 - H_3: SHA512
 
-EC-VOPRF-CURVE25519-SHA256:
+ECVOPRF-CURVE25519-SHA256:
 
 - G: Curve25519 {{RFC7748}}
-- H_1: ((TODO: choose from {{I-D.draft-sullivan-cfrg-hash-to-curve}}
+- H_1: ((TODO: choose from {{I-D.draft-irtf-cfrg-hash-to-curve}}
 - H_2: SHA256
 - H_3: SHA256
 
-EC-VOPRF-CURVE25519-SHA512:
+ECVOPRF-CURVE25519-SHA512:
 
 - G: Curve25519 {{RFC7748}}
-- H_1: ((TODO: choose from {{I-D.draft-sullivan-cfrg-hash-to-curve}}
+- H_1: ((TODO: choose from {{I-D.draft-irtf-cfrg-hash-to-curve}}
 - H_2: SHA512
 - H_3: SHA512
 
-EC-VOPRF-CURVE448-SHA256:
+ECVOPRF-CURVE448-SHA256:
 
 - G: Curve448 {{RFC7748}} 
-- H_1: ((TODO: choose from {{I-D.draft-sullivan-cfrg-hash-to-curve}}
+- H_1: ((TODO: choose from {{I-D.draft-irtf-cfrg-hash-to-curve}}
 - H_2: SHA256
 - H_3: SHA256
 
-EC-VOPRF-CURVE448-SHA512:
+ECVOPRF-CURVE448-SHA512:
 
 - G: Curve448 {{RFC7748}} 
-- H_1: ((TODO: choose from {{I-D.draft-sullivan-cfrg-hash-to-curve}}
+- H_1: ((TODO: choose from {{I-D.draft-irtf-cfrg-hash-to-curve}}
 - H_2: SHA512
 - H_3: SHA512
 
@@ -471,7 +472,7 @@ Alex Davidson contributed to earlier versions of this document.
 
 # Test Vectors
 
-This section includes test vectors for the primary VOPRF protocol, 
+This section includes test vectors for the primary ECVOPRF protocol, 
 excluding DLEQ output. 
 
 ((TODO: add DLEQ vectors))
