@@ -94,7 +94,7 @@ VOPRFs are useful for producing tokens that are verifiable by V. This may be nee
 for example, if V wants assurance that P did not use a unique key in its computation,
 i.e., if V wants key consistency from P. This property is necessary in some applications,
 e.g., the Privacy Pass protocol {{PrivacyPass}}, wherein this VOPRF is used to generate 
-one-time authentic tokens to bypass CAPTCHA challenges.
+one-time authentication tokens to bypass CAPTCHA challenges.
 
 This document introduces a VOPRF protocol built on Elliptic Curves, called ECVOPRF. It describes
 the protocol, its security properties, and provides preliminary test vectors for 
@@ -464,10 +464,6 @@ a trusted registry, then P cannot present unique keys to an individual verifier.
 
 This document resulted from the work of the Privacy Pass team {{PrivacyPass}}. 
 
-# Contributors 
-
-Alex Davidson contributed to earlier versions of this document.
-
 --- back
 
 # Test Vectors
@@ -607,3 +603,34 @@ Y: 04006b0413e2686c4bb62340706de7723471080093422f02dd125c3e72f3507b9200d11481468
    240183d777181259761741343959d476bbc2591a1af0a516e6403a6b81423234746d7a2e8c2ce60a
 ~~~
 
+# Applications
+
+This section describes various application of ECVOPRF.
+
+## Privacy Pass
+
+This VOPRF protocol is used by Privacy Pass system to help Tor users bypass CAPTCHA
+challenges. Their system works as follows. Client C connects -- through Tor -- to an edge 
+server E serving content. Upon receipt, E serves a CAPTCHA to C, who then solves the CAPTCHA 
+and supplies, in response, n blinded points. E verifies the CAPTCHA response and, if valid, 
+signs (at most) n blinded points, which are then returned to C. When C attempts to connect to
+E again and is prompted with a CAPTCHA, C uses one of the unblinded and signed points, or tokens, 
+to derive a shared symmetric key sk used to MAC the CAPTCHA challenge. C sends the CAPTCHA, MAC, 
+and token input x to E, who can use x to derive sk and verify the CAPTCHA MAC. Thus, each token 
+is used at most once by the system. 
+
+## Private Password Checker
+
+In this application, let D be a collection of cleartext passwords obtained by prover P.
+For each password p in D, P computes ECVOPRF_Sign(H_1(p)), where H_1 is as described above,
+and stores the result in a separate collection D'. P then publishes D' with Y, its public
+key. If a client C wishes to query D' for a password p', it runs the ECVOPRF protocol using 
+p as input x to obtain output y. By construction, y will be the signature of p hashed onto
+the curve. C can then search D' for y to determine if there is a match. 
+
+### Parameter Commitments
+
+For some applications, it may be desirable for P to bind tokens to certain parameters,
+e.g., protocol versions, ciphersuites, etc. To accomplish this, P should use a distinct
+scalar for each parameter combination. Upon redemption of a token T from V, P can later
+verify that T was generated using the scalar associated with the corresponding parameters.
