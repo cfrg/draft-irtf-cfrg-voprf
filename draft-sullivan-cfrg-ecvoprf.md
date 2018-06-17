@@ -100,7 +100,7 @@ This document introduces a VOPRF protocol built on Elliptic Curves, called ECVOP
 the protocol, its security properties, and provides preliminary test vectors for 
 experimentation. This rest of document is structured as follows:
 
-- Section {{background}}: Describe background, related related, and use cases of VOPRF protocols.
+- Section {{background}}: Describe background, related work, and use cases of VOPRF protocols.
 - Section {{properties}}: Discuss security properties of VOPRFs.
 - Section {{protocol}}: Specify a VOPRF protocol based on elliptic curves. 
 - Section {{dleq}}: Specify the NIZK discrete logarithm equality construction used for verifying
@@ -183,14 +183,14 @@ This flow is illustrated below.
                    M
                 ------->    
                            Z = kM
-                           D = DLEQ_Generate(Z/M == Y/G)
+                           D = DLEQ_Generate(G,Y,M,Z)
                    Z,D
                 <-------
-    b = DLEQ_Verify(M, Z, D, Y)
+    b = DLEQ_Verify(G,Y,M,Z,D)
     Output H_2(x, Zr^(-1)) if b=1, else "error"
 ~~~
 
-DLEQ(Z/M == Y/G) is described in Section {{dleq}}. Intuitively, the DLEQ proof allows P to prove
+DLEQ_Generate(G,Y,M,Z) and DLEQ_Verify(G,Y,M,Z,D) are described in Section {{dleq}}. Intuitively, the DLEQ proof allows P to prove
 to V in NIZK that the same key k is the exponent of both Y and M. In other words, computing the
 discrete logarithm of Y and Z (with respect to G and M, respectively) results in the same value.
 The committed value Y should be public before the protocol is initiated.
@@ -208,9 +208,9 @@ This protocol may be decomposed into a series of steps, as described below:
 
 - ECVOPRF_Blind(x): Compute and return a blind, r, and blinded representation of x, denoted M.
 - ECVOPRF_Sign(M): Sign input M using secret key k to produce Z, generate a 
-proof D of DLEQ(Z/M == Y/G), and output (Z, D).
+proof D = DLEQ_Generate(G,Y,M,Z), and output (Z, D).
 - ECVOPRF_Unblind((Z, D), r, Y, G, M): Unblind blinded signature Z with blind r, yielding N. 
-Output N if D is a valid proof. Otherwise, output an error.
+Output N if 1 = DLEQ_Verify(G,Y,M,Z,D). Otherwise, output "error".
 - ECVOPRF_Finalize(N): Finalize N to produce PRF output F(k, x).
 
 Protocol correctness requires that, for any key k, input x, and (r, M) = ECVOPRF_Blind(x), 
@@ -228,9 +228,9 @@ This section provides algorithms for each step in the ECVOPRF protocol.
 
 1. V computes X = H_1(x) and a random element r (blinding factor) from GF(p), and computes M = rX.
 2. V sends M to P. 
-3. P computes Z = kM = rkX, and D = DLEQ(Z/M == Y/G).
+3. P computes Z = kM = rkX, and D = DLEQ_Generate(G,Y,M,Z).
 4. P sends (Z, D) to V.
-5. V verifies D using Y. If invalid, V outputs an error.
+5. V ensures that 1 = DLEQ_Verify(G,Y,M,Z,D). If not, V outputs an error.
 6. V unblinds Z to compute N = r^(-1)Z = kX.
 7. V outputs the pair H_2(x, N).
 
@@ -258,7 +258,9 @@ Steps:
 ~~~
 Input:
 
- M - Point in G.
+ G: Public generator of group GG with prime order p.
+ Y: Signer public key.
+ M - Point in GG.
 
 Output:
 
@@ -268,7 +270,7 @@ Output:
 Steps:
 
  1. Z := kM
- 2. D = DLEQ_Generate(Y, G, M, Z)
+ 2. D = DLEQ_Generate(G,Y,M,Z)
  2. Output (Z, D)
 ~~~
 
@@ -277,9 +279,11 @@ Steps:
 ~~~
 Input:
 
- Z - Point in GG.
- D - DLEQ proof that log_G(Y) == log_M(Z).
+ G: Public generator of group GG with prime order p.
+ Y: Signer public key.
  M - Blinded representation of x using blind r, a point in G.
+ Z - Point in GG.
+ D - D = DLEQ_Generate(G,Y,M,Z).
  r - Random scalar in [1, p - 1].
 
 Output:
@@ -289,7 +293,7 @@ Output:
 Steps:
 
  1. N := (-r)Z
- 2. If DLEQ_Verify(G, Y, M, Z, D) output N
+ 2. If 1 = DLEQ_Verify(G,Y,M,Z,D), output N
  3. Output "error"
 ~~~
 
@@ -330,7 +334,7 @@ These are specified below.
 ~~~
 Input: 
 
-  G: Generator of group GG with prime order p.
+  G: Public generator of group GG with prime order p.
   Y: Signer public key.
   M: Point in GG.
   Z: Point in GG.
@@ -354,7 +358,7 @@ Steps:
 ~~~
 Input: 
 
-  G: Generator of group GG with prime order p.
+  G: Public generator of group GG with prime order p.
   Y: Signer public key.
   M: Point in GG.
   Z: Point in GG.
@@ -368,7 +372,7 @@ Steps:
 
 1. A' = (sG + cY)
 2. B' = (sM + cZ)
-3. c' = H_3(G,E,M,Z,A',B')
+3. c' = H_3(G,Y,M,Z,A',B')
 4. Output c == c'
 ~~~
 
