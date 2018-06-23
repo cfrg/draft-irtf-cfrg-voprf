@@ -5,10 +5,10 @@
 Network Working Group                                        N. Sullivan
 Internet-Draft                                                Cloudflare
 Intended status: Informational                                   C. Wood
-Expires: December 25, 2018                                    Apple Inc.
+Expires: December 24, 2018                                    Apple Inc.
                                                              A. Davidson
                                ISG, Royal Holloway, University of London
-                                                           June 23, 2018
+                                                           June 22, 2018
 
 
  Elliptic Curve Verifiable Oblivious Pseudorandom Functions (ECVOPRFs)
@@ -32,14 +32,14 @@ Status of This Memo
    Internet-Drafts are working documents of the Internet Engineering
    Task Force (IETF).  Note that other groups may also distribute
    working documents as Internet-Drafts.  The list of current Internet-
-   Drafts is at http://datatracker.ietf.org/drafts/current/.
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
 
    Internet-Drafts are draft documents valid for a maximum of six months
    and may be updated, replaced, or obsoleted by other documents at any
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on December 25, 2018.
+   This Internet-Draft will expire on December 24, 2018.
 
 Copyright Notice
 
@@ -48,12 +48,12 @@ Copyright Notice
 
    This document is subject to BCP 78 and the IETF Trust's Legal
    Provisions Relating to IETF Documents
-   (http://trustee.ietf.org/license-info) in effect on the date of
+   (https://trustee.ietf.org/license-info) in effect on the date of
    publication of this document.  Please review these documents
 
 
 
-Sullivan, et al.        Expires December 25, 2018               [Page 1]
+Sullivan, et al.        Expires December 24, 2018               [Page 1]
 
 Internet-Draft                  ECVOPRFs                       June 2018
 
@@ -91,7 +91,7 @@ Table of Contents
    Appendix B.  Applications . . . . . . . . . . . . . . . . . . . .  16
      B.1.  Privacy Pass  . . . . . . . . . . . . . . . . . . . . . .  16
      B.2.  Private Password Checker  . . . . . . . . . . . . . . . .  16
-       B.2.1.  Parameter Commitments . . . . . . . . . . . . . . . .  16
+       B.2.1.  Parameter Commitments . . . . . . . . . . . . . . . .  17
    Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  17
 
 1.  Introduction
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Sullivan, et al.        Expires December 25, 2018               [Page 2]
+Sullivan, et al.        Expires December 24, 2018               [Page 2]
 
 Internet-Draft                  ECVOPRFs                       June 2018
 
@@ -165,7 +165,7 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
 
 
-Sullivan, et al.        Expires December 25, 2018               [Page 3]
+Sullivan, et al.        Expires December 24, 2018               [Page 3]
 
 Internet-Draft                  ECVOPRFs                       June 2018
 
@@ -221,7 +221,7 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
 
 
-Sullivan, et al.        Expires December 25, 2018               [Page 4]
+Sullivan, et al.        Expires December 24, 2018               [Page 4]
 
 Internet-Draft                  ECVOPRFs                       June 2018
 
@@ -277,7 +277,7 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
 
 
-Sullivan, et al.        Expires December 25, 2018               [Page 5]
+Sullivan, et al.        Expires December 24, 2018               [Page 5]
 
 Internet-Draft                  ECVOPRFs                       June 2018
 
@@ -333,7 +333,7 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
 
 
-Sullivan, et al.        Expires December 25, 2018               [Page 6]
+Sullivan, et al.        Expires December 24, 2018               [Page 6]
 
 Internet-Draft                  ECVOPRFs                       June 2018
 
@@ -389,7 +389,7 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
 
 
-Sullivan, et al.        Expires December 25, 2018               [Page 7]
+Sullivan, et al.        Expires December 24, 2018               [Page 7]
 
 Internet-Draft                  ECVOPRFs                       June 2018
 
@@ -445,7 +445,7 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
 
 
-Sullivan, et al.        Expires December 25, 2018               [Page 8]
+Sullivan, et al.        Expires December 24, 2018               [Page 8]
 
 Internet-Draft                  ECVOPRFs                       June 2018
 
@@ -501,7 +501,7 @@ Steps:
 
 
 
-Sullivan, et al.        Expires December 25, 2018               [Page 9]
+Sullivan, et al.        Expires December 24, 2018               [Page 9]
 
 Internet-Draft                  ECVOPRFs                       June 2018
 
@@ -515,7 +515,7 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
    o  G: P-256
 
-   o  H_1: ((TODO: choose from [I-D.irtf-cfrg-hash-to-curve]
+   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
 
    o  H_2: SHA256
 
@@ -525,7 +525,7 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
    o  G: P-256
 
-   o  H_1: ((TODO: choose from [I-D.irtf-cfrg-hash-to-curve]
+   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
 
    o  H_2: SHA512
 
@@ -535,7 +535,7 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
    o  G: P-384
 
-   o  H_1: ((TODO: choose from [I-D.irtf-cfrg-hash-to-curve]
+   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
 
    o  H_2: SHA256
 
@@ -545,7 +545,7 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
    o  G: P-384
 
-   o  H_1: ((TODO: choose from [I-D.irtf-cfrg-hash-to-curve]
+   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
 
    o  H_2: SHA512
 
@@ -557,12 +557,12 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
 
 
-Sullivan, et al.        Expires December 25, 2018              [Page 10]
+Sullivan, et al.        Expires December 24, 2018              [Page 10]
 
 Internet-Draft                  ECVOPRFs                       June 2018
 
 
-   o  H_1: ((TODO: choose from [I-D.irtf-cfrg-hash-to-curve]
+   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
 
    o  H_2: SHA256
 
@@ -572,7 +572,7 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
    o  G: Curve25519 [RFC7748]
 
-   o  H_1: ((TODO: choose from [I-D.irtf-cfrg-hash-to-curve]
+   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
 
    o  H_2: SHA512
 
@@ -582,7 +582,7 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
    o  G: Curve448 [RFC7748]
 
-   o  H_1: ((TODO: choose from [I-D.irtf-cfrg-hash-to-curve]
+   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
 
    o  H_2: SHA256
 
@@ -592,7 +592,7 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
    o  G: Curve448 [RFC7748]
 
-   o  H_1: ((TODO: choose from [I-D.irtf-cfrg-hash-to-curve]
+   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
 
    o  H_2: SHA512
 
@@ -606,14 +606,14 @@ Internet-Draft                  ECVOPRFs                       June 2018
    safe, cryptographic randomness.
 
    Another critical aspect of this protocol is reliance on
-   [I-D.irtf-cfrg-hash-to-curve] for mapping arbitrary input to points
-   on a curve.  Security requires this mapping be pre-image and
-   collision resistant.
+   [I-D.draft-sullivan-cfrg-hash-to-curve] for mapping arbitrary input
+   to points on a curve.  Security requires this mapping be pre-image
+   and collision resistant.
 
 
 
 
-Sullivan, et al.        Expires December 25, 2018              [Page 11]
+Sullivan, et al.        Expires December 24, 2018              [Page 11]
 
 Internet-Draft                  ECVOPRFs                       June 2018
 
@@ -624,8 +624,8 @@ Internet-Draft                  ECVOPRFs                       June 2018
    operations that use secret data MUST be constant time.  Operations
    that SHOULD be constant time include: H_1() (hashing arbitrary
    strings to curves) and DLEQ_Generate().
-   [I-D.irtf-cfrg-hash-to-curve] describes various algorithms for
-   constant-time implementations of H_1.
+   [I-D.draft-sullivan-cfrg-hash-to-curve] describes various algorithms
+   for constant-time implementations of H_1.
 
 7.  Privacy Considerations
 
@@ -655,29 +655,41 @@ Internet-Draft                  ECVOPRFs                       June 2018
               "Wallet Databases with Observers", n.d.,
               <https://chaum.com/publications/Wallet_Databases.pdf>.
 
-   [I-D.irtf-cfrg-hash-to-curve]
-              Sullivan, N. and C. Wood, "Hashing to Elliptic Curves",
-              draft-irtf-cfrg-hash-to-curve-00 (work in progress), March
-              2018.
+   [DGSTV18]  "Privacy Pass, Bypassing Internet Challenges Anonymously",
+              n.d., <https://www.degruyter.com/view/j/
+              popets.2018.2018.issue-3/popets-2018-0026/
+              popets-2018-0026.xml>.
 
-   [PrivacyPass]
-              "Privacy Pass", n.d., <https://github.com/privacypass/
-              challenge-bypass-server>.
-
-
-
+   [I-D.draft-sullivan-cfrg-hash-to-curve]
+              "Hashing to Elliptic Curves", n.d.,
+              <https://datatracker.ietf.org/doc/
+              I-D.draft-sullivan-cfrg-hash-to-curve/>.
 
 
 
-Sullivan, et al.        Expires December 25, 2018              [Page 12]
+
+
+Sullivan, et al.        Expires December 24, 2018              [Page 12]
 
 Internet-Draft                  ECVOPRFs                       June 2018
 
 
+   [JKK14]    "Round-Optimal Password-Protected Secret Sharing and
+              T-PAKE in the Password-Only model", n.d.,
+              <https://eprint.iacr.org/2014/650.pdf>.
+
+   [JKKX16]   "Highly-Efficient and Composable Password-Protected Secret
+              Sharing (Or, How to Protect Your Bitcoin Wallet Online)",
+              n.d., <https://eprint.iacr.org/2016/144>.
+
+   [PrivacyPass]
+              "Privacy Pass", n.d.,
+              <https://github.com/privacypass/challenge-bypass-server>.
+
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
-              DOI 10.17487/RFC2119, March 1997, <https://www.rfc-
-              editor.org/info/rfc2119>.
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/info/rfc2119>.
 
    [RFC7748]  Langley, A., Hamburg, M., and S. Turner, "Elliptic Curves
               for Security", RFC 7748, DOI 10.17487/RFC7748, January
@@ -685,8 +697,12 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
    [RFC8032]  Josefsson, S. and I. Liusvaara, "Edwards-Curve Digital
               Signature Algorithm (EdDSA)", RFC 8032,
-              DOI 10.17487/RFC8032, January 2017, <https://www.rfc-
-              editor.org/info/rfc8032>.
+              DOI 10.17487/RFC8032, January 2017,
+              <https://www.rfc-editor.org/info/rfc8032>.
+
+   [SJKS17]   "SPHINX, A Password Store that Perfectly Hides from
+              Itself", n.d.,
+              <http://webee.technion.ac.il/%7Ehugo/sphinx.pdf>.
 
 Appendix A.  Test Vectors
 
@@ -707,6 +723,13 @@ Z: 04ed11656b4981e39242b170025bf8d5314bef75006e6c4c9afcdb9a85e21fb5fcf9055eb95d3
 Y: 04fd80db5301a54ee2cbc688d47cbcae9eb84f5d246e3da3e2b03e9be228ed6c57a936b6b5faf \
    Y: 04fd80db5301a54ee2cbc688d47cbcae9eb84f5d246e3da3e2b03e9be228ed6c57a936b6b5faf
 
+
+
+Sullivan, et al.        Expires December 24, 2018              [Page 13]
+
+Internet-Draft                  ECVOPRFs                       June 2018
+
+
 P-224
 X: 0429e41b7e1a58e178afc522d0fb4a6d17ae883e6fd439931cf1e81456ab7ed6445dbe0a231be \
    X: 0429e41b7e1a58e178afc522d0fb4a6d17ae883e6fd439931cf1e81456ab7ed6445dbe0a231be
@@ -722,14 +745,6 @@ Y: 046e83dff2c9b6f9e88f1091f355ad6fa637bdbd829072411ea2d74a5bf3501ccf3bcc2789d48
 P-256
 X: 041b0e84c521f8dcd530d59a692d4ffa1ca05b8ba7ce22a884a511f93919ac121cc91dd588228 \
    X: 041b0e84c521f8dcd530d59a692d4ffa1ca05b8ba7ce22a884a511f93919ac121cc91dd588228
-
-
-
-Sullivan, et al.        Expires December 25, 2018              [Page 13]
-
-Internet-Draft                  ECVOPRFs                       June 2018
-
-
 r: a3ec1dc3303a316fc06565ace0a8910da65cf498ea3884c4349b6c4fc9a2f99a
 M: 04794c5a54236782088594ccdb1975e93b05ff742674cc400cb101f55c0f37e877c5ada0d72fb \
    M: 04794c5a54236782088594ccdb1975e93b05ff742674cc400cb101f55c0f37e877c5ada0d72fb
@@ -763,6 +778,14 @@ M: 044e2d86fa6e53ebba7f2a9b661a2de884a8ccc68e29b68586d517eb66e8b4b7dac334c6e769d
 k: b8c854a33c8c564d0598b1ac179546acdccad671265cff1ea5a329279272e8d21c94b7e5b6bea \
    k: b8c854a33c8c564d0598b1ac179546acdccad671265cff1ea5a329279272e8d21c94b7e5b6bea
 Z: 047bf23eef00e83e6cb6fb9ade5e5995cf81abb8dc73a570ff4cb7be48f21281edfed9bf76cc2 \
+
+
+
+Sullivan, et al.        Expires December 24, 2018              [Page 14]
+
+Internet-Draft                  ECVOPRFs                       June 2018
+
+
    88b35d2df615ff711ed2a1fb85cd0b22812438665cdd300039685b3f593f4b574f9e8b294982c2a2 \
    88b35d2df615ff711ed2a1fb85cd0b22812438665cdd300039685b3f593f4b574f9e8b294982c2a2
 Y: 04ab4886ecf7e489a0be8529ff4b537941c95ba4ce570db537dcfad5cabc064c43f1b0a1d1b89 \
@@ -778,14 +801,6 @@ r: e514ef9b3ea87eafdb78da48e642daa79f036ac00228997ab8da6ac198fb888cd2fec84d52010
 M: 04fd9b68973b0fcefcf4458b4faa1c3815bdad8975b7fb0bfc4c1db7e3f169fb3a26ddabe1b25 \
    c4a23cf8a2faeb12c18f06f2227e87ede6039f55a61ef0c89ca3c582e2864fe130ea0c709f92519d \
    c4a23cf8a2faeb12c18f06f2227e87ede6039f55a61ef0c89ca3c582e2864fe130ea0c709f92519d
-
-
-
-Sullivan, et al.        Expires December 25, 2018              [Page 14]
-
-Internet-Draft                  ECVOPRFs                       June 2018
-
-
 k: bcc73da3b2adace9c4f4c32eeadef57436c97f8d395614e78aa91523e1e5d7f551ebb55e87da2 \
    k: bcc73da3b2adace9c4f4c32eeadef57436c97f8d395614e78aa91523e1e5d7f551ebb55e87da2
 Z: 042d885d2945cde40e490dd8497975eaeb54e4e10c5986a9688c9de915b16cf43572fd155e159 \
@@ -819,6 +834,14 @@ Y: 04009534bd720bd4ebe703968a8496eec352711a81b7fe594a72ef318c2ce582b41880262a1c6
 
 P-521
 X: 04012ea416842dfad169a9eb860b0af2af3c0140e1918ccd043650d83ad261633f20c5ca02c1b \
+
+
+
+Sullivan, et al.        Expires December 24, 2018              [Page 15]
+
+Internet-Draft                  ECVOPRFs                       June 2018
+
+
    ffb857ab72814cf46cfc16ac9ba79887044709f72480358c4b990e46010a62336bb57b87b494b064 \
    4d2b6a385f3d5b5da29e22cae33c624f561513a5e8e6669b4e99704c56157dde83994a3c0800a64b \
    4d2b6a385f3d5b5da29e22cae33c624f561513a5e8e6669b4e99704c56157dde83994a3c0800a64b
@@ -834,14 +857,6 @@ Z: 04016825ea754324d5761ada130a1b87b03b5e2a6b0f403343925c67df39bbf85bc782909124d
    d297a1edfb049efa7ce61c626c0ad99d8cf462abcce1ee1967d8a355011e2c5a7ce621fc822a7d95 \
    bf7359d938ee4a5c3431e7dd270b7fb6e95fda29cf460d89454763bb0db9b8b705503170a9ac1c7a \
    bf7359d938ee4a5c3431e7dd270b7fb6e95fda29cf460d89454763bb0db9b8b705503170a9ac1c7a
-
-
-
-Sullivan, et al.        Expires December 25, 2018              [Page 15]
-
-Internet-Draft                  ECVOPRFs                       June 2018
-
-
 Y: 04006b0413e2686c4bb62340706de7723471080093422f02dd125c3e72f3507b9200d11481468 \
    74bbaa5b6108b834c892eeebab4e21f3707ee20c303ebc1e34fcd3c701f2171131ee7c5f07c1ccad \
    240183d777181259761741343959d476bbc2591a1af0a516e6403a6b81423234746d7a2e8c2ce60a \
@@ -866,6 +881,8 @@ B.1.  Privacy Pass
    to E, who can use x to derive sk and verify the CAPTCHA MAC.  Thus,
    each token is used at most once by the system.
 
+   For more details, see [DGSTV18].
+
 B.2.  Private Password Checker
 
    In this application, let D be a collection of cleartext passwords
@@ -873,9 +890,20 @@ B.2.  Private Password Checker
    ECVOPRF_Sign(H_1(p)), where H_1 is as described above, and stores the
    result in a separate collection D'.  P then publishes D' with Y, its
    public key.  If a client C wishes to query D' for a password p', it
+
+
+
+Sullivan, et al.        Expires December 24, 2018              [Page 16]
+
+Internet-Draft                  ECVOPRFs                       June 2018
+
+
    runs the ECVOPRF protocol using p as input x to obtain output y.  By
    construction, y will be the signature of p hashed onto the curve.  C
    can then search D' for y to determine if there is a match.
+
+   Examples of such password checkers already exist, for example:
+   [JKKX16], [JKK14] and [SJKS17].
 
 B.2.1.  Parameter Commitments
 
@@ -885,18 +913,6 @@ B.2.1.  Parameter Commitments
    combination.  Upon redemption of a token T from V, P can later verify
    that T was generated using the scalar associated with the
    corresponding parameters.
-
-
-
-
-
-
-
-
-Sullivan, et al.        Expires December 25, 2018              [Page 16]
-
-Internet-Draft                  ECVOPRFs                       June 2018
-
 
 Authors' Addresses
 
@@ -933,20 +949,4 @@ Authors' Addresses
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Sullivan, et al.        Expires December 25, 2018              [Page 17]
+Sullivan, et al.        Expires December 24, 2018              [Page 17]
