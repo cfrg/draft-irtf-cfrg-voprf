@@ -5,7 +5,7 @@
 <head profile="http://www.w3.org/2006/03/hcard http://dublincore.org/documents/2008/08/04/dc-html/">
   <meta http-equiv="Content-Type" content="text/html; charset=us-ascii" />
 
-  <title>Verifiable Oblivious Pseudorandom Functions (VOPRFs)</title>
+  <title>Elliptic Curve Verifiable Oblivious Pseudorandom Functions (ECVOPRFs)</title>
 
   
 <style type="text/css">/*<![CDATA[*/
@@ -278,7 +278,7 @@ address {
   .github-fork-ribbon-wrapper {
     position: fixed;
   }
-/*]]>*/</style>
+  /*]]>*/</style>
 
 
   <link href="#rfc.toc" rel="Contents">
@@ -302,18 +302,21 @@ address {
 <link href="#rfc.section.7" rel="Chapter" title="7 Privacy Considerations">
 <link href="#rfc.section.7.1" rel="Chapter" title="7.1 Key Consistency">
 <link href="#rfc.section.8" rel="Chapter" title="8 Acknowledgments">
-<link href="#rfc.section.9" rel="Chapter" title="9 Contributors">
-<link href="#rfc.references" rel="Chapter" title="10 Normative References">
+<link href="#rfc.references" rel="Chapter" title="9 Normative References">
 <link href="#rfc.appendix.A" rel="Chapter" title="A Test Vectors">
+<link href="#rfc.appendix.B" rel="Chapter" title="B Applications">
+<link href="#rfc.appendix.B.1" rel="Chapter" title="B.1 Privacy Pass">
+<link href="#rfc.appendix.B.2" rel="Chapter" title="B.2 Private Password Checker">
+<link href="#rfc.appendix.B.2.1" rel="Chapter" title="B.2.1 Parameter Commitments">
 <link href="#rfc.authors" rel="Chapter">
 
 
-  <meta name="generator" content="xml2rfc version 2.9.5 - https://tools.ietf.org/tools/xml2rfc" />
+  <meta name="generator" content="xml2rfc version 2.9.6 - https://tools.ietf.org/tools/xml2rfc" />
   <link rel="schema.dct" href="http://purl.org/dc/terms/" />
 
-  <meta name="dct.creator" content="Sullivan, N. and C. Wood" />
-  <meta name="dct.identifier" content="urn:ietf:id:draft-sullivan-cfrg-voprf-latest" />
-  <meta name="dct.issued" scheme="ISO8601" content="2018-03-05" />
+  <meta name="dct.creator" content="Sullivan, N., Wood, C., and A. Davidson" />
+  <meta name="dct.identifier" content="urn:ietf:id:draft-sullivan-cfrg-ecvoprf-latest" />
+  <meta name="dct.issued" scheme="ISO8601" content="2018-06-22" />
   <meta name="dct.abstract" content="A Verifiable Oblivious Pseudorandom Function (VOPRF) is a two-party protocol for computing the output of a PRF that is symmetrically verifiable.  In summary, the PRF key holder learns nothing of the input while simultaneously providing proof that its private key was used during execution. VOPRFs are useful for computing one-time unlinkable tokens that are verifiable by secret key holders. This document specifies a VOPRF construction based on Elliptic Curves." />
   <meta name="description" content="A Verifiable Oblivious Pseudorandom Function (VOPRF) is a two-party protocol for computing the output of a PRF that is symmetrically verifiable.  In summary, the PRF key holder learns nothing of the input while simultaneously providing proof that its private key was used during execution. VOPRFs are useful for computing one-time unlinkable tokens that are verifiable by secret key holders. This document specifies a VOPRF construction based on Elliptic Curves." />
 
@@ -337,20 +340,28 @@ address {
 <td class="right">C. Wood</td>
 </tr>
 <tr>
-<td class="left">Expires: September 6, 2018</td>
+<td class="left">Expires: December 24, 2018</td>
 <td class="right">Apple Inc.</td>
 </tr>
 <tr>
 <td class="left"></td>
-<td class="right">March 05, 2018</td>
+<td class="right">A. Davidson</td>
+</tr>
+<tr>
+<td class="left"></td>
+<td class="right">ISG, Royal Holloway, University of London</td>
+</tr>
+<tr>
+<td class="left"></td>
+<td class="right">June 22, 2018</td>
 </tr>
 
     	
     </tbody>
   </table>
 
-  <p class="title">Verifiable Oblivious Pseudorandom Functions (VOPRFs)<br />
-  <span class="filename">draft-sullivan-cfrg-voprf-latest</span></p>
+  <p class="title">Elliptic Curve Verifiable Oblivious Pseudorandom Functions (ECVOPRFs)<br />
+  <span class="filename">draft-sullivan-cfrg-ecvoprf-latest</span></p>
   
   <h1 id="rfc.abstract"><a href="#rfc.abstract">Abstract</a></h1>
 <p>A Verifiable Oblivious Pseudorandom Function (VOPRF) is a two-party protocol for computing the output of a PRF that is symmetrically verifiable.  In summary, the PRF key holder learns nothing of the input while simultaneously providing proof that its private key was used during execution. VOPRFs are useful for computing one-time unlinkable tokens that are verifiable by secret key holders. This document specifies a VOPRF construction based on Elliptic Curves.</p>
@@ -358,7 +369,7 @@ address {
 <p>This Internet-Draft is submitted in full conformance with the provisions of BCP 78 and BCP 79.</p>
 <p>Internet-Drafts are working documents of the Internet Engineering Task Force (IETF).  Note that other groups may also distribute working documents as Internet-Drafts.  The list of current Internet-Drafts is at https://datatracker.ietf.org/drafts/current/.</p>
 <p>Internet-Drafts are draft documents valid for a maximum of six months and may be updated, replaced, or obsoleted by other documents at any time.  It is inappropriate to use Internet-Drafts as reference material or to cite them other than as "work in progress."</p>
-<p>This Internet-Draft will expire on September 6, 2018.</p>
+<p>This Internet-Draft will expire on December 24, 2018.</p>
 <h1 id="rfc.copyrightnotice"><a href="#rfc.copyrightnotice">Copyright Notice</a></h1>
 <p>Copyright (c) 2018 IETF Trust and the persons identified as the document authors.  All rights reserved.</p>
 <p>This document is subject to BCP 78 and the IETF Trust's Legal Provisions Relating to IETF Documents (https://trustee.ietf.org/license-info) in effect on the date of publication of this document.  Please review these documents carefully, as they describe your rights and restrictions with respect to this document.  Code Components extracted from this document must include Simplified BSD License text as described in Section 4.e of the Trust Legal Provisions and are provided without warranty as described in the Simplified BSD License.</p>
@@ -408,13 +419,19 @@ address {
 </li>
 </ul><li>8.   <a href="#rfc.section.8">Acknowledgments</a>
 </li>
-<li>9.   <a href="#rfc.section.9">Contributors</a>
-</li>
-<li>10.   <a href="#rfc.references">Normative References</a>
+<li>9.   <a href="#rfc.references">Normative References</a>
 </li>
 <li>Appendix A.   <a href="#rfc.appendix.A">Test Vectors</a>
 </li>
-<li><a href="#rfc.authors">Authors' Addresses</a>
+<li>Appendix B.   <a href="#rfc.appendix.B">Applications</a>
+</li>
+<ul><li>B.1.   <a href="#rfc.appendix.B.1">Privacy Pass</a>
+</li>
+<li>B.2.   <a href="#rfc.appendix.B.2">Private Password Checker</a>
+</li>
+<ul><li>B.2.1.   <a href="#rfc.appendix.B.2.1">Parameter Commitments</a>
+</li>
+</ul></ul><li><a href="#rfc.authors">Authors' Addresses</a>
 </li>
 
 
@@ -424,12 +441,12 @@ address {
 <a href="#rfc.section.1">1.</a> <a href="#introduction" id="introduction">Introduction</a>
 </h1>
 <p id="rfc.section.1.p.1">A pseudorandom function (PRF) F(k, x) is an efficiently computable function with secret key k on input x. Roughly, F is pseudorandom if the output y = F(k, x) is indistinguishable from uniformly sampling any element in F&#8217;s range for random choice of k. An oblivious PRF (OPRF) is a two-party protocol between a prover P and verifier V where P holds a PRF key k and V holds some input x. The protocol allows both parties to cooperate in computing F(k, x) with P&#8217;s secret key k and V&#8217;s input x such that: V learns F(k, x) without learning anything about k; and P does not learn anything about x. A Verifiable OPRF (VOPRF) is an OPRF wherein P can prove to V that F(k, x) was computed using key k, which is bound to a trusted public key Y = kG. Informally, this is done by presenting a non-interactive zero-knowledge (NIZK) proof of equality between (G, Y) and (Z, M), where Z = kM for some point M.</p>
-<p id="rfc.section.1.p.2">VOPRFs are useful for producing tokens that are verifiable by V. This may be needed, for example, if V wants assurance that P did not use a unique key in its computation, i.e., if V wants key consistency from P. This property is necessary in some applications, e.g., the Privacy Pass protocol <a href="#PrivacyPass" class="xref">[PrivacyPass]</a>, wherein this VOPRF is used to generate one-time authentic tokens to bypass CAPTCHA challenges.</p>
+<p id="rfc.section.1.p.2">VOPRFs are useful for producing tokens that are verifiable by V. This may be needed, for example, if V wants assurance that P did not use a unique key in its computation, i.e., if V wants key consistency from P. This property is necessary in some applications, e.g., the Privacy Pass protocol <a href="#PrivacyPass" class="xref">[PrivacyPass]</a>, wherein this VOPRF is used to generate one-time authentication tokens to bypass CAPTCHA challenges.</p>
 <p id="rfc.section.1.p.3">This document introduces a VOPRF protocol built on Elliptic Curves, called ECVOPRF. It describes the protocol, its security properties, and provides preliminary test vectors for experimentation. This rest of document is structured as follows:</p>
 <p></p>
 
 <ul>
-<li>Section <a href="#background" class="xref">Section 2</a>: Describe background, related related, and use cases of VOPRF protocols.</li>
+<li>Section <a href="#background" class="xref">Section 2</a>: Describe background, related work, and use cases of VOPRF protocols.</li>
 <li>Section <a href="#properties" class="xref">Section 3</a>: Discuss security properties of VOPRFs.</li>
 <li>Section <a href="#protocol" class="xref">Section 4</a>: Specify a VOPRF protocol based on elliptic curves.</li>
 <li>Section <a href="#dleq" class="xref">Section 5</a>: Specify the NIZK discrete logarithm equality construction used for verifying protocol outputs.</li>
@@ -444,6 +461,7 @@ address {
 <li>PRF: Pseudorandom Function.</li>
 <li>OPRF: Oblivious PRF.</li>
 <li>VOPRF: Verifiable Oblivious Pseudorandom Function.</li>
+<li>ECVOPRF: A VOPRF built on Elliptic Curves.</li>
 <li>Verifier (V): Protocol initiator when computing F(k, x).</li>
 <li>Prover (P): Holder of secret key k.</li>
 <li>NIZK: Non-interactive zero knowledge.</li>
@@ -487,22 +505,22 @@ address {
 <h1 id="rfc.section.4">
 <a href="#rfc.section.4">4.</a> <a href="#protocol" id="protocol">Elliptic Curve VOPRF Protocol</a>
 </h1>
-<p id="rfc.section.4.p.1">In this section we describe the ECVOPRF protocol. Let GG be a prime-order subgroup of an elliptic curve over base field GF(p) for prime p, with two distinct hash functions H_1 and H_2, where H_1 maps arbitrary input onto GG and H_2 maps arbitrary input to a fixed-length output, e.g., SHA256.  All hash functions in the protocol are assumed to be random oracles.  Let L be the security parameter. Let k be the prover&#8217;s (P) secret key, and Y = kG be its corresponding public key for some generator G taken from the group GG.  Let x be the verifier&#8217;s (V) input to the VOPRF protocol. (Commonly, it is a random L-bit string, though this is not required.) ECVOPRF begins with V randomly blinding its input for the signer. The latter then applies its secret key to the blinded value and returns the result. To finish the computation, V then removes its blind and hashes the result using H_2 to yield an output.  This flow is illustrated below.</p>
+<p id="rfc.section.4.p.1">In this section we describe the ECVOPRF protocol. Let GG be a prime-order subgroup of an elliptic curve over base field GF(p) for prime p, with two distinct hash functions H_1 and H_2, where H_1 maps arbitrary input onto GG and H_2 maps arbitrary input to a fixed-length output, e.g., SHA256.  All hash functions in the protocol are assumed to be random oracles.  Let L be the security parameter. Let k be the prover&#8217;s (P) secret key, and Y = kG be its corresponding public key for some generator G taken from the group GG.  Let x be the verifier&#8217;s (V) input to the ECVOPRF protocol. (Commonly, it is a random L-bit string, though this is not required.) ECVOPRF begins with V randomly blinding its input for the signer. The latter then applies its secret key to the blinded value and returns the result. To finish the computation, V then removes its blind and hashes the result using H_2 to yield an output.  This flow is illustrated below.</p>
 <pre>
      Verifier              Prover
   ------------------------------------
-     r &lt;-$ G
+     r &lt;-$ GG
      M = rH_1(x) 
                    M
                 -------&gt;    
                            Z = kM
-                           D = DLEQ_Generate(Z/M == Y/G)
+                           D = DLEQ_Generate(G,Y,M,Z)
                    Z,D
                 &lt;-------
-    b = DLEQ_Verify(M, Z, D, Y)
+    b = DLEQ_Verify(G,Y,M,Z,D)
     Output H_2(x, Zr^(-1)) if b=1, else "error"
 </pre>
-<p id="rfc.section.4.p.2">DLEQ(Z/M == Y/G) is described in Section <a href="#dleq" class="xref">Section 5</a>. Intuitively, the DLEQ proof allows P to prove to V in NIZK that the same key k is the exponent of both Y and M. In other words, computing the discrete logarithm of Y and Z (with respect to G and M, respectively) results in the same value.  The committed value Y should be public before the protocol is initiated.</p>
+<p id="rfc.section.4.p.2">DLEQ_Generate(G,Y,M,Z) and DLEQ_Verify(G,Y,M,Z,D) are described in Section <a href="#dleq" class="xref">Section 5</a>. Intuitively, the DLEQ proof allows P to prove to V in NIZK that the same key k is the exponent of both Y and M. In other words, computing the discrete logarithm of Y and Z (with respect to G and M, respectively) results in the same value.  The committed value Y should be public before the protocol is initiated.</p>
 <p id="rfc.section.4.p.3">The actual PRF function computed is as follows:</p>
 <pre>
 F(k, x) = H_2(x, N) = H_2(x, kH_1(x))
@@ -513,8 +531,8 @@ F(k, x) = H_2(x, N) = H_2(x, kH_1(x))
 
 <ul>
 <li>ECVOPRF_Blind(x): Compute and return a blind, r, and blinded representation of x, denoted M.</li>
-<li>ECVOPRF_Sign(M): Sign input M using secret key k to produce Z, generate a proof D of DLEQ(Z/M == Y/G), and output (Z, D).</li>
-<li>ECVOPRF_Unblind((Z, D), r, Y, G, M): Unblind blinded signature Z with blind r, yielding N.  Output N if D is a valid proof. Otherwise, output an error.</li>
+<li>ECVOPRF_Sign(M): Sign input M using secret key k to produce Z, generate a proof D = DLEQ_Generate(G,Y,M,Z), and output (Z, D).</li>
+<li>ECVOPRF_Unblind((Z, D), r, Y, G, M): Unblind blinded signature Z with blind r, yielding N.  Output N if 1 = DLEQ_Verify(G,Y,M,Z,D). Otherwise, output &#8220;error&#8221;.</li>
 <li>ECVOPRF_Finalize(N): Finalize N to produce PRF output F(k, x).</li>
 </ul>
 <p id="rfc.section.4.p.7">Protocol correctness requires that, for any key k, input x, and (r, M) = ECVOPRF_Blind(x), it must be true that:</p>
@@ -525,15 +543,15 @@ ECVOPRF_Finalize(x, ECVOPRF_Unblind(ECVOPRF_Sign(M), M, r)) = F(k, x)
 <h1 id="rfc.section.4.1">
 <a href="#rfc.section.4.1">4.1.</a> <a href="#algorithmic-details" id="algorithmic-details">Algorithmic Details</a>
 </h1>
-<p id="rfc.section.4.1.p.1">This section provides algorithms for each step in the VOPRF protocol.</p>
+<p id="rfc.section.4.1.p.1">This section provides algorithms for each step in the ECVOPRF protocol.</p>
 <p></p>
 
 <ol>
 <li>V computes X = H_1(x) and a random element r (blinding factor) from GF(p), and computes M = rX.</li>
 <li>V sends M to P.</li>
-<li>P computes Z = kM = rkX, and D = DLEQ(Z/M == Y/G).</li>
+<li>P computes Z = kM = rkX, and D = DLEQ_Generate(G,Y,M,Z).</li>
 <li>P sends (Z, D) to V.</li>
-<li>V verifies D using Y. If invalid, V outputs an error.</li>
+<li>V ensures that 1 = DLEQ_Verify(G,Y,M,Z,D). If not, V outputs an error.</li>
 <li>V unblinds Z to compute N = r^(-1)Z = kX.</li>
 <li>V outputs the pair H_2(x, N).</li>
 </ol>
@@ -562,7 +580,9 @@ Steps:
 <pre>
 Input:
 
- M - Point in G.
+ G: Public generator of group GG with prime order p.
+ Y: Signer public key.
+ M - Point in GG.
 
 Output:
 
@@ -572,7 +592,7 @@ Output:
 Steps:
 
  1. Z := kM
- 2. D = DLEQ_Generate(Y, G, M, Z)
+ 2. D = DLEQ_Generate(G,Y,M,Z)
  2. Output (Z, D)
 </pre>
 <h1 id="rfc.section.4.1.3">
@@ -581,9 +601,11 @@ Steps:
 <pre>
 Input:
 
- Z - Point in GG.
- D - DLEQ proof that log_G(Y) == log_M(Z).
+ G: Public generator of group GG with prime order p.
+ Y: Signer public key.
  M - Blinded representation of x using blind r, a point in G.
+ Z - Point in GG.
+ D - D = DLEQ_Generate(G,Y,M,Z).
  r - Random scalar in [1, p - 1].
 
 Output:
@@ -593,7 +615,7 @@ Output:
 Steps:
 
  1. N := (-r)Z
- 2. If DLEQ_Verify(G, Y, M, Z, D) output N
+ 2. If 1 = DLEQ_Verify(G,Y,M,Z,D), output N
  3. Output "error"
 </pre>
 <h1 id="rfc.section.4.1.4">
@@ -618,14 +640,14 @@ Steps:
 <h1 id="rfc.section.5">
 <a href="#rfc.section.5">5.</a> <a href="#dleq" id="dleq">NIZK Discrete Logarithm Equality Proof</a>
 </h1>
-<p id="rfc.section.5.p.1">In some cases, it may be desirable for the V to have proof that P used its private key to compute Z from M. This is done by proving log_G(Y) == log_M(Z). This may be used, for example, to ensure that P uses the same private key for computing the VOPRF output and does not attempt to &#8220;tag&#8221; individual verifiers with select keys. This proof must not reveal the P&#8217;s long-term private key to V. Consequently, we extend the protocol in the previous section with a (non-interactive) discrete logarithm equality (DLEQ) algorithm built on a Chaum-Pedersen <a href="#ChaumPedersen" class="xref">[ChaumPedersen]</a> proof.  This proof is divided into two procedures: DLEQ_Generate and DLEQ_Verify.  These are specified below.</p>
+<p id="rfc.section.5.p.1">In some cases, it may be desirable for the V to have proof that P used its private key to compute Z from M. This is done by proving log_G(Y) == log_M(Z). This may be used, for example, to ensure that P uses the same private key for computing the ECVOPRF output and does not attempt to &#8220;tag&#8221; individual verifiers with select keys. This proof must not reveal the P&#8217;s long-term private key to V. Consequently, we extend the protocol in the previous section with a (non-interactive) discrete logarithm equality (DLEQ) algorithm built on a Chaum-Pedersen <a href="#ChaumPedersen" class="xref">[ChaumPedersen]</a> proof.  This proof is divided into two procedures: DLEQ_Generate and DLEQ_Verify.  These are specified below.</p>
 <h1 id="rfc.section.5.1">
 <a href="#rfc.section.5.1">5.1.</a> <a href="#dleqgenerate" id="dleqgenerate">DLEQ_Generate</a>
 </h1>
 <pre>
 Input: 
 
-  G: Generator of group GG with prime order p.
+  G: Public generator of group GG with prime order p.
   Y: Signer public key.
   M: Point in GG.
   Z: Point in GG.
@@ -649,7 +671,7 @@ Steps:
 <pre>
 Input: 
 
-  G: Generator of group GG with prime order p.
+  G: Public generator of group GG with prime order p.
   Y: Signer public key.
   M: Point in GG.
   Z: Point in GG.
@@ -663,14 +685,14 @@ Steps:
 
 1. A' = (sG + cY)
 2. B' = (sM + cZ)
-3. c' = H_3(G,E,M,Z,A',B')
+3. c' = H_3(G,Y,M,Z,A',B')
 4. Output c == c'
 </pre>
 <h1 id="rfc.section.5.3">
 <a href="#rfc.section.5.3">5.3.</a> <a href="#group-and-hash-function-instantiations" id="group-and-hash-function-instantiations">Group and Hash Function Instantiations</a>
 </h1>
-<p id="rfc.section.5.3.p.1">This section specifies supported VOPRF group and hash function instantiations.</p>
-<p id="rfc.section.5.3.p.2">EC-VOPRF-P256-SHA256:</p>
+<p id="rfc.section.5.3.p.1">This section specifies supported ECVOPRF group and hash function instantiations.</p>
+<p id="rfc.section.5.3.p.2">ECVOPRF-P256-SHA256:</p>
 <p></p>
 
 <ul>
@@ -680,7 +702,7 @@ Steps:
 <li>H_2: SHA256</li>
 <li>H_3: SHA256</li>
 </ul>
-<p id="rfc.section.5.3.p.4">EC-VOPRF-P256-SHA512:</p>
+<p id="rfc.section.5.3.p.4">ECVOPRF-P256-SHA512:</p>
 <p></p>
 
 <ul>
@@ -690,7 +712,7 @@ Steps:
 <li>H_2: SHA512</li>
 <li>H_3: SHA512</li>
 </ul>
-<p id="rfc.section.5.3.p.6">EC-VOPRF-P384-SHA256:</p>
+<p id="rfc.section.5.3.p.6">ECVOPRF-P384-SHA256:</p>
 <p></p>
 
 <ul>
@@ -700,7 +722,7 @@ Steps:
 <li>H_2: SHA256</li>
 <li>H_3: SHA256</li>
 </ul>
-<p id="rfc.section.5.3.p.8">EC-VOPRF-P384-SHA512:</p>
+<p id="rfc.section.5.3.p.8">ECVOPRF-P384-SHA512:</p>
 <p></p>
 
 <ul>
@@ -710,7 +732,7 @@ Steps:
 <li>H_2: SHA512</li>
 <li>H_3: SHA512</li>
 </ul>
-<p id="rfc.section.5.3.p.10">EC-VOPRF-CURVE25519-SHA256:</p>
+<p id="rfc.section.5.3.p.10">ECVOPRF-CURVE25519-SHA256:</p>
 <p></p>
 
 <ul>
@@ -721,7 +743,7 @@ Steps:
 <li>H_2: SHA256</li>
 <li>H_3: SHA256</li>
 </ul>
-<p id="rfc.section.5.3.p.12">EC-VOPRF-CURVE25519-SHA512:</p>
+<p id="rfc.section.5.3.p.12">ECVOPRF-CURVE25519-SHA512:</p>
 <p></p>
 
 <ul>
@@ -732,7 +754,7 @@ Steps:
 <li>H_2: SHA512</li>
 <li>H_3: SHA512</li>
 </ul>
-<p id="rfc.section.5.3.p.14">EC-VOPRF-CURVE448-SHA256:</p>
+<p id="rfc.section.5.3.p.14">ECVOPRF-CURVE448-SHA256:</p>
 <p></p>
 
 <ul>
@@ -743,7 +765,7 @@ Steps:
 <li>H_2: SHA256</li>
 <li>H_3: SHA256</li>
 </ul>
-<p id="rfc.section.5.3.p.16">EC-VOPRF-CURVE448-SHA512:</p>
+<p id="rfc.section.5.3.p.16">ECVOPRF-CURVE448-SHA512:</p>
 <p></p>
 
 <ul>
@@ -774,12 +796,8 @@ Steps:
 <a href="#rfc.section.8">8.</a> <a href="#acknowledgments" id="acknowledgments">Acknowledgments</a>
 </h1>
 <p id="rfc.section.8.p.1">This document resulted from the work of the Privacy Pass team <a href="#PrivacyPass" class="xref">[PrivacyPass]</a>.</p>
-<h1 id="rfc.section.9">
-<a href="#rfc.section.9">9.</a> <a href="#contributors" id="contributors">Contributors</a>
-</h1>
-<p id="rfc.section.9.p.1">Alex Davidson contributed to earlier versions of this document.</p>
 <h1 id="rfc.references">
-<a href="#rfc.references">10.</a> Normative References</h1>
+<a href="#rfc.references">9.</a> Normative References</h1>
 <table><tbody>
 <tr>
 <td class="reference"><b id="ChaumBlindSignature">[ChaumBlindSignature]</b></td>
@@ -790,8 +808,20 @@ Steps:
 <td class="top">"<a href="https://chaum.com/publications/Wallet_Databases.pdf">Wallet Databases with Observers</a>", n.d..</td>
 </tr>
 <tr>
+<td class="reference"><b id="DGSTV18">[DGSTV18]</b></td>
+<td class="top">"<a href="https://www.degruyter.com/view/j/popets.2018.2018.issue-3/popets-2018-0026/popets-2018-0026.xml">Privacy Pass, Bypassing Internet Challenges Anonymously</a>", n.d..</td>
+</tr>
+<tr>
 <td class="reference"><b id="I-D.draft-sullivan-cfrg-hash-to-curve">[I-D.draft-sullivan-cfrg-hash-to-curve]</b></td>
 <td class="top">"<a href="https://datatracker.ietf.org/doc/I-D.draft-sullivan-cfrg-hash-to-curve/">Hashing to Elliptic Curves</a>", n.d..</td>
+</tr>
+<tr>
+<td class="reference"><b id="JKK14">[JKK14]</b></td>
+<td class="top">"<a href="https://eprint.iacr.org/2014/650.pdf">Round-Optimal Password-Protected Secret Sharing and T-PAKE in the Password-Only model</a>", n.d..</td>
+</tr>
+<tr>
+<td class="reference"><b id="JKKX16">[JKKX16]</b></td>
+<td class="top">"<a href="https://eprint.iacr.org/2016/144">Highly-Efficient and Composable Password-Protected Secret Sharing (Or, How to Protect Your Bitcoin Wallet Online)</a>", n.d..</td>
 </tr>
 <tr>
 <td class="reference"><b id="PrivacyPass">[PrivacyPass]</b></td>
@@ -812,11 +842,15 @@ Steps:
 <td class="top">
 <a>Josefsson, S.</a> and <a>I. Liusvaara</a>, "<a href="https://tools.ietf.org/html/rfc8032">Edwards-Curve Digital Signature Algorithm (EdDSA)</a>", RFC 8032, DOI 10.17487/RFC8032, January 2017.</td>
 </tr>
+<tr>
+<td class="reference"><b id="SJKS17">[SJKS17]</b></td>
+<td class="top">"<a href="http://webee.technion.ac.il/%7Ehugo/sphinx.pdf">SPHINX, A Password Store that Perfectly Hides from Itself</a>", n.d..</td>
+</tr>
 </tbody></table>
 <h1 id="rfc.appendix.A">
 <a href="#rfc.appendix.A">Appendix A.</a> <a href="#test-vectors" id="test-vectors">Test Vectors</a>
 </h1>
-<p id="rfc.section.A.p.1">This section includes test vectors for the primary VOPRF protocol, excluding DLEQ output.</p>
+<p id="rfc.section.A.p.1">This section includes test vectors for the primary ECVOPRF protocol, excluding DLEQ output.</p>
 <p id="rfc.section.A.p.2">((TODO: add DLEQ vectors))</p>
 <pre>
 P-224
@@ -947,6 +981,24 @@ Y: 04006b0413e2686c4bb62340706de7723471080093422f02dd125c3e72f3507b9200d11481468
    240183d777181259761741343959d476bbc2591a1af0a516e6403a6b81423234746d7a2e8c2ce60a \
    240183d777181259761741343959d476bbc2591a1af0a516e6403a6b81423234746d7a2e8c2ce60a
 </pre>
+<h1 id="rfc.appendix.B">
+<a href="#rfc.appendix.B">Appendix B.</a> <a href="#applications" id="applications">Applications</a>
+</h1>
+<p id="rfc.section.B.p.1">This section describes various application of ECVOPRF.</p>
+<h1 id="rfc.appendix.B.1">
+<a href="#rfc.appendix.B.1">B.1.</a> <a href="#privacy-pass" id="privacy-pass">Privacy Pass</a>
+</h1>
+<p id="rfc.section.B.1.p.1">This VOPRF protocol is used by Privacy Pass system to help Tor users bypass CAPTCHA challenges. Their system works as follows. Client C connects &#8211; through Tor &#8211; to an edge server E serving content. Upon receipt, E serves a CAPTCHA to C, who then solves the CAPTCHA and supplies, in response, n blinded points. E verifies the CAPTCHA response and, if valid, signs (at most) n blinded points, which are then returned to C. When C attempts to connect to E again and is prompted with a CAPTCHA, C uses one of the unblinded and signed points, or tokens, to derive a shared symmetric key sk used to MAC the CAPTCHA challenge. C sends the CAPTCHA, MAC, and token input x to E, who can use x to derive sk and verify the CAPTCHA MAC. Thus, each token is used at most once by the system.</p>
+<p id="rfc.section.B.1.p.2">For more details, see <a href="#DGSTV18" class="xref">[DGSTV18]</a>.</p>
+<h1 id="rfc.appendix.B.2">
+<a href="#rfc.appendix.B.2">B.2.</a> <a href="#private-password-checker" id="private-password-checker">Private Password Checker</a>
+</h1>
+<p id="rfc.section.B.2.p.1">In this application, let D be a collection of cleartext passwords obtained by prover P.  For each password p in D, P computes ECVOPRF_Sign(H_1(p)), where H_1 is as described above, and stores the result in a separate collection D&#8217;. P then publishes D&#8217; with Y, its public key. If a client C wishes to query D&#8217; for a password p&#8217;, it runs the ECVOPRF protocol using p as input x to obtain output y. By construction, y will be the signature of p hashed onto the curve. C can then search D&#8217; for y to determine if there is a match.</p>
+<p id="rfc.section.B.2.p.2">Examples of such password checkers already exist, for example: <a href="#JKKX16" class="xref">[JKKX16]</a>, <a href="#JKK14" class="xref">[JKK14]</a> and <a href="#SJKS17" class="xref">[SJKS17]</a>.</p>
+<h1 id="rfc.appendix.B.2.1">
+<a href="#rfc.appendix.B.2.1">B.2.1.</a> <a href="#parameter-commitments" id="parameter-commitments">Parameter Commitments</a>
+</h1>
+<p id="rfc.section.B.2.1.p.1">For some applications, it may be desirable for P to bind tokens to certain parameters, e.g., protocol versions, ciphersuites, etc. To accomplish this, P should use a distinct scalar for each parameter combination. Upon redemption of a token T from V, P can later verify that T was generated using the scalar associated with the corresponding parameters.</p>
 <h1 id="rfc.authors"><a href="#rfc.authors">Authors' Addresses</a></h1>
 <div class="avoidbreak">
   <address class="vcard">
@@ -990,6 +1042,28 @@ Y: 04006b0413e2686c4bb62340706de7723471080093422f02dd125c3e72f3507b9200d11481468
 	  <span class="country-name vcardline">United States of America</span>
 	</span>
 	<span class="vcardline">EMail: <a href="mailto:cawood@apple.com">cawood@apple.com</a></span>
+
+  </address>
+</div><div class="avoidbreak">
+  <address class="vcard">
+	<span class="vcardline">
+	  <span class="fn">Alex Davidson</span> 
+	  <span class="n hidden">
+		<span class="family-name">Davidson</span>
+	  </span>
+	</span>
+	<span class="org vcardline">ISG, Royal Holloway, University of London</span>
+	<span class="adr">
+	  <span class="vcardline">Egham Hill</span>
+
+	  <span class="vcardline">
+		<span class="locality">Twickenham, TW20 0EX</span>,  
+		<span class="region"></span>
+		<span class="code"></span>
+	  </span>
+	  <span class="country-name vcardline">United Kingdom</span>
+	</span>
+	<span class="vcardline">EMail: <a href="mailto:alex.davidson.2014@rhul.ac.uk">alex.davidson.2014@rhul.ac.uk</a></span>
 
   </address>
 </div>

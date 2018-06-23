@@ -13,6 +13,14 @@ pi: [toc, sortrefs, symrefs]
 
 author:
  -
+    ins: A. Davidson
+    name: Alex Davidson
+    org: ISG, Royal Holloway, University of London
+    street: Egham Hill
+    city: Twickenham, TW20 0EX
+    country: United Kingdom
+    email: alex.davidson.2014@rhul.ac.uk
+ -
     ins: N. Sullivan
     name: Nick Sullivan
     org: Cloudflare
@@ -28,14 +36,6 @@ author:
     city: Cupertino, California 95014
     country: United States of America
     email: cawood@apple.com
- -
-    ins: A. Davidson
-    name: Alex Davidson
-    org: ISG, Royal Holloway, University of London
-    street: Egham Hill
-    city: Twickenham, TW20 0EX
-    country: United Kingdom
-    email: alex.davidson.2014@rhul.ac.uk
 
 normative:
   RFC2119:
@@ -64,7 +64,70 @@ normative:
       -
         ins: D. Chaum
         org: University of California, Santa Barbara, USA
-
+  JKKX16:
+    title: Highly-Efficient and Composable Password-Protected Secret Sharing (Or, How to Protect Your Bitcoin Wallet Online)
+    target: https://eprint.iacr.org/2016/144
+    authors:
+      -
+        ins: S. Jarecki
+        org: UC Irvine, CA, USA
+      -
+        ins: A. Kiayias
+        org: University of Athens, Greece
+      -
+        ins: H. Krawczyk
+        org: IBM Research, NY, USA
+      -
+        ins: Jiayu Xu
+        org: UC Irvine, CA, USA
+  JKK14:
+    title:  Round-Optimal Password-Protected Secret Sharing and T-PAKE in the Password-Only model
+    target: https://eprint.iacr.org/2014/650.pdf
+    authors:
+      -
+        ins: S. Jarecki
+        org: UC Irvine, CA, USA
+      -
+        ins: A. Kiayias
+        org: University of Athens, Greece
+      -
+        ins: H. Krawczyk
+        org: IBM Research, NY, USA
+  SJKS17:
+    title:  SPHINX, A Password Store that Perfectly Hides from Itself
+    target: http://webee.technion.ac.il/%7Ehugo/sphinx.pdf
+    authors:
+      -
+        ins: M. Shirvanian
+        org: University of Alabama at Birmingham, USA
+      -
+        ins: S. Jarecki
+        org: UC Irvine, CA, USA
+      -
+        ins: H. Krawczyk
+        org: IBM Research, NY, USA
+      -
+        ins: N. Saxena
+        org: University of Alabama at Birmingham, USA
+  DGSTV18:
+    title: Privacy Pass, Bypassing Internet Challenges Anonymously
+    target: https://www.degruyter.com/view/j/popets.2018.2018.issue-3/popets-2018-0026/popets-2018-0026.xml
+    authors: 
+      -
+        ins: A. Davidson
+        org: RHUL, UK
+      -
+        ins: I. Goldberg
+        org: University of Waterloo, Canada
+      -
+        ins: N. Sullivan
+        org: Cloudflare, CA, USA
+      -
+        ins: G. Tankersley
+        org: Independent
+      -
+        ins: F. Valsordas
+        org: Independent
 --- abstract
 
 A Verifiable Oblivious Pseudorandom Function (VOPRF) is a two-party
@@ -621,7 +684,9 @@ signs (at most) n blinded points, which are then returned to C. When C attempts 
 E again and is prompted with a CAPTCHA, C uses one of the unblinded and signed points, or tokens, 
 to derive a shared symmetric key sk used to MAC the CAPTCHA challenge. C sends the CAPTCHA, MAC, 
 and token input x to E, who can use x to derive sk and verify the CAPTCHA MAC. Thus, each token 
-is used at most once by the system. 
+is used at most once by the system.
+
+For more details, see {{DGSTV18}}.
 
 ## Private Password Checker
 
@@ -631,6 +696,8 @@ and stores the result in a separate collection D'. P then publishes D' with Y, i
 key. If a client C wishes to query D' for a password p', it runs the ECVOPRF protocol using 
 p as input x to obtain output y. By construction, y will be the signature of p hashed onto
 the curve. C can then search D' for y to determine if there is a match. 
+
+Examples of such password checkers already exist, for example: {{JKKX16}}, {{JKK14}} and {{SJKS17}}.
 
 ### Parameter Commitments
 
