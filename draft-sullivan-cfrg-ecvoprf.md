@@ -41,9 +41,6 @@ normative:
   RFC2119:
   RFC7748:
   RFC8032:
-  I-D.draft-sullivan-cfrg-hash-to-curve:
-    title: Hashing to Elliptic Curves
-    target: https://datatracker.ietf.org/doc/I-D.draft-sullivan-cfrg-hash-to-curve/
   PrivacyPass:
     title: Privacy Pass
     target: https://github.com/privacypass/challenge-bypass-server
@@ -64,6 +61,7 @@ normative:
       -
         ins: D. Chaum
         org: University of California, Santa Barbara, USA
+  I-D.irtf-cfrg-hash-to-curve:
 
 --- abstract
 
@@ -383,56 +381,56 @@ This section specifies supported ECVOPRF group and hash function instantiations.
 ECVOPRF-P256-SHA256:
 
 - G: P-256
-- H_1: ((TODO: choose from {{I-D.draft-irtf-cfrg-hash-to-curve}}
+- H_1: ((TODO: choose from {{I-D.irtf-cfrg-hash-to-curve}}
 - H_2: SHA256
 - H_3: SHA256
 
 ECVOPRF-P256-SHA512:
 
 - G: P-256
-- H_1: ((TODO: choose from {{I-D.draft-irtf-cfrg-hash-to-curve}}
+- H_1: ((TODO: choose from {{I-D.irtf-cfrg-hash-to-curve}}
 - H_2: SHA512
 - H_3: SHA512
 
 ECVOPRF-P384-SHA256:
 
 - G: P-384
-- H_1: ((TODO: choose from {{I-D.draft-irtf-cfrg-hash-to-curve}}
+- H_1: ((TODO: choose from {{I-D.irtf-cfrg-hash-to-curve}}
 - H_2: SHA256
 - H_3: SHA256
 
 ECVOPRF-P384-SHA512:
 
 - G: P-384
-- H_1: ((TODO: choose from {{I-D.draft-irtf-cfrg-hash-to-curve}}
+- H_1: ((TODO: choose from {{I-D.irtf-cfrg-hash-to-curve}}
 - H_2: SHA512
 - H_3: SHA512
 
 ECVOPRF-CURVE25519-SHA256:
 
 - G: Curve25519 {{RFC7748}}
-- H_1: ((TODO: choose from {{I-D.draft-irtf-cfrg-hash-to-curve}}
+- H_1: ((TODO: choose from {{I-D.irtf-cfrg-hash-to-curve}}
 - H_2: SHA256
 - H_3: SHA256
 
 ECVOPRF-CURVE25519-SHA512:
 
 - G: Curve25519 {{RFC7748}}
-- H_1: ((TODO: choose from {{I-D.draft-irtf-cfrg-hash-to-curve}}
+- H_1: ((TODO: choose from {{I-D.irtf-cfrg-hash-to-curve}}
 - H_2: SHA512
 - H_3: SHA512
 
 ECVOPRF-CURVE448-SHA256:
 
 - G: Curve448 {{RFC7748}} 
-- H_1: ((TODO: choose from {{I-D.draft-irtf-cfrg-hash-to-curve}}
+- H_1: ((TODO: choose from {{I-D.irtf-cfrg-hash-to-curve}}
 - H_2: SHA256
 - H_3: SHA256
 
 ECVOPRF-CURVE448-SHA512:
 
 - G: Curve448 {{RFC7748}} 
-- H_1: ((TODO: choose from {{I-D.draft-irtf-cfrg-hash-to-curve}}
+- H_1: ((TODO: choose from {{I-D.irtf-cfrg-hash-to-curve}}
 - H_2: SHA512
 - H_3: SHA512
 
@@ -442,7 +440,7 @@ Security of the protocol depends on P's secrecy of k. Best practices recommend P
 regularly rotate k so as to keep its window of compromise small. Moreover, it each
 key should be generated from a source of safe, cryptographic randomness. 
 
-Another critical aspect of this protocol is reliance on {{I-D.draft-sullivan-cfrg-hash-to-curve}} 
+Another critical aspect of this protocol is reliance on {{I-D.irtf-cfrg-hash-to-curve}} 
 for mapping arbitrary input to points on a curve. Security requires this mapping be 
 pre-image and collision resistant. 
 
@@ -451,7 +449,7 @@ pre-image and collision resistant.
 To ensure no information is leaked during protocol execution, all operations
 that use secret data MUST be constant time. Operations that SHOULD be constant
 time include: H_1() (hashing arbitrary strings to curves) and DLEQ_Generate().
-{{I-D.draft-sullivan-cfrg-hash-to-curve}} describes various algorithms for constant-time 
+{{I-D.irtf-cfrg-hash-to-curve}} describes various algorithms for constant-time 
 implementations of H_1. 
 
 # Privacy Considerations

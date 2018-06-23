@@ -5,12 +5,14 @@
 Network Working Group                                        N. Sullivan
 Internet-Draft                                                Cloudflare
 Intended status: Informational                                   C. Wood
-Expires: September 6, 2018                                    Apple Inc.
-                                                          March 05, 2018
+Expires: December 25, 2018                                    Apple Inc.
+                                                             A. Davidson
+                               ISG, Royal Holloway, University of London
+                                                           June 23, 2018
 
 
-          Verifiable Oblivious Pseudorandom Functions (VOPRFs)
-                    draft-sullivan-cfrg-voprf-latest
+ Elliptic Curve Verifiable Oblivious Pseudorandom Functions (ECVOPRFs)
+                   draft-sullivan-cfrg-ecvoprf-latest
 
 Abstract
 
@@ -30,14 +32,14 @@ Status of This Memo
    Internet-Drafts are working documents of the Internet Engineering
    Task Force (IETF).  Note that other groups may also distribute
    working documents as Internet-Drafts.  The list of current Internet-
-   Drafts is at https://datatracker.ietf.org/drafts/current/.
+   Drafts is at http://datatracker.ietf.org/drafts/current/.
 
    Internet-Drafts are draft documents valid for a maximum of six months
    and may be updated, replaced, or obsoleted by other documents at any
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on September 6, 2018.
+   This Internet-Draft will expire on December 25, 2018.
 
 Copyright Notice
 
@@ -46,18 +48,18 @@ Copyright Notice
 
    This document is subject to BCP 78 and the IETF Trust's Legal
    Provisions Relating to IETF Documents
-   (https://trustee.ietf.org/license-info) in effect on the date of
+   (http://trustee.ietf.org/license-info) in effect on the date of
    publication of this document.  Please review these documents
+
+
+
+Sullivan, et al.        Expires December 25, 2018               [Page 1]
+
+Internet-Draft                  ECVOPRFs                       June 2018
+
+
    carefully, as they describe your rights and restrictions with respect
    to this document.  Code Components extracted from this document must
-
-
-
-Sullivan & Wood         Expires September 6, 2018               [Page 1]
-
-Internet-Draft                   VOPRFs                       March 2018
-
-
    include Simplified BSD License text as described in Section 4.e of
    the Trust Legal Provisions and are provided without warranty as
    described in the Simplified BSD License.
@@ -66,28 +68,31 @@ Table of Contents
 
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
      1.1.  Terminology . . . . . . . . . . . . . . . . . . . . . . .   3
-     1.2.  Requirements  . . . . . . . . . . . . . . . . . . . . . .   3
+     1.2.  Requirements  . . . . . . . . . . . . . . . . . . . . . .   4
    2.  Background  . . . . . . . . . . . . . . . . . . . . . . . . .   4
    3.  Security Properties . . . . . . . . . . . . . . . . . . . . .   4
    4.  Elliptic Curve VOPRF Protocol . . . . . . . . . . . . . . . .   5
      4.1.  Algorithmic Details . . . . . . . . . . . . . . . . . . .   6
-       4.1.1.  ECVOPRF_Blind . . . . . . . . . . . . . . . . . . . .   6
+       4.1.1.  ECVOPRF_Blind . . . . . . . . . . . . . . . . . . . .   7
        4.1.2.  ECVOPRF_Sign  . . . . . . . . . . . . . . . . . . . .   7
        4.1.3.  ECVOPRF_Unblind . . . . . . . . . . . . . . . . . . .   7
        4.1.4.  ECVOPRF_Finalize  . . . . . . . . . . . . . . . . . .   8
    5.  NIZK Discrete Logarithm Equality Proof  . . . . . . . . . . .   8
      5.1.  DLEQ_Generate . . . . . . . . . . . . . . . . . . . . . .   9
      5.2.  DLEQ_Verify . . . . . . . . . . . . . . . . . . . . . . .   9
-     5.3.  Group and Hash Function Instantiations  . . . . . . . . .   9
+     5.3.  Group and Hash Function Instantiations  . . . . . . . . .  10
    6.  Security Considerations . . . . . . . . . . . . . . . . . . .  11
      6.1.  Timing Leaks  . . . . . . . . . . . . . . . . . . . . . .  12
    7.  Privacy Considerations  . . . . . . . . . . . . . . . . . . .  12
      7.1.  Key Consistency . . . . . . . . . . . . . . . . . . . . .  12
    8.  Acknowledgments . . . . . . . . . . . . . . . . . . . . . . .  12
-   9.  Contributors  . . . . . . . . . . . . . . . . . . . . . . . .  12
-   10. Normative References  . . . . . . . . . . . . . . . . . . . .  12
+   9.  Normative References  . . . . . . . . . . . . . . . . . . . .  12
    Appendix A.  Test Vectors . . . . . . . . . . . . . . . . . . . .  13
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  16
+   Appendix B.  Applications . . . . . . . . . . . . . . . . . . . .  16
+     B.1.  Privacy Pass  . . . . . . . . . . . . . . . . . . . . . .  16
+     B.2.  Private Password Checker  . . . . . . . . . . . . . . . .  16
+       B.2.1.  Parameter Commitments . . . . . . . . . . . . . . . .  16
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  17
 
 1.  Introduction
 
@@ -101,32 +106,32 @@ Table of Contents
    key k and V's input x such that: V learns F(k, x) without learning
    anything about k; and P does not learn anything about x.  A
    Verifiable OPRF (VOPRF) is an OPRF wherein P can prove to V that F(k,
+
+
+
+Sullivan, et al.        Expires December 25, 2018               [Page 2]
+
+Internet-Draft                  ECVOPRFs                       June 2018
+
+
    x) was computed using key k, which is bound to a trusted public key Y
    = kG.  Informally, this is done by presenting a non-interactive zero-
    knowledge (NIZK) proof of equality between (G, Y) and (Z, M), where Z
    = kM for some point M.
-
-
-
-
-Sullivan & Wood         Expires September 6, 2018               [Page 2]
-
-Internet-Draft                   VOPRFs                       March 2018
-
 
    VOPRFs are useful for producing tokens that are verifiable by V.
    This may be needed, for example, if V wants assurance that P did not
    use a unique key in its computation, i.e., if V wants key consistency
    from P.  This property is necessary in some applications, e.g., the
    Privacy Pass protocol [PrivacyPass], wherein this VOPRF is used to
-   generate one-time authentic tokens to bypass CAPTCHA challenges.
+   generate one-time authentication tokens to bypass CAPTCHA challenges.
 
    This document introduces a VOPRF protocol built on Elliptic Curves,
    called ECVOPRF.  It describes the protocol, its security properties,
    and provides preliminary test vectors for experimentation.  This rest
    of document is structured as follows:
 
-   o  Section Section 2: Describe background, related related, and use
+   o  Section Section 2: Describe background, related work, and use
       cases of VOPRF protocols.
 
    o  Section Section 3: Discuss security properties of VOPRFs.
@@ -147,6 +152,8 @@ Internet-Draft                   VOPRFs                       March 2018
 
    o  VOPRF: Verifiable Oblivious Pseudorandom Function.
 
+   o  ECVOPRF: A VOPRF built on Elliptic Curves.
+
    o  Verifier (V): Protocol initiator when computing F(k, x).
 
    o  Prover (P): Holder of secret key k.
@@ -155,20 +162,19 @@ Internet-Draft                   VOPRFs                       March 2018
 
    o  DLEQ: Discrete Logarithm Equality.
 
+
+
+
+Sullivan, et al.        Expires December 25, 2018               [Page 3]
+
+Internet-Draft                  ECVOPRFs                       June 2018
+
+
 1.2.  Requirements
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
    document are to be interpreted as described in [RFC2119].
-
-
-
-
-
-Sullivan & Wood         Expires September 6, 2018               [Page 3]
-
-Internet-Draft                   VOPRFs                       March 2018
-
 
 2.  Background
 
@@ -212,19 +218,19 @@ Internet-Draft                   VOPRFs                       March 2018
       asserts that P used its secret key k, associated with public key Y
       = kG, in execution.
 
+
+
+
+Sullivan, et al.        Expires December 25, 2018               [Page 4]
+
+Internet-Draft                  ECVOPRFs                       June 2018
+
+
    o  Oblivious: P must learn nothing about V's input, and V must learn
       nothing about P's private key.
 
    o  Unlinkable: If V reveals x to P, P cannot link x to the protocol
       instance in which y = F(k, x) was computed.
-
-
-
-
-Sullivan & Wood         Expires September 6, 2018               [Page 4]
-
-Internet-Draft                   VOPRFs                       March 2018
-
 
 4.  Elliptic Curve VOPRF Protocol
 
@@ -236,7 +242,7 @@ Internet-Draft                   VOPRFs                       March 2018
    assumed to be random oracles.  Let L be the security parameter.  Let
    k be the prover's (P) secret key, and Y = kG be its corresponding
    public key for some generator G taken from the group GG.  Let x be
-   the verifier's (V) input to the VOPRF protocol.  (Commonly, it is a
+   the verifier's (V) input to the ECVOPRF protocol.  (Commonly, it is a
    random L-bit string, though this is not required.)  ECVOPRF begins
    with V randomly blinding its input for the signer.  The latter then
    applies its secret key to the blinded value and returns the result.
@@ -245,27 +251,36 @@ Internet-Draft                   VOPRFs                       March 2018
 
         Verifier              Prover
      ------------------------------------
-        r <-$ G
+        r <-$ GG
         M = rH_1(x)
                       M
                    ------->
                               Z = kM
-                              D = DLEQ_Generate(Z/M == Y/G)
+                              D = DLEQ_Generate(G,Y,M,Z)
                       Z,D
                    <-------
-       b = DLEQ_Verify(M, Z, D, Y)
+       b = DLEQ_Verify(G,Y,M,Z,D)
        Output H_2(x, Zr^(-1)) if b=1, else "error"
 
-   DLEQ(Z/M == Y/G) is described in Section Section 5.  Intuitively, the
-   DLEQ proof allows P to prove to V in NIZK that the same key k is the
-   exponent of both Y and M.  In other words, computing the discrete
-   logarithm of Y and Z (with respect to G and M, respectively) results
-   in the same value.  The committed value Y should be public before the
-   protocol is initiated.
+   DLEQ_Generate(G,Y,M,Z) and DLEQ_Verify(G,Y,M,Z,D) are described in
+   Section Section 5.  Intuitively, the DLEQ proof allows P to prove to
+   V in NIZK that the same key k is the exponent of both Y and M.  In
+   other words, computing the discrete logarithm of Y and Z (with
+   respect to G and M, respectively) results in the same value.  The
+   committed value Y should be public before the protocol is initiated.
 
    The actual PRF function computed is as follows:
 
    F(k, x) = H_2(x, N) = H_2(x, kH_1(x))
+
+
+
+
+
+Sullivan, et al.        Expires December 25, 2018               [Page 5]
+
+Internet-Draft                  ECVOPRFs                       June 2018
+
 
    Note that V finishes this computation upon receiving kH_1(x) from P.
    The output from P is not the PRF value.
@@ -273,24 +288,15 @@ Internet-Draft                   VOPRFs                       March 2018
    This protocol may be decomposed into a series of steps, as described
    below:
 
-
-
-
-
-Sullivan & Wood         Expires September 6, 2018               [Page 5]
-
-Internet-Draft                   VOPRFs                       March 2018
-
-
    o  ECVOPRF_Blind(x): Compute and return a blind, r, and blinded
       representation of x, denoted M.
 
    o  ECVOPRF_Sign(M): Sign input M using secret key k to produce Z,
-      generate a proof D of DLEQ(Z/M == Y/G), and output (Z, D).
+      generate a proof D = DLEQ_Generate(G,Y,M,Z), and output (Z, D).
 
    o  ECVOPRF_Unblind((Z, D), r, Y, G, M): Unblind blinded signature Z
-      with blind r, yielding N.  Output N if D is a valid proof.
-      Otherwise, output an error.
+      with blind r, yielding N.  Output N if 1 = DLEQ_Verify(G,Y,M,Z,D).
+      Otherwise, output "error".
 
    o  ECVOPRF_Finalize(N): Finalize N to produce PRF output F(k, x).
 
@@ -303,40 +309,36 @@ Internet-Draft                   VOPRFs                       March 2018
 
 4.1.  Algorithmic Details
 
-   This section provides algorithms for each step in the VOPRF protocol.
+   This section provides algorithms for each step in the ECVOPRF
+   protocol.
 
    1.  V computes X = H_1(x) and a random element r (blinding factor)
        from GF(p), and computes M = rX.
 
    2.  V sends M to P.
 
-   3.  P computes Z = kM = rkX, and D = DLEQ(Z/M == Y/G).
+   3.  P computes Z = kM = rkX, and D = DLEQ_Generate(G,Y,M,Z).
 
    4.  P sends (Z, D) to V.
 
-   5.  V verifies D using Y.  If invalid, V outputs an error.
+   5.  V ensures that 1 = DLEQ_Verify(G,Y,M,Z,D).  If not, V outputs an
+       error.
 
    6.  V unblinds Z to compute N = r^(-1)Z = kX.
 
    7.  V outputs the pair H_2(x, N).
 
-4.1.1.  ECVOPRF_Blind
 
 
 
 
 
-
-
-
-
-
-
-
-Sullivan & Wood         Expires September 6, 2018               [Page 6]
+Sullivan, et al.        Expires December 25, 2018               [Page 6]
 
-Internet-Draft                   VOPRFs                       March 2018
+Internet-Draft                  ECVOPRFs                       June 2018
 
+
+4.1.1.  ECVOPRF_Blind
 
    Input:
 
@@ -357,7 +359,9 @@ Internet-Draft                   VOPRFs                       March 2018
 
    Input:
 
-    M - Point in G.
+    G: Public generator of group GG with prime order p.
+    Y: Signer public key.
+    M - Point in GG.
 
    Output:
 
@@ -367,7 +371,7 @@ Internet-Draft                   VOPRFs                       March 2018
    Steps:
 
     1. Z := kM
-    2. D = DLEQ_Generate(Y, G, M, Z)
+    2. D = DLEQ_Generate(G,Y,M,Z)
     2. Output (Z, D)
 
 4.1.3.  ECVOPRF_Unblind
@@ -385,20 +389,18 @@ Internet-Draft                   VOPRFs                       March 2018
 
 
 
-
-
-
-
-Sullivan & Wood         Expires September 6, 2018               [Page 7]
+Sullivan, et al.        Expires December 25, 2018               [Page 7]
 
-Internet-Draft                   VOPRFs                       March 2018
+Internet-Draft                  ECVOPRFs                       June 2018
 
 
    Input:
 
-    Z - Point in GG.
-    D - DLEQ proof that log_G(Y) == log_M(Z).
+    G: Public generator of group GG with prime order p.
+    Y: Signer public key.
     M - Blinded representation of x using blind r, a point in G.
+    Z - Point in GG.
+    D - D = DLEQ_Generate(G,Y,M,Z).
     r - Random scalar in [1, p - 1].
 
    Output:
@@ -408,7 +410,7 @@ Internet-Draft                   VOPRFs                       March 2018
    Steps:
 
     1. N := (-r)Z
-    2. If DLEQ_Verify(G, Y, M, Z, D) output N
+    2. If 1 = DLEQ_Verify(G,Y,M,Z,D), output N
     3. Output "error"
 
 4.1.4.  ECVOPRF_Finalize
@@ -433,28 +435,29 @@ Internet-Draft                   VOPRFs                       March 2018
    In some cases, it may be desirable for the V to have proof that P
    used its private key to compute Z from M.  This is done by proving
    log_G(Y) == log_M(Z).  This may be used, for example, to ensure that
-   P uses the same private key for computing the VOPRF output and does
+   P uses the same private key for computing the ECVOPRF output and does
    not attempt to "tag" individual verifiers with select keys.  This
    proof must not reveal the P's long-term private key to V.
    Consequently, we extend the protocol in the previous section with a
    (non-interactive) discrete logarithm equality (DLEQ) algorithm built
    on a Chaum-Pedersen [ChaumPedersen] proof.  This proof is divided
+
+
+
+
+Sullivan, et al.        Expires December 25, 2018               [Page 8]
+
+Internet-Draft                  ECVOPRFs                       June 2018
+
+
    into two procedures: DLEQ_Generate and DLEQ_Verify.  These are
    specified below.
-
-
-
-
-Sullivan & Wood         Expires September 6, 2018               [Page 8]
-
-Internet-Draft                   VOPRFs                       March 2018
-
 
 5.1.  DLEQ_Generate
 
 Input:
 
-  G: Generator of group GG with prime order p.
+  G: Public generator of group GG with prime order p.
   Y: Signer public key.
   M: Point in GG.
   Z: Point in GG.
@@ -476,7 +479,7 @@ Steps:
 
    Input:
 
-     G: Generator of group GG with prime order p.
+     G: Public generator of group GG with prime order p.
      Y: Signer public key.
      M: Point in GG.
      Z: Point in GG.
@@ -490,105 +493,106 @@ Steps:
 
    1. A' = (sG + cY)
    2. B' = (sM + cZ)
-   3. c' = H_3(G,E,M,Z,A',B')
+   3. c' = H_3(G,Y,M,Z,A',B')
    4. Output c == c'
+
+
+
+
+
+
+Sullivan, et al.        Expires December 25, 2018               [Page 9]
+
+Internet-Draft                  ECVOPRFs                       June 2018
+
 
 5.3.  Group and Hash Function Instantiations
 
-   This section specifies supported VOPRF group and hash function
+   This section specifies supported ECVOPRF group and hash function
    instantiations.
 
-
-
-
-Sullivan & Wood         Expires September 6, 2018               [Page 9]
-
-Internet-Draft                   VOPRFs                       March 2018
-
-
-   EC-VOPRF-P256-SHA256:
+   ECVOPRF-P256-SHA256:
 
    o  G: P-256
 
-   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
+   o  H_1: ((TODO: choose from [I-D.irtf-cfrg-hash-to-curve]
 
    o  H_2: SHA256
 
    o  H_3: SHA256
 
-   EC-VOPRF-P256-SHA512:
+   ECVOPRF-P256-SHA512:
 
    o  G: P-256
 
-   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
+   o  H_1: ((TODO: choose from [I-D.irtf-cfrg-hash-to-curve]
 
    o  H_2: SHA512
 
    o  H_3: SHA512
 
-   EC-VOPRF-P384-SHA256:
+   ECVOPRF-P384-SHA256:
 
    o  G: P-384
 
-   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
+   o  H_1: ((TODO: choose from [I-D.irtf-cfrg-hash-to-curve]
 
    o  H_2: SHA256
 
    o  H_3: SHA256
 
-   EC-VOPRF-P384-SHA512:
+   ECVOPRF-P384-SHA512:
 
    o  G: P-384
 
-   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
+   o  H_1: ((TODO: choose from [I-D.irtf-cfrg-hash-to-curve]
 
    o  H_2: SHA512
 
    o  H_3: SHA512
 
-   EC-VOPRF-CURVE25519-SHA256:
+   ECVOPRF-CURVE25519-SHA256:
 
    o  G: Curve25519 [RFC7748]
 
-   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
-
-   o  H_2: SHA256
 
 
-
-
-Sullivan & Wood         Expires September 6, 2018              [Page 10]
+Sullivan, et al.        Expires December 25, 2018              [Page 10]
 
-Internet-Draft                   VOPRFs                       March 2018
+Internet-Draft                  ECVOPRFs                       June 2018
 
 
-   o  H_3: SHA256
-
-   EC-VOPRF-CURVE25519-SHA512:
-
-   o  G: Curve25519 [RFC7748]
-
-   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
-
-   o  H_2: SHA512
-
-   o  H_3: SHA512
-
-   EC-VOPRF-CURVE448-SHA256:
-
-   o  G: Curve448 [RFC7748]
-
-   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
+   o  H_1: ((TODO: choose from [I-D.irtf-cfrg-hash-to-curve]
 
    o  H_2: SHA256
 
    o  H_3: SHA256
 
-   EC-VOPRF-CURVE448-SHA512:
+   ECVOPRF-CURVE25519-SHA512:
+
+   o  G: Curve25519 [RFC7748]
+
+   o  H_1: ((TODO: choose from [I-D.irtf-cfrg-hash-to-curve]
+
+   o  H_2: SHA512
+
+   o  H_3: SHA512
+
+   ECVOPRF-CURVE448-SHA256:
 
    o  G: Curve448 [RFC7748]
 
-   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
+   o  H_1: ((TODO: choose from [I-D.irtf-cfrg-hash-to-curve]
+
+   o  H_2: SHA256
+
+   o  H_3: SHA256
+
+   ECVOPRF-CURVE448-SHA512:
+
+   o  G: Curve448 [RFC7748]
+
+   o  H_1: ((TODO: choose from [I-D.irtf-cfrg-hash-to-curve]
 
    o  H_2: SHA512
 
@@ -602,20 +606,16 @@ Internet-Draft                   VOPRFs                       March 2018
    safe, cryptographic randomness.
 
    Another critical aspect of this protocol is reliance on
-   [I-D.draft-sullivan-cfrg-hash-to-curve] for mapping arbitrary input
-   to points on a curve.  Security requires this mapping be pre-image
-   and collision resistant.
+   [I-D.irtf-cfrg-hash-to-curve] for mapping arbitrary input to points
+   on a curve.  Security requires this mapping be pre-image and
+   collision resistant.
 
 
 
 
-
-
-
-
-Sullivan & Wood         Expires September 6, 2018              [Page 11]
+Sullivan, et al.        Expires December 25, 2018              [Page 11]
 
-Internet-Draft                   VOPRFs                       March 2018
+Internet-Draft                  ECVOPRFs                       June 2018
 
 
 6.1.  Timing Leaks
@@ -624,8 +624,8 @@ Internet-Draft                   VOPRFs                       March 2018
    operations that use secret data MUST be constant time.  Operations
    that SHOULD be constant time include: H_1() (hashing arbitrary
    strings to curves) and DLEQ_Generate().
-   [I-D.draft-sullivan-cfrg-hash-to-curve] describes various algorithms
-   for constant-time implementations of H_1.
+   [I-D.irtf-cfrg-hash-to-curve] describes various algorithms for
+   constant-time implementations of H_1.
 
 7.  Privacy Considerations
 
@@ -644,11 +644,7 @@ Internet-Draft                   VOPRFs                       March 2018
    This document resulted from the work of the Privacy Pass team
    [PrivacyPass].
 
-9.  Contributors
-
-   Alex Davidson contributed to earlier versions of this document.
-
-10.  Normative References
+9.  Normative References
 
    [ChaumBlindSignature]
               "Blind Signatures for Untraceable Payments", n.d.,
@@ -659,29 +655,29 @@ Internet-Draft                   VOPRFs                       March 2018
               "Wallet Databases with Observers", n.d.,
               <https://chaum.com/publications/Wallet_Databases.pdf>.
 
-   [I-D.draft-sullivan-cfrg-hash-to-curve]
-              "Hashing to Elliptic Curves", n.d.,
-              <https://datatracker.ietf.org/doc/
-              I-D.draft-sullivan-cfrg-hash-to-curve/>.
-
-
-
-
-
-
-Sullivan & Wood         Expires September 6, 2018              [Page 12]
-
-Internet-Draft                   VOPRFs                       March 2018
-
+   [I-D.irtf-cfrg-hash-to-curve]
+              Sullivan, N. and C. Wood, "Hashing to Elliptic Curves",
+              draft-irtf-cfrg-hash-to-curve-00 (work in progress), March
+              2018.
 
    [PrivacyPass]
-              "Privacy Pass", n.d.,
-              <https://github.com/privacypass/challenge-bypass-server>.
+              "Privacy Pass", n.d., <https://github.com/privacypass/
+              challenge-bypass-server>.
+
+
+
+
+
+
+Sullivan, et al.        Expires December 25, 2018              [Page 12]
+
+Internet-Draft                  ECVOPRFs                       June 2018
+
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
-              DOI 10.17487/RFC2119, March 1997,
-              <https://www.rfc-editor.org/info/rfc2119>.
+              DOI 10.17487/RFC2119, March 1997, <https://www.rfc-
+              editor.org/info/rfc2119>.
 
    [RFC7748]  Langley, A., Hamburg, M., and S. Turner, "Elliptic Curves
               for Security", RFC 7748, DOI 10.17487/RFC7748, January
@@ -689,12 +685,12 @@ Internet-Draft                   VOPRFs                       March 2018
 
    [RFC8032]  Josefsson, S. and I. Liusvaara, "Edwards-Curve Digital
               Signature Algorithm (EdDSA)", RFC 8032,
-              DOI 10.17487/RFC8032, January 2017,
-              <https://www.rfc-editor.org/info/rfc8032>.
+              DOI 10.17487/RFC8032, January 2017, <https://www.rfc-
+              editor.org/info/rfc8032>.
 
 Appendix A.  Test Vectors
 
-   This section includes test vectors for the primary VOPRF protocol,
+   This section includes test vectors for the primary ECVOPRF protocol,
    excluding DLEQ output.
 
    ((TODO: add DLEQ vectors))
@@ -723,16 +719,17 @@ Z: 048ac9722189b596ffe5cb986332e89008361e68f77f12a931543f63eaa01fabf6f63d5d4b3b6
 Y: 046e83dff2c9b6f9e88f1091f355ad6fa637bdbd829072411ea2d74a5bf3501ccf3bcc2789d48 \
    Y: 046e83dff2c9b6f9e88f1091f355ad6fa637bdbd829072411ea2d74a5bf3501ccf3bcc2789d48
 
-
-
-Sullivan & Wood         Expires September 6, 2018              [Page 13]
-
-Internet-Draft                   VOPRFs                       March 2018
-
-
 P-256
 X: 041b0e84c521f8dcd530d59a692d4ffa1ca05b8ba7ce22a884a511f93919ac121cc91dd588228 \
    X: 041b0e84c521f8dcd530d59a692d4ffa1ca05b8ba7ce22a884a511f93919ac121cc91dd588228
+
+
+
+Sullivan, et al.        Expires December 25, 2018              [Page 13]
+
+Internet-Draft                  ECVOPRFs                       June 2018
+
+
 r: a3ec1dc3303a316fc06565ace0a8910da65cf498ea3884c4349b6c4fc9a2f99a
 M: 04794c5a54236782088594ccdb1975e93b05ff742674cc400cb101f55c0f37e877c5ada0d72fb \
    M: 04794c5a54236782088594ccdb1975e93b05ff742674cc400cb101f55c0f37e877c5ada0d72fb
@@ -778,17 +775,17 @@ X: 047511a846277a2009f37b3583f14c8ea3af17e3a146e0e737fdc1260b6d4a18ff01f21ec3bbc
    e39e1cade76d455feadc1bb16f65cd54042e1bc5aba1dee2434f59d00698a963b902148750240f8f
 r: e514ef9b3ea87eafdb78da48e642daa79f036ac00228997ab8da6ac198fb888cd2fec84d52010 \
    r: e514ef9b3ea87eafdb78da48e642daa79f036ac00228997ab8da6ac198fb888cd2fec84d52010
-
-
-
-Sullivan & Wood         Expires September 6, 2018              [Page 14]
-
-Internet-Draft                   VOPRFs                       March 2018
-
-
 M: 04fd9b68973b0fcefcf4458b4faa1c3815bdad8975b7fb0bfc4c1db7e3f169fb3a26ddabe1b25 \
    c4a23cf8a2faeb12c18f06f2227e87ede6039f55a61ef0c89ca3c582e2864fe130ea0c709f92519d \
    c4a23cf8a2faeb12c18f06f2227e87ede6039f55a61ef0c89ca3c582e2864fe130ea0c709f92519d
+
+
+
+Sullivan, et al.        Expires December 25, 2018              [Page 14]
+
+Internet-Draft                  ECVOPRFs                       June 2018
+
+
 k: bcc73da3b2adace9c4f4c32eeadef57436c97f8d395614e78aa91523e1e5d7f551ebb55e87da2 \
    k: bcc73da3b2adace9c4f4c32eeadef57436c97f8d395614e78aa91523e1e5d7f551ebb55e87da2
 Z: 042d885d2945cde40e490dd8497975eaeb54e4e10c5986a9688c9de915b16cf43572fd155e159 \
@@ -834,21 +831,72 @@ M: 040066e3d0b5b9758c9288a725ce6724fdc3bd797a8222f07233897a5916dc167531ebc6a4710
 k: 018eeea896de104bf1e772155836f6ceddab0b4c2e3e4c33ba08a6fd6db0291cfb15faff0b3c7 \
    k: 018eeea896de104bf1e772155836f6ceddab0b4c2e3e4c33ba08a6fd6db0291cfb15faff0b3c7
 Z: 04016825ea754324d5761ada130a1b87b03b5e2a6b0f403343925c67df39bbf85bc782909124d \
-
-
-
-Sullivan & Wood         Expires September 6, 2018              [Page 15]
-
-Internet-Draft                   VOPRFs                       March 2018
-
-
    d297a1edfb049efa7ce61c626c0ad99d8cf462abcce1ee1967d8a355011e2c5a7ce621fc822a7d95 \
    bf7359d938ee4a5c3431e7dd270b7fb6e95fda29cf460d89454763bb0db9b8b705503170a9ac1c7a \
    bf7359d938ee4a5c3431e7dd270b7fb6e95fda29cf460d89454763bb0db9b8b705503170a9ac1c7a
+
+
+
+Sullivan, et al.        Expires December 25, 2018              [Page 15]
+
+Internet-Draft                  ECVOPRFs                       June 2018
+
+
 Y: 04006b0413e2686c4bb62340706de7723471080093422f02dd125c3e72f3507b9200d11481468 \
    74bbaa5b6108b834c892eeebab4e21f3707ee20c303ebc1e34fcd3c701f2171131ee7c5f07c1ccad \
    240183d777181259761741343959d476bbc2591a1af0a516e6403a6b81423234746d7a2e8c2ce60a \
    240183d777181259761741343959d476bbc2591a1af0a516e6403a6b81423234746d7a2e8c2ce60a
+
+Appendix B.  Applications
+
+   This section describes various application of ECVOPRF.
+
+B.1.  Privacy Pass
+
+   This VOPRF protocol is used by Privacy Pass system to help Tor users
+   bypass CAPTCHA challenges.  Their system works as follows.  Client C
+   connects - through Tor - to an edge server E serving content.  Upon
+   receipt, E serves a CAPTCHA to C, who then solves the CAPTCHA and
+   supplies, in response, n blinded points.  E verifies the CAPTCHA
+   response and, if valid, signs (at most) n blinded points, which are
+   then returned to C.  When C attempts to connect to E again and is
+   prompted with a CAPTCHA, C uses one of the unblinded and signed
+   points, or tokens, to derive a shared symmetric key sk used to MAC
+   the CAPTCHA challenge.  C sends the CAPTCHA, MAC, and token input x
+   to E, who can use x to derive sk and verify the CAPTCHA MAC.  Thus,
+   each token is used at most once by the system.
+
+B.2.  Private Password Checker
+
+   In this application, let D be a collection of cleartext passwords
+   obtained by prover P.  For each password p in D, P computes
+   ECVOPRF_Sign(H_1(p)), where H_1 is as described above, and stores the
+   result in a separate collection D'.  P then publishes D' with Y, its
+   public key.  If a client C wishes to query D' for a password p', it
+   runs the ECVOPRF protocol using p as input x to obtain output y.  By
+   construction, y will be the signature of p hashed onto the curve.  C
+   can then search D' for y to determine if there is a match.
+
+B.2.1.  Parameter Commitments
+
+   For some applications, it may be desirable for P to bind tokens to
+   certain parameters, e.g., protocol versions, ciphersuites, etc.  To
+   accomplish this, P should use a distinct scalar for each parameter
+   combination.  Upon redemption of a token T from V, P can later verify
+   that T was generated using the scalar associated with the
+   corresponding parameters.
+
+
+
+
+
+
+
+
+Sullivan, et al.        Expires December 25, 2018              [Page 16]
+
+Internet-Draft                  ECVOPRFs                       June 2018
+
 
 Authors' Addresses
 
@@ -870,6 +918,13 @@ Authors' Addresses
    Email: cawood@apple.com
 
 
+   Alex Davidson
+   ISG, Royal Holloway, University of London
+   Egham Hill
+   Twickenham, TW20 0EX
+   United Kingdom
+
+   Email: alex.davidson.2014@rhul.ac.uk
 
 
 
@@ -893,4 +948,5 @@ Authors' Addresses
 
 
 
-Sullivan & Wood         Expires September 6, 2018              [Page 16]
+
+Sullivan, et al.        Expires December 25, 2018              [Page 17]
