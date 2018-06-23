@@ -42,8 +42,6 @@ normative:
   RFC7748:
   RFC8032:
   I-D.irtf-cfrg-hash-to-curve:
-    title: Hashing to Elliptic Curves
-    target: https://datatracker.ietf.org/doc/I-D.draft-sullivan-cfrg-hash-to-curve/
   PrivacyPass:
     title: Privacy Pass
     target: https://github.com/privacypass/challenge-bypass-server
@@ -128,6 +126,7 @@ normative:
       -
         ins: F. Valsordas
         org: Independent
+
 --- abstract
 
 A Verifiable Oblivious Pseudorandom Function (VOPRF) is a two-party
