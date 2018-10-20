@@ -2,13 +2,13 @@
 
 
 
-Network Working Group                                        N. Sullivan
-Internet-Draft                                                Cloudflare
-Intended status: Informational                                   C. Wood
-Expires: December 24, 2018                                    Apple Inc.
-                                                             A. Davidson
-                               ISG, Royal Holloway, University of London
-                                                           June 22, 2018
+Network Working Group                                        A. Davidson
+Internet-Draft                 ISG, Royal Holloway, University of London
+Intended status: Informational                               N. Sullivan
+Expires: April 21, 2019                                       Cloudflare
+                                                                 C. Wood
+                                                              Apple Inc.
+                                                        October 18, 2018
 
 
  Elliptic Curve Verifiable Oblivious Pseudorandom Functions (ECVOPRFs)
@@ -39,7 +39,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on December 24, 2018.
+   This Internet-Draft will expire on April 21, 2019.
 
 Copyright Notice
 
@@ -53,9 +53,9 @@ Copyright Notice
 
 
 
-Sullivan, et al.        Expires December 24, 2018               [Page 1]
+Davidson, et al.         Expires April 21, 2019                 [Page 1]
 
-Internet-Draft                  ECVOPRFs                       June 2018
+Internet-Draft                  ECVOPRFs                    October 2018
 
 
    carefully, as they describe your rights and restrictions with respect
@@ -109,9 +109,9 @@ Table of Contents
 
 
 
-Sullivan, et al.        Expires December 24, 2018               [Page 2]
+Davidson, et al.         Expires April 21, 2019                 [Page 2]
 
-Internet-Draft                  ECVOPRFs                       June 2018
+Internet-Draft                  ECVOPRFs                    October 2018
 
 
    x) was computed using key k, which is bound to a trusted public key Y
@@ -165,9 +165,9 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
 
 
-Sullivan, et al.        Expires December 24, 2018               [Page 3]
+Davidson, et al.         Expires April 21, 2019                 [Page 3]
 
-Internet-Draft                  ECVOPRFs                       June 2018
+Internet-Draft                  ECVOPRFs                    October 2018
 
 
 1.2.  Requirements
@@ -221,9 +221,9 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
 
 
-Sullivan, et al.        Expires December 24, 2018               [Page 4]
+Davidson, et al.         Expires April 21, 2019                 [Page 4]
 
-Internet-Draft                  ECVOPRFs                       June 2018
+Internet-Draft                  ECVOPRFs                    October 2018
 
 
    o  Oblivious: P must learn nothing about V's input, and V must learn
@@ -277,9 +277,9 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
 
 
-Sullivan, et al.        Expires December 24, 2018               [Page 5]
+Davidson, et al.         Expires April 21, 2019                 [Page 5]
 
-Internet-Draft                  ECVOPRFs                       June 2018
+Internet-Draft                  ECVOPRFs                    October 2018
 
 
    Note that V finishes this computation upon receiving kH_1(x) from P.
@@ -333,9 +333,9 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
 
 
-Sullivan, et al.        Expires December 24, 2018               [Page 6]
+Davidson, et al.         Expires April 21, 2019                 [Page 6]
 
-Internet-Draft                  ECVOPRFs                       June 2018
+Internet-Draft                  ECVOPRFs                    October 2018
 
 
 4.1.1.  ECVOPRF_Blind
@@ -389,9 +389,9 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
 
 
-Sullivan, et al.        Expires December 24, 2018               [Page 7]
+Davidson, et al.         Expires April 21, 2019                 [Page 7]
 
-Internet-Draft                  ECVOPRFs                       June 2018
+Internet-Draft                  ECVOPRFs                    October 2018
 
 
    Input:
@@ -445,9 +445,9 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
 
 
-Sullivan, et al.        Expires December 24, 2018               [Page 8]
+Davidson, et al.         Expires April 21, 2019                 [Page 8]
 
-Internet-Draft                  ECVOPRFs                       June 2018
+Internet-Draft                  ECVOPRFs                    October 2018
 
 
    into two procedures: DLEQ_Generate and DLEQ_Verify.  These are
@@ -501,9 +501,9 @@ Steps:
 
 
 
-Sullivan, et al.        Expires December 24, 2018               [Page 9]
+Davidson, et al.         Expires April 21, 2019                 [Page 9]
 
-Internet-Draft                  ECVOPRFs                       June 2018
+Internet-Draft                  ECVOPRFs                    October 2018
 
 
 5.3.  Group and Hash Function Instantiations
@@ -515,7 +515,7 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
    o  G: P-256
 
-   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
+   o  H_1: Simplified SWU encoding [I-D.irtf-cfrg-hash-to-curve]
 
    o  H_2: SHA256
 
@@ -525,7 +525,7 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
    o  G: P-256
 
-   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
+   o  H_1: Simplified SWU encoding [I-D.irtf-cfrg-hash-to-curve]
 
    o  H_2: SHA512
 
@@ -535,7 +535,7 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
    o  G: P-384
 
-   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
+   o  H_1: Simplified SWU encoding [I-D.irtf-cfrg-hash-to-curve]
 
    o  H_2: SHA256
 
@@ -545,7 +545,7 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
    o  G: P-384
 
-   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
+   o  H_1: Simplified SWU encoding [I-D.irtf-cfrg-hash-to-curve]
 
    o  H_2: SHA512
 
@@ -557,12 +557,12 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
 
 
-Sullivan, et al.        Expires December 24, 2018              [Page 10]
+Davidson, et al.         Expires April 21, 2019                [Page 10]
 
-Internet-Draft                  ECVOPRFs                       June 2018
+Internet-Draft                  ECVOPRFs                    October 2018
 
 
-   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
+   o  H_1: Simplified SWU encoding [I-D.irtf-cfrg-hash-to-curve]
 
    o  H_2: SHA256
 
@@ -572,7 +572,7 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
    o  G: Curve25519 [RFC7748]
 
-   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
+   o  H_1: Simplified SWU encoding [I-D.irtf-cfrg-hash-to-curve]
 
    o  H_2: SHA512
 
@@ -582,7 +582,7 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
    o  G: Curve448 [RFC7748]
 
-   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
+   o  H_1: Simplified SWU encoding [I-D.irtf-cfrg-hash-to-curve]
 
    o  H_2: SHA256
 
@@ -592,7 +592,7 @@ Internet-Draft                  ECVOPRFs                       June 2018
 
    o  G: Curve448 [RFC7748]
 
-   o  H_1: ((TODO: choose from [I-D.draft-sullivan-cfrg-hash-to-curve]
+   o  H_1: Simplified SWU encoding [I-D.irtf-cfrg-hash-to-curve]
 
    o  H_2: SHA512
 
@@ -606,16 +606,16 @@ Internet-Draft                  ECVOPRFs                       June 2018
    safe, cryptographic randomness.
 
    Another critical aspect of this protocol is reliance on
-   [I-D.draft-sullivan-cfrg-hash-to-curve] for mapping arbitrary input
-   to points on a curve.  Security requires this mapping be pre-image
-   and collision resistant.
+   [I-D.irtf-cfrg-hash-to-curve] for mapping arbitrary input to points
+   on a curve.  Security requires this mapping be pre-image and
+   collision resistant.
 
 
 
 
-Sullivan, et al.        Expires December 24, 2018              [Page 11]
+Davidson, et al.         Expires April 21, 2019                [Page 11]
 
-Internet-Draft                  ECVOPRFs                       June 2018
+Internet-Draft                  ECVOPRFs                    October 2018
 
 
 6.1.  Timing Leaks
@@ -624,8 +624,10 @@ Internet-Draft                  ECVOPRFs                       June 2018
    operations that use secret data MUST be constant time.  Operations
    that SHOULD be constant time include: H_1() (hashing arbitrary
    strings to curves) and DLEQ_Generate().
-   [I-D.draft-sullivan-cfrg-hash-to-curve] describes various algorithms
-   for constant-time implementations of H_1.
+   [I-D.irtf-cfrg-hash-to-curve] describes various algorithms for
+   constant-time implementations of H_1.  We choose the SWU encoding for
+   H_1 since it can be used for hashing strings specifically to the
+   P-256 curve.
 
 7.  Privacy Considerations
 
@@ -660,18 +662,16 @@ Internet-Draft                  ECVOPRFs                       June 2018
               popets.2018.2018.issue-3/popets-2018-0026/
               popets-2018-0026.xml>.
 
-   [I-D.draft-sullivan-cfrg-hash-to-curve]
-              "Hashing to Elliptic Curves", n.d.,
-              <https://datatracker.ietf.org/doc/
-              I-D.draft-sullivan-cfrg-hash-to-curve/>.
+   [I-D.irtf-cfrg-hash-to-curve]
+              Scott, S., Sullivan, N., and C. Wood, "Hashing to Elliptic
+              Curves", draft-irtf-cfrg-hash-to-curve-01 (work in
+              progress), July 2018.
 
 
 
-
-
-Sullivan, et al.        Expires December 24, 2018              [Page 12]
+Davidson, et al.         Expires April 21, 2019                [Page 12]
 
-Internet-Draft                  ECVOPRFs                       June 2018
+Internet-Draft                  ECVOPRFs                    October 2018
 
 
    [JKK14]    "Round-Optimal Password-Protected Secret Sharing and
@@ -725,9 +725,9 @@ Y: 04fd80db5301a54ee2cbc688d47cbcae9eb84f5d246e3da3e2b03e9be228ed6c57a936b6b5faf
 
 
 
-Sullivan, et al.        Expires December 24, 2018              [Page 13]
+Davidson, et al.         Expires April 21, 2019                [Page 13]
 
-Internet-Draft                  ECVOPRFs                       June 2018
+Internet-Draft                  ECVOPRFs                    October 2018
 
 
 P-224
@@ -781,9 +781,9 @@ Z: 047bf23eef00e83e6cb6fb9ade5e5995cf81abb8dc73a570ff4cb7be48f21281edfed9bf76cc2
 
 
 
-Sullivan, et al.        Expires December 24, 2018              [Page 14]
+Davidson, et al.         Expires April 21, 2019                [Page 14]
 
-Internet-Draft                  ECVOPRFs                       June 2018
+Internet-Draft                  ECVOPRFs                    October 2018
 
 
    88b35d2df615ff711ed2a1fb85cd0b22812438665cdd300039685b3f593f4b574f9e8b294982c2a2 \
@@ -837,9 +837,9 @@ X: 04012ea416842dfad169a9eb860b0af2af3c0140e1918ccd043650d83ad261633f20c5ca02c1b
 
 
 
-Sullivan, et al.        Expires December 24, 2018              [Page 15]
+Davidson, et al.         Expires April 21, 2019                [Page 15]
 
-Internet-Draft                  ECVOPRFs                       June 2018
+Internet-Draft                  ECVOPRFs                    October 2018
 
 
    ffb857ab72814cf46cfc16ac9ba79887044709f72480358c4b990e46010a62336bb57b87b494b064 \
@@ -893,9 +893,9 @@ B.2.  Private Password Checker
 
 
 
-Sullivan, et al.        Expires December 24, 2018              [Page 16]
+Davidson, et al.         Expires April 21, 2019                [Page 16]
 
-Internet-Draft                  ECVOPRFs                       June 2018
+Internet-Draft                  ECVOPRFs                    October 2018
 
 
    runs the ECVOPRF protocol using p as input x to obtain output y.  By
@@ -916,6 +916,15 @@ B.2.1.  Parameter Commitments
 
 Authors' Addresses
 
+   Alex Davidson
+   ISG, Royal Holloway, University of London
+   Egham Hill
+   Twickenham, TW20 0EX
+   United Kingdom
+
+   Email: alex.davidson.2014@rhul.ac.uk
+
+
    Nick Sullivan
    Cloudflare
    101 Townsend St
@@ -934,19 +943,10 @@ Authors' Addresses
    Email: cawood@apple.com
 
 
-   Alex Davidson
-   ISG, Royal Holloway, University of London
-   Egham Hill
-   Twickenham, TW20 0EX
-   United Kingdom
-
-   Email: alex.davidson.2014@rhul.ac.uk
 
 
 
 
 
 
-
-
-Sullivan, et al.        Expires December 24, 2018              [Page 17]
+Davidson, et al.         Expires April 21, 2019                [Page 17]

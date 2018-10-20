@@ -445,56 +445,56 @@ This section specifies supported ECVOPRF group and hash function instantiations.
 ECVOPRF-P256-SHA256:
 
 - G: P-256
-- H_1: ((TODO: choose from {{I-D.irtf-cfrg-hash-to-curve}}
+- H_1: Simplified SWU encoding {{I-D.irtf-cfrg-hash-to-curve}}
 - H_2: SHA256
 - H_3: SHA256
 
 ECVOPRF-P256-SHA512:
 
 - G: P-256
-- H_1: ((TODO: choose from {{I-D.irtf-cfrg-hash-to-curve}}
+- H_1: Simplified SWU encoding {{I-D.irtf-cfrg-hash-to-curve}}
 - H_2: SHA512
 - H_3: SHA512
 
 ECVOPRF-P384-SHA256:
 
 - G: P-384
-- H_1: ((TODO: choose from {{I-D.irtf-cfrg-hash-to-curve}}
+- H_1: Icart encoding {{I-D.irtf-cfrg-hash-to-curve}}
 - H_2: SHA256
 - H_3: SHA256
 
 ECVOPRF-P384-SHA512:
 
 - G: P-384
-- H_1: ((TODO: choose from {{I-D.irtf-cfrg-hash-to-curve}}
+- H_1: Icart encoding {{I-D.irtf-cfrg-hash-to-curve}}
 - H_2: SHA512
 - H_3: SHA512
 
 ECVOPRF-CURVE25519-SHA256:
 
 - G: Curve25519 {{RFC7748}}
-- H_1: ((TODO: choose from {{I-D.irtf-cfrg-hash-to-curve}}
+- H_1: Elligator2 encoding {{I-D.irtf-cfrg-hash-to-curve}}
 - H_2: SHA256
 - H_3: SHA256
 
 ECVOPRF-CURVE25519-SHA512:
 
 - G: Curve25519 {{RFC7748}}
-- H_1: ((TODO: choose from {{I-D.irtf-cfrg-hash-to-curve}}
+- H_1: Elligator2 encoding {{I-D.irtf-cfrg-hash-to-curve}}
 - H_2: SHA512
 - H_3: SHA512
 
 ECVOPRF-CURVE448-SHA256:
 
 - G: Curve448 {{RFC7748}} 
-- H_1: ((TODO: choose from {{I-D.irtf-cfrg-hash-to-curve}}
+- H_1: Elligator2 encoding {{I-D.irtf-cfrg-hash-to-curve}}
 - H_2: SHA256
 - H_3: SHA256
 
 ECVOPRF-CURVE448-SHA512:
 
 - G: Curve448 {{RFC7748}} 
-- H_1: ((TODO: choose from {{I-D.irtf-cfrg-hash-to-curve}}
+- H_1: Elligator2 encoding {{I-D.irtf-cfrg-hash-to-curve}}
 - H_2: SHA512
 - H_3: SHA512
 
@@ -514,7 +514,13 @@ To ensure no information is leaked during protocol execution, all operations
 that use secret data MUST be constant time. Operations that SHOULD be constant
 time include: H_1() (hashing arbitrary strings to curves) and DLEQ_Generate().
 {{I-D.irtf-cfrg-hash-to-curve}} describes various algorithms for constant-time 
-implementations of H_1. 
+implementations of H_1. We choose different encodings in relation to the elliptic 
+curve that is used, all methods are illuminated precisely in 
+{{I-D.irtf-cfrg-hash-to-curve}}. In summary, we use the simplified 
+Shallue-Woestijne-Ulas algorithm for hashing binary strings to the P-256 curve; 
+the Icart algorithm for hashing binary strings to P384; the Elligator2 algorithm 
+for hashing binary strings to CURVE25519 and CURVE448.
+
 
 # Privacy Considerations
 

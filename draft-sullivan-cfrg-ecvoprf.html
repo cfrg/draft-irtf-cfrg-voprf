@@ -9,80 +9,30 @@
 
   
 <style type="text/css">/*<![CDATA[*/
-@viewport {
-  zoom: 1.0;
-  width: extend-to-zoom;
-}
-@-ms-viewport {
-  width: extend-to-zoom;
-  zoom: 1.0;
-}
-
-@media screen and (min-width: 1024px) {
-  body>ul.toc, body>#rfc\.toc {
-    position: fixed;
-    bottom: 0;
-    right: 0;
-    right: calc(50vw - 550px);
-    width: 300px;
-    z-index: 1;
-  }
-  #rfc\.toc {
-    top: 55px;
-    overflow: auto;
-    overscroll-behavior: contain;
-  }
-  ul.toc, #rfc\.toc {
-    overflow: auto;
-    overscroll-behavior: contain;
-  }
-  body>ul.toc {
-    top: 140px;
-  }
-
-  body {
-    padding-right: 350px;
-  }
-}
 
 body {
-  font: 16px "Helvetica Neue",Helvetica,Arial,sans-serif;
+  font: 16px "Helvetica Neue","Open Sans",Helvetica,Calibri,sans-serif;
   color: #333;
   font-size-adjust: 0.5;
   line-height: 24px;
   margin: 75px auto;
-  max-width: 724px;
+  max-width: 624px;
+  padding: 0 5px;
 }
 
-.title, .filename, h1, h2, h3, h4 {
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+.title, .filename, h1, h2, h3, h4, h5 {
+  font: 16px "Roboto Condensed","Helvetica Neue","Open Sans",Helvetica,Calibri,sans-serif;
   font-size-adjust: 0.5;
-  font-weight: 500;
+  font-weight: bold;
   color: #333;
   line-height: 100%;
-  margin: 0.8em 0 0.3em;
+  margin: 1.2em 0 0.3em;
 }
-.title { font-size: 36px; }
-h1 { font-size: 36px; }
-h2 { font-size: 24px; }
-h3, h4 { font-size: 18px; }
+.title, #rfc\.title h1 { font-size: 32px; }
+h1, section h1, h2, section h2, section h3, nav h2 { font-size: 20px; }
+h3, section h4, h4, section h5 { font-size: 16px; }
 h1 a[href], h2 a[href], h3 a[href], h4 a[href] {
   color: #333;
-}
-
-ul.toc li {
-  list-style: none;
-  text-indent: -2.5em;
-  padding-left: 2.5em;
-  padding-bottom: 5px;
-  margin: 0;
-}
-ul.toc ul {
-  margin: 0;
-}
-/* xml2rfc nests ul directly inside ul which messes with the style badly */
-ul.toc, ul.toc>ul, ul.toc ul>ul {
-  margin: 0 0 0 1.5em;
 }
 
 table {
@@ -111,28 +61,30 @@ td.reference {
 }
 
 
-table.header {
+table.header, table#rfc\.headerblock {
   width: 100%;
 }
-table.header td {
+table.header td, table#rfc\.headerblock td {
   border: none;
   background-color: transparent;
   color: black;
+  padding: 0;
 }
 .filename {
+  display: block;
   color: rgb(119, 119, 119);
-  font-size: 23px;
+  font-size: 20px;
   font-weight: normal;
-  height: auto;
   line-height: 100%;
+  margin: 10px 0 32px;
 }
 #rfc\.abstract+p, #rfc\.abstract p {
-  font-size: 18px;
-  line-height: 27px%;
+  font-size: 20px;
+  line-height: 28px;
 }
 
 samp, tt, code, pre {
-  font: 11pt consolas, monospace;
+  font: 15px Consolas, monospace;
   font-size-adjust: none;
 }
 pre {
@@ -142,13 +94,15 @@ pre {
   padding: 5px;
   margin: 5px;
 }
-.figure {
+.figure, caption {
   font-style: italic;
   margin: 0 1.5em;
+  text-align: left;
 }
 
 address {
-  margin: 10px 0 0;
+  margin: 16px 2px;
+  line-height: 20px;
 }
 .vcard {
   font-style: normal;
@@ -156,8 +110,8 @@ address {
 .vcardline {
   display: block;
 }
-.vcardline .fn {
-  font-weight: bold;
+.vcardline .fn, address b {
+  font-weight: normal;
 }
 .vcardline .hidden {
   display: none;
@@ -211,15 +165,59 @@ a[href]:hover {
   background-color: #eee;
 }
 
-ol, ul, li, p {
+p, ol, ul, li {
   padding: 0;
-  margin: 0.5em 0 0.5em 2em;
 }
-li, p {
-  margin-left: 0;
+p {
+  margin: 0.5em 0;
+}
+ol, ul {
+  margin: 0.2em 0 0.2em 2em;
+}
+li {
+  margin: 0.2em 0;
 }
 address {
   font-style: normal;
+}
+
+ul.toc ul {
+  margin: 0 0 0 2em;
+}
+ul.toc li {
+  list-style: none;
+  margin: 0;
+}
+
+@media screen and (min-width: 924px) {
+  body {
+    padding-right: 350px;
+  }
+  body>ul.toc, body>#rfc\.toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 500px);
+    width: 300px;
+    z-index: 1;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  body>#rfc\.toc {
+    top: 55px;
+  }
+  body>ul.toc {
+    top: 100px;
+  }
+
+  ul.toc {
+    margin: 0 0 0 4px;
+    font-size: 12px;
+    line-height: 20px;
+  }
+  ul.toc ul {
+    margin-left: 1.2em;
+  }
 }
 
 .github-fork-ribbon-wrapper {
@@ -278,7 +276,8 @@ address {
   .github-fork-ribbon-wrapper {
     position: fixed;
   }
-  /*]]>*/</style>
+/*]]>*/</style>
+<meta name="viewport" content="initial-scale=1.0">
 
 
   <link href="#rfc.toc" rel="Contents">
@@ -311,12 +310,12 @@ address {
 <link href="#rfc.authors" rel="Chapter">
 
 
-  <meta name="generator" content="xml2rfc version 2.9.6 - https://tools.ietf.org/tools/xml2rfc" />
+  <meta name="generator" content="xml2rfc version 2.11.1 - https://tools.ietf.org/tools/xml2rfc" />
   <link rel="schema.dct" href="http://purl.org/dc/terms/" />
 
-  <meta name="dct.creator" content="Sullivan, N., Wood, C., and A. Davidson" />
+  <meta name="dct.creator" content="Davidson, A., Sullivan, N., and C. Wood" />
   <meta name="dct.identifier" content="urn:ietf:id:draft-sullivan-cfrg-ecvoprf-latest" />
-  <meta name="dct.issued" scheme="ISO8601" content="2018-06-22" />
+  <meta name="dct.issued" scheme="ISO8601" content="2018-10-18" />
   <meta name="dct.abstract" content="A Verifiable Oblivious Pseudorandom Function (VOPRF) is a two-party protocol for computing the output of a PRF that is symmetrically verifiable.  In summary, the PRF key holder learns nothing of the input while simultaneously providing proof that its private key was used during execution. VOPRFs are useful for computing one-time unlinkable tokens that are verifiable by secret key holders. This document specifies a VOPRF construction based on Elliptic Curves." />
   <meta name="description" content="A Verifiable Oblivious Pseudorandom Function (VOPRF) is a two-party protocol for computing the output of a PRF that is symmetrically verifiable.  In summary, the PRF key holder learns nothing of the input while simultaneously providing proof that its private key was used during execution. VOPRFs are useful for computing one-time unlinkable tokens that are verifiable by secret key holders. This document specifies a VOPRF construction based on Elliptic Curves." />
 
@@ -329,31 +328,31 @@ address {
     
     	<tr>
 <td class="left">Network Working Group</td>
-<td class="right">N. Sullivan</td>
+<td class="right">A. Davidson</td>
 </tr>
 <tr>
 <td class="left">Internet-Draft</td>
-<td class="right">Cloudflare</td>
+<td class="right">ISG, Royal Holloway, University of London</td>
 </tr>
 <tr>
 <td class="left">Intended status: Informational</td>
+<td class="right">N. Sullivan</td>
+</tr>
+<tr>
+<td class="left">Expires: April 21, 2019</td>
+<td class="right">Cloudflare</td>
+</tr>
+<tr>
+<td class="left"></td>
 <td class="right">C. Wood</td>
 </tr>
 <tr>
-<td class="left">Expires: December 24, 2018</td>
+<td class="left"></td>
 <td class="right">Apple Inc.</td>
 </tr>
 <tr>
 <td class="left"></td>
-<td class="right">A. Davidson</td>
-</tr>
-<tr>
-<td class="left"></td>
-<td class="right">ISG, Royal Holloway, University of London</td>
-</tr>
-<tr>
-<td class="left"></td>
-<td class="right">June 22, 2018</td>
+<td class="right">October 18, 2018</td>
 </tr>
 
     	
@@ -369,7 +368,7 @@ address {
 <p>This Internet-Draft is submitted in full conformance with the provisions of BCP 78 and BCP 79.</p>
 <p>Internet-Drafts are working documents of the Internet Engineering Task Force (IETF).  Note that other groups may also distribute working documents as Internet-Drafts.  The list of current Internet-Drafts is at https://datatracker.ietf.org/drafts/current/.</p>
 <p>Internet-Drafts are draft documents valid for a maximum of six months and may be updated, replaced, or obsoleted by other documents at any time.  It is inappropriate to use Internet-Drafts as reference material or to cite them other than as "work in progress."</p>
-<p>This Internet-Draft will expire on December 24, 2018.</p>
+<p>This Internet-Draft will expire on April 21, 2019.</p>
 <h1 id="rfc.copyrightnotice"><a href="#rfc.copyrightnotice">Copyright Notice</a></h1>
 <p>Copyright (c) 2018 IETF Trust and the persons identified as the document authors.  All rights reserved.</p>
 <p>This document is subject to BCP 78 and the IETF Trust's Legal Provisions Relating to IETF Documents (https://trustee.ietf.org/license-info) in effect on the date of publication of this document.  Please review these documents carefully, as they describe your rights and restrictions with respect to this document.  Code Components extracted from this document must include Simplified BSD License text as described in Section 4.e of the Trust Legal Provisions and are provided without warranty as described in the Simplified BSD License.</p>
@@ -697,7 +696,7 @@ Steps:
 
 <ul>
 <li>G: P-256</li>
-<li>H_1: ((TODO: choose from <a href="#I-D.draft-sullivan-cfrg-hash-to-curve" class="xref">[I-D.draft-sullivan-cfrg-hash-to-curve]</a>
+<li>H_1: Simplified SWU encoding <a href="#I-D.irtf-cfrg-hash-to-curve" class="xref">[I-D.irtf-cfrg-hash-to-curve]</a>
 </li>
 <li>H_2: SHA256</li>
 <li>H_3: SHA256</li>
@@ -707,7 +706,7 @@ Steps:
 
 <ul>
 <li>G: P-256</li>
-<li>H_1: ((TODO: choose from <a href="#I-D.draft-sullivan-cfrg-hash-to-curve" class="xref">[I-D.draft-sullivan-cfrg-hash-to-curve]</a>
+<li>H_1: Simplified SWU encoding <a href="#I-D.irtf-cfrg-hash-to-curve" class="xref">[I-D.irtf-cfrg-hash-to-curve]</a>
 </li>
 <li>H_2: SHA512</li>
 <li>H_3: SHA512</li>
@@ -717,7 +716,7 @@ Steps:
 
 <ul>
 <li>G: P-384</li>
-<li>H_1: ((TODO: choose from <a href="#I-D.draft-sullivan-cfrg-hash-to-curve" class="xref">[I-D.draft-sullivan-cfrg-hash-to-curve]</a>
+<li>H_1: Simplified SWU encoding <a href="#I-D.irtf-cfrg-hash-to-curve" class="xref">[I-D.irtf-cfrg-hash-to-curve]</a>
 </li>
 <li>H_2: SHA256</li>
 <li>H_3: SHA256</li>
@@ -727,7 +726,7 @@ Steps:
 
 <ul>
 <li>G: P-384</li>
-<li>H_1: ((TODO: choose from <a href="#I-D.draft-sullivan-cfrg-hash-to-curve" class="xref">[I-D.draft-sullivan-cfrg-hash-to-curve]</a>
+<li>H_1: Simplified SWU encoding <a href="#I-D.irtf-cfrg-hash-to-curve" class="xref">[I-D.irtf-cfrg-hash-to-curve]</a>
 </li>
 <li>H_2: SHA512</li>
 <li>H_3: SHA512</li>
@@ -738,7 +737,7 @@ Steps:
 <ul>
 <li>G: Curve25519 <a href="#RFC7748" class="xref">[RFC7748]</a>
 </li>
-<li>H_1: ((TODO: choose from <a href="#I-D.draft-sullivan-cfrg-hash-to-curve" class="xref">[I-D.draft-sullivan-cfrg-hash-to-curve]</a>
+<li>H_1: Simplified SWU encoding <a href="#I-D.irtf-cfrg-hash-to-curve" class="xref">[I-D.irtf-cfrg-hash-to-curve]</a>
 </li>
 <li>H_2: SHA256</li>
 <li>H_3: SHA256</li>
@@ -749,7 +748,7 @@ Steps:
 <ul>
 <li>G: Curve25519 <a href="#RFC7748" class="xref">[RFC7748]</a>
 </li>
-<li>H_1: ((TODO: choose from <a href="#I-D.draft-sullivan-cfrg-hash-to-curve" class="xref">[I-D.draft-sullivan-cfrg-hash-to-curve]</a>
+<li>H_1: Simplified SWU encoding <a href="#I-D.irtf-cfrg-hash-to-curve" class="xref">[I-D.irtf-cfrg-hash-to-curve]</a>
 </li>
 <li>H_2: SHA512</li>
 <li>H_3: SHA512</li>
@@ -760,7 +759,7 @@ Steps:
 <ul>
 <li>G: Curve448 <a href="#RFC7748" class="xref">[RFC7748]</a>
 </li>
-<li>H_1: ((TODO: choose from <a href="#I-D.draft-sullivan-cfrg-hash-to-curve" class="xref">[I-D.draft-sullivan-cfrg-hash-to-curve]</a>
+<li>H_1: Simplified SWU encoding <a href="#I-D.irtf-cfrg-hash-to-curve" class="xref">[I-D.irtf-cfrg-hash-to-curve]</a>
 </li>
 <li>H_2: SHA256</li>
 <li>H_3: SHA256</li>
@@ -771,7 +770,7 @@ Steps:
 <ul>
 <li>G: Curve448 <a href="#RFC7748" class="xref">[RFC7748]</a>
 </li>
-<li>H_1: ((TODO: choose from <a href="#I-D.draft-sullivan-cfrg-hash-to-curve" class="xref">[I-D.draft-sullivan-cfrg-hash-to-curve]</a>
+<li>H_1: Simplified SWU encoding <a href="#I-D.irtf-cfrg-hash-to-curve" class="xref">[I-D.irtf-cfrg-hash-to-curve]</a>
 </li>
 <li>H_2: SHA512</li>
 <li>H_3: SHA512</li>
@@ -780,11 +779,11 @@ Steps:
 <a href="#rfc.section.6">6.</a> <a href="#security-considerations" id="security-considerations">Security Considerations</a>
 </h1>
 <p id="rfc.section.6.p.1">Security of the protocol depends on P&#8217;s secrecy of k. Best practices recommend P regularly rotate k so as to keep its window of compromise small. Moreover, it each key should be generated from a source of safe, cryptographic randomness.</p>
-<p id="rfc.section.6.p.2">Another critical aspect of this protocol is reliance on <a href="#I-D.draft-sullivan-cfrg-hash-to-curve" class="xref">[I-D.draft-sullivan-cfrg-hash-to-curve]</a> for mapping arbitrary input to points on a curve. Security requires this mapping be pre-image and collision resistant.</p>
+<p id="rfc.section.6.p.2">Another critical aspect of this protocol is reliance on <a href="#I-D.irtf-cfrg-hash-to-curve" class="xref">[I-D.irtf-cfrg-hash-to-curve]</a> for mapping arbitrary input to points on a curve. Security requires this mapping be pre-image and collision resistant.</p>
 <h1 id="rfc.section.6.1">
 <a href="#rfc.section.6.1">6.1.</a> <a href="#timing-leaks" id="timing-leaks">Timing Leaks</a>
 </h1>
-<p id="rfc.section.6.1.p.1">To ensure no information is leaked during protocol execution, all operations that use secret data MUST be constant time. Operations that SHOULD be constant time include: H_1() (hashing arbitrary strings to curves) and DLEQ_Generate().  <a href="#I-D.draft-sullivan-cfrg-hash-to-curve" class="xref">[I-D.draft-sullivan-cfrg-hash-to-curve]</a> describes various algorithms for constant-time implementations of H_1.</p>
+<p id="rfc.section.6.1.p.1">To ensure no information is leaked during protocol execution, all operations that use secret data MUST be constant time. Operations that SHOULD be constant time include: H_1() (hashing arbitrary strings to curves) and DLEQ_Generate().  <a href="#I-D.irtf-cfrg-hash-to-curve" class="xref">[I-D.irtf-cfrg-hash-to-curve]</a> describes various algorithms for constant-time implementations of H_1. We choose the SWU encoding for H_1 since it can be used for hashing strings specifically to the P-256 curve.</p>
 <h1 id="rfc.section.7">
 <a href="#rfc.section.7">7.</a> <a href="#privacy-considerations" id="privacy-considerations">Privacy Considerations</a>
 </h1>
@@ -812,8 +811,9 @@ Steps:
 <td class="top">"<a href="https://www.degruyter.com/view/j/popets.2018.2018.issue-3/popets-2018-0026/popets-2018-0026.xml">Privacy Pass, Bypassing Internet Challenges Anonymously</a>", n.d..</td>
 </tr>
 <tr>
-<td class="reference"><b id="I-D.draft-sullivan-cfrg-hash-to-curve">[I-D.draft-sullivan-cfrg-hash-to-curve]</b></td>
-<td class="top">"<a href="https://datatracker.ietf.org/doc/I-D.draft-sullivan-cfrg-hash-to-curve/">Hashing to Elliptic Curves</a>", n.d..</td>
+<td class="reference"><b id="I-D.irtf-cfrg-hash-to-curve">[I-D.irtf-cfrg-hash-to-curve]</b></td>
+<td class="top">
+<a>Scott, S.</a>, <a>Sullivan, N.</a> and <a>C. Wood</a>, "<a href="https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-01">Hashing to Elliptic Curves</a>", Internet-Draft draft-irtf-cfrg-hash-to-curve-01, July 2018.</td>
 </tr>
 <tr>
 <td class="reference"><b id="JKK14">[JKK14]</b></td>
@@ -1003,6 +1003,28 @@ Y: 04006b0413e2686c4bb62340706de7723471080093422f02dd125c3e72f3507b9200d11481468
 <div class="avoidbreak">
   <address class="vcard">
 	<span class="vcardline">
+	  <span class="fn">Alex Davidson</span> 
+	  <span class="n hidden">
+		<span class="family-name">Davidson</span>
+	  </span>
+	</span>
+	<span class="org vcardline">ISG, Royal Holloway, University of London</span>
+	<span class="adr">
+	  <span class="vcardline">Egham Hill</span>
+
+	  <span class="vcardline">
+		<span class="locality">Twickenham, TW20 0EX</span>,  
+		<span class="region"></span>
+		<span class="code"></span>
+	  </span>
+	  <span class="country-name vcardline">United Kingdom</span>
+	</span>
+	<span class="vcardline">EMail: <a href="mailto:alex.davidson.2014@rhul.ac.uk">alex.davidson.2014@rhul.ac.uk</a></span>
+
+  </address>
+</div><div class="avoidbreak">
+  <address class="vcard">
+	<span class="vcardline">
 	  <span class="fn">Nick Sullivan</span> 
 	  <span class="n hidden">
 		<span class="family-name">Sullivan</span>
@@ -1042,28 +1064,6 @@ Y: 04006b0413e2686c4bb62340706de7723471080093422f02dd125c3e72f3507b9200d11481468
 	  <span class="country-name vcardline">United States of America</span>
 	</span>
 	<span class="vcardline">EMail: <a href="mailto:cawood@apple.com">cawood@apple.com</a></span>
-
-  </address>
-</div><div class="avoidbreak">
-  <address class="vcard">
-	<span class="vcardline">
-	  <span class="fn">Alex Davidson</span> 
-	  <span class="n hidden">
-		<span class="family-name">Davidson</span>
-	  </span>
-	</span>
-	<span class="org vcardline">ISG, Royal Holloway, University of London</span>
-	<span class="adr">
-	  <span class="vcardline">Egham Hill</span>
-
-	  <span class="vcardline">
-		<span class="locality">Twickenham, TW20 0EX</span>,  
-		<span class="region"></span>
-		<span class="code"></span>
-	  </span>
-	  <span class="country-name vcardline">United Kingdom</span>
-	</span>
-	<span class="vcardline">EMail: <a href="mailto:alex.davidson.2014@rhul.ac.uk">alex.davidson.2014@rhul.ac.uk</a></span>
 
   </address>
 </div>
