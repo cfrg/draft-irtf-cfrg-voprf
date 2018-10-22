@@ -1,6 +1,6 @@
 ---
-title: Elliptic Curve Verifiable Oblivious Pseudorandom Functions (ECVOPRFs)
-abbrev: ECVOPRFs
+title: Verifiable Oblivious Pseudorandom Functions (VOPRFs) in Prime-Order Groups
+abbrev: VOPRFs
 docname: draft-sullivan-cfrg-ecvoprf-latest
 date:
 category: info
@@ -124,8 +124,21 @@ normative:
         ins: G. Tankersley
         org: Independent
       -
-        ins: F. Valsordas
+        ins: F. Valsorda
         org: Independent
+  RISTRETTO:
+    title: The Ristretto Group
+    target: https://ristretto.group/ristretto.html
+    authors:
+      -
+        ins: H. De Valence
+  DECAF:
+    title: Decaf, Eliminating cofactors through point compression
+    target: https://www.shiftleft.org/papers/decaf/decaf.pdf
+    authors:
+      -
+        ins: M. Hamburg
+        org: Rambus Cryptography Research
 
 --- abstract
 
@@ -134,7 +147,8 @@ protocol for computing the output of a PRF that is symmetrically verifiable.
 In summary, the PRF key holder learns nothing of the input while simultaneously
 providing proof that its private key was used during execution. VOPRFs are
 useful for computing one-time unlinkable tokens that are verifiable by secret
-key holders. This document specifies a VOPRF construction based on Elliptic Curves.
+key holders. This document specifies a VOPRF construction instantiated within
+prime-order subgroups, including elliptic curves.
 
 --- middle
 
@@ -158,13 +172,14 @@ i.e., if V wants key consistency from P. This property is necessary in some appl
 e.g., the Privacy Pass protocol {{PrivacyPass}}, wherein this VOPRF is used to generate 
 one-time authentication tokens to bypass CAPTCHA challenges.
 
-This document introduces a VOPRF protocol built on Elliptic Curves, called ECVOPRF. It describes
-the protocol, its security properties, and provides preliminary test vectors for 
-experimentation. This rest of document is structured as follows:
+This document introduces a VOPRF protocol built in prime-order groups. This applies to finite fields
+of prime-order and also elliptic curve (EC) settings. In the EC setting, we will refer to the 
+protocol as ECVOPRF. The document describes the protocol, its security properties, and provides 
+preliminary test vectors for experimentation. This rest of document is structured as follows:
 
 - Section {{background}}: Describe background, related work, and use cases of VOPRF protocols.
 - Section {{properties}}: Discuss security properties of VOPRFs.
-- Section {{protocol}}: Specify a VOPRF protocol based on elliptic curves. 
+- Section {{protocol}}: Specify a VOPRF protocol based in prime-order groups. 
 - Section {{dleq}}: Specify the NIZK discrete logarithm equality construction used for verifying
 protocol outputs. 
 
@@ -222,16 +237,15 @@ that P used its secret key k, associated with public key Y = kG, in execution.
 - Unlinkable: If V reveals x to P, P cannot link x to the protocol instance in which y = F(k, x)
 was computed.
 
-# Elliptic Curve VOPRF Protocol {#protocol}
+# VOPRF Protocol {#protocol}
 
-In this section we describe the ECVOPRF protocol. Let GG be a prime-order subgroup 
-of an elliptic curve over base field GF(p) for prime p, with two distinct hash functions H_1 and H_2, where H_1 maps
-arbitrary input onto GG and H_2 maps arbitrary input to a fixed-length output, e.g., SHA256.
-All hash functions in the protocol are assumed to be random oracles.
+In this section we describe the VOPRF protocol. Let GG be a prime-order additive subgroup, with two distinct 
+hash functions H_1 and H_2, where H_1 maps arbitrary input onto GG and H_2 maps arbitrary input 
+to a fixed-length output, e.g., SHA256. All hash functions in the protocol are assumed to be random oracles.
 Let L be the security parameter. Let k be the prover's (P) secret key,
 and Y = kG be its corresponding public key for some generator G taken from the group GG. 
-Let x be the verifier's (V) input to the ECVOPRF protocol. (Commonly, it is a random L-bit
-string, though this is not required.) ECVOPRF begins with V randomly blinding
+Let x be the verifier's (V) input to the VOPRF protocol. (Commonly, it is a random L-bit
+string, though this is not required.) VOPRF begins with V randomly blinding
 its input for the signer. The latter then applies its secret key to the blinded
 value and returns the result. To finish the computation, V then 
 removes its blind and hashes the result using H_2 to yield an output. 
@@ -268,25 +282,45 @@ from P is not the PRF value.
 
 This protocol may be decomposed into a series of steps, as described below:
 
-- ECVOPRF_Blind(x): Compute and return a blind, r, and blinded representation of x, denoted M.
-- ECVOPRF_Sign(M): Sign input M using secret key k to produce Z, generate a 
+- VOPRF_Blind(x): Compute and return a blind, r, and blinded representation of x, denoted M.
+- VOPRF_Sign(M): Sign input M using secret key k to produce Z, generate a 
 proof D = DLEQ_Generate(G,Y,M,Z), and output (Z, D).
-- ECVOPRF_Unblind((Z, D), r, Y, G, M): Unblind blinded signature Z with blind r, yielding N. 
+- VOPRF_Unblind((Z, D), r, Y, G, M): Unblind blinded signature Z with blind r, yielding N. 
 Output N if 1 = DLEQ_Verify(G,Y,M,Z,D). Otherwise, output "error".
-- ECVOPRF_Finalize(N): Finalize N to produce PRF output F(k, x).
+- VOPRF_Finalize(N): Finalize N to produce PRF output F(k, x).
 
-Protocol correctness requires that, for any key k, input x, and (r, M) = ECVOPRF_Blind(x), 
+Protocol correctness requires that, for any key k, input x, and (r, M) = VOPRF_Blind(x), 
 it must be true that:
 
 ~~~
-ECVOPRF_Finalize(x, ECVOPRF_Unblind(ECVOPRF_Sign(M), M, r)) = F(k, x)
+VOPRF_Finalize(x, VOPRF_Unblind(VOPRF_Sign(M), M, r)) = F(k, x)
 ~~~
 
-with overwhelming probability. 
+with overwhelming probability.
+
+## Instantiations of GG
+
+As we remarked above, GG is a subgroup with associated prime-order p. While we choose to write
+operations in the setting where GG comes equipped with an additive operation, we could also
+define the operations in the multiplicative setting. In the multiplicative setting we can choose
+GG to be a prime-order subgroup of a finite field FF_p. For example, let p be some large prime 
+(e.g. > 2048 bits) where p = 2q+1 for some other prime q. Then the subgroup of squares of FF_p
+(elements u^2 where u is an element of FF_p) is cyclic, and we can pick a generator of this subgroup 
+by picking g from FF_p (ignoring the identity element).
+
+In this document, however, we are going to focus on the cases where GG is indeed an additive subgroup.
+In the elliptic curve setting, this amounts to choosing GG to be a prime-order subgroup of an 
+elliptic curve over base field GF(p) for prime p. There are also other settings where GG is a prime-order
+subgroup of an elliptic curve over a base field of non-prime order, these include the work of Ristretto
+{{RISTRETTO}} and Decaf {{DECAF}}.
+
+We will use p > 0 generally for constructing the base field GF(p), not just those where p is prime.
+To reiterate, we focus only on the additive case, and so we focus only on the cases where GF(p) is
+indeed the base field.
 
 ## Algorithmic Details 
 
-This section provides algorithms for each step in the ECVOPRF protocol.
+This section provides algorithms for each step in the VOPRF protocol.
 
 1. V computes X = H_1(x) and a random element r (blinding factor) from GF(p), and computes M = rX.
 2. V sends M to P. 
@@ -296,7 +330,7 @@ This section provides algorithms for each step in the ECVOPRF protocol.
 6. V unblinds Z to compute N = r^(-1)Z = kX.
 7. V outputs the pair H_2(x, N).
 
-### ECVOPRF_Blind
+### VOPRF_Blind
 
 ~~~
 Input:
@@ -315,12 +349,12 @@ Steps:
  5.  Output (r, M)
 ~~~
 
-### ECVOPRF_Sign
+### VOPRF_Sign
 
 ~~~
 Input:
 
- G: Public generator of group GG with prime order p.
+ G: Public generator of group GG.
  Y: Signer public key.
  M - Point in GG.
 
@@ -336,14 +370,14 @@ Steps:
  2. Output (Z, D)
 ~~~
 
-### ECVOPRF_Unblind
+### VOPRF_Unblind
 
 ~~~
 Input:
 
- G: Public generator of group GG with prime order p.
+ G: Public generator of group GG.
  Y: Signer public key.
- M - Blinded representation of x using blind r, a point in G.
+ M - Blinded representation of x using blind r, a point in GG.
  Z - Point in GG.
  D - D = DLEQ_Generate(G,Y,M,Z).
  r - Random scalar in [1, p - 1].
@@ -359,7 +393,7 @@ Steps:
  3. Output "error"
 ~~~
 
-### ECVOPRF_Finalize
+### VOPRF_Finalize
 
 ~~~
 Input:
@@ -383,7 +417,7 @@ Steps:
 In some cases, it may be desirable for the V to have proof that P
 used its private key to compute Z from M. This is done by proving
 log_G(Y) == log_M(Z). This may be used, for example, to ensure that 
-P uses the same private key for computing the ECVOPRF output and does not
+P uses the same private key for computing the VOPRF output and does not
 attempt to "tag" individual verifiers with select keys. This proof must
 not reveal the P's long-term private key to V. Consequently,
 we extend the protocol in the previous section with a (non-interactive) discrete 
@@ -396,7 +430,7 @@ These are specified below.
 ~~~
 Input: 
 
-  G: Public generator of group GG with prime order p.
+  G: Public generator of group GG.
   Y: Signer public key.
   M: Point in GG.
   Z: Point in GG.
@@ -420,7 +454,7 @@ Steps:
 ~~~
 Input: 
 
-  G: Public generator of group GG with prime order p.
+  G: Public generator of group GG.
   Y: Signer public key.
   M: Point in GG.
   Z: Point in GG.
@@ -438,9 +472,12 @@ Steps:
 4. Output c == c'
 ~~~
 
-## Group and Hash Function Instantiations
+## Elliptic Curve Group and Hash Function Instantiations
 
 This section specifies supported ECVOPRF group and hash function instantiations.
+We focus on the instantiations of the VOPRF in the elliptic curve setting for now.
+Eventually, we would like to provide instantiations based on curves over non-prime-order
+base fields.
 
 ECVOPRF-P256-SHA256:
 
@@ -514,7 +551,11 @@ To ensure no information is leaked during protocol execution, all operations
 that use secret data MUST be constant time. Operations that SHOULD be constant
 time include: H_1() (hashing arbitrary strings to curves) and DLEQ_Generate().
 {{I-D.irtf-cfrg-hash-to-curve}} describes various algorithms for constant-time 
-implementations of H_1. We choose different encodings in relation to the elliptic 
+implementations of H_1. 
+
+## Hashing to curves
+
+We choose different encodings in relation to the elliptic 
 curve that is used, all methods are illuminated precisely in 
 {{I-D.irtf-cfrg-hash-to-curve}}. In summary, we use the simplified 
 Shallue-Woestijne-Ulas algorithm for hashing binary strings to the P-256 curve; 
@@ -532,7 +573,7 @@ from using unique key for select verifiers as a way of "tagging" them. If all ve
 expect use of a certain private key, e.g., by locating P's public key key published from
 a trusted registry, then P cannot present unique keys to an individual verifier.
 
-# Acknowledgments
+# Acknowledgements
 
 This document resulted from the work of the Privacy Pass team {{PrivacyPass}}. 
 
@@ -677,7 +718,7 @@ Y: 04006b0413e2686c4bb62340706de7723471080093422f02dd125c3e72f3507b9200d11481468
 
 # Applications
 
-This section describes various application of ECVOPRF.
+This section describes various applications of the VOPRF protocol.
 
 ## Privacy Pass
 
@@ -691,14 +732,15 @@ to derive a shared symmetric key sk used to MAC the CAPTCHA challenge. C sends t
 and token input x to E, who can use x to derive sk and verify the CAPTCHA MAC. Thus, each token 
 is used at most once by the system.
 
+The Privacy Pass implementation uses the P-256 instantiation of the VOPRF protocol. 
 For more details, see {{DGSTV18}}.
 
 ## Private Password Checker
 
-In this application, let D be a collection of cleartext passwords obtained by prover P.
-For each password p in D, P computes ECVOPRF_Sign(H_1(p)), where H_1 is as described above,
+In this application, let D be a collection of plaintext passwords obtained by prover P.
+For each password p in D, P computes VOPRF_Sign(H_1(p)), where H_1 is as described above,
 and stores the result in a separate collection D'. P then publishes D' with Y, its public
-key. If a client C wishes to query D' for a password p', it runs the ECVOPRF protocol using 
+key. If a client C wishes to query D' for a password p', it runs the VOPRF protocol using 
 p as input x to obtain output y. By construction, y will be the signature of p hashed onto
 the curve. C can then search D' for y to determine if there is a match. 
 
