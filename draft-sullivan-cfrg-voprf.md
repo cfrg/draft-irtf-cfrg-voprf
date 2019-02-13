@@ -49,12 +49,12 @@ normative:
     title: Wallet Databases with Observers
     target: https://chaum.com/publications/Wallet_Databases.pdf
     authors:
-      -
-        ins: D. Chaum
-        org: CWI, The Netherlands
-      -
-        ins: T. P. Pedersen
-        org: Aarhus University, Denmark
+        -
+          ins: D. Chaum
+          org: CWI, The Netherlands
+        -
+          ins: T. P. Pedersen
+          org: Aarhus University, Denmark
   ChaumBlindSignature:
     title: Blind Signatures for Untraceable Payments
     target: http://sceweb.sce.uhcl.edu/yang/teaching/csci5234WebSecurityFall2011/Chaum-blind-signatures.PDF
@@ -142,46 +142,50 @@ normative:
 
 --- abstract
 
-A Verifiable Oblivious Pseudorandom Function (VOPRF) is a two-party
-protocol for computing the output of a PRF that is symmetrically verifiable.
-In summary, the PRF key holder learns nothing of the input while simultaneously
-providing proof that its private key was used during execution. VOPRFs are
-useful for computing one-time unlinkable tokens that are verifiable by secret
-key holders. This document specifies a VOPRF construction instantiated within
-prime-order subgroups, including elliptic curves.
+A Verifiable Oblivious Pseudorandom Function (VOPRF) is a two-party protocol for
+computing the output of a PRF that is symmetrically verifiable. In summary, the
+PRF key holder learns nothing of the input while simultaneously providing proof
+that its private key was used during execution. VOPRFs are useful for computing
+one-time unlinkable tokens that are verifiable by secret key holders. This
+document specifies a VOPRF construction instantiated within prime-order
+subgroups, including elliptic curves.
 
 --- middle
 
 # Introduction
 
 A pseudorandom function (PRF) F(k, x) is an efficiently computable function with
-secret key k on input x. Roughly, F is pseudorandom if the output y = F(k, x) is indistinguishable
-from uniformly sampling any element in F's range for random choice of k. An oblivious PRF
-(OPRF) is a two-party protocol between a prover P and verifier V where P holds a PRF key k
-and V holds some input x. The protocol allows both parties to cooperate in computing F(k, x)
-with P's secret key k and V's input x such that: V learns F(k, x) without learning anything
-about k; and P does not learn anything about x. A Verifiable OPRF (VOPRF) is an OPRF
-wherein P can prove to V that F(k, x) was computed using key k, which is bound to
-a trusted public key Y = kG. Informally, this is done by presenting a non-interactive
-zero-knowledge (NIZK) proof of equality between (G, Y) and (Z, M), where Z = kM for some
-point M.
+secret key k on input x. Roughly, F is pseudorandom if the output y = F(k, x) is
+indistinguishable from uniformly sampling any element in F's range for random
+choice of k. An oblivious PRF (OPRF) is a two-party protocol between a prover P
+and verifier V where P holds a PRF key k and V holds some input x. The protocol
+allows both parties to cooperate in computing F(k, x) with P's secret key k and
+V's input x such that: V learns F(k, x) without learning anything about k; and P
+does not learn anything about x. A Verifiable OPRF (VOPRF) is an OPRF wherein P
+can prove to V that F(k, x) was computed using key k, which is bound to a
+trusted public key Y = kG. Informally, this is done by presenting a
+non-interactive zero-knowledge (NIZK) proof of equality between (G, Y) and (Z,
+M), where Z = kM for some point M.
 
-VOPRFs are useful for producing tokens that are verifiable by V. This may be needed,
-for example, if V wants assurance that P did not use a unique key in its computation,
-i.e., if V wants key consistency from P. This property is necessary in some applications,
-e.g., the Privacy Pass protocol {{PrivacyPass}}, wherein this VOPRF is used to generate
-one-time authentication tokens to bypass CAPTCHA challenges.
+VOPRFs are useful for producing tokens that are verifiable by V. This may be
+needed, for example, if V wants assurance that P did not use a unique key in its
+computation, i.e., if V wants key consistency from P. This property is necessary
+in some applications, e.g., the Privacy Pass protocol {{PrivacyPass}}, wherein
+this VOPRF is used to generate one-time authentication tokens to bypass CAPTCHA
+challenges.
 
-This document introduces a VOPRF protocol built in prime-order groups. This applies to finite fields
-of prime-order and also elliptic curve (EC) settings. In the EC setting, we will refer to the
-protocol as ECVOPRF. The document describes the protocol, its security properties, and provides
-preliminary test vectors for experimentation. This rest of document is structured as follows:
+This document introduces a VOPRF protocol built in prime-order groups. This
+applies to finite fields of prime-order and also elliptic curve (EC) settings.
+In the EC setting, we will refer to the protocol as ECVOPRF. The document
+describes the protocol, its security properties, and provides preliminary test
+vectors for experimentation. This rest of document is structured as follows:
 
-- Section {{background}}: Describe background, related work, and use cases of VOPRF protocols.
+- Section {{background}}: Describe background, related work, and use cases of
+  VOPRF protocols.
 - Section {{properties}}: Discuss security properties of VOPRFs.
 - Section {{protocol}}: Specify a VOPRF protocol based in prime-order groups.
-- Section {{dleq}}: Specify the NIZK discrete logarithm equality construction used for verifying
-protocol outputs.
+- Section {{dleq}}: Specify the NIZK discrete logarithm equality construction
+  used for verifying protocol outputs.
 
 ## Terminology {#terminology}
 
@@ -198,58 +202,63 @@ The following terms are used throughout this document.
 
 ## Requirements
 
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
-"SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
-document are to be interpreted as described in {{RFC2119}}.
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
+"SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
+interpreted as described in {{RFC2119}}.
 
 # Background {#background}
 
-VOPRFs are functionally related to RSA-based blind signature schemes, e.g., {{ChaumBlindSignature}}.
-Such a scheme works as follows.
-Let m be a message to be signed by a server. It is assumed to be a member of the
-RSA group. Also, let N be the RSA modulus, and e and d be the public and private keys,
-respectively. A prover P and verifier V engage in the following protocol given input m.
+VOPRFs are functionally related to RSA-based blind signature schemes, e.g.,
+{{ChaumBlindSignature}}. Such a scheme works as follows. Let m be a message to
+be signed by a server. It is assumed to be a member of the RSA group. Also, let
+N be the RSA modulus, and e and d be the public and private keys, respectively.
+A prover P and verifier V engage in the following protocol given input m.
 
-1. V generates a random blinding element r from the RSA group, and
-compute m' = m^r (mod N). Send m' to the P.
+1. V generates a random blinding element r from the RSA group, and compute m' =
+   m^r (mod N). Send m' to the P.
 2. P uses m' to compute s' = (m')^d (mod N), and sends s' to the V.
-3. V removes the blinding factor r to obtain the original signature as s = (s')^(r^-1) (mod N).
+3. V removes the blinding factor r to obtain the original signature as s =
+   (s')^(r^-1) (mod N).
 
-By the properties of RSA, s is clearly a valid signature for m. OPRF protocols are the symmetric
-equivalent to blind signatures in the same way that PRFs are the symmetric equivalent traditional
-digital signatures. This is discussed more in the following section.
+By the properties of RSA, s is clearly a valid signature for m. OPRF protocols
+are the symmetric equivalent to blind signatures in the same way that PRFs are
+the symmetric equivalent traditional digital signatures. This is discussed more
+in the following section.
 
 # Security Properties {#properties}
 
-The security properties of a VOPRF protocol with functionality y = F(k, x) include those of
-a standard PRF. Specifically:
+The security properties of a VOPRF protocol with functionality y = F(k, x)
+include those of a standard PRF. Specifically:
 
 - Given value x, it is infeasible to compute y = F(k, x) without knowledge of k.
-- Output y = F(k, x) is indistinguishable from a random value in the domain of F.
+- Output y = F(k, x) is indistinguishable from a random value in the domain of
+  F.
 
 Additionally, we require the following additional properties:
 
-- Non-malleable: Given (x, y = F(k, x)), V must not be able to generate (x', y') where
-x' != x and y' = F(k, x').
-- Verifiable: V must only complete execution of the protocol if it asserts
-that P used its secret key k, associated with public key Y = kG, in execution.
-- Oblivious: P must learn nothing about V's input, and V must learn nothing about P's private key.
-- Unlinkable: If V reveals x to P, P cannot link x to the protocol instance in which y = F(k, x)
-was computed.
+- Non-malleable: Given (x, y = F(k, x)), V must not be able to generate (x', y')
+  where x' != x and y' = F(k, x').
+- Verifiable: V must only complete execution of the protocol if it asserts that
+  P used its secret key k, associated with public key Y = kG, in execution.
+- Oblivious: P must learn nothing about V's input, and V must learn nothing
+  about P's private key.
+- Unlinkable: If V reveals x to P, P cannot link x to the protocol instance in
+  which y = F(k, x) was computed.
 
 # VOPRF Protocol {#protocol}
 
-In this section we describe the VOPRF protocol. Let GG be a prime-order additive subgroup, with two distinct
-hash functions H_1 and H_2, where H_1 maps arbitrary input onto GG and H_2 maps arbitrary input
-to a fixed-length output, e.g., SHA256. All hash functions in the protocol are assumed to be random oracles.
-Let L be the security parameter. Let k be the prover's (P) secret key,
-and Y = kG be its corresponding public key for some generator G taken from the group GG.
-Let x be the verifier's (V) input to the VOPRF protocol. (Commonly, it is a random L-bit
-string, though this is not required.) VOPRF begins with V randomly blinding
-its input for the signer. The latter then applies its secret key to the blinded
-value and returns the result. To finish the computation, V then
-removes its blind and hashes the result using H_2 to yield an output.
-This flow is illustrated below.
+In this section we describe the VOPRF protocol. Let GG be a prime-order additive
+subgroup, with two distinct hash functions H_1 and H_2, where H_1 maps arbitrary
+input onto GG and H_2 maps arbitrary input to a fixed-length output, e.g.,
+SHA256. All hash functions in the protocol are assumed to be random oracles. Let
+L be the security parameter. Let k be the prover's (P) secret key, and Y = kG be
+its corresponding public key for some generator G taken from the group GG. Let x
+be the verifier's (V) input to the VOPRF protocol. (Commonly, it is a random
+L-bit string, though this is not required.) VOPRF begins with V randomly
+blinding its input for the signer. The latter then applies its secret key to the
+blinded value and returns the result. To finish the computation, V then removes
+its blind and hashes the result using H_2 to yield an output. This flow is
+illustrated below.
 
 ~~~
      Verifier              Prover
@@ -259,17 +268,19 @@ This flow is illustrated below.
                    M
                 ------->
                            Z = kM
-                           D = DLEQ_Generate(G,Y,M,Z)
+                           D = DLEQ_Generate(G,k,Y,M,Z)
                    Z,D
                 <-------
     b = DLEQ_Verify(G,Y,M,Z,D)
     Output H_2(x, Zr^(-1)) if b=1, else "error"
 ~~~
 
-DLEQ_Generate(G,Y,M,Z) and DLEQ_Verify(G,Y,M,Z,D) are described in Section {{dleq}}. Intuitively, the DLEQ proof allows P to prove
-to V in NIZK that the same key k is the exponent of both Y and M. In other words, computing the
-discrete logarithm of Y and Z (with respect to G and M, respectively) results in the same value.
-The committed value Y should be public before the protocol is initiated.
+DLEQ_Generate(G,k,Y,M,Z) and DLEQ_Verify(G,Y,M,Z,D) are described in Section
+{{dleq}}. Intuitively, the DLEQ proof allows P to prove to V in NIZK that the
+same key k is the exponent of both Y and M. In other words, computing the
+discrete logarithm of Y and Z (with respect to G and M, respectively) results in
+the same value. The committed value Y should be public before the protocol is
+initiated.
 
 The actual PRF function computed is as follows:
 
@@ -282,15 +293,16 @@ from P is not the PRF value.
 
 This protocol may be decomposed into a series of steps, as described below:
 
-- VOPRF_Blind(x): Compute and return a blind, r, and blinded representation of x, denoted M.
-- VOPRF_Sign(M): Sign input M using secret key k to produce Z, generate a
-proof D = DLEQ_Generate(G,Y,M,Z), and output (Z, D).
-- VOPRF_Unblind((Z, D), r, Y, G, M): Unblind blinded signature Z with blind r, yielding N.
-Output N if 1 = DLEQ_Verify(G,Y,M,Z,D). Otherwise, output "error".
+- VOPRF_Blind(x): Compute and return a blind, r, and blinded representation of
+  x, denoted M.
+- VOPRF_Sign(M): Sign input M using secret key k to produce Z, generate a proof
+  D = DLEQ_Generate(G,k,Y,M,Z), and output (Z, D).
+- VOPRF_Unblind((Z, D), r, Y, G, M): Unblind blinded signature Z with blind r,
+  yielding N. Output N if 1 = DLEQ_Verify(G,Y,M,Z,D). Otherwise, output "error".
 - VOPRF_Finalize(N): Finalize N to produce PRF output F(k, x).
 
-Protocol correctness requires that, for any key k, input x, and (r, M) = VOPRF_Blind(x),
-it must be true that:
+Protocol correctness requires that, for any key k, input x, and (r, M) =
+VOPRF_Blind(x), it must be true that:
 
 ~~~
 VOPRF_Finalize(x, VOPRF_Unblind(VOPRF_Sign(M), M, r)) = F(k, x)
@@ -300,31 +312,35 @@ with overwhelming probability.
 
 ## Instantiations of GG
 
-As we remarked above, GG is a subgroup with associated prime-order p. While we choose to write
-operations in the setting where GG comes equipped with an additive operation, we could also
-define the operations in the multiplicative setting. In the multiplicative setting we can choose
-GG to be a prime-order subgroup of a finite field FF_p. For example, let p be some large prime
-(e.g. > 2048 bits) where p = 2q+1 for some other prime q. Then the subgroup of squares of FF_p
-(elements u^2 where u is an element of FF_p) is cyclic, and we can pick a generator of this subgroup
-by picking g from FF_p (ignoring the identity element).
+As we remarked above, GG is a subgroup with associated prime-order p. While we
+choose to write operations in the setting where GG comes equipped with an
+additive operation, we could also define the operations in the multiplicative
+setting. In the multiplicative setting we can choose GG to be a prime-order
+subgroup of a finite field FF_p. For example, let p be some large prime (e.g. >
+2048 bits) where p = 2q+1 for some other prime q. Then the subgroup of squares
+of FF_p (elements u^2 where u is an element of FF_p) is cyclic, and we can pick
+a generator of this subgroup by picking g from FF_p (ignoring the identity
+element).
 
-In this document, however, we are going to focus on the cases where GG is indeed an additive subgroup.
-In the elliptic curve setting, this amounts to choosing GG to be a prime-order subgroup of an
-elliptic curve over base field GF(p) for prime p. There are also other settings where GG is a prime-order
-subgroup of an elliptic curve over a base field of non-prime order, these include the work of Ristretto
-{{RISTRETTO}} and Decaf {{DECAF}}.
+In this document, however, we are going to focus on the cases where GG is indeed
+an additive subgroup. In the elliptic curve setting, this amounts to choosing GG
+to be a prime-order subgroup of an elliptic curve over base field GF(p) for
+prime p. There are also other settings where GG is a prime-order subgroup of an
+elliptic curve over a base field of non-prime order, these include the work of
+Ristretto {{RISTRETTO}} and Decaf {{DECAF}}.
 
-We will use p > 0 generally for constructing the base field GF(p), not just those where p is prime.
-To reiterate, we focus only on the additive case, and so we focus only on the cases where GF(p) is
-indeed the base field.
+We will use p > 0 generally for constructing the base field GF(p), not just
+those where p is prime. To reiterate, we focus only on the additive case, and so
+we focus only on the cases where GF(p) is indeed the base field.
 
 ## Algorithmic Details
 
 This section provides algorithms for each step in the VOPRF protocol.
 
-1. V computes X = H_1(x) and a random element r (blinding factor) from GF(p), and computes M = rX.
+1. V computes X = H_1(x) and a random element r (blinding factor) from GF(p),
+   and computes M = rX.
 2. V sends M to P.
-3. P computes Z = kM = rkX, and D = DLEQ_Generate(G,Y,M,Z).
+3. P computes Z = kM = rkX, and D = DLEQ_Generate(G,k,Y,M,Z).
 4. P sends (Z, D) to V.
 5. V ensures that 1 = DLEQ_Verify(G,Y,M,Z,D). If not, V outputs an error.
 6. V unblinds Z to compute N = r^(-1)Z = kX.
@@ -335,12 +351,12 @@ This section provides algorithms for each step in the VOPRF protocol.
 ~~~
 Input:
 
- x - V's PRF input.
+ x: V's PRF input.
 
 Output:
 
- r - Random scalar in [1, p - 1].
- M - Blinded representation of x using blind r, a point in GG.
+ r: Random scalar in [1, p - 1].
+ M: Blinded representation of x using blind r, a point in GG.
 
 Steps:
 
@@ -355,18 +371,19 @@ Steps:
 Input:
 
  G: Public generator of group GG.
- Y: Signer public key.
- M - Point in GG.
+ k: Signer secret key.
+ Y: Signer public key (= kG).
+ M: Point in GG.
 
 Output:
 
- Z - Scalar multiplication of k and M, point in GG.
- D - DLEQ proof that log_G(Y) == log_M(Z).
+ Z: Scalar multiplication of the point M by k, point in GG.
+ D: DLEQ proof that log_G(Y) == log_M(Z).
 
 Steps:
 
  1. Z := kM
- 2. D = DLEQ_Generate(G,Y,M,Z)
+ 2. D = DLEQ_Generate(G,k,Y,M,Z)
  2. Output (Z, D)
 ~~~
 
@@ -377,14 +394,14 @@ Input:
 
  G: Public generator of group GG.
  Y: Signer public key.
- M - Blinded representation of x using blind r, a point in GG.
- Z - Point in GG.
- D - D = DLEQ_Generate(G,Y,M,Z).
- r - Random scalar in [1, p - 1].
+ M: Blinded representation of x using blind r, a point in GG.
+ Z: Point in GG.
+ D: D = DLEQ_Generate(G,k,Y,M,Z).
+ r: Random scalar in [1, p - 1].
 
 Output:
 
- N - Unblinded signature, point in GG.
+ N: Unblinded signature, point in GG.
 
 Steps:
 
@@ -398,12 +415,12 @@ Steps:
 ~~~
 Input:
 
- x - PRF input string.
- N - Point in GG, or "error".
+ x: PRF input string.
+ N: Point in GG, or "error".
 
 Output:
 
- y - Random element in {0,1}^L, or "error"
+ y: Random element in {0,1}^L, or "error"
 
 Steps:
 
@@ -414,16 +431,15 @@ Steps:
 
 # NIZK Discrete Logarithm Equality Proof {#dleq}
 
-In some cases, it may be desirable for the V to have proof that P
-used its private key to compute Z from M. This is done by proving
-log_G(Y) == log_M(Z). This may be used, for example, to ensure that
-P uses the same private key for computing the VOPRF output and does not
-attempt to "tag" individual verifiers with select keys. This proof must
-not reveal the P's long-term private key to V. Consequently,
-we extend the protocol in the previous section with a (non-interactive) discrete
-logarithm equality (DLEQ) algorithm built on a Chaum-Pedersen {{ChaumPedersen}} proof.
-This proof is divided into two procedures: DLEQ_Generate and DLEQ_Verify.
-These are specified below.
+In some cases, it may be desirable for the V to have proof that P used its
+private key to compute Z from M. This is done by proving log_G(Y) == log_M(Z).
+This may be used, for example, to ensure that P uses the same private key for
+computing the VOPRF output and does not attempt to "tag" individual verifiers
+with select keys. This proof must not reveal the P's long-term private key to V.
+Consequently, we extend the protocol in the previous section with a
+(non-interactive) discrete logarithm equality (DLEQ) algorithm built on a
+Chaum-Pedersen {{ChaumPedersen}} proof. This proof is divided into two
+procedures: DLEQ_Generate and DLEQ_Verify. These are specified below.
 
 ## DLEQ_Generate
 
@@ -431,7 +447,8 @@ These are specified below.
 Input:
 
   G: Public generator of group GG.
-  Y: Signer public key.
+  k: Signer secret key.
+  Y: Signer public key (= kG).
   M: Point in GG.
   Z: Point in GG.
   H_3: A hash function from GG to a bitstring of length L modeled as a random oracle.
@@ -475,9 +492,9 @@ Steps:
 ## Elliptic Curve Group and Hash Function Instantiations
 
 This section specifies supported ECVOPRF group and hash function instantiations.
-We focus on the instantiations of the VOPRF in the elliptic curve setting for now.
-Eventually, we would like to provide instantiations based on curves over non-prime-order
-base fields.
+We focus on the instantiations of the VOPRF in the elliptic curve setting for
+now. Eventually, we would like to provide instantiations based on curves over
+non-prime-order base fields.
 
 ECVOPRF-P256-SHA256:
 
@@ -538,12 +555,12 @@ ECVOPRF-CURVE448-SHA512:
 # Security Considerations
 
 Security of the protocol depends on P's secrecy of k. Best practices recommend P
-regularly rotate k so as to keep its window of compromise small. Moreover, it each
-key should be generated from a source of safe, cryptographic randomness.
+regularly rotate k so as to keep its window of compromise small. Moreover, it
+each key should be generated from a source of safe, cryptographic randomness.
 
-Another critical aspect of this protocol is reliance on {{I-D.irtf-cfrg-hash-to-curve}}
-for mapping arbitrary input to points on a curve. Security requires this mapping be
-pre-image and collision resistant.
+Another critical aspect of this protocol is reliance on
+{{I-D.irtf-cfrg-hash-to-curve}} for mapping arbitrary input to points on a
+curve. Security requires this mapping be pre-image and collision resistant.
 
 ## Timing Leaks
 
@@ -555,23 +572,24 @@ implementations of H_1.
 
 ## Hashing to curves
 
-We choose different encodings in relation to the elliptic
-curve that is used, all methods are illuminated precisely in
-{{I-D.irtf-cfrg-hash-to-curve}}. In summary, we use the simplified
-Shallue-Woestijne-Ulas algorithm for hashing binary strings to the P-256 curve;
-the Icart algorithm for hashing binary strings to P384; the Elligator2 algorithm
-for hashing binary strings to CURVE25519 and CURVE448.
+We choose different encodings in relation to the elliptic curve that is used,
+all methods are illuminated precisely in {{I-D.irtf-cfrg-hash-to-curve}}. In
+summary, we use the simplified Shallue-Woestijne-Ulas algorithm for hashing
+binary strings to the P-256 curve; the Icart algorithm for hashing binary
+strings to P384; the Elligator2 algorithm for hashing binary strings to
+CURVE25519 and CURVE448.
 
 
 # Privacy Considerations
 
 ## Key Consistency
 
-DLEQ proofs are essential to the protocol to allow V to check that P's designated private
-key was used in the computation. A side effect of this property is that it prevents P
-from using unique key for select verifiers as a way of "tagging" them. If all verifiers
-expect use of a certain private key, e.g., by locating P's public key key published from
-a trusted registry, then P cannot present unique keys to an individual verifier.
+DLEQ proofs are essential to the protocol to allow V to check that P's
+designated private key was used in the computation. A side effect of this
+property is that it prevents P from using unique key for select verifiers as a
+way of "tagging" them. If all verifiers expect use of a certain private key,
+e.g., by locating P's public key key published from a trusted registry, then P
+cannot present unique keys to an individual verifier.
 
 # Acknowledgements
 
@@ -581,8 +599,8 @@ This document resulted from the work of the Privacy Pass team {{PrivacyPass}}.
 
 # Test Vectors
 
-This section includes test vectors for the primary ECVOPRF protocol,
-excluding DLEQ output.
+This section includes test vectors for the primary ECVOPRF protocol, excluding
+DLEQ output.
 
 ((TODO: add DLEQ vectors))
 
@@ -722,33 +740,37 @@ This section describes various applications of the VOPRF protocol.
 
 ## Privacy Pass
 
-This VOPRF protocol is used by Privacy Pass system to help Tor users bypass CAPTCHA
-challenges. Their system works as follows. Client C connects -- through Tor -- to an edge
-server E serving content. Upon receipt, E serves a CAPTCHA to C, who then solves the CAPTCHA
-and supplies, in response, n blinded points. E verifies the CAPTCHA response and, if valid,
-signs (at most) n blinded points, which are then returned to C. When C attempts to connect to
-E again and is prompted with a CAPTCHA, C uses one of the unblinded and signed points, or tokens,
-to derive a shared symmetric key sk used to MAC the CAPTCHA challenge. C sends the CAPTCHA, MAC,
-and token input x to E, who can use x to derive sk and verify the CAPTCHA MAC. Thus, each token
-is used at most once by the system.
+This VOPRF protocol is used by Privacy Pass system to help Tor users bypass
+CAPTCHA challenges. Their system works as follows. Client C connects -- through
+Tor -- to an edge server E serving content. Upon receipt, E serves a CAPTCHA to
+C, who then solves the CAPTCHA and supplies, in response, n blinded points. E
+verifies the CAPTCHA response and, if valid, signs (at most) n blinded points,
+which are then returned to C. When C attempts to connect to E again and is
+prompted with a CAPTCHA, C uses one of the unblinded and signed points, or
+tokens, to derive a shared symmetric key sk used to MAC the CAPTCHA challenge. C
+sends the CAPTCHA, MAC, and token input x to E, who can use x to derive sk and
+verify the CAPTCHA MAC. Thus, each token is used at most once by the system.
 
-The Privacy Pass implementation uses the P-256 instantiation of the VOPRF protocol.
-For more details, see {{DGSTV18}}.
+The Privacy Pass implementation uses the P-256 instantiation of the VOPRF
+protocol. For more details, see {{DGSTV18}}.
 
 ## Private Password Checker
 
-In this application, let D be a collection of plaintext passwords obtained by prover P.
-For each password p in D, P computes VOPRF_Sign(H_1(p)), where H_1 is as described above,
-and stores the result in a separate collection D'. P then publishes D' with Y, its public
-key. If a client C wishes to query D' for a password p', it runs the VOPRF protocol using
-p as input x to obtain output y. By construction, y will be the signature of p hashed onto
-the curve. C can then search D' for y to determine if there is a match.
+In this application, let D be a collection of plaintext passwords obtained by
+prover P. For each password p in D, P computes VOPRF_Sign(H_1(p)), where H_1 is
+as described above, and stores the result in a separate collection D'. P then
+publishes D' with Y, its public key. If a client C wishes to query D' for a
+password p', it runs the VOPRF protocol using p as input x to obtain output y.
+By construction, y will be the signature of p hashed onto the curve. C can then
+search D' for y to determine if there is a match.
 
-Examples of such password checkers already exist, for example: {{JKKX16}}, {{JKK14}} and {{SJKS17}}.
+Examples of such password checkers already exist, for example: {{JKKX16}},
+{{JKK14}} and {{SJKS17}}.
 
 ### Parameter Commitments
 
-For some applications, it may be desirable for P to bind tokens to certain parameters,
-e.g., protocol versions, ciphersuites, etc. To accomplish this, P should use a distinct
-scalar for each parameter combination. Upon redemption of a token T from V, P can later
-verify that T was generated using the scalar associated with the corresponding parameters.
+For some applications, it may be desirable for P to bind tokens to certain
+parameters, e.g., protocol versions, ciphersuites, etc. To accomplish this, P
+should use a distinct scalar for each parameter combination. Upon redemption of
+a token T from V, P can later verify that T was generated using the scalar
+associated with the corresponding parameters.
