@@ -163,13 +163,13 @@ normative:
 An Oblivious Pseudorandom Function (OPRF) is a two-party protocol for computing
 the output of a PRF. One party (the server) holds the PRF secret key, and the
 other (the client) holds the PRF input. The 'obliviousness' property ensures
-that the client does not reveal their input to the server, during the
-evaluation. The client should also not learn the server's secret PRF key.
-Optionally, OPRFs can also satisfy a notion 'verifiability' (VOPRF). In this
-setting, the client can verify that the server's output is indeed the result of
-evaluating the underlying PRF. This document specifies OPRF and VOPRF
-constructions instantiated within prime-order subgroups, including elliptic
-curves.
+that the server does not learn anything about the client's input during the
+evaluation. The client should also not learn anything about the server's secret
+PRF key. Optionally, OPRFs can also satisfy a notion 'verifiability' (VOPRF). In
+this setting, the client can verify that the server's output is indeed the
+result of evaluating the underlying PRF with just a public key. This document
+specifies OPRF and VOPRF constructions instantiated within prime-order
+subgroups, including elliptic curves.
 
 --- middle
 
@@ -202,10 +202,12 @@ have also been used for password-protected secret sharing schemes e.g.
 This document introduces an OPRF protocol built in prime-order groups, applying
 to finite fields of prime-order and also elliptic curve (EC) settings. The
 protocol has the option of being extended to a VOPRF with the addition of a NIZK
-proof for proving discrete log equality relations. In the EC setting, we will
-refer to the protocol as ECVOPRF. The document describes the protocol, its
-security properties, and provides preliminary test vectors for experimentation.
-The rest of the document is structured as follows:
+proof for proving discrete log equality relations. This proof demonstrates
+correctness of the computation using a known public key that serves as a
+commitment to the server's secret key. In the EC setting, we will refer to the
+protocol as ECOPRF (or ECVOPRF if verifiability is concerned). The document
+describes the protocol, its security properties, and provides preliminary test
+vectors for experimentation. The rest of the document is structured as follows:
 
 - Section {{background}}: Describe background, related work, and use cases of
   OPRF/VOPRF protocols.
@@ -222,8 +224,8 @@ The rest of the document is structured as follows:
   in the elliptic curve setting.
 - Section {{sec}}: Discusses the security considerations for the OPRF and VOPRF
   protocol.
-- Section {{apps}}: Discusses some existing applications of the OPRF/VOPRF
-  protocol.
+- Section {{apps}}: Discusses some existing applications of OPRF and VOPRF
+  protocols.
 - Section {{testvecs}}: Specifies test vectors for implementations in the
   elliptic curve setting.
 
@@ -249,7 +251,7 @@ interpreted as described in {{RFC2119}}.
 # Background {#background}
 
 OPRFs are functionally related to RSA-based blind signature schemes, e.g.,
-{{ChaumBlindSignature}}. Broadly, a blind signature scheme works as follows. Let
+{{ChaumBlindSignature}}. Briefly, a blind signature scheme works as follows. Let
 m be a message to be signed by a server. It is assumed to be a member of the RSA
 group. Also, let N be the RSA modulus, and e and d be the public and private
 keys, respectively. A prover P and verifier V engage in the following protocol
@@ -263,14 +265,14 @@ given input m.
 
 By the properties of RSA, s is clearly a valid signature for m. OPRF protocols
 can be used to provide a symmetric equivalent to blind signatures. Essentially
-the client learns PRF(k,x) for some input x of their choice, from a server that
-holds K. Since the security of an OPRF means that x is hidden in the
+the client learns y = PRF(k,x) for some input x of their choice, from a server that
+holds k. Since the security of an OPRF means that x is hidden in the
 interaction, then the client can later reveal x to the server along with
 PRF(k,x).
 
-The server can verify that PRF(k,x) is computed correctly by recomputing the PRF
-on x using K. In doing so, the client provides knowledge of a 'signature'
-PRF(k,x) for their value x. However, the verification procedure is symmetric
+The server can verify that y is computed correctly by recomputing the PRF
+on x using k. In doing so, the client provides knowledge of a 'signature'
+y for their value x. However, the verification procedure is symmetric
 since it requires knowledge of k. This is discussed more in the following
 section.
 
@@ -292,14 +294,15 @@ Additionally, we require the following additional properties:
 - Unlinkable: If V reveals x to P, P cannot link x to the protocol instance in
   which y = F(k, x) was computed.
 
-Optionally, for any protocol that satisfies the above properties, there is a
-separate security property:
+Optionally, for any protocol that satisfies the above properties, there is an
+additional security property:
 
-- Verifiable: V must only complete execution of the protocol if it asserts that
-  P used its secret key k.
+- Verifiable: V must only complete execution of the protocol if it can
+  successfully assert that P used its secret key k.
 
 In practice, the notion of verifiability requires that P commits to the key k
-before the actual protocol execution takes place.
+before the actual protocol execution takes place. Then V verifies that P has
+used k in the protocol using this commitment.
 
 # OPRF Protocol {#protocol}
 
@@ -310,7 +313,7 @@ SHA256. All hash functions in the protocol are modelled as random oracles. Let L
 be the security parameter. Let k be the prover's (P) secret key, and Y = kG be
 its corresponding 'public key' for some generator G taken from the group GG.
 This public key is also referred to as a commitment to the key k. Let x be the
-verifier's (V) input to the VOPRF protocol. (Commonly, it is a random L-bit
+verifier's (V) input to the OPRF protocol. (Commonly, it is a random L-bit
 string, though this is not required.)
 
 The OPRF protocol begins with V blinding its input for the signer such that it
@@ -374,8 +377,8 @@ VOPRF_Unblind to be the following:
 - VOPRF_Unblind(r,G,Y,M,(Z,D)): Unblind blinded signature Z with blind r,
   yielding N. Output N if 1 = DLEQ_Verify(G,Y,M,Z,D). Otherwise, output "error".
 
-When referring explicitly to VOPRF execution, we replace 'OPRF' in all method
-names with 'VOPRF'.
+We leave the rest of the OPRF algorithms unmodified. When referring explicitly
+to VOPRF execution, we replace 'OPRF' in all method names with 'VOPRF'.
 
 ## Protocol correctness
 
@@ -419,6 +422,31 @@ We will use p > 0 generally for constructing the base field GF(p), not just
 those where p is prime. To reiterate, we focus only on the additive case, and so
 we focus only on the cases where GF(p) is indeed the base field.
 
+## Utility algorithms
+
+## bin2scalar
+
+This algorithm converts a binary string to an integer modulo p.
+
+~~~
+Input:
+
+ s: binary string (little-endian)
+ l: length of binary string
+ p: modulus
+
+Output:
+
+ z: An integer modulo p
+
+Steps:
+
+ 1. s_vec <- vec(s) (converts s to a column vector of dimension l)
+ 2. p2vec <- (2^0, 2^1, ..., 2^{l-1}) (row vector of dimension l)
+ 3. z <- p2vec * s_vec (mod p)
+ 4. Output z
+~~~
+
 ## OPRF algorithms {#oprf}
 
 This section provides algorithms for each step in the OPRF protocol. We describe
@@ -430,9 +458,11 @@ the VOPRF analogues in {{voprf}}
    and computes M = rX.
 3. V sends M to P.
 4. P computes Z = kM = rkX.
-5. P sends Z to V.
-6. V unblinds Z to compute N = r^(-1)Z = kX.
-7. V outputs the pair H_2(x, N).
+5. In the elliptic curve setting, P multiplies Z by the cofactor of the elliptic
+   curve.
+6. P sends Z to V.
+7. V unblinds Z to compute N = r^(-1)Z = kX.
+8. V outputs the pair H_2(x, N).
 
 ### OPRF_Setup
 
@@ -448,7 +478,7 @@ k: A key chosen from {0,1}^l and interpreted as an integer value.
 Steps:
 
  1. Sample k_bin <-$ {0,1}^l
- 2. Output k <- (int)k_bin
+ 2. Output k <- bin2scalar(k_bin, l)
 ~~~
 
 ### OPRF_Blind
@@ -485,6 +515,7 @@ Output:
 Steps:
 
  1. Z := kM
+ 2. Z <- qZ (q is elliptic curve cofactor)
  2. Output Z
 ~~~
 
@@ -556,10 +587,9 @@ Output:
 
 Steps:
 
-  1. k_bin <-$ {0,1}^l.
-  2. k <- (int)k_bin.
-  3. Y := kG.
-  4. Output (k, (G,Y))
+  1. k <- OPRF_Setup(l)
+  2. Y := kG
+  3. Output (k, (G,Y))
 ~~~
 
 ### VOPRF_Blind
@@ -942,8 +972,8 @@ associated with the corresponding parameters.
 # Acknowledgements
 
 This document resulted from the work of the Privacy Pass team {{PrivacyPass}}.
-The authors would also like to acknowledge the helpful conversations that they
-had with Hugo Krawczyk.
+The authors would also like to acknowledge the helpful conversations with Hugo
+Krawczyk.
 
 --- back
 
