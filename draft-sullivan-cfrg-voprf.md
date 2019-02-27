@@ -168,8 +168,8 @@ evaluation. The client should also not learn anything about the server's secret
 PRF key. Optionally, OPRFs can also satisfy a notion 'verifiability' (VOPRF). In
 this setting, the client can verify that the server's output is indeed the
 result of evaluating the underlying PRF with just a public key. This document
-specifies OPRF and VOPRF constructions instantiated within prime-order
-subgroups, including elliptic curves.
+specifies OPRF and VOPRF constructions instantiated within prime-order groups,
+including elliptic curves.
 
 --- middle
 
@@ -267,8 +267,7 @@ By the properties of RSA, s is clearly a valid signature for m. OPRF protocols
 can be used to provide a symmetric equivalent to blind signatures. Essentially
 the client learns y = PRF(k,x) for some input x of their choice, from a server that
 holds k. Since the security of an OPRF means that x is hidden in the
-interaction, then the client can later reveal x to the server along with
-PRF(k,x).
+interaction, then the client can later reveal x to the server along with y.
 
 The server can verify that y is computed correctly by recomputing the PRF
 on x using k. In doing so, the client provides knowledge of a 'signature'
@@ -458,8 +457,8 @@ the VOPRF analogues in {{voprf}}
    and computes M = rX.
 3. V sends M to P.
 4. P computes Z = kM = rkX.
-5. In the elliptic curve setting, P multiplies Z by the cofactor of the elliptic
-   curve.
+5. In the elliptic curve setting, P multiplies Z by the cofactor (denoted h) of
+   the elliptic curve.
 6. P sends Z to V.
 7. V unblinds Z to compute N = r^(-1)Z = kX.
 8. V outputs the pair H_2(x, N).
@@ -515,8 +514,8 @@ Output:
 Steps:
 
  1. Z := kM
- 2. Z <- qZ (q is elliptic curve cofactor)
- 2. Output Z
+ 2. Z <- hZ
+ 3. Output Z
 ~~~
 
 ### OPRF_Unblind
