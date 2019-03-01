@@ -39,6 +39,7 @@ author:
 
 normative:
   RFC2119:
+  RFC5869:
   RFC7748:
   RFC8032:
   I-D.irtf-cfrg-hash-to-curve:
@@ -157,6 +158,13 @@ normative:
       -
         ins: H. Krawczyk
         org: IBM Research
+  SHAKE:
+    title: SHA-3 Standard, Permutation-Based Hash and Extendable-Output Functions
+    target: https://www.nist.gov/publications/sha-3-standard-permutation-based-hash-and-extendable-output-functions?pub_id=919061
+    authors:
+      -
+        ins: Morris J. Dworkin
+        org: Federal Inf. Process. Stds. (NIST FIPS)
 
 --- abstract
 
@@ -832,13 +840,12 @@ during the algorithm VOPRF_Verify.
 
 Any function that satisfies the security properties of a pseudorandom number
 generator can be used for computing the batched DLEQ proof. For example,
-SHAKE-256 or HKDF-SHA256 would be reasonable choices for groups that have an
-order of 256 bits.
+SHAKE-256 {{SHAKE}} or HKDF-SHA256 {{RFC5869}} would be reasonable choices for
+groups that have an order of 256 bits.
 
-We note that the PRNG outputs d1,...,dn should be smaller than the order of the
-group/curve that is being used. Samples that are larger should be ignored and
-resampling is done. Resampling can be achieved by increasing the value of the
-iterator that is used in the info field of the PRNG input.
+We note that the PRNG outputs d1,...,dn must be smaller than the order of the
+group/curve that is being used. Resampling can be achieved by increasing the
+value of the iterator that is used in the info field of the PRNG input.
 
 # Elliptic Curve Group and Hash Function Instantiations {#ecinstantiation}
 
@@ -854,7 +861,7 @@ ECVOPRF-P256-HKDF-SHA256:
 - H_2: SHA256
 - H_3: SHA256
 - H_4: SHA256
-- PRNG: HKDF
+- PRNG: HKDF-SHA256
 
 ECVOPRF-P521-HKDF-SHA512:
 
@@ -863,7 +870,7 @@ ECVOPRF-P521-HKDF-SHA512:
 - H_2: SHA512
 - H_3: SHA512
 - H_4: SHA512
-- PRNG: HKDF
+- PRNG: HKDF-SHA512
 
 ECVOPRF-CURVE25519-HKDF-SHA256:
 
@@ -872,7 +879,7 @@ ECVOPRF-CURVE25519-HKDF-SHA256:
 - H_2: SHA256
 - H_3: SHA256
 - H_4: SHA256
-- PRNG: HKDF
+- PRNG: HKDF-SHA256
 
 # Security Considerations {#sec}
 
