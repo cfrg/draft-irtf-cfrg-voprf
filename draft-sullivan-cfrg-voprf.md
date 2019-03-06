@@ -228,8 +228,8 @@ vectors for experimentation. The rest of the document is structured as follows:
   construction used for constructing the VOPRF protocol.
 - Section {{batch}}: Specifies how the DLEQ proof mechanism can be batched for
   multiple VOPRF invocations, and how this changes the protocol execution.
-- Section {{ecinstantiation}}: Considers explicit instantiations of the protocol
-  in the elliptic curve setting.
+- Section {{ciphersuites}}: Considers explicit instantiations of the protocol in
+  the elliptic curve setting.
 - Section {{sec}}: Discusses the security considerations for the OPRF and VOPRF
   protocol.
 - Section {{apps}}: Discusses some existing applications of OPRF and VOPRF
@@ -273,15 +273,14 @@ given input m.
 
 By the properties of RSA, s is clearly a valid signature for m. OPRF protocols
 can be used to provide a symmetric equivalent to blind signatures. Essentially
-the client learns y = PRF(k,x) for some input x of their choice, from a server that
-holds k. Since the security of an OPRF means that x is hidden in the
+the client learns y = PRF(k,x) for some input x of their choice, from a server
+that holds k. Since the security of an OPRF means that x is hidden in the
 interaction, then the client can later reveal x to the server along with y.
 
-The server can verify that y is computed correctly by recomputing the PRF
-on x using k. In doing so, the client provides knowledge of a 'signature'
-y for their value x. However, the verification procedure is symmetric
-since it requires knowledge of k. This is discussed more in the following
-section.
+The server can verify that y is computed correctly by recomputing the PRF on x
+using k. In doing so, the client provides knowledge of a 'signature' y for their
+value x. However, the verification procedure is symmetric since it requires
+knowledge of k. This is discussed more in the following section.
 
 # Security Properties {#properties}
 
@@ -429,35 +428,11 @@ We will use p > 0 generally for constructing the base field GF(p), not just
 those where p is prime. To reiterate, we focus only on the additive case, and so
 we focus only on the cases where GF(p) is indeed the base field.
 
-## Utility algorithms
-
-## bin2scalar
-
-This algorithm converts a binary string to an integer modulo p.
-
-~~~
-Input:
-
- s: binary string (little-endian)
- l: length of binary string
- p: modulus
-
-Output:
-
- z: An integer modulo p
-
-Steps:
-
- 1. s_vec <- vec(s) (converts s to a column vector of dimension l)
- 2. p2vec <- (2^0, 2^1, ..., 2^{l-1}) (row vector of dimension l)
- 3. z <- p2vec * s_vec (mod p)
- 4. Output z
-~~~
-
 ## OPRF algorithms {#oprf}
 
 This section provides algorithms for each step in the OPRF protocol. We describe
-the VOPRF analogues in {{voprf}}
+the VOPRF analogues in {{voprf}}. We provide generic utility algorithms in
+{{utils}}.
 
 1. P samples a uniformly random key k <- {0,1}^l for sufficient length l, and
    interprets it as an integer.
@@ -498,7 +473,7 @@ Input:
 Output:
 
  r: Random scalar in [1, p - 1].
- M: Blinded representation of x using blind r, a point in GG.
+ M: Blinded representation of x using blind r, an element in GG.
 
 Steps:
 
@@ -513,11 +488,11 @@ Steps:
 Input:
 
  k: Signer secret key.
- M: Point in GG.
+ M: An element in GG.
 
 Output:
 
- Z: Scalar multiplication of the point M by k, point in GG.
+ Z: Scalar multiplication of the point M by k, element in GG.
 
 Steps:
 
@@ -532,16 +507,15 @@ Steps:
 Input:
 
  r: Random scalar in [1, p - 1].
- M: Blinded representation of x using blind r, a point in GG.
- Z: Point in GG.
+ Z: An element in GG.
 
 Output:
 
- N: Unblinded signature, point in GG.
+ N: Unblinded signature, element in GG.
 
 Steps:
 
- 1. N := (-r)Z
+ 1. N := (1/r)Z
  2. Output N
 ~~~
 
@@ -551,7 +525,7 @@ Steps:
 Input:
 
  x: PRF input string.
- N: Point in GG.
+ N: An element in GG.
 
 Output:
 
@@ -585,12 +559,13 @@ The steps in the VOPRF setting are written as:
 ~~~
 Input:
 
-  l: Some suitable choice of key-length (e.g. as described in {{NIST}}).
+ G: Public generator of GG.
+ l: Some suitable choice of key-length (e.g. as described in {{NIST}}).
 
 Output:
 
-  k: A key chosen from {0,1}^l and interpreted as an integer value.
-  (G,Y): A commitment pair, where Y=kG for some generator G of GG.
+ k: A key chosen from {0,1}^l and interpreted as an integer value.
+ (G,Y): A pair of curve points, where Y=kG.
 
 Steps:
 
@@ -609,7 +584,7 @@ Input:
 Output:
 
  r: Random scalar in [1, p - 1].
- M: Blinded representation of x using blind r, a point in GG.
+ M: Blinded representation of x using blind r, an element in GG.
 
 Steps:
 
@@ -626,11 +601,11 @@ Input:
  G: Public generator of group GG.
  k: Signer secret key.
  Y: Signer public key (= kG).
- M: Point in GG.
+ M: An element in GG.
 
 Output:
 
- Z: Scalar multiplication of the point M by k, point in GG.
+ Z: Scalar multiplication of the point M by k, element in GG.
  D: DLEQ proof that log_G(Y) == log_M(Z).
 
 Steps:
@@ -648,17 +623,17 @@ Input:
  r: Random scalar in [1, p - 1].
  G: Public generator of group GG.
  Y: Signer public key.
- M: Blinded representation of x using blind r, a point in GG.
- Z: Point in GG.
+ M: Blinded representation of x using blind r, an element in GG.
+ Z: An element in GG.
  D: D = DLEQ_Generate(k,G,Y,M,Z).
 
 Output:
 
- N: Unblinded signature, point in GG.
+ N: Unblinded signature, element in GG.
 
 Steps:
 
- 1. N := (-r)Z
+ 1. N := (1/r)Z
  2. If 1 = DLEQ_Verify(G,Y,M,Z,D), output N
  3. Output "error"
 ~~~
@@ -669,7 +644,7 @@ Steps:
 Input:
 
  x: PRF input string.
- N: Point in GG, or "error".
+ N: An element in GG, or "error".
 
 Output:
 
@@ -681,6 +656,112 @@ Steps:
  2. y := H_2(x, N)
  3. Output y
 ~~~
+
+## Utility algorithms {#utils}
+
+### bin2scalar
+
+This algorithm converts a binary string to an integer modulo p.
+
+~~~
+Input:
+
+ s: binary string (little-endian)
+ l: length of binary string
+ p: modulus
+
+Output:
+
+ z: An integer modulo p
+
+Steps:
+
+ 1. sVec <- vec(s) (converts s to a column vector of dimension l)
+ 2. p2Vec <- (2^0, 2^1, ..., 2^{l-1}) (row vector of dimension l)
+ 3. z <- p2Vec * sVec (mod p)
+ 4. Output z
+~~~
+
+## Efficiency gains with pre-processing and additive blinding
+
+In the {{OPAQUE}} draft, it is noted that it may be more efficient to use
+additive blinding rather than multiplicative if the client can preprocess some
+values. For example, computing rH_1(x) is an example of multiplicative blinding.
+A valid way of computing additive blinding would be to instead compute
+H_1(x)+rG, where G is the common generator for the group.
+
+If the client preprocesses values of the form rG, then computing H_1(x)+rG is
+more efficient than computing rH_1(x) (one addition against log_2(r)).
+Therefore, it may be advantageous to define the OPRF and VOPRF protocols using
+additive blinding rather than multiplicative blinding. In fact the only
+algorithms that need to change are OPRF_Blind and OPRF_Unblind (and similarly
+for the VOPRF variants).
+
+We define the additive blinding variants of the above algorithms below along
+with a new algorithm OPRF_Preprocess that defines how preprocessing is carried
+out. The equivalent algorithms for VOPRF are almost identical and so we do not
+redefine them here. Notice that the only computation that changes is for V, the
+necessary computation of P does not change.
+
+### OPRF_Preprocess
+
+~~~
+Input:
+
+ G: Public generator of GG
+
+Output:
+
+ r: Random scalar in [1, p-1]
+ rG: An element in GG.
+ rY: An element in GG.
+
+Steps:
+
+ 1.  r <-$ GF(p)
+ 2.  Output (r, rG, rY)
+~~~
+
+### OPRF_Blind
+
+~~~
+Input:
+
+ x: V's PRF input.
+ rG: Preprocessed element of GG.
+
+Output:
+
+ M: Blinded representation of x using blind r, an element in GG.
+
+Steps:
+
+ 1.  M := H_1(x)+rG
+ 2.  Output M
+~~~
+
+### OPRF_Unblind
+
+~~~
+Input:
+
+ rY: Preprocessed element of GG.
+ M: Blinded representation of x using rG, an element in GG.
+ Z: An element in GG.
+
+Output:
+
+ N: Unblinded signature, element in GG.
+
+Steps:
+
+ 1. N := Z-rY
+ 2. Output N
+~~~
+
+Notice that OPRF_Unblind computes (Z-rY) = k(H_1(x)+rG) - rkG = kH_1(x) by the
+commutativity of scalar multiplication in GG. This is the same output as in the
+original OPRF_Unblind algorithm.
 
 # NIZK Discrete Logarithm Equality Proof {#dleq}
 
@@ -704,10 +785,10 @@ DLEQ_Generate and DLEQ_Verify. These are specified below.
 Input:
 
  k: Signer secret key.
- G: Public generator of group GG.
+ G: Public generator of GG.
  Y: Signer public key (= kG).
- M: Point in GG.
- Z: Point in GG.
+ M: An element in GG.
+ Z: An element in GG.
  H_3: A hash function from GG to {0,1}^L, modelled as a random oracle.
 
 Output:
@@ -728,10 +809,10 @@ Steps:
 ~~~
 Input:
 
- G: Public generator of group GG.
+ G: Public generator of GG.
  Y: Signer public key.
- M: Point in GG.
- Z: Point in GG.
+ M: An element in GG.
+ Z: An element in GG.
  D: DLEQ proof (c, s).
 
 Output:
@@ -847,16 +928,15 @@ We note that the PRNG outputs d1,...,dn must be smaller than the order of the
 group/curve that is being used. Resampling can be achieved by increasing the
 value of the iterator that is used in the info field of the PRNG input.
 
-# Elliptic Curve Group and Hash Function Instantiations {#ecinstantiation}
+# Supported ciphersuites {#ciphersuites}
 
 This section specifies supported ECVOPRF group and hash function instantiations.
-We focus on the instantiations of the VOPRF in the elliptic curve setting for
-now. Eventually, we would like to provide instantiations based on curves over
-non-prime-order base fields.
+We only provide ciphersuites in the EC setting as these provide the most
+efficient way of instantiating the VOPRF.
 
 ECVOPRF-P256-HKDF-SHA256:
 
-- G: P-256
+- GG: P-256
 - H_1: Simplified SWU encoding {{I-D.irtf-cfrg-hash-to-curve}}
 - H_2: SHA256
 - H_3: SHA256
@@ -865,21 +945,25 @@ ECVOPRF-P256-HKDF-SHA256:
 
 ECVOPRF-P521-HKDF-SHA512:
 
-- G: P-521
+- GG: P-521
 - H_1: Icart encoding {{I-D.irtf-cfrg-hash-to-curve}}
 - H_2: SHA512
 - H_3: SHA512
 - H_4: SHA512
 - PRNG: HKDF-SHA512
 
-ECVOPRF-CURVE25519-HKDF-SHA256:
+ECVOPRF-RISTRETTO-HKDF-SHA256:
 
-- G: Curve25519 {{RFC7748}}
+- GG: Ristretto {{RISTRETTO}}
 - H_1: Elligator2 encoding {{I-D.irtf-cfrg-hash-to-curve}}
 - H_2: SHA256
 - H_3: SHA256
 - H_4: SHA256
 - PRNG: HKDF-SHA256
+
+In the case of Ristretto, internal point representations are represented by
+Ed25519 {{RFC7748}} points. As a result, we can use the same hash-to-curve
+encoding as we would use for Ed25519 {{I-D.irtf-cfrg-hash-to-curve}}.
 
 # Security Considerations {#sec}
 
