@@ -939,10 +939,13 @@ value of the iterator that is used in the info field of the PRNG input.
 
 # Supported ciphersuites {#ciphersuites}
 
-This section specifies supported ECVOPRF group and hash function instantiations.
-We only provide ciphersuites in the EC setting as these provide the most
-efficient way of instantiating the VOPRF. In addition, we currently only support
-ciphersuites demonstrating 128 bits of security.
+This section specifies supported ECVOPRF group and hash function
+instantiations. We only provide ciphersuites in the EC setting as these provide
+the most efficient way of instantiating the OPRF. Our instantiation includes
+considerations for providing the DLEQ proofs that make the instantiation a
+VOPRF. To only support OPRF operations (ECOPRF) then support for the relevant
+components is just dropped. In addition, we currently only support ciphersuites
+demonstrating 128 bits of security.
 
 ECVOPRF-P256-HKDF-SHA256:
 
