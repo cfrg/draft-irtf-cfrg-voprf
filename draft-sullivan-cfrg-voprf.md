@@ -165,6 +165,12 @@ normative:
       -
         ins: Morris J. Dworkin
         org: Federal Inf. Process. Stds. (NIST FIPS)
+  SEC2:
+    title: "SEC 2: Recommended Elliptic Curve Domain Parameters"
+    target: http://www.secg.org/sec2-v2.pdf
+    author:
+      -
+        ins: Standards for Efficient Cryptography Group (SECG)
 
 --- abstract
 
@@ -932,30 +938,32 @@ value of the iterator that is used in the info field of the PRNG input.
 
 This section specifies supported ECVOPRF group and hash function instantiations.
 We only provide ciphersuites in the EC setting as these provide the most
-efficient way of instantiating the VOPRF.
+efficient way of instantiating the VOPRF. In addition, we currently only support
+ciphersuites demonstrating 128 bits of security.
 
 ECVOPRF-P256-HKDF-SHA256:
 
-- GG: P-256
-- H_1: Simplified SWU encoding {{I-D.irtf-cfrg-hash-to-curve}}
+- GG: SECP256K1 curve {{SEC2}}
+- H_1: {{I-D.irtf-cfrg-hash-to-curve}}
+  - hash-to-curve: map2curve_simple_swu
+  - hash-to-base:
+    - H: SHA-256
+    - hbits: 256
+    - label: voprf_h2c
 - H_2: SHA256
 - H_3: SHA256
 - H_4: SHA256
 - PRNG: HKDF-SHA256
 
-ECVOPRF-P521-HKDF-SHA512:
-
-- GG: P-521
-- H_1: Icart encoding {{I-D.irtf-cfrg-hash-to-curve}}
-- H_2: SHA512
-- H_3: SHA512
-- H_4: SHA512
-- PRNG: HKDF-SHA512
-
 ECVOPRF-RISTRETTO-HKDF-SHA256:
 
 - GG: Ristretto {{RISTRETTO}}
-- H_1: Elligator2 encoding {{I-D.irtf-cfrg-hash-to-curve}}
+- H_1: {{I-D.irtf-cfrg-hash-to-curve}}
+  - hash-to-curve: map2curve_elligator2
+  - hash-to-base:
+    - hash: SHA256
+    - hbits: 256
+    - label: voprf_h2c
 - H_2: SHA256
 - H_3: SHA256
 - H_4: SHA256
