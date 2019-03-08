@@ -494,6 +494,7 @@ Steps:
 Input:
 
  k: Signer secret key.
+ h: optional cofactor (defaults to 1).
  M: An element in GG.
 
 Output:
@@ -608,6 +609,7 @@ Input:
  k: Signer secret key.
  Y: Signer public key (= kG).
  M: An element in GG.
+ h: optional cofactor (defaults to 1).
 
 Output:
 
@@ -617,8 +619,9 @@ Output:
 Steps:
 
  1. Z := kM
- 2. D = DLEQ_Generate(k,G,Y,M,Z)
- 3. Output (Z, D)
+ 2. Z <- hZ
+ 3. D = DLEQ_Generate(k,G,Y,M,Z)
+ 4. Output (Z, D)
 ~~~
 
 ### VOPRF_Unblind
