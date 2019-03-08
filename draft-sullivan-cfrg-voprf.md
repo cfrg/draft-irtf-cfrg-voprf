@@ -165,6 +165,12 @@ normative:
       -
         ins: Morris J. Dworkin
         org: Federal Inf. Process. Stds. (NIST FIPS)
+  SEC2:
+    title: "SEC 2: Recommended Elliptic Curve Domain Parameters"
+    target: http://www.secg.org/sec2-v2.pdf
+    author:
+      -
+        ins: Standards for Efficient Cryptography Group (SECG)
 
 --- abstract
 
@@ -228,8 +234,8 @@ vectors for experimentation. The rest of the document is structured as follows:
   construction used for constructing the VOPRF protocol.
 - Section {{batch}}: Specifies how the DLEQ proof mechanism can be batched for
   multiple VOPRF invocations, and how this changes the protocol execution.
-- Section {{ecinstantiation}}: Considers explicit instantiations of the protocol
-  in the elliptic curve setting.
+- Section {{ciphersuites}}: Considers explicit instantiations of the protocol in
+  the elliptic curve setting.
 - Section {{sec}}: Discusses the security considerations for the OPRF and VOPRF
   protocol.
 - Section {{apps}}: Discusses some existing applications of OPRF and VOPRF
@@ -273,15 +279,14 @@ given input m.
 
 By the properties of RSA, s is clearly a valid signature for m. OPRF protocols
 can be used to provide a symmetric equivalent to blind signatures. Essentially
-the client learns y = PRF(k,x) for some input x of their choice, from a server that
-holds k. Since the security of an OPRF means that x is hidden in the
+the client learns y = PRF(k,x) for some input x of their choice, from a server
+that holds k. Since the security of an OPRF means that x is hidden in the
 interaction, then the client can later reveal x to the server along with y.
 
-The server can verify that y is computed correctly by recomputing the PRF
-on x using k. In doing so, the client provides knowledge of a 'signature'
-y for their value x. However, the verification procedure is symmetric
-since it requires knowledge of k. This is discussed more in the following
-section.
+The server can verify that y is computed correctly by recomputing the PRF on x
+using k. In doing so, the client provides knowledge of a 'signature' y for their
+value x. However, the verification procedure is symmetric since it requires
+knowledge of k. This is discussed more in the following section.
 
 # Security Properties {#properties}
 
@@ -429,35 +434,11 @@ We will use p > 0 generally for constructing the base field GF(p), not just
 those where p is prime. To reiterate, we focus only on the additive case, and so
 we focus only on the cases where GF(p) is indeed the base field.
 
-## Utility algorithms
-
-## bin2scalar
-
-This algorithm converts a binary string to an integer modulo p.
-
-~~~
-Input:
-
- s: binary string (little-endian)
- l: length of binary string
- p: modulus
-
-Output:
-
- z: An integer modulo p
-
-Steps:
-
- 1. s_vec <- vec(s) (converts s to a column vector of dimension l)
- 2. p2vec <- (2^0, 2^1, ..., 2^{l-1}) (row vector of dimension l)
- 3. z <- p2vec * s_vec (mod p)
- 4. Output z
-~~~
-
 ## OPRF algorithms {#oprf}
 
 This section provides algorithms for each step in the OPRF protocol. We describe
-the VOPRF analogues in {{voprf}}
+the VOPRF analogues in {{voprf}}. We provide generic utility algorithms in
+{{utils}}.
 
 1. P samples a uniformly random key k <- {0,1}^l for sufficient length l, and
    interprets it as an integer.
@@ -498,7 +479,7 @@ Input:
 Output:
 
  r: Random scalar in [1, p - 1].
- M: Blinded representation of x using blind r, a point in GG.
+ M: Blinded representation of x using blind r, an element in GG.
 
 Steps:
 
@@ -513,11 +494,12 @@ Steps:
 Input:
 
  k: Signer secret key.
- M: Point in GG.
+ h: optional cofactor (defaults to 1).
+ M: An element in GG.
 
 Output:
 
- Z: Scalar multiplication of the point M by k, point in GG.
+ Z: Scalar multiplication of the point M by k, element in GG.
 
 Steps:
 
@@ -532,16 +514,15 @@ Steps:
 Input:
 
  r: Random scalar in [1, p - 1].
- M: Blinded representation of x using blind r, a point in GG.
- Z: Point in GG.
+ Z: An element in GG.
 
 Output:
 
- N: Unblinded signature, point in GG.
+ N: Unblinded signature, element in GG.
 
 Steps:
 
- 1. N := (-r)Z
+ 1. N := (1/r)Z
  2. Output N
 ~~~
 
@@ -551,7 +532,7 @@ Steps:
 Input:
 
  x: PRF input string.
- N: Point in GG.
+ N: An element in GG.
 
 Output:
 
@@ -585,12 +566,13 @@ The steps in the VOPRF setting are written as:
 ~~~
 Input:
 
-  l: Some suitable choice of key-length (e.g. as described in {{NIST}}).
+ G: Public generator of GG.
+ l: Some suitable choice of key-length (e.g. as described in {{NIST}}).
 
 Output:
 
-  k: A key chosen from {0,1}^l and interpreted as an integer value.
-  (G,Y): A commitment pair, where Y=kG for some generator G of GG.
+ k: A key chosen from {0,1}^l and interpreted as an integer value.
+ (G,Y): A pair of curve points, where Y=kG.
 
 Steps:
 
@@ -609,7 +591,7 @@ Input:
 Output:
 
  r: Random scalar in [1, p - 1].
- M: Blinded representation of x using blind r, a point in GG.
+ M: Blinded representation of x using blind r, an element in GG.
 
 Steps:
 
@@ -626,18 +608,20 @@ Input:
  G: Public generator of group GG.
  k: Signer secret key.
  Y: Signer public key (= kG).
- M: Point in GG.
+ M: An element in GG.
+ h: optional cofactor (defaults to 1).
 
 Output:
 
- Z: Scalar multiplication of the point M by k, point in GG.
+ Z: Scalar multiplication of the point M by k, element in GG.
  D: DLEQ proof that log_G(Y) == log_M(Z).
 
 Steps:
 
  1. Z := kM
- 2. D = DLEQ_Generate(k,G,Y,M,Z)
- 3. Output (Z, D)
+ 2. Z <- hZ
+ 3. D = DLEQ_Generate(k,G,Y,M,Z)
+ 4. Output (Z, D)
 ~~~
 
 ### VOPRF_Unblind
@@ -648,17 +632,17 @@ Input:
  r: Random scalar in [1, p - 1].
  G: Public generator of group GG.
  Y: Signer public key.
- M: Blinded representation of x using blind r, a point in GG.
- Z: Point in GG.
+ M: Blinded representation of x using blind r, an element in GG.
+ Z: An element in GG.
  D: D = DLEQ_Generate(k,G,Y,M,Z).
 
 Output:
 
- N: Unblinded signature, point in GG.
+ N: Unblinded signature, element in GG.
 
 Steps:
 
- 1. N := (-r)Z
+ 1. N := (1/r)Z
  2. If 1 = DLEQ_Verify(G,Y,M,Z,D), output N
  3. Output "error"
 ~~~
@@ -669,7 +653,7 @@ Steps:
 Input:
 
  x: PRF input string.
- N: Point in GG, or "error".
+ N: An element in GG, or "error".
 
 Output:
 
@@ -681,6 +665,112 @@ Steps:
  2. y := H_2(x, N)
  3. Output y
 ~~~
+
+## Utility algorithms {#utils}
+
+### bin2scalar
+
+This algorithm converts a binary string to an integer modulo p.
+
+~~~
+Input:
+
+ s: binary string (little-endian)
+ l: length of binary string
+ p: modulus
+
+Output:
+
+ z: An integer modulo p
+
+Steps:
+
+ 1. sVec <- vec(s) (converts s to a column vector of dimension l)
+ 2. p2Vec <- (2^0, 2^1, ..., 2^{l-1}) (row vector of dimension l)
+ 3. z <- p2Vec * sVec (mod p)
+ 4. Output z
+~~~
+
+## Efficiency gains with pre-processing and additive blinding
+
+In the {{OPAQUE}} draft, it is noted that it may be more efficient to use
+additive blinding rather than multiplicative if the client can preprocess some
+values. For example, computing rH_1(x) is an example of multiplicative blinding.
+A valid way of computing additive blinding would be to instead compute
+H_1(x)+rG, where G is the common generator for the group.
+
+If the client preprocesses values of the form rG, then computing H_1(x)+rG is
+more efficient than computing rH_1(x) (one addition against log_2(r)).
+Therefore, it may be advantageous to define the OPRF and VOPRF protocols using
+additive blinding rather than multiplicative blinding. In fact the only
+algorithms that need to change are OPRF_Blind and OPRF_Unblind (and similarly
+for the VOPRF variants).
+
+We define the additive blinding variants of the above algorithms below along
+with a new algorithm OPRF_Preprocess that defines how preprocessing is carried
+out. The equivalent algorithms for VOPRF are almost identical and so we do not
+redefine them here. Notice that the only computation that changes is for V, the
+necessary computation of P does not change.
+
+### OPRF_Preprocess
+
+~~~
+Input:
+
+ G: Public generator of GG
+
+Output:
+
+ r: Random scalar in [1, p-1]
+ rG: An element in GG.
+ rY: An element in GG.
+
+Steps:
+
+ 1.  r <-$ GF(p)
+ 2.  Output (r, rG, rY)
+~~~
+
+### OPRF_Blind
+
+~~~
+Input:
+
+ x: V's PRF input.
+ rG: Preprocessed element of GG.
+
+Output:
+
+ M: Blinded representation of x using blind r, an element in GG.
+
+Steps:
+
+ 1.  M := H_1(x)+rG
+ 2.  Output M
+~~~
+
+### OPRF_Unblind
+
+~~~
+Input:
+
+ rY: Preprocessed element of GG.
+ M: Blinded representation of x using rG, an element in GG.
+ Z: An element in GG.
+
+Output:
+
+ N: Unblinded signature, element in GG.
+
+Steps:
+
+ 1. N := Z-rY
+ 2. Output N
+~~~
+
+Notice that OPRF_Unblind computes (Z-rY) = k(H_1(x)+rG) - rkG = kH_1(x) by the
+commutativity of scalar multiplication in GG. This is the same output as in the
+original OPRF_Unblind algorithm.
 
 # NIZK Discrete Logarithm Equality Proof {#dleq}
 
@@ -704,10 +794,10 @@ DLEQ_Generate and DLEQ_Verify. These are specified below.
 Input:
 
  k: Signer secret key.
- G: Public generator of group GG.
+ G: Public generator of GG.
  Y: Signer public key (= kG).
- M: Point in GG.
- Z: Point in GG.
+ M: An element in GG.
+ Z: An element in GG.
  H_3: A hash function from GG to {0,1}^L, modelled as a random oracle.
 
 Output:
@@ -728,10 +818,10 @@ Steps:
 ~~~
 Input:
 
- G: Public generator of group GG.
+ G: Public generator of GG.
  Y: Signer public key.
- M: Point in GG.
- Z: Point in GG.
+ M: An element in GG.
+ Z: An element in GG.
  D: DLEQ proof (c, s).
 
 Output:
@@ -847,39 +937,47 @@ We note that the PRNG outputs d1,...,dn must be smaller than the order of the
 group/curve that is being used. Resampling can be achieved by increasing the
 value of the iterator that is used in the info field of the PRNG input.
 
-# Elliptic Curve Group and Hash Function Instantiations {#ecinstantiation}
+# Supported ciphersuites {#ciphersuites}
 
-This section specifies supported ECVOPRF group and hash function instantiations.
-We focus on the instantiations of the VOPRF in the elliptic curve setting for
-now. Eventually, we would like to provide instantiations based on curves over
-non-prime-order base fields.
+This section specifies supported ECVOPRF group and hash function
+instantiations. We only provide ciphersuites in the EC setting as these provide
+the most efficient way of instantiating the OPRF. Our instantiation includes
+considerations for providing the DLEQ proofs that make the instantiation a
+VOPRF. To only support OPRF operations (ECOPRF) then support for the relevant
+components is just dropped. In addition, we currently only support ciphersuites
+demonstrating 128 bits of security.
 
 ECVOPRF-P256-HKDF-SHA256:
 
-- G: P-256
-- H_1: Simplified SWU encoding {{I-D.irtf-cfrg-hash-to-curve}}
+- GG: SECP256K1 curve {{SEC2}}
+- H_1: {{I-D.irtf-cfrg-hash-to-curve}}
+  - hash-to-curve: map2curve_simple_swu
+  - hash-to-base:
+    - H: SHA-256
+    - hbits: 256
+    - label: voprf_h2c
 - H_2: SHA256
 - H_3: SHA256
 - H_4: SHA256
 - PRNG: HKDF-SHA256
 
-ECVOPRF-P521-HKDF-SHA512:
+ECVOPRF-RISTRETTO-HKDF-SHA256:
 
-- G: P-521
-- H_1: Icart encoding {{I-D.irtf-cfrg-hash-to-curve}}
-- H_2: SHA512
-- H_3: SHA512
-- H_4: SHA512
-- PRNG: HKDF-SHA512
-
-ECVOPRF-CURVE25519-HKDF-SHA256:
-
-- G: Curve25519 {{RFC7748}}
-- H_1: Elligator2 encoding {{I-D.irtf-cfrg-hash-to-curve}}
+- GG: Ristretto {{RISTRETTO}}
+- H_1: {{I-D.irtf-cfrg-hash-to-curve}}
+  - hash-to-curve: map2curve_elligator2
+  - hash-to-base:
+    - hash: SHA256
+    - hbits: 256
+    - label: voprf_h2c
 - H_2: SHA256
 - H_3: SHA256
 - H_4: SHA256
 - PRNG: HKDF-SHA256
+
+In the case of Ristretto, internal point representations are represented by
+Ed25519 {{RFC7748}} points. As a result, we can use the same hash-to-curve
+encoding as we would use for Ed25519 {{I-D.irtf-cfrg-hash-to-curve}}.
 
 # Security Considerations {#sec}
 
@@ -970,8 +1068,8 @@ Krawczyk.
 
 # Test Vectors {#testvecs}
 
-This section includes test vectors for the ECVOPRF-P256-HKDF-SHA256 and
-ECVOPRF-P521-HKDF-P521 VOPRF ciphersuites, including batched DLEQ outputs.
+This section includes test vectors for the ECVOPRF-P256-HKDF-SHA256 VOPRF
+ciphersuite, including batched DLEQ output.
 
 ~~~
 P-256
@@ -1002,98 +1100,19 @@ N: 04723880e480b60b4415ca627585d1715ab5965570d30c94391a8b023f8854ac26f76c1d6ab \
 D: { s: dfdf6ae40d141b61d5b2d72cf39c4a6c88db6ac5b12044a70c212e2bf80255b4,
      c: 271979a6b51d5f71719127102621fe250e3235867cfcf8dea749c3e253b81997 }
 
-P-521
-X: 040000c29ffbd9acf76c9aa226204a3f3fc5aaa82c4cbf3026efbe571afceb87c82b7f5f1be \
-    a8ebc70296af81c8d7576b8ba8e72c2be9a0d753acf1ef56d496f794d3b006d9f5472c3512 \
-    185d873841b05dca1a648a999a5896e54b5ac031601b6258f07f9cec23399eba0d05be8d50 \
-    1fdf43c87b07c7126b1c8b98fd6910d6529093dba2a
-r: 01a9affae7a9585ed442736224139f7eeb9d7bd01b5f7edaf47f454dd78a361ebbf6fc7d825 \
-    5b167f84ac0507d656efdc764a906fb3cad3453a9b3d834414272fa07
-M: 04013f56efccc1cc8e322ac2627e039270ae3eab38e8565e5898d393e02fa0d03c839370874 \
-    364449336e426d790881844373a240d8713fd22756384fc1ed021e0aa18004ad81b953317a \
-    c82adc545786995f9ffb3186d76a5bfc21f9f2f2c34f2ed063afbc1ef29e692e2cb59aa5ec \
-    89346723173ca781df5f858bb0b676d1b243b001dcf
-k: 01a01384dda18314d2fc2969741413eed5e8252615b1f4ba987a70b471c71016a04239d0160 \
-    c3774026eb410882c43a9b83d82fa5799dc5c7ced7d3f8b67ad127cfb
-Z: 0400e08050567a4f9f136cd1184af9f5f62cd446eeffd22f400e1e30509b6ff0d9bb71607e6 \
-    a8eb15ed799c7ee526f25667cc068fe1aa17933aca9e19adab33bcae6860124ad29ddd2493 \
-    cb61d4f8ac7bde19f96e08a86d98a4a06819288f4df305a82145d46227e00f181cafcd81b0 \
-    12bf43926bc3afcd1df76ee8c6da95bcde0e9bf2842
-N: 040029412e372dba27d60cfdc2bc93bdce1fbe02d0b5eca997182d0984e447f46c9bf09df22 \
-    ac08584c34b868aec36426da84559591ec46f4891f2dae48f017b527afe01f352eb0bbf11c \
-    c65fb69ff32a29552d1cb4bdc7cbba8ee5e7d66b5ea02579ecf1669fd3ad97135ed32168bb \
-    aa4e1723e783c25fa794c38c209e8b5fae6ef64c21a
-D: { s: 010c2a866b2d6abc5d8cb6bc7c0ef9d146fc027fd786dfb6709836d1cbd3faf8d6682 \
-    7863007be6890ff18990261018b8f0655f899a6911430212f8fcdbceca96efc,
-     c: 352d7754227f8968044412e97fc60e8626055eaa1de588e7311d3e00456267275e50 \
-    4b428a8f31d054fcb130cdbcdf34b3e3b217e38f6d1eadf197c487418e58 }
-
-P-521
-X: 0401364f061cdb9b12b5274e37178fab26ff92c399f1eacdf70299f10ddb9997c13cad81248 \
-    c43c5d447a290fe92a6f77d5bc9dee6f5062c4c73b055ac532a89ebaeed00f8a290d26dd1e \
-    859b3c935f0319b5df9828452bc56135c008d6a4f402f6b9000b1df66ab331b11db72e00ec \
-    e2388924869bcbd1b3eb21ab93fa0fd5363f8e3faa2
-r: 0153752af08a412450c2ee5b3d9a3b2e2a350415ee1c9fe467f1452c55987679a0d76fab991 \
-    06992fc568b3746fcf1ee62cca93af7a4e76a9045710b6b411d58c410
-M: 0400a117ac450e09ff4ce458cb9058f54de41cb91f4d7d5f77e99f8d3253bdc95c1035371b5 \
-    0439af2ed81853ff66558000d53ad4cf0cc98ca5014f7f5f5e066e7f1bd0046096059659b0 \
-    e7c846c1336c7fb2909d75483d6fbe1fdf93cfbc4576a5048c20e2fc49718728e9d3a78cdc \
-    7a32b6ac6dc1b1239d57f35964f1bbb3cd0a5187e0d
-k: 0127c83f26b563b31db44233327f9bc68efcaa6e581310a6c022c6cf6b18d434cf8e08c7fb2 \
-    3b2dd7679c610aebaff60fababeef08197e474eabd914312903efd155
-Z: 040093b070f2b74e25e3c1735d953947e3f7e556b6ec6159aa1d3f74eaec220c70ccc62e174 \
-    f9e95869b8946b002faae7911fbd4ce4d0118f989531e4340e3fe12ef5d01ec6cb89581789 \
-    74ba9dc2310ef01370ca8959cb37e72f8b68b2ffbbc836ec5d50acefa131ce3f2d6af3fff8 \
-    42b32c32372b93db634ca1cb7fd6a7568571bc000b7
-N: 0401d9712a2d8293737560f085fea1eb9b79689d191aeb1f44b054840288ca1fbe7047e30b9 \
-    484ae61ca012f74bc9cf67bb95e2bea841fbedcdd1c619e4678e3b338cf017115d440c2a0f \
-    6fb9f39777228f07db1804999a16f844269e2d183d611a85e070115109558b9c8ee0c383d0 \
-    8abd249bdfd1f7ea52f55d966bd05f844982fba6fdc
-D: { s: 61cb081fe4b30d16735c7a0382e4436537a0b1596f55d1e9462369972ab48f760e81c \
-    5f5ea0f7906203038fba37e31bef43e9c83012419a7e11e3040f0567e73aa,
-     c: 0196e55ade52ac84959b001f9be9718dd0089ca17f0d7ef14bbfa7213086c06caddb \
-    f1be4e7763368b9e984f7eeacc6224683a13e2338957974de055a3a371fb }
-
 Batched DLEQ (P256)
-M0: 046025a41f81a160c648cfe8fdcaa42e5f7da7a71055f8e23f1dc7e4204ab84b705043ba5c \
+M_0: 046025a41f81a160c648cfe8fdcaa42e5f7da7a71055f8e23f1dc7e4204ab84b705043ba5c\
     7000123e1fd058150a4d3797008f57a8b2537766d9419c7396ba5279
-M1: 04e2efdc73747e15e38b7a1bb90fe5e4ef964b3b8dccfda428f85a431420c84efca02f0f09 \
+M_1: 04e2efdc73747e15e38b7a1bb90fe5e4ef964b3b8dccfda428f85a431420c84efca02f0f09\
     c83a8241b44572a059ab49c080a39d0bce2d5d0b44ff5d012b5184e7
-Z0: 043ab5ccb690d844dcb780b2d9e59126d62bc853ba01b2c339ba1c1b78c03e4b6adc5402f7 \
+Z_0: 043ab5ccb690d844dcb780b2d9e59126d62bc853ba01b2c339ba1c1b78c03e4b6adc5402f7\
     79fc29f639edc138012f0e61960e1784973b37f864e4dc8abbc68e0b
-Z1: 04647e1ab7946b10c1c1c92dd333e2fc9e93e85fdef5939bf2f376ae859248513e0cd91115 \
+Z_1: 04647e1ab7946b10c1c1c92dd333e2fc9e93e85fdef5939bf2f376ae859248513e0cd91115\
     e48c6852d8dd173956aec7a81401c3f63a133934898d177f2a237eeb
 k: f84e197c8b712cdf452d2cff52dec1bd96220ed7b9a6f66ed28c67503ae62133
 PRNG: HKDF-SHA256
 salt: "DLEQ_PROOF"
-info: an iterator i for invoking the PRNG on Mi and Zi
+info: an iterator i for invoking the PRNG on M_i and Z_i
 D: { s: b2123044e633d4721894d573decebc9366869fe3c6b4b79a00311ecfa46c9e34,
      c: 3506df9008e60130fcddf86fdb02cbfe4ceb88ff73f66953b1606f6603309862 }
-
-Batched DLEQ (P521)
-M0: 04013f56efccc1cc8e322ac2627e039270ae3eab38e8565e5898d393e02fa0d03c839370874\
-    364449336e426d790881844373a240d8713fd22756384fc1ed021e0aa18004ad81b953317a \
-    c82adc545786995f9ffb3186d76a5bfc21f9f2f2c34f2ed063afbc1ef29e692e2cb59aa5ec \
-    89346723173ca781df5f858bb0b676d1b243b001dcf
-M1: 0400a117ac450e09ff4ce458cb9058f54de41cb91f4d7d5f77e99f8d3253bdc95c1035371b5\
-    0439af2ed81853ff66558000d53ad4cf0cc98ca5014f7f5f5e066e7f1bd0046096059659b0 \
-    e7c846c1336c7fb2909d75483d6fbe1fdf93cfbc4576a5048c20e2fc49718728e9d3a78cdc \
-    7a32b6ac6dc1b1239d57f35964f1bbb3cd0a5187e0d
-Z0: 0400e08050567a4f9f136cd1184af9f5f62cd446eeffd22f400e1e30509b6ff0d9bb71607e6\
-    a8eb15ed799c7ee526f25667cc068fe1aa17933aca9e19adab33bcae6860124ad29ddd2493 \
-    cb61d4f8ac7bde19f96e08a86d98a4a06819288f4df305a82145d46227e00f181cafcd81b0 \
-    12bf43926bc3afcd1df76ee8c6da95bcde0e9bf2842
-Z1: 040084cb0665a675f30a58f6765f987b06611d285be1d43293494607a98906ec7e34316498 \
-    8582273bd1a431f50353baf359090d8c417e3acb727aec4402cc0814648c002573436beaa6 \
-    d0a00fd891f36fd148d9ce549fec0a32ba9c497e85037d955220f104a5743743c6273c5b58 \
-    c16f3cdfeaad6d3de52174fe73a458368ed35947879a
-k: 01a01384dda18314d2fc2969741413eed5e8252615b1f4ba987a70b471c71016a04239d0160 \
-    c3774026eb410882c43a9b83d82fa5799dc5c7ced7d3f8b67ad127cfb
-PRNG: HKDF-SHA512
-salt: "DLEQ_PROOF"
-info: an iterator i for invoking the PRNG on Mi and Zi
-D: { s: 01b9925b5644fc4de6806019c8300ff52433dbced0ced951cb11e949cbd0bfbdaef2ea \
-    fa9ee8d8e8ef99445ecc34e284d7c13abf283574f23dfebb74804493583ddf,
-     c: d5e37fe32807f49928e1eaf87f2644507183a2a92f5734068c4b0ae6fda750905d0d4d \
-    8811d43c5f4677aaffaf762d0b07adb1615356ba79b6f7f07190cdb33f }
 ~~~
