@@ -1,7 +1,7 @@
 ---
 title: Oblivious Pseudorandom Functions (OPRFs) using Prime-Order Groups
 abbrev: OPRFs
-docname: draft-sullivan-cfrg-voprf-latest
+docname: draft-sullivan-cfrg-oprf-latest
 date:
 category: info
 
@@ -374,18 +374,21 @@ This protocol may be decomposed into a series of steps, as described below:
 - OPRF_Setup(l): Generate am integer k of sufficient bit-length l and output k.
 - OPRF_Blind(x): Compute and return a blind, r, and blinded representation of x
   in GG, denoted M.
-- OPRF_Sign(k,M): Sign input M using secret key k to produce Z.
-- OPRF_Unblind(r,M,Z): Unblind blinded signature Z with blind r, yielding N and
+- OPRF_Sign(k,M,h): Sign input M using secret key k to produce Z, the input h is
+  optional and equal to the cofactor of an elliptic curve. If h is not provided
+  then it defaults to 1.
+- OPRF_Unblind(r,Z): Unblind blinded signature Z with blind r, yielding N and
   output N.
 - OPRF_Finalize(x,N): Finalize N to produce the output H_2(x, N).
 
 For verifiability we modify the algorithms of VOPRF_Setup, VOPRF_Sign and
 VOPRF_Unblind to be the following:
 
-- VOPRF_Setup(l): Generate am integer k of sufficient bit-length l and output
+- VOPRF_Setup(l): Generate an integer k of sufficient bit-length l and output
   (k, (G,Y)) where Y = kG for some generator G in GG.
-- VOPRF_Sign(k,(G,Y),M): Sign input M using secret key k to produce Z. Generate
-  a NIZK proof D = DLEQ_Generate(k,G,Y,M,Z), and output (Z, D).
+- VOPRF_Sign(k,(G,Y),M,h): Sign input M using secret key k to produce Z. Generate
+  a NIZK proof D = DLEQ_Generate(k,G,Y,M,Z), and output (Z, D). The optional
+  cofactor h can also be provided as in OPRF_Sign.
 - VOPRF_Unblind(r,G,Y,M,(Z,D)): Unblind blinded signature Z with blind r,
   yielding N. Output N if 1 = DLEQ_Verify(G,Y,M,Z,D). Otherwise, output "error".
 
@@ -405,7 +408,7 @@ with overwhelming probability. Likewise, in the verifiable setting, we require
 that:
 
 ~~~
-VOPRF_Finalize(x, VOPRF_Unblind(r,G,Y,M,(VOPRF_Sign(k,M)))) = H_2(x, F(k,x))
+VOPRF_Finalize(x, VOPRF_Unblind(r,(G,Y),M,(VOPRF_Sign(k,(G,Y),M)))) = H_2(x, F(k,x))
 ~~~
 
 with overwhelming probability, where (r, M) = VOPRF_Blind(x).
@@ -461,7 +464,7 @@ Input:
 
 Output:
 
-k: A key chosen from {0,1}^l and interpreted as an integer value.
+ k: A key chosen from {0,1}^l and interpreted as an integer value.
 
 Steps:
 
@@ -494,8 +497,8 @@ Steps:
 Input:
 
  k: Signer secret key.
- h: optional cofactor (defaults to 1).
  M: An element in GG.
+ h: optional cofactor (defaults to 1).
 
 Output:
 
@@ -605,8 +608,8 @@ Steps:
 ~~~
 Input:
 
- G: Public generator of group GG.
  k: Signer secret key.
+ G: Public generator of group GG.
  Y: Signer public key (= kG).
  M: An element in GG.
  h: optional cofactor (defaults to 1).
@@ -777,7 +780,7 @@ original OPRF_Unblind algorithm.
 For the VOPRF protocol we require that V is able to verify that P has used its
 private key k to evaluate the PRF. We can do this by showing that the original
 commitment (G,Y) output by VOPRF_Setup(l) satisfies log_G(Y) == log_M(Z) where Z
-is the output of VOPRF_Sign(k,M).
+is the output of VOPRF_Sign(k,(G,Y),M).
 
 This may be used, for example, to ensure that P uses the same private key for
 computing the VOPRF output and does not attempt to "tag" individual verifiers
@@ -939,45 +942,39 @@ value of the iterator that is used in the info field of the PRNG input.
 
 # Supported ciphersuites {#ciphersuites}
 
-This section specifies supported ECVOPRF group and hash function
-instantiations. We only provide ciphersuites in the EC setting as these provide
-the most efficient way of instantiating the OPRF. Our instantiation includes
+This section specifies supported ECVOPRF group and hash function instantiations.
+We only provide ciphersuites in the EC setting as these provide the most
+efficient way of instantiating the OPRF. Our instantiation includes
 considerations for providing the DLEQ proofs that make the instantiation a
-VOPRF. To only support OPRF operations (ECOPRF) then support for the relevant
-components is just dropped. In addition, we currently only support ciphersuites
-demonstrating 128 bits of security.
+VOPRF. Supporting OPRF operations (ECOPRF) alone can be allowed by simply
+dropping the relevant components. In addition, we currently only support
+ciphersuites demonstrating 128 bits of security.
 
-ECVOPRF-P256-HKDF-SHA256:
+## ECVOPRF-P256-HKDF-SHA256-SSWU:
 
 - GG: SECP256K1 curve {{SEC2}}
-- H_1: {{I-D.irtf-cfrg-hash-to-curve}}
-  - hash-to-curve: map2curve_simple_swu
-  - hash-to-base:
-    - H: SHA-256
-    - hbits: 256
-    - label: voprf_h2c
+- H_1: H2C-P256-SHA256-SSWU- {{I-D.irtf-cfrg-hash-to-curve}}
+  - label: voprf_h2c
 - H_2: SHA256
 - H_3: SHA256
 - H_4: SHA256
 - PRNG: HKDF-SHA256
 
-ECVOPRF-RISTRETTO-HKDF-SHA256:
+## ECVOPRF-RISTRETTO-HKDF-SHA512-Elligator2:
 
 - GG: Ristretto {{RISTRETTO}}
-- H_1: {{I-D.irtf-cfrg-hash-to-curve}}
-  - hash-to-curve: map2curve_elligator2
-  - hash-to-base:
-    - hash: SHA256
-    - hbits: 256
-    - label: voprf_h2c
-- H_2: SHA256
-- H_3: SHA256
-- H_4: SHA256
-- PRNG: HKDF-SHA256
+- H_1: H2C-Curve25519-SHA512-Elligator2-Clear {{I-D.irtf-cfrg-hash-to-curve}}
+  - label: voprf_h2c
+- H_2: SHA512
+- H_3: SHA512
+- H_4: SHA512
+- PRNG: HKDF-SHA512
 
 In the case of Ristretto, internal point representations are represented by
 Ed25519 {{RFC7748}} points. As a result, we can use the same hash-to-curve
-encoding as we would use for Ed25519 {{I-D.irtf-cfrg-hash-to-curve}}.
+encoding as we would use for Ed25519 {{I-D.irtf-cfrg-hash-to-curve}}. We remark
+that the 'label' field is necessary for domain separation of the hash-to-curve
+functionality.
 
 # Security Considerations {#sec}
 
@@ -1040,8 +1037,8 @@ protocol. For more details, see {{DGSTV18}}.
 ## Private Password Checker
 
 In this application, let D be a collection of plaintext passwords obtained by
-prover P. For each password p in D, P computes VOPRF_Sign(H_1(p)), where H_1 is
-as described above, and stores the result in a separate collection D'. P then
+prover P. For each password p in D, P computes VOPRF_Sign on H_1(p), where H_1
+is as described above, and stores the result in a separate collection D'. P then
 publishes D' with Y, its public key. If a client C wishes to query D' for a
 password p', it runs the VOPRF protocol using p as input x to obtain output y.
 By construction, y will be the signature of p hashed onto the curve. C can then
