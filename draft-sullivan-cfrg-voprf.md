@@ -1016,13 +1016,16 @@ e.g., by locating P's public key published from a trusted registry, then P
 cannot present unique keys to an individual verifier.
 
 For this side effect to hold, P must also be prevented from using other 
-unblinding techniques that can be achieved via manipulation of P's public key 
-within a trusted registry. For example, if P is able to rotate P's published 
-public key at short time intervals, P may be able to assign a likely identity 
-to V based on the public key used. Similarly, if P can publish N public keys 
-to a trusted registry then P may be able to control presentation of these keys
-in such a way that V is retroactively identified by V's key choice across 
-multiple requests.
+techniques to manipulate their public key within the trusted registry to 
+reduce client anonymity. For example, if P's public key is rotated too 
+frequently then this may stratify the user base into small anonymity groups 
+(those with VOPRF_Sign outputs taken from a given key epoch). In this case, 
+it may become practical to link VOPRF sessions for a given user and thus 
+compromises their privacy.
+
+Similarly, if P can publish N public keys to a trusted registry then P may 
+be able to control presentation of these keys in such a way that V is 
+retroactively identified by V's key choice across multiple requests.
 
 # Applications {#apps}
 
