@@ -1010,10 +1010,19 @@ CURVE25519 and CURVE448.
 
 DLEQ proofs are essential to the protocol to allow V to check that P's
 designated private key was used in the computation. A side effect of this
-property is that it prevents P from using unique key for select verifiers as a
-way of "tagging" them. If all verifiers expect use of a certain private key,
-e.g., by locating P's public key key published from a trusted registry, then P
+property is that it prevents P from using a unique key for select verifiers as
+a way of "tagging" them. If all verifiers expect use of a certain private key,
+e.g., by locating P's public key published from a trusted registry, then P
 cannot present unique keys to an individual verifier.
+
+For this side effect to hold, P must also be prevented from using other 
+unblinding techniques that can be achieved via manipulation of P's public key 
+within a trusted registry. For example, if P is able to rotate P's published 
+public key at short time intervals, P may be able to assign a likely identity 
+to V based on the public key used. Similarly, if P can publish N public keys 
+to a trusted registry then P may be able to control presentation of these keys
+in such a way that V is retroactively identified by V's key choice across 
+multiple requests.
 
 # Applications {#apps}
 
@@ -1062,7 +1071,8 @@ associated with the corresponding parameters.
 
 This document resulted from the work of the Privacy Pass team {{PrivacyPass}}.
 The authors would also like to acknowledge the helpful conversations with Hugo
-Krawczyk.
+Krawczyk. Eli-Shaoul Khedouri provided additional review and comments on key
+consistency.
 
 --- back
 
