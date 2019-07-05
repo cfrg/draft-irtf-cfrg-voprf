@@ -455,6 +455,10 @@ the VOPRF analogues in {{voprf}}. We provide generic utility algorithms in
 7. V unblinds Z to compute N = r^(-1)Z = kX.
 8. V outputs the pair H_2(x, N).
 
+We note here that the blinding mechanism that we use can be modified slightly
+with the opportunity for making performance gains in some scenarios. We detail
+these modifications in Section {{blinding}}.
+
 ### OPRF_Setup
 
 ~~~
@@ -694,22 +698,27 @@ Steps:
  4. Output z
 ~~~
 
-## Efficiency gains with pre-processing and additive blinding
+## Efficiency gains with pre-processing and fixed-base blinding {#blinding}
 
+In Section {{oprf}} we assume that the client-side blinding is carried out
+directly on the output of H_1(x), i.e. computing rH_1(x) for some r <-$ GF(p).
 In the {{OPAQUE}} draft, it is noted that it may be more efficient to use
 additive blinding rather than multiplicative if the client can preprocess some
-values. For example, computing rH_1(x) is an example of multiplicative blinding.
-A valid way of computing additive blinding would be to instead compute
-H_1(x)+rG, where G is the common generator for the group.
+values. For example, a valid way of computing additive blinding would be to
+instead compute H_1(x)+rG, where G is the common generator for the group.
+
+We refer to the 'multiplicative' blinding as variable-base blinding (VBB), since
+the base of the blinding (H_1(x)) varies with each instantiation. We refer to
+the additive blinding case as fixed-base blinding (FBB) since the blinding is
+applied to the same generator each time (when computing rG).
 
 If the client preprocesses values of the form rG, then computing H_1(x)+rG is
 more efficient than computing rH_1(x) (one addition against log_2(r)).
 Therefore, it may be advantageous to define the OPRF and VOPRF protocols using
-additive blinding rather than multiplicative blinding. In fact the only
-algorithms that need to change are OPRF_Blind and OPRF_Unblind (and similarly
-for the VOPRF variants).
+FBB rather than VBB. In fact the only algorithms that need to change are
+OPRF_Blind and OPRF_Unblind (and similarly for the VOPRF variants).
 
-We define the additive blinding variants of the above algorithms below along
+We define the FBB variants of the algorithms in {{oprf}} below along
 with a new algorithm OPRF_Preprocess that defines how preprocessing is carried
 out. The equivalent algorithms for VOPRF are almost identical and so we do not
 redefine them here. Notice that the only computation that changes is for V, the
