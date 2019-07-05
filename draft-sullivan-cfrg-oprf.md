@@ -293,28 +293,34 @@ knowledge of k. This is discussed more in the following section.
 The security properties of an OPRF protocol with functionality y = F(k, x)
 include those of a standard PRF. Specifically:
 
-- Given value x, it is infeasible to compute y = F(k, x) without knowledge of k.
-- The output distribution of y = F(k, x) is indistinguishable from the uniform
-  distribution in the domain of the function F.
+- Pseudorandomness: F is pseudorandom if the output y = F(k,x) on any input x
+  is indistinguishable from uniformly sampling any element in F's range, for a
+  random sampling of k.
 
-Additionally, we require the following additional properties:
+In other words, for an adversary that can pick inputs x from the domain of F and
+can evaluate F on (k,x) (without knowledge of randomly sampled k), then the
+output distribution F(k,x) is indistinguishable from the uniform distribution in
+the range of F.
 
-- Non-malleable: Given (x, y = F(k, x)), V must not be able to generate (x', y')
-  where x' != x and y' = F(k, x').
-- Oblivious: P must learn nothing about V's input, and V must learn nothing
-  about P's private key.
-- Unlinkable: If V reveals x to P, P cannot link x to the protocol instance in
-  which y = F(k, x) was computed.
+The OPRF protocol must also satisfy the following property:
+
+- Oblivious: P must learn nothing about V's input or the output of the function.
+  In addition, V must learn nothing about P's private key.
 
 Optionally, for any protocol that satisfies the above properties, there is an
 additional security property:
 
 - Verifiable: V must only complete execution of the protocol if it can
-  successfully assert that P used its secret key k.
+  successfully assert that the OPRF output computed by V is correct, with
+  respect to the OPRF key held by P.
+
+Any OPRF that satisfies the 'verifiable' security property is known as a
+verifiable OPRF, or VOPRF for short.
 
 In practice, the notion of verifiability requires that P commits to the key k
 before the actual protocol execution takes place. Then V verifies that P has
-used k in the protocol using this commitment.
+used k in the protocol using this commitment. In the following, we may also
+refer to this commitment as a public key.
 
 # OPRF Protocol {#protocol}
 
