@@ -340,9 +340,10 @@ subgroup, with two distinct hash functions H_1 and H_2, where H_1 maps arbitrary
 input onto GG and H_2 maps arbitrary input to a fixed-length output, e.g.,
 SHA256. All hash functions in the protocol are modelled as random oracles. Let L
 be the security parameter. Let k be the prover's (P) secret key, and Y = kG be
-its corresponding 'public key' for some generator G taken from the group GG.
-This public key is also referred to as a commitment to the key k. Let x be the
-verifier's (V) input to the OPRF protocol. (Commonly, it is a random L-bit
+its corresponding 'public key' for some fixed generator G taken from the
+description of the group GG. This public key Y is also referred to as a
+commitment to the OPRF key k, and the pair (G,Y) as a commitment pair. Let x be
+the verifier's (V) input to the OPRF protocol. (Commonly, it is a random L-bit
 string, though this is not required.)
 
 The OPRF protocol begins with V blinding its input for the OPRF evaluator such that it
@@ -402,8 +403,8 @@ For verifiability we modify the algorithms of VOPRF_Setup, VOPRF_Eval and
 VOPRF_Unblind to be the following:
 
 - VOPRF_Setup(l): Generate an integer k of sufficient bit-length l and output
-  (k, (G,Y)) where Y = kG for some generator G in GG.
-- VOPRF_Eval(k,(G,Y),M,h?): Evaluest on input M using secret key k to produce Z.
+  (k, (G,Y)) where Y = kG for the fixed generator G of GG.
+- VOPRF_Eval(k,(G,Y),M,h?): Evaluates on input M using secret key k to produce Z.
   Generate a NIZK proof D = DLEQ_Generate(k,G,Y,M,Z), and output (Z, D). The
   optional cofactor h can also be provided, as in OPRF_Eval.
 - VOPRF_Unblind(r,G,Y,M,(Z,D)): Unblind blinded OPRF evaluation Z with blind r,
@@ -439,7 +440,7 @@ setting. In the multiplicative setting we can choose GG to be a prime-order
 subgroup of a finite field FF_p. For example, let p be some large prime (e.g. >
 2048 bits) where p = 2q+1 for some other prime q. Then the subgroup of squares
 of FF_p (elements u^2 where u is an element of FF_p) is cyclic, and we can pick
-a generator of this subgroup by picking g from FF_p (ignoring the identity
+a generator of this subgroup by picking G from FF_p (ignoring the identity
 element).
 
 For practicality of the protocol, it is preferable to focus on the cases where
@@ -453,6 +454,10 @@ non-prime order, these include the work of Ristretto {{RISTRETTO}} and Decaf
 We will use p > 0 generally for constructing the base field GF(p), not just
 those where p is prime. To reiterate, we focus only on the additive case, and so
 we focus only on the cases where GF(p) is indeed the base field.
+
+Unless otherwise stated, we will always assume that the generator G that we use
+for the group GG is a fixed generator. This generator should be provided in the
+description of the group GG.
 
 ## OPRF algorithms {#oprf}
 
@@ -574,8 +579,8 @@ The steps in the VOPRF setting are written as:
 
 1. P samples a uniformly random key k <- {0,1}^l for sufficient length l, and
    interprets it as an integer.
-2. P commits to k by computing (G,Y) for Y=kG and where G is a generator of GG.
-   P makes (G,Y) publicly available.
+2. P commits to k by computing (G,Y) for Y=kG, where G is the fixed generator of
+   GG. P makes the pair (G,Y) publicly available.
 3. V computes X = H_1(x) and a random element r (blinding factor) from GF(p),
    and computes M = rX.
 4. V sends M to P.
@@ -590,7 +595,7 @@ The steps in the VOPRF setting are written as:
 ~~~
 Input:
 
- G: Public generator of GG.
+ G: Public fixed generator of GG.
  l: Some suitable choice of key-length (e.g. as described in {{NIST}}).
 
 Output:
@@ -630,7 +635,7 @@ Steps:
 Input:
 
  k: Evaluator secret key.
- G: Public generator of group GG.
+ G: Public fixed generator of group GG.
  Y: Evaluator public key (= kG).
  M: An element in GG.
  h: optional cofactor (defaults to 1).
@@ -654,7 +659,7 @@ Steps:
 Input:
 
  r: Random scalar in [1, p - 1].
- G: Public generator of group GG.
+ G: Public fixed generator of group GG.
  Y: Evaluator public key.
  M: Blinded representation of x using blind r, an element in GG.
  Z: An element in GG.
@@ -722,7 +727,7 @@ directly on the output of H_1(x), i.e. computing rH_1(x) for some r <-$ GF(p).
 In the {{OPAQUE}} draft, it is noted that it may be more efficient to use
 additive blinding rather than multiplicative if the client can preprocess some
 values. For example, a valid way of computing additive blinding would be to
-instead compute H_1(x)+rG, where G is the common generator for the group.
+instead compute H_1(x)+rG, where G is the fixed generator for the group GG.
 
 We refer to the 'multiplicative' blinding as variable-base blinding (VBB), since
 the base of the blinding (H_1(x)) varies with each instantiation. We refer to
@@ -746,7 +751,7 @@ necessary computation of P does not change.
 ~~~
 Input:
 
- G: Public generator of GG
+ G: Public fixed generator of GG
 
 Output:
 
@@ -823,7 +828,7 @@ DLEQ_Generate and DLEQ_Verify. These are specified below.
 Input:
 
  k: Evaluator secret key.
- G: Public generator of GG.
+ G: Public fixed generator of GG.
  Y: Evaluator public key (= kG).
  M: An element in GG.
  Z: An element in GG.
@@ -847,7 +852,7 @@ Steps:
 ~~~
 Input:
 
- G: Public generator of GG.
+ G: Public fixed generator of GG.
  Y: Evaluator public key.
  M: An element in GG.
  Z: An element in GG.
@@ -897,7 +902,7 @@ as input, and outputs n elements in {0,1}^b.
 Input:
 
  k: Evaluator secret key.
- G: Public generator of group GG.
+ G: Public fixed generator of group GG.
  Y: Evaluator public key (= kG).
  n: Number of PRF evaluations.
  [Mi]: An array of points in GG of length n.
@@ -926,7 +931,7 @@ Steps:
 ~~~
 Input:
 
- G: Public generator of group GG.
+ G: Public fixed generator of group GG.
  Y: Evaluator public key.
  [Mi]: An array of points in GG of length n.
  [Zi]: An array of points in GG of length n.
