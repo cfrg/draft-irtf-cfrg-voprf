@@ -1,7 +1,7 @@
 ---
 title: Oblivious Pseudorandom Functions (OPRFs) using Prime-Order Groups
 abbrev: OPRFs
-docname: draft-sullivan-cfrg-oprf-latest
+docname: draft-sullivan-cfrg-voprf-latest
 date:
 category: info
 
@@ -15,11 +15,11 @@ author:
  -
     ins: A. Davidson
     name: Alex Davidson
-    org: ISG, Royal Holloway, University of London
-    street: Egham Hill
-    city: Twickenham, TW20 0EX
+    org: Cloudflare
+    street: County Hall
+    city: London, SE1 7GP
     country: United Kingdom
-    email: alex.davidson.2014@rhul.ac.uk
+    email: adavidson@cloudflare.com
  -
     ins: N. Sullivan
     name: Nick Sullivan
@@ -84,7 +84,7 @@ normative:
         org: UC Irvine, CA, USA
   JKK14:
     title:  Round-Optimal Password-Protected Secret Sharing and T-PAKE in the Password-Only model
-    target: https://eprint.iacr.org/2014/650.pdf
+    target: https://eprint.iacr.org/2014/650
     authors:
       -
         ins: S. Jarecki
@@ -95,6 +95,23 @@ normative:
       -
         ins: H. Krawczyk
         org: IBM Research, NY, USA
+  JKKX17:
+    title: >
+      TOPPSS: Cost-minimal Password-Protected Secret Sharing based on Threshold OPRF
+    target: https://eprint.iacr.org/2017/363
+    authors:
+      -
+        ins: S. Jarecki
+        org: UC Irvine, CA, USA
+      -
+        ins: A. Kiayias
+        org: University of Athens, Greece
+      -
+        ins: H. Krawczyk
+        org: IBM Research, NY, USA
+      -
+        ins: Jiayu Xu
+        org: UC Irvine, CA, USA
   SJKS17:
     title:  SPHINX, A Password Store that Perfectly Hides from Itself
     target: http://webee.technion.ac.il/%7Ehugo/sphinx.pdf
@@ -153,7 +170,7 @@ normative:
         org: Rambus Cryptography Research
   OPAQUE:
     title: The OPAQUE Asymmetric PAKE Protocol
-    target: https://tools.ietf.org/html/draft-krawczyk-cfrg-opaque-00
+    target: https://tools.ietf.org/html/draft-krawczyk-cfrg-opaque-01
     authors:
       -
         ins: H. Krawczyk
@@ -1056,8 +1073,11 @@ password p', it runs the VOPRF protocol using p as input x to obtain output y.
 By construction, y will be the signature of p hashed onto the curve. C can then
 search D' for y to determine if there is a match.
 
-Examples of such password checkers already exist, for example: {{JKKX16}},
-{{JKK14}} and {{SJKS17}}.
+Concrete examples of important applications in the password domain include:
+
+- password-protected storage {{JKK14}}, {{JKKX16}};
+- perfectly-hiding password management {{SJKS17}};
+- password-protected secret-sharing {{JKKX17}}.
 
 ### Parameter Commitments
 
