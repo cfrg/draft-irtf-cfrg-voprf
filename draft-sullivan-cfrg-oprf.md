@@ -240,24 +240,24 @@ protocol as ECOPRF (or ECVOPRF if verifiability is concerned). The document
 describes the protocol, its security properties, and provides preliminary test
 vectors for experimentation. The rest of the document is structured as follows:
 
-- Section {{background}}: Describe background, related work, and use cases of
+- {{background}}: Describe background, related work, and use cases of
   OPRF/VOPRF protocols.
-- Section {{properties}}: Discuss security properties of OPRFs/VOPRFs.
-- Section {{protocol}}: Specify an authentication protocol from OPRF
+- {{properties}}: Discuss security properties of OPRFs/VOPRFs.
+- {{protocol}}: Specify an authentication protocol from OPRF
   functionality, based in prime-order groups (with an optional verifiable mode).
   Algorithms are stated formally for OPRFs in {{oprf}} and for VOPRFs in
   {{voprf}}.
-- Section {{dleq}}: Specify the NIZK discrete logarithm equality (DLEQ)
+- {{dleq}}: Specify the NIZK discrete logarithm equality (DLEQ)
   construction used for constructing the VOPRF protocol.
-- Section {{batch}}: Specifies how the DLEQ proof mechanism can be batched for
+- {{batch}}: Specifies how the DLEQ proof mechanism can be batched for
   multiple VOPRF invocations, and how this changes the protocol execution.
-- Section {{ciphersuites}}: Considers explicit instantiations of the protocol in
+- {{ciphersuites}}: Considers explicit instantiations of the protocol in
   the elliptic curve setting.
-- Section {{sec}}: Discusses the security considerations for the OPRF and VOPRF
+- {{sec}}: Discusses the security considerations for the OPRF and VOPRF
   protocol.
-- Section {{apps}}: Discusses some existing applications of OPRF and VOPRF
+- {{apps}}: Discusses some existing applications of OPRF and VOPRF
   protocols.
-- Section {{testvecs}}: Specifies test vectors for implementations in the
+- {{testvecs}}: Specifies test vectors for implementations in the
   elliptic curve setting.
 
 ## Terminology {#terminology}
@@ -369,7 +369,7 @@ illustrated below.
 ~~~
 
 Steps that are enclosed in square brackets (DLEQ_Generate and DLEQ_Verify) are
-optional for achieving verifiability. These are described in Section {{dleq}}.
+optional for achieving verifiability. These are described in {{dleq}}.
 In the verifiable mode, we assume that P has previously committed to their
 choice of key k with some values (G,Y=kG) and these are publicly known by V.
 Notice that revealing (G,Y) does not reveal k by the well-known hardness of the
@@ -953,7 +953,7 @@ Steps:
 
 ## Modified protocol execution
 
-The VOPRF protocol from Section {{protocol}} changes to allow specifying
+The VOPRF protocol from {{protocol}} changes to allow specifying
 multiple blinded PRF inputs [Mi] for i in 1...n. Then P computes the array [Zi]
 and replaces DLEQ_Generate with Batched_DLEQ_Generate over these arrays. The
 same applies to the algorithm VOPRF_Eval. The same applies for replacing
