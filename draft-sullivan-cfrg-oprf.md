@@ -928,11 +928,11 @@ same applies to the algorithm VOPRF_Sign. The same applies for replacing
 DLEQ_Verify with Batched_DLEQ_Verify when V verifies the response from P and
 during the algorithm VOPRF_Verify.
 
-## Random oracle instantions for proofs
+## Random oracle instantiations for proofs
 
 We can instantiate the random oracle function H_4 using the same hash function
 that is used for H_1,H_2,H_3. For H_5, we can also use a similar instantiation,
-or we can use a stream-based output generator. For example, for groups with an
+or we can use a variable-length output generator. For example, for groups with an
 order of 256-bit, valid instantiations include functions such as SHAKE-256
 {{SHAKE}} or HKDF-Expand-SHA256 {{RFC5869}}.
 
@@ -941,7 +941,7 @@ used, we note that the outputs of H_5 (d1,...,dn) must be smaller than this
 order. If any di that is sampled is larger than then order, then we should
 resample until a di' is sampled that is valid.
 
-In these cases, the iterating integer i is increased to i' until such di' is
+In these cases, the iterating integer i is increased monotonically to i' until such di' is
 sampled. When sampling the next value d(i+1), the counter i+1 is started at
 i'+1.
 
