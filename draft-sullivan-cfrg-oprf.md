@@ -264,29 +264,23 @@ interpreted as described in {{RFC2119}}.
 
 # Background {#background}
 
-OPRFs are functionally related to RSA-based blind signature schemes, e.g.,
-{{ChaumBlindSignature}}. Briefly, a blind signature scheme works as follows. Let
-m be a message to be signed by a server. It is assumed to be a member of the RSA
-group. Also, let N be the RSA modulus, and e and d be the public and private
-keys, respectively. A prover P and verifier V engage in the following protocol
-given input m.
+OPRFs are functionally related to blind signature schemes. In such a scheme, a
+client can receive signatures on private data, under the signing key of some
+server. The security properties of such a scheme dictate that the client learns
+nothing about the signing key, and that the server learns nothing about the data
+that is signed. One of the most popular blind signature schemes is based on the
+RSA cryptosystem and is known as Blind RSA {{ChaumBlindSignature}}.
 
-1. V generates a random blinding element r from the RSA group, and compute m' =
-   m^r (mod N). Send m' to the P.
-2. P uses m' to compute s' = (m')^d (mod N), and sends s' to the V.
-3. V removes the blinding factor r to obtain the original signature as s =
-   (s')^(r^-1) (mod N).
-
-By the properties of RSA, s is clearly a valid signature for m. OPRF protocols
-can be used to provide a symmetric equivalent to blind signatures. Essentially
-the client learns y = PRF(k,x) for some input x of their choice, from a server
-that holds k. Since the security of an OPRF means that x is hidden in the
-interaction, then the client can later reveal x to the server along with y.
+OPRF protocols can thought of as symmetric alternatives to blind signatures.
+Essentially the client learns y = PRF(k,x) for some input x of their choice,
+from a server that holds k. Since the security of an OPRF means that x is hidden
+in the interaction, then the client can later reveal x to the server along with
+y.
 
 The server can verify that y is computed correctly by recomputing the PRF on x
 using k. In doing so, the client provides knowledge of a 'signature' y for their
-value x. However, the verification procedure is symmetric since it requires
-knowledge of k. This is discussed more in the following section.
+value x. The verification procedure is necessarily symmetric as it requires
+knowledge of the key k. This is discussed more in the following section.
 
 # Security Properties {#properties}
 
