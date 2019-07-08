@@ -304,28 +304,42 @@ knowledge of the key k. This is discussed more in the following section.
 The security properties of an OPRF protocol with functionality y = F(k, x)
 include those of a standard PRF. Specifically:
 
-- Given value x, it is infeasible to compute y = F(k, x) without knowledge of k.
-- The output distribution of y = F(k, x) is indistinguishable from the uniform
-  distribution in the domain of the function F.
+- Pseudorandomness: F is pseudorandom if the output y = F(k,x) on any input x
+  is indistinguishable from uniformly sampling any element in F's range, for a
+  random sampling of k.
 
-Additionally, we require the following additional properties:
+In other words, for an adversary that can pick inputs x from the domain of F and
+can evaluate F on (k,x) (without knowledge of randomly sampled k), then the
+output distribution F(k,x) is indistinguishable from the uniform distribution in
+the range of F.
 
-- Non-malleable: Given (x, y = F(k, x)), V must not be able to generate (x', y')
-  where x' != x and y' = F(k, x').
-- Oblivious: P must learn nothing about V's input, and V must learn nothing
-  about P's private key.
-- Unlinkable: If V reveals x to P, P cannot link x to the protocol instance in
-  which y = F(k, x) was computed.
+A consequence of showing that a function is pseudorandom, is that it is
+necessarily non-malleable (i.e. we cannot compute a new evaluation of F from an
+existing evaluation). A genuinely random function will be non-malleable with
+high probability, and so a pseudorandom function must be non-malleable to
+maintain indistinguishability.
+
+An OPRF protocol must also satisfy the following property:
+
+- Oblivious: P must learn nothing about V's input or the output of the function.
+  In addition, V must learn nothing about P's private key.
+
+Essentially, obliviousness tells us that, even if P learns V's input x at some
+point in the future, then P will not be able to link any particular OPRF
+evaluation to x. This property is also known as unlinkability {{DGSTV18}}.
 
 Optionally, for any protocol that satisfies the above properties, there is an
 additional security property:
 
 - Verifiable: V must only complete execution of the protocol if it can
-  successfully assert that P used its secret key k.
+  successfully assert that the OPRF output computed by V is correct, with
+  respect to the OPRF key held by P.
 
-In practice, the notion of verifiability requires that P commits to the key k
-before the actual protocol execution takes place. Then V verifies that P has
-used k in the protocol using this commitment.
+Any OPRF that satisfies the 'verifiable' security property is known as a
+verifiable OPRF, or VOPRF for short. In practice, the notion of verifiability
+requires that P commits to the key k before the actual protocol execution takes
+place. Then V verifies that P has used k in the protocol using this commitment.
+In the following, we may also refer to this commitment as a public key.
 
 # OPRF Protocol {#protocol}
 
