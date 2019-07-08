@@ -268,7 +268,7 @@ OPRFs are functionally related to blind signature schemes. In such a scheme, a
 client can receive signatures on private data, under the signing key of some
 server. The security properties of such a scheme dictate that the client learns
 nothing about the signing key, and that the server learns nothing about the data
-that is signed. One of the most popular blind signature schemes is based on the
+that is signed. One of the more popular blind signature schemes is based on the
 RSA cryptosystem and is known as Blind RSA {{ChaumBlindSignature}}.
 
 OPRF protocols can thought of as symmetric alternatives to blind signatures.
@@ -279,7 +279,7 @@ y.
 
 The server can verify that y is computed correctly by recomputing the PRF on x
 using k. In doing so, the client provides knowledge of a 'signature' y for their
-value x. The verification procedure is necessarily symmetric as it requires
+value x. The verification procedure is thus symmetric as it requires
 knowledge of the key k. This is discussed more in the following section.
 
 # Security Properties {#properties}
