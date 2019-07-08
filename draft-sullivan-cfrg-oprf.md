@@ -934,7 +934,7 @@ We can instantiate the random oracle function H_4 using the same hash function
 that is used for H_1,H_2,H_3. For H_5, we can also use a similar instantiation,
 or we can use a stream-based output generator. For example, for groups with an
 order of 256-bit, valid instantiations include functions such as SHAKE-256
-{{SHAKE}} or HKDF_Expand-SHA256 {{RFC5869}}.
+{{SHAKE}} or HKDF-Expand-SHA256 {{RFC5869}}.
 
 In addition if a function with larger output than the order of the base field is
 used, we note that the outputs of H_5 (d1,...,dn) must be smaller than this
@@ -944,6 +944,8 @@ resample until a di' is sampled that is valid.
 In these cases, the iterating integer i is increased to i' until such di' is
 sampled. When sampling the next value d(i+1), the counter i+1 is started at
 i'+1.
+
+TODO: Give a more detailed specification of this construction.
 
 # Supported ciphersuites {#ciphersuites}
 
@@ -963,7 +965,7 @@ ciphersuites demonstrating 128 bits of security.
 - H_2: SHA256
 - H_3: SHA256
 - H_4: SHA256
-- H_5: HKDF_Expand-SHA256
+- H_5: HKDF-Expand-SHA256
 
 ## ECVOPRF-RISTRETTO-HKDF-SHA512-Elligator2:
 
@@ -973,7 +975,7 @@ ciphersuites demonstrating 128 bits of security.
 - H_2: SHA512
 - H_3: SHA512
 - H_4: SHA512
-- H_5: HKDF_Expand-SHA512
+- H_5: HKDF-Expand-SHA512
 
 In the case of Ristretto, internal point representations are represented by
 Ed25519 {{RFC7748}} points. As a result, we can use the same hash-to-curve
@@ -1125,7 +1127,7 @@ Z_0: 043ab5ccb690d844dcb780b2d9e59126d62bc853ba01b2c339ba1c1b78c03e4b6adc5402f7\
 Z_1: 04647e1ab7946b10c1c1c92dd333e2fc9e93e85fdef5939bf2f376ae859248513e0cd91115\
     e48c6852d8dd173956aec7a81401c3f63a133934898d177f2a237eeb
 k: f84e197c8b712cdf452d2cff52dec1bd96220ed7b9a6f66ed28c67503ae62133
-H_5: HKDF_Expand-SHA256
+H_5: HKDF-Expand-SHA256
 label: "DLEQ_PROOF"
 D: { s: b2123044e633d4721894d573decebc9366869fe3c6b4b79a00311ecfa46c9e34,
      c: 3506df9008e60130fcddf86fdb02cbfe4ceb88ff73f66953b1606f6603309862 }
