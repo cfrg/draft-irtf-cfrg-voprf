@@ -1,7 +1,10 @@
-# Verifiable Oblivious Pseudorandom Functions (VOPRFs) Draft
+# Oblivious Pseudorandom Functions (OPRFs) using Prime-Order Groups
 
-This is the working area for individual Internet-Drafts.
+This is the working area for the individual Internet-Draft, "Oblivious Pseudorandom Functions (OPRFs) using Prime-Order Groups".
 
+* [Editor's Copy](https://cfrg.github.io/draft-irtf-cfrg-voprf/#go.draft-irtf-cfrg-voprf.html)
+* [Individual Draft](https://tools.ietf.org/html/draft-irtf-cfrg-voprf)
+* [Compare Editor's Copy to Individual Draft](https://cfrg.github.io/draft-irtf-cfrg-voprf/#go.draft-irtf-cfrg-voprf.diff)
 
 ## Building the Draft
 
@@ -18,4 +21,4 @@ This requires that you have the necessary software installed.  See
 ## Contributing
 
 See the
-[guidelines for contributions](https://github.com/taps-api/drafts/blob/master/CONTRIBUTING.md).
+[guidelines for contributions](https://github.com/cfrg/draft-irtf-cfrg-voprf/blob/master/CONTRIBUTING.md).
