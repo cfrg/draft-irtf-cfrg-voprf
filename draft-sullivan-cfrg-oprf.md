@@ -922,8 +922,8 @@ Steps:
 ## Modified protocol execution
 
 The VOPRF protocol from Section {{protocol}} changes to allow specifying
-multiple blinded PRF inputs [ Mi ] for i in 1...n. Then P computes the array [Zi
-] and replaces DLEQ_Generate with Batched_DLEQ_Generate over these arrays. The
+multiple blinded PRF inputs [ Mi ] for i in 1...n. P computes the array [ Zi ]
+and replaces DLEQ_Generate with Batched_DLEQ_Generate over these arrays. The
 same applies to the algorithm VOPRF_Sign. The same applies for replacing
 DLEQ_Verify with Batched_DLEQ_Verify when V verifies the response from P and
 during the algorithm VOPRF_Verify.
