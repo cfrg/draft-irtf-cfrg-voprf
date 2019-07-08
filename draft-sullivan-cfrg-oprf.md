@@ -1,7 +1,7 @@
 ---
 title: Oblivious Pseudorandom Functions (OPRFs) using Prime-Order Groups
 abbrev: OPRFs
-docname: draft-sullivan-cfrg-oprf-latest
+docname: draft-sullivan-cfrg-voprf-latest
 date:
 category: info
 
@@ -15,11 +15,11 @@ author:
  -
     ins: A. Davidson
     name: Alex Davidson
-    org: ISG, Royal Holloway, University of London
-    street: Egham Hill
-    city: Twickenham, TW20 0EX
+    org: Cloudflare
+    street: County Hall
+    city: London, SE1 7GP
     country: United Kingdom
-    email: alex.davidson.2014@rhul.ac.uk
+    email: adavidson@cloudflare.com
  -
     ins: N. Sullivan
     name: Nick Sullivan
@@ -84,7 +84,7 @@ normative:
         org: UC Irvine, CA, USA
   JKK14:
     title:  Round-Optimal Password-Protected Secret Sharing and T-PAKE in the Password-Only model
-    target: https://eprint.iacr.org/2014/650.pdf
+    target: https://eprint.iacr.org/2014/650
     authors:
       -
         ins: S. Jarecki
@@ -95,6 +95,23 @@ normative:
       -
         ins: H. Krawczyk
         org: IBM Research, NY, USA
+  JKKX17:
+    title: >
+      TOPPSS: Cost-minimal Password-Protected Secret Sharing based on Threshold OPRF
+    target: https://eprint.iacr.org/2017/363
+    authors:
+      -
+        ins: S. Jarecki
+        org: UC Irvine, CA, USA
+      -
+        ins: A. Kiayias
+        org: University of Athens, Greece
+      -
+        ins: H. Krawczyk
+        org: IBM Research, NY, USA
+      -
+        ins: Jiayu Xu
+        org: UC Irvine, CA, USA
   SJKS17:
     title:  SPHINX, A Password Store that Perfectly Hides from Itself
     target: http://webee.technion.ac.il/%7Ehugo/sphinx.pdf
@@ -153,7 +170,7 @@ normative:
         org: Rambus Cryptography Research
   OPAQUE:
     title: The OPAQUE Asymmetric PAKE Protocol
-    target: https://tools.ietf.org/html/draft-krawczyk-cfrg-opaque-00
+    target: https://tools.ietf.org/html/draft-krawczyk-cfrg-opaque-01
     authors:
       -
         ins: H. Krawczyk
@@ -223,24 +240,24 @@ protocol as ECOPRF (or ECVOPRF if verifiability is concerned). The document
 describes the protocol, its security properties, and provides preliminary test
 vectors for experimentation. The rest of the document is structured as follows:
 
-- Section {{background}}: Describe background, related work, and use cases of
+- {{background}}: Describe background, related work, and use cases of
   OPRF/VOPRF protocols.
-- Section {{properties}}: Discuss security properties of OPRFs/VOPRFs.
-- Section {{protocol}}: Specify an authentication protocol from OPRF
+- {{properties}}: Discuss security properties of OPRFs/VOPRFs.
+- {{protocol}}: Specify an authentication protocol from OPRF
   functionality, based in prime-order groups (with an optional verifiable mode).
   Algorithms are stated formally for OPRFs in {{oprf}} and for VOPRFs in
   {{voprf}}.
-- Section {{dleq}}: Specify the NIZK discrete logarithm equality (DLEQ)
+- {{dleq}}: Specify the NIZK discrete logarithm equality (DLEQ)
   construction used for constructing the VOPRF protocol.
-- Section {{batch}}: Specifies how the DLEQ proof mechanism can be batched for
+- {{batch}}: Specifies how the DLEQ proof mechanism can be batched for
   multiple VOPRF invocations, and how this changes the protocol execution.
-- Section {{ciphersuites}}: Considers explicit instantiations of the protocol in
+- {{ciphersuites}}: Considers explicit instantiations of the protocol in
   the elliptic curve setting.
-- Section {{sec}}: Discusses the security considerations for the OPRF and VOPRF
+- {{sec}}: Discusses the security considerations for the OPRF and VOPRF
   protocol.
-- Section {{apps}}: Discusses some existing applications of OPRF and VOPRF
+- {{apps}}: Discusses some existing applications of OPRF and VOPRF
   protocols.
-- Section {{testvecs}}: Specifies test vectors for implementations in the
+- {{testvecs}}: Specifies test vectors for implementations in the
   elliptic curve setting.
 
 ## Terminology {#terminology}
@@ -264,29 +281,23 @@ interpreted as described in {{RFC2119}}.
 
 # Background {#background}
 
-OPRFs are functionally related to RSA-based blind signature schemes, e.g.,
-{{ChaumBlindSignature}}. Briefly, a blind signature scheme works as follows. Let
-m be a message to be signed by a server. It is assumed to be a member of the RSA
-group. Also, let N be the RSA modulus, and e and d be the public and private
-keys, respectively. A prover P and verifier V engage in the following protocol
-given input m.
+OPRFs are functionally related to blind signature schemes. In such a scheme, a
+client can receive signatures on private data, under the signing key of some
+server. The security properties of such a scheme dictate that the client learns
+nothing about the signing key, and that the server learns nothing about the data
+that is signed. One of the more popular blind signature schemes is based on the
+RSA cryptosystem and is known as Blind RSA {{ChaumBlindSignature}}.
 
-1. V generates a random blinding element r from the RSA group, and compute m' =
-   m^r (mod N). Send m' to the P.
-2. P uses m' to compute s' = (m')^d (mod N), and sends s' to the V.
-3. V removes the blinding factor r to obtain the original signature as s =
-   (s')^(r^-1) (mod N).
-
-By the properties of RSA, s is clearly a valid signature for m. OPRF protocols
-can be used to provide a symmetric equivalent to blind signatures. Essentially
-the client learns y = PRF(k,x) for some input x of their choice, from a server
-that holds k. Since the security of an OPRF means that x is hidden in the
-interaction, then the client can later reveal x to the server along with y.
+OPRF protocols can thought of as symmetric alternatives to blind signatures.
+Essentially the client learns y = PRF(k,x) for some input x of their choice,
+from a server that holds k. Since the security of an OPRF means that x is hidden
+in the interaction, then the client can later reveal x to the server along with
+y.
 
 The server can verify that y is computed correctly by recomputing the PRF on x
 using k. In doing so, the client provides knowledge of a 'signature' y for their
-value x. However, the verification procedure is symmetric since it requires
-knowledge of k. This is discussed more in the following section.
+value x. The verification procedure is thus symmetric as it requires
+knowledge of the key k. This is discussed more in the following section.
 
 # Security Properties {#properties}
 
@@ -323,12 +334,13 @@ subgroup, with two distinct hash functions H_1 and H_2, where H_1 maps arbitrary
 input onto GG and H_2 maps arbitrary input to a fixed-length output, e.g.,
 SHA256. All hash functions in the protocol are modelled as random oracles. Let L
 be the security parameter. Let k be the prover's (P) secret key, and Y = kG be
-its corresponding 'public key' for some generator G taken from the group GG.
-This public key is also referred to as a commitment to the key k. Let x be the
-verifier's (V) input to the OPRF protocol. (Commonly, it is a random L-bit
+its corresponding 'public key' for some fixed generator G taken from the
+description of the group GG. This public key Y is also referred to as a
+commitment to the OPRF key k, and the pair (G,Y) as a commitment pair. Let x be
+the verifier's (V) input to the OPRF protocol. (Commonly, it is a random L-bit
 string, though this is not required.)
 
-The OPRF protocol begins with V blinding its input for the signer such that it
+The OPRF protocol begins with V blinding its input for the OPRF evaluator such that it
 appears uniformly distributed GG. The latter then applies its secret key to the
 blinded value and returns the result. To finish the computation, V then removes
 its blind and hashes the result using H_2 to yield an output. This flow is
@@ -351,7 +363,7 @@ illustrated below.
 ~~~
 
 Steps that are enclosed in square brackets (DLEQ_Generate and DLEQ_Verify) are
-optional for achieving verifiability. These are described in Section {{dleq}}.
+optional for achieving verifiability. These are described in {{dleq}}.
 In the verifiable mode, we assume that P has previously committed to their
 choice of key k with some values (G,Y=kG) and these are publicly known by V.
 Notice that revealing (G,Y) does not reveal k by the well-known hardness of the
@@ -374,22 +386,22 @@ This protocol may be decomposed into a series of steps, as described below:
 - OPRF_Setup(l): Generate am integer k of sufficient bit-length l and output k.
 - OPRF_Blind(x): Compute and return a blind, r, and blinded representation of x
   in GG, denoted M.
-- OPRF_Sign(k,M,h): Sign input M using secret key k to produce Z, the input h is
-  optional and equal to the cofactor of an elliptic curve. If h is not provided
-  then it defaults to 1.
-- OPRF_Unblind(r,Z): Unblind blinded signature Z with blind r, yielding N and
+- OPRF_Eval(k,M,h?): Evaluest on input M using secret key k to produce Z, the
+  input h is optional and equal to the cofactor of an elliptic curve. If h is
+  not provided then it defaults to 1.
+- OPRF_Unblind(r,Z): Unblind blinded OPRF evaluation Z with blind r, yielding N and
   output N.
 - OPRF_Finalize(x,N): Finalize N to produce the output H_2(x, N).
 
-For verifiability we modify the algorithms of VOPRF_Setup, VOPRF_Sign and
+For verifiability we modify the algorithms of VOPRF_Setup, VOPRF_Eval and
 VOPRF_Unblind to be the following:
 
 - VOPRF_Setup(l): Generate an integer k of sufficient bit-length l and output
-  (k, (G,Y)) where Y = kG for some generator G in GG.
-- VOPRF_Sign(k,(G,Y),M,h): Sign input M using secret key k to produce Z. Generate
-  a NIZK proof D = DLEQ_Generate(k,G,Y,M,Z), and output (Z, D). The optional
-  cofactor h can also be provided as in OPRF_Sign.
-- VOPRF_Unblind(r,G,Y,M,(Z,D)): Unblind blinded signature Z with blind r,
+  (k, (G,Y)) where Y = kG for the fixed generator G of GG.
+- VOPRF_Eval(k,(G,Y),M,h?): Evaluates on input M using secret key k to produce Z.
+  Generate a NIZK proof D = DLEQ_Generate(k,G,Y,M,Z), and output (Z, D). The
+  optional cofactor h can also be provided, as in OPRF_Eval.
+- VOPRF_Unblind(r,G,Y,M,(Z,D)): Unblind blinded OPRF evaluation Z with blind r,
   yielding N. Output N if 1 = DLEQ_Verify(G,Y,M,Z,D). Otherwise, output "error".
 
 We leave the rest of the OPRF algorithms unmodified. When referring explicitly
@@ -401,14 +413,14 @@ Protocol correctness requires that, for any key k, input x, and (r, M) =
 OPRF_Blind(x), it must be true that:
 
 ~~~
-OPRF_Finalize(x, OPRF_Unblind(r,M,OPRF_Sign(k,M))) = H_2(x, F(k,x))
+OPRF_Finalize(x, OPRF_Unblind(r,M,OPRF_Eval(k,M))) = H_2(x, F(k,x))
 ~~~
 
 with overwhelming probability. Likewise, in the verifiable setting, we require
 that:
 
 ~~~
-VOPRF_Finalize(x, VOPRF_Unblind(r,(G,Y),M,(VOPRF_Sign(k,(G,Y),M)))) = H_2(x, F(k,x))
+VOPRF_Finalize(x, VOPRF_Unblind(r,(G,Y),M,(VOPRF_Eval(k,(G,Y),M)))) = H_2(x, F(k,x))
 ~~~
 
 with overwhelming probability, where (r, M) = VOPRF_Blind(x).
@@ -422,7 +434,7 @@ setting. In the multiplicative setting we can choose GG to be a prime-order
 subgroup of a finite field FF_p. For example, let p be some large prime (e.g. >
 2048 bits) where p = 2q+1 for some other prime q. Then the subgroup of squares
 of FF_p (elements u^2 where u is an element of FF_p) is cyclic, and we can pick
-a generator of this subgroup by picking g from FF_p (ignoring the identity
+a generator of this subgroup by picking G from FF_p (ignoring the identity
 element).
 
 For practicality of the protocol, it is preferable to focus on the cases where
@@ -436,6 +448,10 @@ non-prime order, these include the work of Ristretto {{RISTRETTO}} and Decaf
 We will use p > 0 generally for constructing the base field GF(p), not just
 those where p is prime. To reiterate, we focus only on the additive case, and so
 we focus only on the cases where GF(p) is indeed the base field.
+
+Unless otherwise stated, we will always assume that the generator G that we use
+for the group GG is a fixed generator. This generator should be provided in the
+description of the group GG.
 
 ## OPRF algorithms {#oprf}
 
@@ -454,6 +470,10 @@ the VOPRF analogues in {{voprf}}. We provide generic utility algorithms in
 6. P sends Z to V.
 7. V unblinds Z to compute N = r^(-1)Z = kX.
 8. V outputs the pair H_2(x, N).
+
+We note here that the blinding mechanism that we use can be modified slightly
+with the opportunity for making performance gains in some scenarios. We detail
+these modifications in Section {{blinding}}.
 
 ### OPRF_Setup
 
@@ -491,12 +511,12 @@ Steps:
  3.  Output (r, M)
 ~~~
 
-### OPRF_Sign
+### OPRF_Eval
 
 ~~~
 Input:
 
- k: Signer secret key.
+ k: Evaluator secret key.
  M: An element in GG.
  h: optional cofactor (defaults to 1).
 
@@ -521,7 +541,7 @@ Input:
 
 Output:
 
- N: Unblinded signature, element in GG.
+ N: Unblinded OPRF evaluation, element in GG.
 
 Steps:
 
@@ -553,8 +573,8 @@ The steps in the VOPRF setting are written as:
 
 1. P samples a uniformly random key k <- {0,1}^l for sufficient length l, and
    interprets it as an integer.
-2. P commits to k by computing (G,Y) for Y=kG and where G is a generator of GG.
-   P makes (G,Y) publicly available.
+2. P commits to k by computing (G,Y) for Y=kG, where G is the fixed generator of
+   GG. P makes the pair (G,Y) publicly available.
 3. V computes X = H_1(x) and a random element r (blinding factor) from GF(p),
    and computes M = rX.
 4. V sends M to P.
@@ -569,7 +589,7 @@ The steps in the VOPRF setting are written as:
 ~~~
 Input:
 
- G: Public generator of GG.
+ G: Public fixed generator of GG.
  l: Some suitable choice of key-length (e.g. as described in {{NIST}}).
 
 Output:
@@ -603,14 +623,14 @@ Steps:
  3.  Output (r, M)
 ~~~
 
-### VOPRF_Sign
+### VOPRF_Eval
 
 ~~~
 Input:
 
- k: Signer secret key.
- G: Public generator of group GG.
- Y: Signer public key (= kG).
+ k: Evaluator secret key.
+ G: Public fixed generator of group GG.
+ Y: Evaluator public key (= kG).
  M: An element in GG.
  h: optional cofactor (defaults to 1).
 
@@ -633,15 +653,15 @@ Steps:
 Input:
 
  r: Random scalar in [1, p - 1].
- G: Public generator of group GG.
- Y: Signer public key.
+ G: Public fixed generator of group GG.
+ Y: Evaluator public key.
  M: Blinded representation of x using blind r, an element in GG.
  Z: An element in GG.
  D: D = DLEQ_Generate(k,G,Y,M,Z).
 
 Output:
 
- N: Unblinded signature, element in GG.
+ N: Unblinded OPRF evaluation, element in GG.
 
 Steps:
 
@@ -694,22 +714,27 @@ Steps:
  4. Output z
 ~~~
 
-## Efficiency gains with pre-processing and additive blinding
+## Efficiency gains with pre-processing and fixed-base blinding {#blinding}
 
+In Section {{oprf}} we assume that the client-side blinding is carried out
+directly on the output of H_1(x), i.e. computing rH_1(x) for some r <-$ GF(p).
 In the {{OPAQUE}} draft, it is noted that it may be more efficient to use
 additive blinding rather than multiplicative if the client can preprocess some
-values. For example, computing rH_1(x) is an example of multiplicative blinding.
-A valid way of computing additive blinding would be to instead compute
-H_1(x)+rG, where G is the common generator for the group.
+values. For example, a valid way of computing additive blinding would be to
+instead compute H_1(x)+rG, where G is the fixed generator for the group GG.
+
+We refer to the 'multiplicative' blinding as variable-base blinding (VBB), since
+the base of the blinding (H_1(x)) varies with each instantiation. We refer to
+the additive blinding case as fixed-base blinding (FBB) since the blinding is
+applied to the same generator each time (when computing rG).
 
 If the client preprocesses values of the form rG, then computing H_1(x)+rG is
 more efficient than computing rH_1(x) (one addition against log_2(r)).
 Therefore, it may be advantageous to define the OPRF and VOPRF protocols using
-additive blinding rather than multiplicative blinding. In fact the only
-algorithms that need to change are OPRF_Blind and OPRF_Unblind (and similarly
-for the VOPRF variants).
+FBB rather than VBB. In fact the only algorithms that need to change are
+OPRF_Blind and OPRF_Unblind (and similarly for the VOPRF variants).
 
-We define the additive blinding variants of the above algorithms below along
+We define the FBB variants of the algorithms in {{oprf}} below along
 with a new algorithm OPRF_Preprocess that defines how preprocessing is carried
 out. The equivalent algorithms for VOPRF are almost identical and so we do not
 redefine them here. Notice that the only computation that changes is for V, the
@@ -720,7 +745,7 @@ necessary computation of P does not change.
 ~~~
 Input:
 
- G: Public generator of GG
+ G: Public fixed generator of GG
 
 Output:
 
@@ -763,7 +788,7 @@ Input:
 
 Output:
 
- N: Unblinded signature, element in GG.
+ N: Unblinded OPRF evaluation, element in GG.
 
 Steps:
 
@@ -780,7 +805,7 @@ original OPRF_Unblind algorithm.
 For the VOPRF protocol we require that V is able to verify that P has used its
 private key k to evaluate the PRF. We can do this by showing that the original
 commitment (G,Y) output by VOPRF_Setup(l) satisfies log_G(Y) == log_M(Z) where Z
-is the output of VOPRF_Sign(k,(G,Y),M).
+is the output of VOPRF_Eval(k,(G,Y),M).
 
 This may be used, for example, to ensure that P uses the same private key for
 computing the VOPRF output and does not attempt to "tag" individual verifiers
@@ -796,9 +821,9 @@ DLEQ_Generate and DLEQ_Verify. These are specified below.
 ~~~
 Input:
 
- k: Signer secret key.
- G: Public generator of GG.
- Y: Signer public key (= kG).
+ k: Evaluator secret key.
+ G: Public fixed generator of GG.
+ Y: Evaluator public key (= kG).
  M: An element in GG.
  Z: An element in GG.
  H_3: A hash function from GG to {0,1}^L, modelled as a random oracle.
@@ -821,8 +846,8 @@ Steps:
 ~~~
 Input:
 
- G: Public generator of GG.
- Y: Signer public key.
+ G: Public fixed generator of GG.
+ Y: Evaluator public key.
  M: An element in GG.
  Z: An element in GG.
  D: DLEQ proof (c, s).
@@ -870,9 +895,9 @@ string of length a and three integer values, and outputs an element in {0,1}^b.
 ~~~
 Input:
 
- k: Signer secret key.
- G: Public generator of group GG.
- Y: Signer public key (= kG).
+ k: Evaluator secret key.
+ G: Public fixed generator of group GG.
+ Y: Evaluator public key (= kG).
  n: Number of PRF evaluations.
  [ Mi ]: An array of points in GG of length n.
  [ Zi ]: An array of points in GG of length n.
@@ -899,8 +924,8 @@ Steps:
 ~~~
 Input:
 
- G: Public generator of group GG.
- Y: Signer public key.
+ G: Public fixed generator of group GG.
+ Y: Evaluator public key.
  [ Mi ]: An array of points in GG of length n.
  [ Zi ]: An array of points in GG of length n.
  D: DLEQ proof (c, s).
@@ -924,7 +949,7 @@ Steps:
 The VOPRF protocol from Section {{protocol}} changes to allow specifying
 multiple blinded PRF inputs [ Mi ] for i in 1...n. P computes the array [ Zi ]
 and replaces DLEQ_Generate with Batched_DLEQ_Generate over these arrays. The
-same applies to the algorithm VOPRF_Sign. The same applies for replacing
+same applies to the algorithm VOPRF_Eval. The same applies for replacing
 DLEQ_Verify with Batched_DLEQ_Verify when V verifies the response from P and
 during the algorithm VOPRF_Verify.
 
@@ -1023,7 +1048,7 @@ For this side effect to hold, P must also be prevented from using other
 techniques to manipulate their public key within the trusted registry to
 reduce client anonymity. For example, if P's public key is rotated too
 frequently then this may stratify the user base into small anonymity groups
-(those with VOPRF_Sign outputs taken from a given key epoch). In this case,
+(those with VOPRF_Eval outputs taken from a given key epoch). In this case,
 it may become practical to link VOPRF sessions for a given user and thus
 compromises their privacy.
 
@@ -1041,10 +1066,10 @@ This VOPRF protocol is used by Privacy Pass system to help Tor users bypass
 CAPTCHA challenges. Their system works as follows. Client C connects -- through
 Tor -- to an edge server E serving content. Upon receipt, E serves a CAPTCHA to
 C, who then solves the CAPTCHA and supplies, in response, n blinded points. E
-verifies the CAPTCHA response and, if valid, signs (at most) n blinded points,
+verifies the CAPTCHA response and, if valid, evaluates the OPRF on (at most) n blinded points,
 which are then returned to C along with a batched DLEQ proof. C stores the
 tokens if the batched proof verifies correctly. When C attempts to connect to E
-again and is prompted with a CAPTCHA, C uses one of the unblinded and signed
+again and is prompted with a CAPTCHA, C uses one of the unblinded and OPRF evaluated
 points, or tokens, to derive a shared symmetric key sk used to MAC the CAPTCHA
 challenge. C sends the CAPTCHA, MAC, and token input x to E, who can use x to
 derive sk and verify the CAPTCHA MAC. Thus, each token is used at most once by
@@ -1056,15 +1081,18 @@ protocol. For more details, see {{DGSTV18}}.
 ## Private Password Checker
 
 In this application, let D be a collection of plaintext passwords obtained by
-prover P. For each password p in D, P computes VOPRF_Sign on H_1(p), where H_1
+prover P. For each password p in D, P computes VOPRF_Eval on H_1(p), where H_1
 is as described above, and stores the result in a separate collection D'. P then
 publishes D' with Y, its public key. If a client C wishes to query D' for a
 password p', it runs the VOPRF protocol using p as input x to obtain output y.
-By construction, y will be the signature of p hashed onto the curve. C can then
+By construction, y will be the OPRF evaluation of p hashed onto the curve. C can then
 search D' for y to determine if there is a match.
 
-Examples of such password checkers already exist, for example: {{JKKX16}},
-{{JKK14}} and {{SJKS17}}.
+Concrete examples of important applications in the password domain include:
+
+- password-protected storage {{JKK14}}, {{JKKX16}};
+- perfectly-hiding password management {{SJKS17}};
+- password-protected secret-sharing {{JKKX17}}.
 
 ### Parameter Commitments
 
