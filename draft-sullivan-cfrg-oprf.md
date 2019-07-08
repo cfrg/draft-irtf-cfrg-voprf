@@ -884,9 +884,9 @@ increase in proof generation complexity for much more efficient communication
 and proof verification.
 
 In this section, we describe algorithms for batching the DLEQ generation and
-verification procedure. For these algorithms we require a pseudorandom generator
-PRNG: {0,1}^a x ZZ -> ({0,1}^b)^n that takes a seed of length a and an integer n
-as input, and outputs n elements in {0,1}^b.
+verification procedure. For these algorithms we require an additional random
+oracle H_5: {0,1}^a x ZZ^3 -> {0,1}^b that takes an inputs of a binary
+string of length a and three integer values, and outputs an element in {0,1}^b.
 
 ## Batched DLEQ algorithms
 
@@ -899,12 +899,11 @@ Input:
  G: Public fixed generator of group GG.
  Y: Evaluator public key (= kG).
  n: Number of PRF evaluations.
- [Mi]: An array of points in GG of length n.
- [Zi]: An array of points in GG of length n.
- PRNG: A pseudorandom generator of the form above.
- salt: An integer salt value for each PRNG invocation
- info: A string value for splitting the domain of the PRNG
+ [ Mi ]: An array of points in GG of length n.
+ [ Zi ]: An array of points in GG of length n.
  H_4: A hash function from GG^(2n+2) to {0,1}^a, modelled as a random oracle.
+ H_5: A hash function from {0,1}^a x ZZ^2 to {0,1}^b, modelled as a random oracle.
+ label: An integer label value for the splitting the domain of H_5
 
 Output:
 
@@ -913,7 +912,7 @@ Output:
 Steps:
 
  1. seed <- H_4(G,Y,[Mi,Zi]))
- 2. d1,...dn <- PRNG(seed,salt,info,n)
+ 2. for i in [n]: di <- H_5(seed,i,label)
  3. c1,...,cn := (int)d1,...,(int)dn
  4. M := c1M1 + ... + cnMn
  5. Z := c1Z1 + ... + cnZn
@@ -927,8 +926,8 @@ Input:
 
  G: Public fixed generator of group GG.
  Y: Evaluator public key.
- [Mi]: An array of points in GG of length n.
- [Zi]: An array of points in GG of length n.
+ [ Mi ]: An array of points in GG of length n.
+ [ Zi ]: An array of points in GG of length n.
  D: DLEQ proof (c, s).
 
 Output:
@@ -938,7 +937,7 @@ Output:
 Steps:
 
  1. seed <- H_4(G,Y,[Mi,Zi]))
- 2. d1,...dn <- PRNG(seed,salt,info,n)
+ 2. for i in [n]: di <- H_5(seed,i,info)
  3. c1,...,cn := (int)d1,...,(int)dn
  4. M := c1M1 + ... + cnMn
  5. Z := c1Z1 + ... + cnZn
@@ -947,23 +946,31 @@ Steps:
 
 ## Modified protocol execution
 
-The VOPRF protocol from {{protocol}} changes to allow specifying
-multiple blinded PRF inputs [Mi] for i in 1...n. Then P computes the array [Zi]
+The VOPRF protocol from Section {{protocol}} changes to allow specifying
+multiple blinded PRF inputs [ Mi ] for i in 1...n. P computes the array [ Zi ]
 and replaces DLEQ_Generate with Batched_DLEQ_Generate over these arrays. The
 same applies to the algorithm VOPRF_Eval. The same applies for replacing
 DLEQ_Verify with Batched_DLEQ_Verify when V verifies the response from P and
 during the algorithm VOPRF_Verify.
 
-## PRNG and resampling
+## Random oracle instantiations for proofs
 
-Any function that satisfies the security properties of a pseudorandom number
-generator can be used for computing the batched DLEQ proof. For example,
-SHAKE-256 {{SHAKE}} or HKDF-SHA256 {{RFC5869}} would be reasonable choices for
-groups that have an order of 256 bits.
+We can instantiate the random oracle function H_4 using the same hash function
+that is used for H_1,H_2,H_3. For H_5, we can also use a similar instantiation,
+or we can use a variable-length output generator. For example, for groups with an
+order of 256-bit, valid instantiations include functions such as SHAKE-256
+{{SHAKE}} or HKDF-Expand-SHA256 {{RFC5869}}.
 
-We note that the PRNG outputs d1,...,dn must be smaller than the order of the
-group/curve that is being used. Resampling can be achieved by increasing the
-value of the iterator that is used in the info field of the PRNG input.
+In addition if a function with larger output than the order of the base field is
+used, we note that the outputs of H_5 (d1,...,dn) must be smaller than this
+order. If any di that is sampled is larger than then order, then we should
+resample until a di' is sampled that is valid.
+
+In these cases, the iterating integer i is increased monotonically to i' until such di' is
+sampled. When sampling the next value d(i+1), the counter i+1 is started at
+i'+1.
+
+TODO: Give a more detailed specification of this construction.
 
 # Supported ciphersuites {#ciphersuites}
 
@@ -983,7 +990,7 @@ ciphersuites demonstrating 128 bits of security.
 - H_2: SHA256
 - H_3: SHA256
 - H_4: SHA256
-- PRNG: HKDF-SHA256
+- H_5: HKDF-Expand-SHA256
 
 ## ECVOPRF-RISTRETTO-HKDF-SHA512-Elligator2:
 
@@ -993,7 +1000,7 @@ ciphersuites demonstrating 128 bits of security.
 - H_2: SHA512
 - H_3: SHA512
 - H_4: SHA512
-- PRNG: HKDF-SHA512
+- H_5: HKDF-Expand-SHA512
 
 In the case of Ristretto, internal point representations are represented by
 Ed25519 {{RFC7748}} points. As a result, we can use the same hash-to-curve
@@ -1148,9 +1155,8 @@ Z_0: 043ab5ccb690d844dcb780b2d9e59126d62bc853ba01b2c339ba1c1b78c03e4b6adc5402f7\
 Z_1: 04647e1ab7946b10c1c1c92dd333e2fc9e93e85fdef5939bf2f376ae859248513e0cd91115\
     e48c6852d8dd173956aec7a81401c3f63a133934898d177f2a237eeb
 k: f84e197c8b712cdf452d2cff52dec1bd96220ed7b9a6f66ed28c67503ae62133
-PRNG: HKDF-SHA256
-salt: "DLEQ_PROOF"
-info: an iterator i for invoking the PRNG on M_i and Z_i
+H_5: HKDF-Expand-SHA256
+label: "DLEQ_PROOF"
 D: { s: b2123044e633d4721894d573decebc9366869fe3c6b4b79a00311ecfa46c9e34,
      c: 3506df9008e60130fcddf86fdb02cbfe4ceb88ff73f66953b1606f6603309862 }
 ~~~
