@@ -1007,7 +1007,7 @@ ciphersuites demonstrating 128 bits of security.
 
 ## ECVOPRF-P256-HKDF-SHA256-SSWU:
 
-- GG: SECP256K1 curve {{SEC2}}
+- GG: secp256r1 {{SEC2}}
 - H_1: P256-SHA256-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
   - label: voprf_h2c
 - H_2: SHA256
