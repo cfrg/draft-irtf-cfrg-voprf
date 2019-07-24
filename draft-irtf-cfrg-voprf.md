@@ -853,8 +853,8 @@ Output:
 Steps:
 
  1. r <-$ GF(p)
- 2. A := rG and B := rM.
- 3. c <- H_3(G,Y,M,Z,A,B)
+ 2. A := rG and B := rM
+ 3. c <- H_3(G,Y,M,Z,A,B) (mod p)
  4. s := (r - ck) (mod p)
  5. Output D := (c, s)
 ~~~
@@ -883,8 +883,8 @@ Steps:
 
  1. A' := (sG + cY)
  2. B' := (sM + cZ)
- 3. c' <- H_3(G,Y,M,Z,A',B')
- 4. Output c == c'
+ 3. c' <- H_3(G,Y,M,Z,A',B') (mod p)
+ 4. Output c == c' (mod p)
 ~~~
 
 # Batched VOPRF evaluation {#batch}
@@ -1007,7 +1007,7 @@ ciphersuites demonstrating 128 bits of security.
 
 ## ECVOPRF-P256-HKDF-SHA256-SSWU:
 
-- GG: SECP256K1 curve {{SEC2}}
+- GG: secp256r1 {{SEC2}}
 - H_1: P256-SHA256-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
   - label: voprf_h2c
 - H_2: SHA256
@@ -1017,7 +1017,7 @@ ciphersuites demonstrating 128 bits of security.
 
 ## ECVOPRF-ed25519-HKDF-SHA256-Elligator2:
 
-- GG: Ristretto {{RISTRETTO}}
+- GG: Ristretto255 {{RISTRETTO}}
 - H_1: edwards25519-SHA256-EDELL2-RO {{I-D.irtf-cfrg-hash-to-curve}}
   - label: voprf_h2c
 - H_2: SHA256
