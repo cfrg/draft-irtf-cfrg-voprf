@@ -578,7 +578,7 @@ Output:
 
 Steps:
 
- 1. y := H_2(x, N)
+ 1. y := H_2(x, N) (mod p)
  2. Output y
 ~~~
 
@@ -791,7 +791,7 @@ Output:
 
 Steps:
 
- 1.  M := H_1(x)+rG
+ 1.  M := H_1(x)+rG (mod p)
  2.  Output M
 ~~~
 
@@ -853,8 +853,8 @@ Output:
 Steps:
 
  1. r <-$ GF(p)
- 2. A := rG and B := rM.
- 3. c <- H_3(G,Y,M,Z,A,B)
+ 2. A := rG and B := rM (mod p)
+ 3. c <- H_3(G,Y,M,Z,A,B) (mod p)
  4. s := (r - ck) (mod p)
  5. Output D := (c, s)
 ~~~
@@ -881,10 +881,10 @@ Output:
 
 Steps:
 
- 1. A' := (sG + cY)
- 2. B' := (sM + cZ)
- 3. c' <- H_3(G,Y,M,Z,A',B')
- 4. Output c == c'
+ 1. A' := (sG + cY) (mod p)
+ 2. B' := (sM + cZ) (mod p)
+ 3. c' <- H_3(G,Y,M,Z,A',B') (mod p)
+ 4. Output c == c' (mod p)
 ~~~
 
 # Batched VOPRF evaluation {#batch}
