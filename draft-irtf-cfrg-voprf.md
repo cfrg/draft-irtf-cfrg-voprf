@@ -260,6 +260,14 @@ vectors for experimentation. The rest of the document is structured as follows:
 - {{testvecs}}: Specifies test vectors for implementations in the
   elliptic curve setting.
 
+## Change log
+
+[draft-01](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-00):
+
+- Updated ciphersuites to be in line with
+  https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-04
+- Made some necessary modular reductions more explicit
+
 ## Terminology {#terminology}
 
 The following terms are used throughout this document.
