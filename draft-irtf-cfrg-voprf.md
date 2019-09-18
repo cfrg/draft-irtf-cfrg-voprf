@@ -41,7 +41,6 @@ normative:
   RFC2119:
   RFC5869:
   RFC7748:
-  RFC8032:
   I-D.irtf-cfrg-hash-to-curve:
   NIST:
     title: Keylength - NIST Report on Cryptographic Key Length and Cryptoperiod (2016)
@@ -149,7 +148,7 @@ normative:
         org: Independent
   RISTRETTO:
     title: The ristretto255 Group
-    target: https://tools.ietf.org/html/draft-hdevalence-cfrg-ristretto-00
+    target: https://tools.ietf.org/html/draft-hdevalence-cfrg-ristretto-01
     authors:
       -
         ins: H. de Valence
@@ -170,7 +169,7 @@ normative:
         org: Rambus Cryptography Research
   OPAQUE:
     title: The OPAQUE Asymmetric PAKE Protocol
-    target: https://tools.ietf.org/html/draft-krawczyk-cfrg-opaque-01
+    target: https://tools.ietf.org/html/draft-krawczyk-cfrg-opaque-02
     authors:
       -
         ins: H. Krawczyk

@@ -2,7 +2,6 @@
 *.pdf
 *.redxml
 *.swp
-*.txt
 *.upload
 *~
 .refcache
@@ -15,3 +14,4 @@ report.xml
 venv/
 lib
 draft-irtf-cfrg-voprf.xml
+draft-irtf-cfrg-voprf.txt
