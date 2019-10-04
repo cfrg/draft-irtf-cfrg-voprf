@@ -41,7 +41,6 @@ normative:
   RFC2119:
   RFC5869:
   RFC7748:
-  RFC8032:
   I-D.irtf-cfrg-hash-to-curve:
   NIST:
     title: Keylength - NIST Report on Cryptographic Key Length and Cryptoperiod (2016)
@@ -149,7 +148,7 @@ normative:
         org: Independent
   RISTRETTO:
     title: The ristretto255 Group
-    target: https://tools.ietf.org/html/draft-hdevalence-cfrg-ristretto-00
+    target: https://tools.ietf.org/html/draft-hdevalence-cfrg-ristretto-01
     authors:
       -
         ins: H. de Valence
@@ -170,7 +169,7 @@ normative:
         org: Rambus Cryptography Research
   OPAQUE:
     title: The OPAQUE Asymmetric PAKE Protocol
-    target: https://tools.ietf.org/html/draft-krawczyk-cfrg-opaque-01
+    target: https://tools.ietf.org/html/draft-krawczyk-cfrg-opaque-02
     authors:
       -
         ins: H. Krawczyk
@@ -259,6 +258,14 @@ vectors for experimentation. The rest of the document is structured as follows:
   protocols.
 - {{testvecs}}: Specifies test vectors for implementations in the
   elliptic curve setting.
+
+## Change log
+
+[draft-01](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-00):
+
+- Updated ciphersuites to be in line with
+  https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-04
+- Made some necessary modular reductions more explicit
 
 ## Terminology {#terminology}
 
@@ -853,8 +860,8 @@ Output:
 Steps:
 
  1. r <-$ GF(p)
- 2. A := rG and B := rM.
- 3. c <- H_3(G,Y,M,Z,A,B)
+ 2. A := rG and B := rM
+ 3. c <- H_3(G,Y,M,Z,A,B) (mod p)
  4. s := (r - ck) (mod p)
  5. Output D := (c, s)
 ~~~
@@ -883,8 +890,8 @@ Steps:
 
  1. A' := (sG + cY)
  2. B' := (sM + cZ)
- 3. c' <- H_3(G,Y,M,Z,A',B')
- 4. Output c == c'
+ 3. c' <- H_3(G,Y,M,Z,A',B') (mod p)
+ 4. Output c == c' (mod p)
 ~~~
 
 # Batched VOPRF evaluation {#batch}
@@ -1007,23 +1014,23 @@ ciphersuites demonstrating 128 bits of security.
 
 ## ECVOPRF-P256-HKDF-SHA256-SSWU:
 
-- GG: SECP256K1 curve {{SEC2}}
-- H_1: H2C-P256-SHA256-SSWU- {{I-D.irtf-cfrg-hash-to-curve}}
+- GG: secp256r1 {{SEC2}}
+- H_1: P256-SHA256-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
   - label: voprf_h2c
 - H_2: SHA256
 - H_3: SHA256
 - H_4: SHA256
 - H_5: HKDF-Expand-SHA256
 
-## ECVOPRF-RISTRETTO-HKDF-SHA512-Elligator2:
+## ECVOPRF-ed25519-HKDF-SHA256-Elligator2:
 
-- GG: Ristretto {{RISTRETTO}}
-- H_1: H2C-Curve25519-SHA512-Elligator2-Clear {{I-D.irtf-cfrg-hash-to-curve}}
+- GG: Ristretto255 {{RISTRETTO}}
+- H_1: edwards25519-SHA256-EDELL2-RO {{I-D.irtf-cfrg-hash-to-curve}}
   - label: voprf_h2c
-- H_2: SHA512
-- H_3: SHA512
-- H_4: SHA512
-- H_5: HKDF-Expand-SHA512
+- H_2: SHA256
+- H_3: SHA256
+- H_4: SHA256
+- H_5: HKDF-Expand-SHA256
 
 In the case of Ristretto, internal point representations are represented by
 Ed25519 {{RFC7748}} points. As a result, we can use the same hash-to-curve
