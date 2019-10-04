@@ -908,19 +908,19 @@ Gap DH is computationally difficult to solve.
 The (N,Q)-One-More Gap DH (OMDH) problem asks the following.
 
 ~~~
-Given:
- - G, kG, G_1, ... , G_N where G, G1, ... GN are all elements of the group GG;
- - oracle access to an OPRF functionality using the key k;
- - oracle access to DDH solvers.
+    Given:
+    - G, kG, G_1, ... , G_N where G, G1, ... GN are elements of the group GG;
+    - oracle access to an OPRF functionality using the key k;
+    - oracle access to DDH solvers.
 
-Find Q+1 pairs of the form below:
+    Find Q+1 pairs of the form below:
 
-(G_{j_s}, kG_{j_s})
+    (G_{j_s}, kG_{j_s})
 
-where the following conditions hold:
-  - s is a number between 1 and Q+1;
-  - j_s is a number between 1 and N for each s;
-  - Q is the number of allowed queries.
+    where the following conditions hold:
+      - s is a number between 1 and Q+1;
+      - j_s is a number between 1 and N for each s;
+      - Q is the number of allowed queries.
 ~~~
 
 The original paper {{JKK14}} gives a security proof that the 2HashDH-NIZK
@@ -1108,46 +1108,54 @@ TODO: Give a more detailed specification of this construction.
 
 # Supported ciphersuites {#ciphersuites}
 
-This section specifies supported ECVOPRF group and hash function instantiations.
+This section specifies supported VOPRF group and hash function instantiations.
 We only provide ciphersuites in the EC setting as these provide the most
 efficient way of instantiating the OPRF. Our instantiation includes
 considerations for providing the DLEQ proofs that make the instantiation a
 VOPRF. Supporting OPRF operations (ECOPRF) alone can be allowed by simply
-dropping the relevant components. In addition, we currently only support
-ciphersuites demonstrating 128 bits of security.
+dropping the relevant components. For reasons that are detailed in
+{{cryptanalysis}}, we only consider ciphersuites that provide strictly greater
+than 128 bits of security {{NIST}}.
 
-## ECVOPRF-P256-HKDF-SHA256-SSWU:
+## VOPRF-curve448-HKDF-SHA512-ELL2:
 
-- GG: secp256r1 {{SEC2}}
-- H_1: P256-SHA256-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
+- GG: curve448 {{RFC7748}}
+- H_1: curve448-SHA512-ELL2-RO {{I-D.irtf-cfrg-hash-to-curve}}
   - label: voprf_h2c
-- H_2: SHA256
-- H_3: SHA256
-- H_4: SHA256
-- H_5: HKDF-Expand-SHA256
+- H_2: SHA512
+- H_3: SHA512
+- H_4: SHA512
+- H_5: HKDF-Expand-SHA512
 
-## ECVOPRF-ed25519-HKDF-SHA256-Elligator2:
+## VOPRF-p384-HKDF-SHA512-ICART:
 
-- GG: Ristretto255 {{RISTRETTO}}
-- H_1: edwards25519-SHA256-EDELL2-RO {{I-D.irtf-cfrg-hash-to-curve}}
+- GG: secp384r1 {{SEC2}}
+- H_1: P384-SHA512-ICART-RO {{I-D.irtf-cfrg-hash-to-curve}}
   - label: voprf_h2c
-- H_2: SHA256
-- H_3: SHA256
-- H_4: SHA256
-- H_5: HKDF-Expand-SHA256
+- H_2: SHA512
+- H_3: SHA512
+- H_4: SHA512
+- H_5: HKDF-Expand-SHA512
 
-In the case of Ristretto, internal point representations are represented by
-Ed25519 {{RFC7748}} points. As a result, we can use the same hash-to-curve
-encoding as we would use for Ed25519 {{I-D.irtf-cfrg-hash-to-curve}}. We remark
-that the 'label' field is necessary for domain separation of the hash-to-curve
-functionality.
+## VOPRF-p521-HKDF-SHA512-SSWU:
+
+- GG: secp521r1 {{SEC2}}
+- H_1: P521-SHA512-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
+  - label: voprf_h2c
+- H_2: SHA512
+- H_3: SHA512
+- H_4: SHA512
+- H_5: HKDF-Expand-SHA512
+
+We remark that the 'label' field is necessary for domain separation of the
+hash-to-curve functionality.
 
 # Security Considerations {#sec}
 
 We discuss the implications around using an OPRF, along with some suggestions
 and trade-offs that arise from their usage.
 
-## Cryptographic security
+## Cryptographic security {#cryptanalysis}
 
 As we mentioned previously, the hardness of our (V)OPRF protocol depends on the
 (N,Q)-OMDH assumption {{protocol-sec}}, where N is the number of group elements
@@ -1162,9 +1170,9 @@ constructing Q-strong-DH (Q-sDH) samples. The Q-Strong-DH problem asks the
 following.
 
 ~~~
-Given G1, G2, h*G2, (h^2)*G2, ..., (h^Q)*G2; for G1 and G2 generators of GG.
+    Given G1, G2, h*G2, (h^2)*G2, ..., (h^Q)*G2; for G1 and G2 generators of GG.
 
-Output ( (1/(k+c))*G1, c ) where c is an element of FFp
+    Output ( (1/(k+c))*G1, c ) where c is an element of FFp
 ~~~
 
 The assumption that this problem is hard was first introduced in {{BB04}}. Since
