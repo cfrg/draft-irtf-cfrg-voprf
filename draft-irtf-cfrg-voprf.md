@@ -385,11 +385,11 @@ We give a selection of hardness assumptions that are related to the construction
 of the (V)OPRF protocols.
 
 Each assumption states that the problems specified below are computationally
-difficult to solve in relation to _sp (the security parameter). In other words,
+difficult to solve in relation to sp (the security parameter). In other words,
 the probability that an adversary has in solving the problem is bounded by a
-function negl(_sp), where negl(_sp) < 1/f(_sp) for all polynomial functions f().
+function negl(sp), where negl(sp) < 1/f(sp) for all polynomial functions f().
 
-Let GG = GG(_sp) be a group with prime-order p, and let FFp be the finite field
+Let GG = GG(sp) be a group with prime-order p, and let FFp be the finite field
 of order p.
 
 ### Discrete-log (DL) problem {#dl}
@@ -399,9 +399,10 @@ Given G, a generator of GG, and H = h*G for some h in FFp; output h.
 ### Decisional Diffie-Hellman (DDH) problem {#ddh}
 
 Sample a uniformly random bit d in {0,1}. Given (G, a*G, b*G, C), where:
-  - G is a generator of GG;
-  - a,b are elements of FFp;
-  - if d==0: C = ab*G; else: C is sampled uniformly GG(_sp).
+
+- G is a generator of GG;
+- a,b are elements of FFp;
+- if d==0: C = ab*G; else: C is sampled uniformly GG(sp).
 
 Output d' == d.
 
@@ -1154,7 +1155,7 @@ received and Q is the number of adversarial queries. The original 2HashDH-NIZK
 construction in {{JKK14}} comes with a security proof in the UC security model
 under this assumption.
 
-### Q-strong-DH oracle
+### Q-strong-DH oracle {#qsdh}
 
 A side-effect of this assumption is that it allows instantiation of a oracle for
 constructing Q-strong-DH (Q-sDH) samples. The Q-Strong-DH problem asks the
@@ -1207,47 +1208,118 @@ the attack surface.
 
 ## Hashing to curve
 
-A critical aspect of this protocol is reliance on
-{{I-D.irtf-cfrg-hash-to-curve}} for mapping arbitrary inputs x to points on a
-curve. Security requires this mapping be pre-image and collision resistant.
+A critical aspect of implementing this protocol using elliptic curve group
+instantiations is a method of instantiating the function H1, that maps inputs to
+group elements. In the elliptic curve setting, this must be a deterministic
+function that maps arbitrary inputs x (as bytes) to uniformly chosen points in
+the curve.
+
+In the security proof of the construction H1 is modelled as a random oracle.
+This implies that any instantiation of H1 must e pre-image and collision
+resistant. In {{ciphersuites}} we give instantiations of this functionality
+based on the functions described in {{I-D.irtf-cfrg-hash-to-curve}}.
+Consequently, any OPRF implementation must adhere to the implementation and
+security considerations discussed in {{I-D.irtf-cfrg-hash-to-curve}} when
+instantiating the function H1.
 
 ## Timing Leaks
 
 To ensure no information is leaked during protocol execution, all operations
 that use secret data MUST be constant time. Operations that SHOULD be constant
 time include: H_1() (hashing arbitrary strings to curves) and DLEQ_Generate().
-{{I-D.irtf-cfrg-hash-to-curve}} describes various algorithms for constant-time
-implementations of H_1.
+As mentioned previously, {{I-D.irtf-cfrg-hash-to-curve}} describes various
+algorithms for constant-time implementations of H_1.
 
-## Hashing to curves
+## User segregation
 
-We choose different encodings in relation to the elliptic curve that is used,
-all methods are illuminated precisely in {{I-D.irtf-cfrg-hash-to-curve}}. In
-summary, we use the simplified Shallue-Woestijne-Ulas algorithm for hashing
-binary strings to the P-256 curve; the Icart algorithm for hashing binary
-strings to P384; the Elligator2 algorithm for hashing binary strings to
-CURVE25519 and CURVE448.
+The aim of the OPRF functionality is to allow clients receive pseudorandom
+function evaluations on their own inputs, without compromising their own privacy
+with respect to the server. In many applications (for example, {{PrivacyPass}})
+the client may choose to reveal their original input, after an invocation of the
+OPRF protocol, along with their OPRF output. This can prove to the server that
+it has received a valid OPRF output in the past. Since the server does not
+reveal learn anything about the OPRF output, it should not be able to link the
+client to any previous protocol instantiation.
 
-## Verifiability (key consistency)
+Consider a malicious server that manages to segregate the user base into
+different sets. Then this reduces the effective privacy of all of the clients
+involved, since the client above belongs to a smaller set of users than
+previously hoped. In general, if the user-base of the OPRF functionality is
+quite small, then the obliviousness of clients is limited. That is, smaller
+user-bases mean that the server is able to identify client's with higher
+certainty.
 
-DLEQ proofs are essential to the protocol to allow V to check that P's
-designated private key was used in the computation. A side effect of this
-property is that it prevents P from using a unique key for select verifiers as a
-way of "tagging" them. If all verifiers expect use of a certain private key,
-e.g., by locating P's public key published from a trusted registry, then P
-cannot present unique keys to an individual verifier.
+In summary, an OPRF instantiation effectively comes with an additional privacy
+parameter pp. If all clients of the OPRF make one query and then subsequently
+reveal their OPRF input afterwards, then the server should be link the revealed
+input to a protocol instantiation with probability 1/pp.
 
-For this side effect to hold, P must also be prevented from using other
-techniques to manipulate their public key within the trusted registry to
-reduce client anonymity. For example, if P's public key is rotated too
-frequently then this may stratify the user base into small anonymity groups
-(those with VOPRF_Eval outputs taken from a given key epoch). In this case,
-it may become practical to link VOPRF sessions for a given user and thus
-compromise their privacy.
+Below, we provide a few techniques that could be used to abuse client-privacy in
+the OPRF construction by segregating the user-base, along with some mitigations.
 
-Similarly, if P can publish N public keys to a trusted registry then P may be
-able to control presentation of these keys in such a way that V is retroactively
-identified by V's key choice across multiple requests.
+### Linkage patterns
+
+If the server is able to ascertain patterns of usage for some clients -- such as
+timings associated with usage -- then the effective privacy of the clients is
+reduced to the number of users that fit each usage pattern. Along with early
+registration patterns, where early adopters initially have less privacy due to
+a low number of registered users, such problems are inherent to any
+anonymity-preserving system.
+
+### Evaluation on multiple keys {#multiple-keys}
+
+Such an attack consists of the server evaluating the OPRF on multiple different
+keys related to the number of clients that use the functionality. As an extreme,
+the server could evaluate the OPRF with a different key for each client. If the
+client then revealed their hidden information at a later date then the server
+would immediately know which initial request they launched.
+
+The attacks highlighted above are prevented in the VOPRF case using the NIZK
+DLEQ proofs that link each server evaluation to a known public key. However,
+there are still ways that the VOPRF construction can be abused. In particular:
+
+- If the server successfully provisions a large number of keys that are trusted
+  by clients, then the server can divide the user-base by the number of keys
+  that are currently in use. As such, clients should only trust a small number
+  (2 or 3 ideally) of server keys at any one time.
+
+- If the server rotates their key frequently, then this may result in client's
+  holding out-of-date information from a past interaction. Such information can
+  also be used to segregate the user-base based on the last time that they
+  accessed the OPRF protocol. Similarly to the above, server key rotations must
+  be kept to relatively infrequent intervals (such as once per month). This will
+  prevent too many clients from being segregated into different groups related
+  to the time that they accessed the functionality. There are viable reasons for
+  rotating the server key (for protecting against malicious clients) that we
+  address more closely in {{key-rotation}}.
+
+Since key provisioning requires careful handling, all public keys should be
+accessible from a client-trusted registry with a way of auditing the history of
+key updates. We also recommend that public keys have a corresponding expiry date
+that clients can use to prevent the server from using keys that have been
+provisioned for a long period of time.
+
+## Key rotation {#key-rotation}
+
+Since the server's key is critical to security, the longer it is exposed by
+performing (V)OPRF operations on client inputs, the longer it is possible that
+the key can be compromised. For instance, if the key is kept in production for a
+long period of time, then this may grant the client the ability to hoard large
+numbers of tokens. This has negative impacts for some of the applications that
+we consider in {{apps}}. As another example, if the key is kept in circulation
+for a long period of time, then it also allows the clients to make enough
+queries to launch more powerful variants of the Q-sDH attacks from {{qsdh}}.
+
+To combat attacks of this nature, we argue that fairly regular key rotation
+should be employed on the server-side. A suitable key-cycle for a key used to
+compute (V)OPRF evaluations would be between one and three months.
+
+As we discussed in {{multiple-keys}}, key rotation cycles that are too frequent
+(<< 1 month) can lead to large segregation of the wider user base. As such, the
+length of the key cycles represent a trade-off between greater server key
+security (for shorter cycles), and better client privacy (for longer cycles). In
+situations where client privacy is paramount, then longer key cycles should be
+employed.
 
 # Applications {#apps}
 
