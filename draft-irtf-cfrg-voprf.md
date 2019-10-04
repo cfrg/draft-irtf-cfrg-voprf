@@ -65,6 +65,33 @@ normative:
       -
         ins: D. Chaum
         org: University of California, Santa Barbara, USA
+  BB04:
+    title: Short Signatures Without Random Oracles
+    target: http://ai.stanford.edu/~xb/eurocrypt04a/bbsigs.pdf
+    authors:
+      -
+        ins: D. Boneh
+        org: Stanford University, CA, USA
+      -
+        ins: X. Boyen
+        org: Voltage Security, Palo Alto, CA, USA
+  BG04:
+    title: The Static Diffie-Hellman Problem
+    target: https://eprint.iacr.org/2004/306
+    authors:
+      -
+        ins: D. Brown
+        org: Certicom Research
+      -
+        ins: R. Gallant
+        org: Certicom Research
+  Cheon06:
+    title: Security Analysis of the Strong Diffie-Hellman Problem
+    target: https://www.iacr.org/archive/eurocrypt2006/40040001/40040001.pdf
+    authors:
+      -
+        ins: J. H. Cheon
+        org: Seoul National University, Republic of Korea
   JKKX16:
     title: Highly-Efficient and Composable Password-Protected Secret Sharing (Or, How to Protect Your Bitcoin Wallet Online)
     target: https://eprint.iacr.org/2016/144
@@ -897,9 +924,9 @@ where the following conditions hold:
 
 The original paper {{JKK14}} gives a security proof that the 2HashDH-NIZK
 construction satisfies the security guarantees of a VOPRF protocol
-{{properties}} under the OMDH assumption in the universal composability security
-model. Without the NIZK proof system, the protocol instantiates an OPRF protocol
-only. We defer the interested reader to the paper for further details.
+{{properties}} under the OMDH assumption in the universal composability (UC)
+security model. Without the NIZK proof system, the protocol instantiates an OPRF
+protocol only. We defer the interested reader to the paper for further details.
 
 # NIZK Discrete Logarithm Equality Proof {#dleq}
 
@@ -1116,9 +1143,69 @@ functionality.
 
 # Security Considerations {#sec}
 
-Security of the protocol depends on P's secrecy of k. Best practices recommend P
-regularly rotate k so as to keep its window of compromise small. Moreover, if
-each key should be generated from a source of safe, cryptographic randomness.
+We discuss the implications around using an OPRF, along with some suggestions
+and trade-offs that arise from their usage.
+
+## Cryptographic security
+
+As we mentioned previously, the hardness of our (V)OPRF protocol depends on the
+(N,Q)-OMDH assumption {{protocol-sec}}, where N is the number of group elements
+received and Q is the number of adversarial queries. The original 2HashDH-NIZK
+construction in {{JKK14}} comes with a security proof in the UC security model
+under this assumption.
+
+### Q-strong-DH oracle
+
+A side-effect of this assumption is that it allows instantiation of a oracle for
+constructing Q-strong-DH (Q-sDH) samples. The Q-Strong-DH problem asks the
+following.
+
+~~~
+Given G1, G2, h*G2, (h^2)*G2, ..., (h^Q)*G2; for G1 and G2 generators of GG.
+
+Output ( (1/(k+c))*G1, c ) where c is an element of FFp
+~~~
+
+The assumption that this problem is hard was first introduced in {{BB04}}. Since
+then, there have been a number of cryptanalytic studies that have reduced the
+security of the assumption below that implied by the group instantiation
+(for example, {{BG04}} and {{Cheon06}}). In summary, the attacks reduce the
+security of the group instantation by log_2(Q) bits.
+
+As an example, suppose that a group instantiation is used that provides 128 bits
+of security. Then an adversary with access to a Q-sDH oracle and makes
+Q=2^20 queries can reduce the security of the instantiation by log_2(2^20) = 20
+bits.
+
+Notice that it is easy to instantiate a Q-sDH oracle using the OPRF
+functionality that we provide. A client can just submit sequential queries of
+the form (G, k*G, (k^2)*G, ..., (k^(Q-1))*G), where each query is the output of
+the previous interaction. This means that any client that submit Q queries to
+the OPRF can use the aforementioned attacks to reduce security of the group
+instantiation by log_2(Q) bits.
+
+Recall that from a malicious client's perspective, the adversary wins if they
+can distinguish the OPRF interaction from a protocol that computes the ideal
+functionality provided by the PRF.
+
+### Implications for ciphersuite choices
+
+The OPRF instantiations that we recommend in this document are informed by the
+cryptanalytic discussion above. In particular, choosing elliptic curves
+configurations that describe 128-bit group instantiations would appear to in
+fact instantiate an OPRF with 128-log_2(Q) bits of security.
+
+While it would require an informed and persistent attacker to launch a highly
+expensive attack to reduce security to anything much below 100 bits of security,
+we see this possbility as something that may result in problems in the future.
+Therefore, all of our ciphersuites in {{ciphersuites}} come with a minimum group
+instantiation corresponding to 196 bits of security. This would require an
+adversary to launch a minimum of Q = 2^(68) queries to reduce security to 128
+bits using the Q-sDH attacks. As a result, it appears prohibitively expensive to
+launch credible attacks on these parameters with our current understanding of
+the attack surface.
+
+## Hashing to curve
 
 A critical aspect of this protocol is reliance on
 {{I-D.irtf-cfrg-hash-to-curve}} for mapping arbitrary inputs x to points on a
