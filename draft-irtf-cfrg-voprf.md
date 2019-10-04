@@ -306,7 +306,11 @@ using k. In doing so, the client provides knowledge of a 'signature' y for their
 value x. The verification procedure is thus symmetric as it requires
 knowledge of the key k. This is discussed more in the following section.
 
-# Security Properties {#properties}
+# Preliminaries
+
+We start by detailing some necessary cryptographic definitions.
+
+## Security Properties {#properties}
 
 The security properties of an OPRF protocol with functionality y = F(k, x)
 include those of a standard PRF. Specifically:
@@ -348,25 +352,60 @@ requires that P commits to the key k before the actual protocol execution takes
 place. Then V verifies that P has used k in the protocol using this commitment.
 In the following, we may also refer to this commitment as a public key.
 
+## Computational hardness assumptions
+
+We give a selection of hardness assumptions that are related to the construction
+of the (V)OPRF protocols.
+
+Each assumption states that the problems specified below are computationally
+difficult to solve in relation to _sp (the security parameter). In other words,
+the probability that an adversary has in solving the problem is bounded by a
+function negl(_sp), where negl(_sp) < 1/f(_sp) for all polynomial functions f().
+
+Let GG = GG(_sp) be a group with prime-order p, and let FFp be the finite field
+of order p.
+
+### Discrete-log (DL) problem {#dl}
+
+Given G, a generator of GG, and H = h*G for some h in FFp; output h.
+
+### Decisional Diffie-Hellman (DDH) problem {#ddh}
+
+Sample a uniformly random bit d in {0,1}. Given (G, a*G, b*G, C), where:
+  - G is a generator of GG;
+  - a,b are elements of FFp;
+  - if d==0: C = ab*G; else: C is sampled uniformly GG(_sp).
+
+Output d' == d.
+
 # OPRF Protocol {#protocol}
 
-In this section we describe the OPRF protocol. Let GG be an additive group of
-prime-order p, let GF(p) be the Galois field defined by the integers modulo p.
-Define distinct hash functions H_1 and H_2, where H_1 maps arbitrary input onto
-GG and H_2 maps arbitrary input to a fixed-length output, e.g., SHA256. All hash
-functions in the protocol are modelled as random oracles. Let L be the security
-parameter. Let k be the prover's (P) secret key, and Y = kG be its corresponding
-'public key' for some fixed generator G taken from the description of the group
-GG. This public key Y is also referred to as a commitment to the OPRF key k, and
-the pair (G,Y) as a commitment pair. Let x be the verifier's (V) input to the
-OPRF protocol. (Commonly, it is a random L-bit string, though this is not
-required.)
+In this section we describe the OPRF and VOPRF protocols. Our OPRF construction
+is based on the VOPRF construction known as 2HashDH-NIZK given by {{JKK14}};
+essentially without providing zero-knowledge proofs that verify that the output
+is correct. Our VOPRF construction (including the NIZK DLEQ proofs from
+{{dleq}}) is identical to the {{JKK14}} construction. With batched proofs
+({{batch}}) our construction differs slightly in that we can perform multiple
+VOPRF evaluations in one go, whilst only constructing one NIZK proof object.
 
-The OPRF protocol begins with V blinding its input for the OPRF evaluator such that it
-appears uniformly distributed GG. The latter then applies its secret key to the
-blinded value and returns the result. To finish the computation, V then removes
-its blind and hashes the result using H_2 to yield an output. This flow is
-illustrated below.
+## Design
+
+Let GG be an additive group of prime-order p, let GF(p) be the Galois field
+defined by the integers modulo p. Define distinct hash functions H_1 and H_2,
+where H_1 maps arbitrary input onto GG and H_2 maps arbitrary input to a
+fixed-length output, e.g., SHA256. All hash functions in the protocol are
+modelled as random oracles. Let L be the security parameter. Let k be the
+prover's (P) secret key, and Y = kG be its corresponding 'public key' for some
+fixed generator G taken from the description of the group GG. This public key Y
+is also referred to as a commitment to the OPRF key k, and the pair (G,Y) as a
+commitment pair. Let x be the verifier's (V) input to the OPRF protocol.
+(Commonly, it is a random L-bit string, though this is not required.)
+
+The OPRF protocol begins with V blinding its input for the OPRF evaluator such
+that it appears uniformly distributed GG. The latter then applies its secret key
+to the blinded value and returns the result. To finish the computation, V then
+removes its blind and hashes the result using H_2 to yield an output. This flow
+is illustrated below.
 
 ~~~
      Verifier                       Prover
@@ -403,6 +442,11 @@ commutativity of the multiplication. The client finishes the computation by
 outputting H_2(x,N). Note that the output from P is not the PRF value because
 the actual input x is blinded by r.
 
+The security of our construction is discussed in more detail in
+{{protocol-sec}}.
+
+## Protocol API functions
+
 This protocol may be decomposed into a series of steps, as described below:
 
 - OPRF_Setup(l): Generate am integer k of sufficient bit-length l and output k.
@@ -415,8 +459,8 @@ This protocol may be decomposed into a series of steps, as described below:
   output N.
 - OPRF_Finalize(x,N): Finalize N to produce the output H_2(x, N).
 
-For verifiability we modify the algorithms of VOPRF_Setup, VOPRF_Eval and
-VOPRF_Unblind to be the following:
+For verifiability (VOPRF) we modify the algorithms of VOPRF_Setup, VOPRF_Eval
+and VOPRF_Unblind to be the following:
 
 - VOPRF_Setup(l): Generate an integer k of sufficient bit-length l and output
   (k, (G,Y)) where Y = kG for the fixed generator G of GG.
@@ -824,6 +868,38 @@ Steps:
 Notice that OPRF_Unblind computes (Z-rY) = k(H_1(x)+rG) - rkG = kH_1(x) by the
 commutativity of scalar multiplication in GG. This is the same output as in the
 original OPRF_Unblind algorithm.
+
+## Cryptographic security {#protocol-sec}
+
+As aforementioned, our OPRF and VOPRF constructions are based heavily on the
+2HashDH-NIZK construction given in {{JKK14}}, except for considerations on how
+we instantiate the NIZK DLEQ proof system. This means that the cryptographic
+security of our construction is also based on the assumption that the One-More
+Gap DH is computationally difficult to solve.
+
+The (N,Q)-One-More Gap DH (OMDH) problem asks the following.
+
+~~~
+Given:
+ - G, kG, G_1, ... , G_N where G, G1, ... GN are all elements of the group GG;
+ - oracle access to an OPRF functionality using the key k;
+ - oracle access to DDH solvers.
+
+Find Q+1 pairs of the form below:
+
+(G_{j_s}, kG_{j_s})
+
+where the following conditions hold:
+  - s is a number between 1 and Q+1;
+  - j_s is a number between 1 and N for each s;
+  - Q is the number of allowed queries.
+~~~
+
+The original paper {{JKK14}} gives a security proof that the 2HashDH-NIZK
+construction satisfies the security guarantees of a VOPRF protocol
+{{properties}} under the OMDH assumption in the universal composability security
+model. Without the NIZK proof system, the protocol instantiates an OPRF protocol
+only. We defer the interested reader to the paper for further details.
 
 # NIZK Discrete Logarithm Equality Proof {#dleq}
 
