@@ -493,8 +493,8 @@ This protocol may be decomposed into a series of steps, as described below:
   not provided then it defaults to 1.
 - OPRF_Unblind(r,Z): Unblind blinded OPRF evaluation Z with blind r, yielding N
   and output N.
-- OPRF_Finalize(x,N): Finalize N to produce the output H_2(lbl,x,N) for some
-  fixed label denoted by lbl.
+- OPRF_Finalize(x,N,aux): Finalize N by first computing dk := H_2(lbl, x .. N).
+  Subsequently output y := H_2(dk, aux), where aux is some auxiliary data.
 
 For verifiability (VOPRF) we modify the algorithms of VOPRF_Setup, VOPRF_Eval
 and VOPRF_Unblind to be the following:
@@ -511,7 +511,7 @@ We leave the rest of the OPRF algorithms unmodified. When referring explicitly
 to VOPRF execution, we replace 'OPRF' in all method names with 'VOPRF'. We
 describe explicit instantiations of these functions in {{oprf}} and {{voprf}}.
 
-### Generalized OPRF
+### Generalized OPRF {#general-oprf}
 
 Using the API provided by the functions above, we can restate the OPRF protocol
 using the following descriptions. The first protocol refers to the OPRF setup
@@ -529,7 +529,7 @@ OPRF setup phase:
 
 OPRF evaluation phase:
 ~~~
-     Verifier(x)                   Prover(k)
+     Verifier(x,aux)                   Prover(k)
   ----------------------------------------------------------
      (r, M) = OPRF_Blind(x)
                             M
@@ -538,10 +538,13 @@ OPRF evaluation phase:
                             Z
                         <-------
     N = OPRF_Unblind(r,Z)
-    Output OPRF_Finalize(x,N)
+    Output OPRF_Finalize(x,N,aux)
 ~~~
 
-### Generalized VOPRF
+Note that in the final output, the client computes OPRF_Finalize over some
+auxiliary input data aux.
+
+### Generalized VOPRF {#general-voprf}
 
 The generalized VOPRF functionality differs slightly from the OPRF protocol
 above. Firstly, the server sends over an extra commitment value Y = kG, where G
@@ -560,7 +563,7 @@ VOPRF setup phase:
 
 VOPRF evaluation phase:
 ~~~
-     Verifier(x,Y)                   Prover(k)
+     Verifier(x,Y,aux)                   Prover(k)
   ----------------------------------------------------------
      (r, M) = VOPRF_Blind(x)
                             M
@@ -569,7 +572,7 @@ VOPRF evaluation phase:
                           (Z,D)
                         <-------
     N = VOPRF_Unblind(r,G,Y,M,Z,D)
-    Output VOPRF_Finalize(x,N)
+    Output VOPRF_Finalize(x,N,aux)
 ~~~
 
 ## Protocol correctness
@@ -578,17 +581,22 @@ Protocol correctness requires that, for any key k, input x, and (r, M) =
 OPRF_Blind(x), it must be true that:
 
 ~~~
-OPRF_Finalize(x, OPRF_Unblind(r,M,OPRF_Eval(k,M))) = H_2(lbl, x .. F(k,x))
+OPRF_Finalize(x, OPRF_Unblind(r,M,OPRF_Eval(k,M)), aux)
+    == H_2(H_2(lbl, x .. F(k,x)), aux)
 ~~~
 
 with overwhelming probability. Likewise, in the verifiable setting, we require
 that:
 
 ~~~
-VOPRF_Finalize(x, VOPRF_Unblind(r,G,Y,M,(VOPRF_Eval(k,G,Y,M)))) = H_2(lbl, x .. F(k,x))
+VOPRF_Finalize(x, VOPRF_Unblind(r,G,Y,M,(VOPRF_Eval(k,G,Y,M))), aux)
+    == H_2(H_2(lbl, x .. F(k,x)), aux)
 ~~~
 
-with overwhelming probability, where (r, M) = VOPRF_Blind(x).
+with overwhelming probability, where (r, M) = VOPRF_Blind(x). In other words,
+the inner H_2 invocation effectively derives a key, dk, from the input data lbl,
+x, N. The outer invocation derives the output y by evaluating H_2 over dk and
+auxiliary data aux.
 
 ## Instantiations of GG
 
@@ -623,21 +631,9 @@ curve description.
 
 ## OPRF algorithms {#oprf}
 
-This section provides algorithms for each step in the OPRF protocol. We describe
-the VOPRF analogues in {{voprf}}.
-
-1. P samples a uniformly random key k <- {0,1}^l for sufficient length l, and
-   interprets it as an integer.
-2. V computes X = H_1(x) and a random element r (blinding factor) from GF(p),
-   and computes M = rX.
-3. V sends M to P.
-4. P computes Z = kM = rkX.
-5. In the elliptic curve setting, P multiplies Z by the cofactor (denoted h) of
-   the elliptic curve.
-6. P sends Z to V.
-7. V unblinds Z to compute N = r^(-1)Z = kX.
-8. V outputs y = H_2(lbl, x .. N), where lbl is a fixed domain separating label.
-   Recall that x .. N refers to the concatenation of the bytes of x and N.
+This section provides descriptions of the algorithms used in the generalized
+protocols from {{general-oprf}}. We describe the VOPRF analogues for the
+protocols in {{general-voprf}} later in {{voprf}}.
 
 We note here that the blinding mechanism that we use can be modified slightly
 with the opportunity for making performance gains in some scenarios. We detail
@@ -726,6 +722,7 @@ Input:
 
  x: PRF input string.
  N: An element in GG.
+ aux: Arbitrary auxiliary data
 
 Output:
 
@@ -734,26 +731,14 @@ Output:
 Steps:
 
  1. lbl := "oprf_derive_output"
- 2. y := H_2(lbl, x .. N)
- 3. Output y
+ 2. dk := H_2(lbl, x .. N)
+ 3. y := H_2(dk, aux)
+ 4. Output y
 ~~~
 
 ## VOPRF algorithms {#voprf}
 
-The steps in the VOPRF setting are written as:
-
-1. P samples a uniformly random key k <- {0,1}^l for sufficient length l, and
-   interprets it as an integer.
-2. P commits to k by computing (G,Y) for Y=kG, where G is the fixed generator of
-   GG. P makes the pair (G,Y) publicly available.
-3. V computes X = H_1(x) and a random element r (blinding factor) from GF(p),
-   and computes M = rX.
-4. V sends M to P.
-5. P computes Z = kM = rkX, and D = DLEQ_Generate(k,G,Y,M,Z).
-6. P sends (Z, D) to V.
-7. V ensures that 1 = DLEQ_Verify(G,Y,M,Z,D). If not, V outputs an error.
-8. V unblinds Z to compute N = r^(-1)Z = kX.
-9. V outputs the pair H_2(lbl, x .. N).
+We make modifications to the aforementioned algorithms in the VOPRF setting.
 
 ### VOPRF_Setup
 
@@ -848,6 +833,7 @@ Input:
 
  x: PRF input string.
  N: An element in GG, or "error".
+ aux: Arbitrary auxiliary data.
 
 Output:
 
@@ -857,7 +843,8 @@ Steps:
 
  1. If N == "error", output "error".
  2. lbl := "voprf_derive_output"
- 3. y := H_2(lbl, x .. N)
+ 2. dk := H_2(lbl, x .. N)
+ 3. y := H_2(dk, aux)
  4. Output y
 ~~~
 
