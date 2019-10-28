@@ -402,7 +402,7 @@ Sample a uniformly random bit d in {0,1}. Given (G, a*G, b*G, C), where:
 
 - G is a generator of GG;
 - a,b are elements of FFp;
-- if d==0: C = ab*G; else: C is sampled uniformly GG(sp).
+- if d == 0: C = ab*G; else: C is sampled uniformly GG(sp).
 
 Output d' == d.
 
@@ -410,7 +410,7 @@ Output d' == d.
 
 In this section we describe the OPRF and VOPRF protocols. Our OPRF construction
 is based on the VOPRF construction known as 2HashDH-NIZK given by {{JKK14}};
-essentially without providing zero-knowledge proofs that verify that the output
+essentially without providing zero-knowledge proofs that verify the output
 is correct. Our VOPRF construction (including the NIZK DLEQ proofs from
 {{dleq}}) is identical to the {{JKK14}} construction. With batched proofs
 ({{batch}}) our construction differs slightly in that we can perform multiple
@@ -423,7 +423,7 @@ defined by the integers modulo p. Define distinct hash functions H_1 and H_2,
 where H_1 maps arbitrary input onto GG and H_2 maps arbitrary input to a
 fixed-length output, e.g., SHA256. All hash functions in the protocol are
 modelled as random oracles. Let L be the security parameter. Let k be the
-prover's (P) secret key, and Y = kG be its corresponding 'public key' for some
+prover's (P) secret key, and Y = k*G be its corresponding 'public key' for some
 fixed generator G taken from the description of the group GG. This public key Y
 is also referred to as a commitment to the OPRF key k, and the pair (G,Y) as a
 commitment pair. Let x be the verifier's (V) input to the OPRF protocol.
@@ -927,7 +927,7 @@ The original paper {{JKK14}} gives a security proof that the 2HashDH-NIZK
 construction satisfies the security guarantees of a VOPRF protocol
 {{properties}} under the OMDH assumption in the universal composability (UC)
 security model. Without the NIZK proof system, the protocol instantiates an OPRF
-protocol only. We defer the interested reader to the paper for further details.
+protocol only. See the paper for further details.
 
 # NIZK Discrete Logarithm Equality Proof {#dleq}
 
@@ -1152,12 +1152,12 @@ hash-to-curve functionality.
 
 # Security Considerations {#sec}
 
-We discuss the implications around using an OPRF, along with some suggestions
+This section discusses OPRF usage implications, along with some suggestions
 and trade-offs that arise from their usage.
 
 ## Cryptographic security {#cryptanalysis}
 
-As we mentioned previously, the hardness of our (V)OPRF protocol depends on the
+As mentioned previously, the hardness of our (V)OPRF protocol depends on the
 (N,Q)-OMDH assumption {{protocol-sec}}, where N is the number of group elements
 received and Q is the number of adversarial queries. The original 2HashDH-NIZK
 construction in {{JKK14}} comes with a security proof in the UC security model
@@ -1178,7 +1178,7 @@ following.
 The assumption that this problem is hard was first introduced in {{BB04}}. Since
 then, there have been a number of cryptanalytic studies that have reduced the
 security of the assumption below that implied by the group instantiation
-(for example, {{BG04}} and {{Cheon06}}). In summary, the attacks reduce the
+(for example, {{BG04}} and {{Cheon06}}). In summary, known attacks reduce the
 security of the group instantation by log_2(Q) bits.
 
 As an example, suppose that a group instantiation is used that provides 128 bits
@@ -1223,7 +1223,7 @@ function that maps arbitrary inputs x (as bytes) to uniformly chosen points in
 the curve.
 
 In the security proof of the construction H1 is modelled as a random oracle.
-This implies that any instantiation of H1 must e pre-image and collision
+This implies that any instantiation of H1 must be pre-image and collision
 resistant. In {{ciphersuites}} we give instantiations of this functionality
 based on the functions described in {{I-D.irtf-cfrg-hash-to-curve}}.
 Consequently, any OPRF implementation must adhere to the implementation and
@@ -1282,7 +1282,7 @@ the server could evaluate the OPRF with a different key for each client. If the
 client then revealed their hidden information at a later date then the server
 would immediately know which initial request they launched.
 
-The attacks highlighted above are prevented in the VOPRF case using the NIZK
+The VOPRF variant helps mitigate this attack since each server evaluation can be bound to a known public key. However,
 DLEQ proofs that link each server evaluation to a known public key. However,
 there are still ways that the VOPRF construction can be abused. In particular:
 
@@ -1318,7 +1318,7 @@ we consider in {{apps}}. As another example, if the key is kept in circulation
 for a long period of time, then it also allows the clients to make enough
 queries to launch more powerful variants of the Q-sDH attacks from {{qsdh}}.
 
-To combat attacks of this nature, we argue that fairly regular key rotation
+To combat attacks of this nature, regular key rotation
 should be employed on the server-side. A suitable key-cycle for a key used to
 compute (V)OPRF evaluations would be between one and three months.
 
@@ -1326,7 +1326,7 @@ As we discussed in {{multiple-keys}}, key rotation cycles that are too frequent
 (<< 1 month) can lead to large segregation of the wider user base. As such, the
 length of the key cycles represent a trade-off between greater server key
 security (for shorter cycles), and better client privacy (for longer cycles). In
-situations where client privacy is paramount, then longer key cycles should be
+situations where client privacy is paramount, longer key cycles should be
 employed.
 
 # Applications {#apps}
