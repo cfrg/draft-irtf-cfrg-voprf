@@ -1283,7 +1283,6 @@ client then revealed their hidden information at a later date then the server
 would immediately know which initial request they launched.
 
 The VOPRF variant helps mitigate this attack since each server evaluation can be bound to a known public key. However,
-DLEQ proofs that link each server evaluation to a known public key. However,
 there are still ways that the VOPRF construction can be abused. In particular:
 
 - If the server successfully provisions a large number of keys that are trusted
