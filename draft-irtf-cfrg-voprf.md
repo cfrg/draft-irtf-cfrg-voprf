@@ -214,7 +214,16 @@ normative:
     author:
       -
         ins: Standards for Efficient Cryptography Group (SECG)
-
+  keytrans:
+    title: "Security Through Transparency"
+    target: https://security.googleblog.com/2017/01/security-through-transparency.html
+    authors:
+      -
+        ins: Ryan Hurst
+        org: Google
+      -
+        ins: Gary Belvin
+        org: Google
 --- abstract
 
 An Oblivious Pseudorandom Function (OPRF) is a two-party protocol for computing
@@ -266,25 +275,23 @@ protocol as ECOPRF (or ECVOPRF if verifiability is concerned). The document
 describes the protocol, its security properties, and provides preliminary test
 vectors for experimentation. The rest of the document is structured as follows:
 
-- {{background}}: Describe background, related work, and use cases of
-  OPRF/VOPRF protocols.
+- {{background}}: Describe background, related work, and use cases of OPRF/VOPRF
+  protocols.
 - {{properties}}: Discuss security properties of OPRFs/VOPRFs.
-- {{protocol}}: Specify an authentication protocol from OPRF
-  functionality, based in prime-order groups (with an optional verifiable mode).
-  Algorithms are stated formally for OPRFs in {{oprf}} and for VOPRFs in
-  {{voprf}}.
-- {{dleq}}: Specify the NIZK discrete logarithm equality (DLEQ)
-  construction used for constructing the VOPRF protocol.
-- {{batch}}: Specifies how the DLEQ proof mechanism can be batched for
-  multiple VOPRF invocations, and how this changes the protocol execution.
-- {{ciphersuites}}: Considers explicit instantiations of the protocol in
-  the elliptic curve setting.
+- {{protocol}}: Specify an authentication protocol from OPRF functionality,
+  based in prime-order groups (with an optional verifiable mode). Algorithms are
+  stated formally for OPRFs in {{oprf}} and for VOPRFs in {{voprf}}.
+- {{dleq}}: Specify the NIZK discrete logarithm equality (DLEQ) construction
+  used for constructing the VOPRF protocol.
+- {{batch}}: Specifies how the DLEQ proof mechanism can be batched for multiple
+  VOPRF invocations, and how this changes the protocol execution.
+- {{ciphersuites}}: Considers explicit instantiations of the protocol in the
+  elliptic curve setting.
 - {{sec}}: Discusses the security considerations for the OPRF and VOPRF
   protocol.
-- {{apps}}: Discusses some existing applications of OPRF and VOPRF
-  protocols.
-- {{testvecs}}: Specifies test vectors for implementations in the
-  elliptic curve setting.
+- {{apps}}: Discusses some existing applications of OPRF and VOPRF protocols.
+- {{testvecs}}: Specifies test vectors for implementations in the elliptic curve
+  setting.
 
 ## Change log
 
@@ -330,8 +337,8 @@ y.
 
 The server can verify that y is computed correctly by recomputing the PRF on x
 using k. In doing so, the client provides knowledge of a 'signature' y for their
-value x. The verification procedure is thus symmetric as it requires
-knowledge of the key k. This is discussed more in the following section.
+value x. The verification procedure is thus symmetric as it requires knowledge
+of the key k. This is discussed more in the following section.
 
 # Preliminaries
 
@@ -342,8 +349,8 @@ We start by detailing some necessary cryptographic definitions.
 The security properties of an OPRF protocol with functionality y = F(k, x)
 include those of a standard PRF. Specifically:
 
-- Pseudorandomness: F is pseudorandom if the output y = F(k,x) on any input x
-  is indistinguishable from uniformly sampling any element in F's range, for a
+- Pseudorandomness: F is pseudorandom if the output y = F(k,x) on any input x is
+  indistinguishable from uniformly sampling any element in F's range, for a
   random sampling of k.
 
 In other words, for an adversary that can pick inputs x from the domain of F and
@@ -379,42 +386,18 @@ requires that P commits to the key k before the actual protocol execution takes
 place. Then V verifies that P has used k in the protocol using this commitment.
 In the following, we may also refer to this commitment as a public key.
 
-## Computational hardness assumptions
-
-We give a selection of hardness assumptions that are related to the construction
-of the (V)OPRF protocols.
-
-Each assumption states that the problems specified below are computationally
-difficult to solve in relation to sp (the security parameter). In other words,
-the probability that an adversary has in solving the problem is bounded by a
-function negl(sp), where negl(sp) < 1/f(sp) for all polynomial functions f().
-
-Let GG = GG(sp) be a group with prime-order p, and let FFp be the finite field
-of order p.
-
-### Discrete-log (DL) problem {#dl}
-
-Given G, a generator of GG, and H = h*G for some h in FFp; output h.
-
-### Decisional Diffie-Hellman (DDH) problem {#ddh}
-
-Sample a uniformly random bit d in {0,1}. Given (G, a*G, b*G, C), where:
-
-- G is a generator of GG;
-- a,b are elements of FFp;
-- if d == 0: C = ab*G; else: C is sampled uniformly GG(sp).
-
-Output d' == d.
-
 # OPRF Protocol {#protocol}
 
 In this section we describe the OPRF and VOPRF protocols. Our OPRF construction
 is based on the VOPRF construction known as 2HashDH-NIZK given by {{JKK14}};
-essentially without providing zero-knowledge proofs that verify the output
-is correct. Our VOPRF construction (including the NIZK DLEQ proofs from
-{{dleq}}) is identical to the {{JKK14}} construction. With batched proofs
-({{batch}}) our construction differs slightly in that we can perform multiple
-VOPRF evaluations in one go, whilst only constructing one NIZK proof object.
+essentially without providing zero-knowledge proofs that verify the output is
+correct. Our VOPRF construction (including the NIZK DLEQ proofs from {{dleq}})
+is identical to the {{JKK14}} construction. With batched proofs ({{batch}}) our
+construction differs slightly in that we can perform multiple VOPRF evaluations
+in one go, whilst only constructing one NIZK proof object.
+
+We highlight the computational assumptions that are necessary for proving the
+security of this construction in {{assumptions}}.
 
 ## Design
 
@@ -452,11 +435,11 @@ is illustrated below.
 ~~~
 
 Steps that are enclosed in square brackets (DLEQ_Generate and DLEQ_Verify) are
-optional for achieving verifiability. These are described in {{dleq}}.
-In the verifiable mode, we assume that P has previously committed to their
-choice of key k with some values (G,Y=kG) and these are publicly known by V.
-Notice that revealing (G,Y) does not reveal k by the well-known hardness of the
-discrete log problem.
+optional for achieving verifiability. These are described in {{dleq}}. In the
+verifiable mode, we assume that P has previously committed to their choice of
+key k with some values (G,Y=kG) and these are publicly known by V. Notice that
+revealing (G,Y) does not reveal k by the well-known hardness of the discrete log
+problem.
 
 Strictly speaking, the actual PRF function that is computed is:
 
@@ -483,8 +466,8 @@ This protocol may be decomposed into a series of steps, as described below:
 - OPRF_Eval(k,M,h?): Evaluates on input M using secret key k to produce Z, the
   input h is optional and equal to the cofactor of an elliptic curve. If h is
   not provided then it defaults to 1.
-- OPRF_Unblind(r,Z): Unblind blinded OPRF evaluation Z with blind r, yielding N and
-  output N.
+- OPRF_Unblind(r,Z): Unblind blinded OPRF evaluation Z with blind r, yielding N
+  and output N.
 - OPRF_Finalize(x,N): Finalize N to produce the output H_2(x, N).
 
 For verifiability (VOPRF) we modify the algorithms of VOPRF_Setup, VOPRF_Eval
@@ -492,8 +475,8 @@ and VOPRF_Unblind to be the following:
 
 - VOPRF_Setup(l): Generate an integer k of sufficient bit-length l and output
   (k, (G,Y)) where Y = kG for the fixed generator G of GG.
-- VOPRF_Eval(k,(G,Y),M,h?): Evaluates on input M using secret key k to produce Z.
-  Generate a NIZK proof D = DLEQ_Generate(k,G,Y,M,Z), and output (Z, D). The
+- VOPRF_Eval(k,(G,Y),M,h?): Evaluates on input M using secret key k to produce
+  Z. Generate a NIZK proof D = DLEQ_Generate(k,G,Y,M,Z), and output (Z, D). The
   optional cofactor h can also be provided, as in OPRF_Eval.
 - VOPRF_Unblind(r,G,Y,M,(Z,D)): Unblind blinded OPRF evaluation Z with blind r,
   yielding N. Output N if 1 = DLEQ_Verify(G,Y,M,Z,D). Otherwise, output "error".
@@ -831,11 +814,11 @@ protocols using additive blinding rather than multiplicative blinding. In fact,
 the only algorithms that need to change are OPRF_Blind and OPRF_Unblind (and
 similarly for the VOPRF variants).
 
-We define the FBB variants of the algorithms in {{oprf}} below along
-with a new algorithm OPRF_Preprocess that defines how preprocessing is carried
-out. The equivalent algorithms for VOPRF are almost identical and so we do not
-redefine them here. Notice that the only computation that changes is for V, the
-necessary computation of P does not change.
+We define the FBB variants of the algorithms in {{oprf}} below along with a new
+algorithm OPRF_Preprocess that defines how preprocessing is carried out. The
+equivalent algorithms for VOPRF are almost identical and so we do not redefine
+them here. Notice that the only computation that changes is for V, the necessary
+computation of P does not change.
 
 ### OPRF_Preprocess
 
@@ -1019,8 +1002,8 @@ and proof verification.
 
 In this section, we describe algorithms for batching the DLEQ generation and
 verification procedure. For these algorithms we require an additional random
-oracle H_5: {0,1}^a x ZZ^3 -> {0,1}^b that takes an inputs of a binary
-string of length a and three integer values, and outputs an element in {0,1}^b.
+oracle H_5: {0,1}^a x ZZ^3 -> {0,1}^b that takes an inputs of a binary string of
+length a and three integer values, and outputs an element in {0,1}^b.
 
 ## Batched DLEQ algorithms
 
@@ -1091,8 +1074,8 @@ during the algorithm VOPRF_Verify.
 
 We can instantiate the random oracle function H_4 using the same hash function
 that is used for H_1,H_2,H_3. For H_5, we can also use a similar instantiation,
-or we can use a variable-length output generator. For example, for groups with an
-order of 256-bit, valid instantiations include functions such as SHAKE-256
+or we can use a variable-length output generator. For example, for groups with
+an order of 256-bit, valid instantiations include functions such as SHAKE-256
 {{SHAKE}} or HKDF-Expand-SHA256 {{RFC5869}}.
 
 In addition if a function with larger output than the order of the base field is
@@ -1152,20 +1135,42 @@ hash-to-curve functionality.
 
 # Security Considerations {#sec}
 
-This section discusses OPRF usage implications, along with some suggestions
-and trade-offs that arise from their usage.
+This section discusses the cryptographic security of our protocol, along with
+some suggestions and trade-offs that arise from the implementation of the
+implementation of an OPRF.
 
 ## Cryptographic security {#cryptanalysis}
 
-As mentioned previously, the hardness of our (V)OPRF protocol depends on the
-(N,Q)-OMDH assumption {{protocol-sec}}, where N is the number of group elements
-received and Q is the number of adversarial queries. The original 2HashDH-NIZK
-construction in {{JKK14}} comes with a security proof in the UC security model
-under this assumption.
+We discuss the cryptographic security of the OPRF protocol from {{protocol}},
+relative to the necessary cryptographic assumptions that need to be made.
+
+### Computational hardness assumptions {#assumptions}
+
+Each assumption states that the problems specified below are computationally
+difficult to solve in relation to sp (the security parameter). In other words,
+the probability that an adversary has in solving the problem is bounded by a
+function negl(sp), where negl(sp) < 1/f(sp) for all polynomial functions f().
+
+Let GG = GG(sp) be a group with prime-order p, and let FFp be the finite field
+of order p.
+
+#### Discrete-log (DL) problem {#dl}
+
+Given G, a generator of GG, and H = h*G for some h in FFp; output h.
+
+#### Decisional Diffie-Hellman (DDH) problem {#ddh}
+
+Sample a uniformly random bit d in {0,1}. Given (G, a*G, b*G, C), where:
+
+- G is a generator of GG;
+- a,b are elements of FFp;
+- if d == 0: C = ab*G; else: C is sampled uniformly GG(sp).
+
+Output d' == d.
 
 ### Q-strong-DH oracle {#qsdh}
 
-A side-effect of this assumption is that it allows instantiation of a oracle for
+A side-effect of our OPRF design is that it allows instantiation of a oracle for
 constructing Q-strong-DH (Q-sDH) samples. The Q-Strong-DH problem asks the
 following.
 
@@ -1177,14 +1182,13 @@ following.
 
 The assumption that this problem is hard was first introduced in {{BB04}}. Since
 then, there have been a number of cryptanalytic studies that have reduced the
-security of the assumption below that implied by the group instantiation
-(for example, {{BG04}} and {{Cheon06}}). In summary, known attacks reduce the
+security of the assumption below that implied by the group instantiation (for
+example, {{BG04}} and {{Cheon06}}). In summary, known attacks reduce the
 security of the group instantation by log_2(Q) bits.
 
 As an example, suppose that a group instantiation is used that provides 128 bits
-of security. Then an adversary with access to a Q-sDH oracle and makes
-Q=2^20 queries can reduce the security of the instantiation by log_2(2^20) = 20
-bits.
+of security. Then an adversary with access to a Q-sDH oracle and makes Q=2^20
+queries can reduce the security of the instantiation by log_2(2^20) = 20 bits.
 
 Notice that it is easy to instantiate a Q-sDH oracle using the OPRF
 functionality that we provide. A client can just submit sequential queries of
@@ -1270,8 +1274,8 @@ the OPRF construction by segregating the user-base, along with some mitigations.
 If the server is able to ascertain patterns of usage for some clients -- such as
 timings associated with usage -- then the effective privacy of the clients is
 reduced to the number of users that fit each usage pattern. Along with early
-registration patterns, where early adopters initially have less privacy due to
-a low number of registered users, such problems are inherent to any
+registration patterns, where early adopters initially have less privacy due to a
+low number of registered users, such problems are inherent to any
 anonymity-preserving system.
 
 ### Evaluation on multiple keys {#multiple-keys}
@@ -1282,13 +1286,18 @@ the server could evaluate the OPRF with a different key for each client. If the
 client then revealed their hidden information at a later date then the server
 would immediately know which initial request they launched.
 
-The VOPRF variant helps mitigate this attack since each server evaluation can be bound to a known public key. However,
-there are still ways that the VOPRF construction can be abused. In particular:
+The VOPRF variant helps mitigate this attack since each server evaluation can be
+bound to a known public key. However, there are still ways that the VOPRF
+construction can be abused. In particular:
 
 - If the server successfully provisions a large number of keys that are trusted
   by clients, then the server can divide the user-base by the number of keys
   that are currently in use. As such, clients should only trust a small number
-  (2 or 3 ideally) of server keys at any one time.
+  (2 or 3 ideally) of server keys at any one time. Additionally, a tamper-proof
+  audit log system akin to existing work on Key Transparency {{keytrans}} could
+  be used to ensure that a server is abiding by the key policy. This would force
+  the server to be held accountable for their key updates, and thus higher key
+  update frequencies can be better managed on the client-side.
 
 - If the server rotates their key frequently, then this may result in client's
   holding out-of-date information from a past interaction. Such information can
@@ -1317,16 +1326,18 @@ we consider in {{apps}}. As another example, if the key is kept in circulation
 for a long period of time, then it also allows the clients to make enough
 queries to launch more powerful variants of the Q-sDH attacks from {{qsdh}}.
 
-To combat attacks of this nature, regular key rotation
-should be employed on the server-side. A suitable key-cycle for a key used to
-compute (V)OPRF evaluations would be between one and three months.
+To combat attacks of this nature, regular key rotation should be employed on the
+server-side. A suitable key-cycle for a key used to compute (V)OPRF evaluations
+would be between one week and six months.
 
 As we discussed in {{multiple-keys}}, key rotation cycles that are too frequent
-(<< 1 month) can lead to large segregation of the wider user base. As such, the
-length of the key cycles represent a trade-off between greater server key
-security (for shorter cycles), and better client privacy (for longer cycles). In
-situations where client privacy is paramount, longer key cycles should be
-employed.
+(in the order of days) can lead to large segregation of the wider user base. As
+such, the length of the key cycles represent a trade-off between greater server
+key security (for shorter cycles), and better client privacy (for longer
+cycles). In situations where client privacy is paramount, longer key cycles
+should be employed. Otherwise, shorter key cycles can be managed if the server
+uses a Key Transparency-type system {{keytrans}}; this allows clients to
+publicly audit their rotations.
 
 # Applications {#apps}
 
@@ -1357,8 +1368,8 @@ prover P. For each password p in D, P computes VOPRF_Eval on H_1(p), where H_1
 is as described above, and stores the result in a separate collection D'. P then
 publishes D' with Y, its public key. If a client C wishes to query D' for a
 password p', it runs the VOPRF protocol using p as input x to obtain output y.
-By construction, y will be the OPRF evaluation of p hashed onto the curve. C can then
-search D' for y to determine if there is a match.
+By construction, y will be the OPRF evaluation of p hashed onto the curve. C can
+then search D' for y to determine if there is a match.
 
 Concrete examples of important applications in the password domain include:
 
