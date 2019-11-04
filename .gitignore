@@ -18,3 +18,5 @@ report.xml
 venv/
 lib
 draft-irtf-cfrg-voprf.xml
+draft-irtf-cfrg-voprf.txt
+.vscode/
