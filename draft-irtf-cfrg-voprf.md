@@ -1115,8 +1115,14 @@ and proof verification.
 
 In this section, we describe algorithms for batching the DLEQ generation and
 verification procedure. For these algorithms we require an additional random
-oracle H_5: {0,1}^a x ZZ^3 -> {0,1}^b that takes an inputs of a binary
-string of length a and three integer values, and outputs an element in {0,1}^b.
+oracle H_5: {0,1}^a x ZZ^3 -> {0,1}^b that takes an inputs of a binary string of
+length a and three integer values, and outputs an element in {0,1}^b.
+
+We can instantiate the random oracle function H_4 using the same hash function
+that is used for H_1,H_2,H_3. For H_5, we can also use a similar instantiation,
+or we can use a variable-length output generator. For example, for groups with
+an order of 256-bit, valid instantiations include functions such as SHAKE-256
+{{SHAKE}} or HKDF-Expand-SHA256 {{RFC5869}}.
 
 ### Batched_DLEQ_Generate
 
@@ -1147,7 +1153,7 @@ Steps:
  6. Output D <- DLEQ_Generate(k,G,Y,M,Z)
 ~~~
 
-### Batched_DLEQ_Verify
+### DLEQ_Batched_Verify
 
 ~~~
 Input:
@@ -1165,21 +1171,27 @@ Output:
 Steps:
 
  1. seed <- H_4(G,Y,[Mi,Zi]))
- 2. for i in [n]: di <- H_5(seed,i,info)
- 3. c1,...,cn := (int)d1,...,(int)dn
- 4. M := c1M1 + ... + cnMn
- 5. Z := c1Z1 + ... + cnZn
- 6. Output DLEQ_Verify(G,Y,M,Z,D)
+ 2. i' := i
+ 3. for i in [n]:
+    1. di <- H_5(seed,i',info)
+    2. if di > p:
+       1. i' = i'+1
+       2. i = i-1 // decrement and try again
+       3. continue
+ 4. c1,...,cn := (int)d1,...,(int)dn
+ 5. M := c1M1 + ... + cnMn
+ 6. Z := c1Z1 + ... + cnZn
+ 7. Output DLEQ_Verify(G,Y,M,Z,D)
 ~~~
 
 ### Modified protocol execution
 
 The VOPRF protocol from Section {{protocol}} changes to allow specifying
 multiple blinded PRF inputs [ Mi ] for i in 1...n. P computes the array [ Zi ]
-and replaces DLEQ_Generate with Batched_DLEQ_Generate over these arrays. The
+and replaces DLEQ_Generate with DLEQ_Batched_Generate over these arrays. The
 same applies to the algorithm VOPRF_Eval. The same applies for replacing
-DLEQ_Verify with Batched_DLEQ_Verify when V verifies the response from P and
-during the algorithm VOPRF_Verify.
+DLEQ_Verify with DLEQ_Batched_Verify when V verifies the response from P and
+during the algorithm VOPRF_Unblind.
 
 ### Random oracle instantiations for proofs
 
@@ -1189,16 +1201,26 @@ or we can use a variable-length output generator. For example, for groups with
 an order of 256-bit, valid instantiations include functions such as SHAKE-256
 {{SHAKE}} or HKDF-Expand-SHA256 {{RFC5869}}.
 
-In addition if a function with larger output than the order of the base field is
-used, we note that the outputs of H_5 (d1,...,dn) must be smaller than this
-order. If any di that is sampled is larger than then order, then we should
-resample until a di' is sampled that is valid.
+~~~
+Input:
 
-In these cases, the iterating integer i is increased monotonically to i' until
-such di' is sampled. When sampling the next value d(i+1), the counter i+1 is
-started at i'+1.
+ [ ri ]: Random scalars in [1, p - 1].
+ G: Public fixed generator of group GG.
+ Y: Evaluator public key.
+ [ Mi ]: Blinded elements of GG.
+ [ Zi ]: Server-generated elements in GG.
+ D: A batched DLEQ proof object.
 
-TODO: Give a more detailed specification of this construction.
+Output:
+
+ N: element in GG, or "error".
+
+Steps:
+
+ 1. N := (r^(-1))Z
+ 2. If 1 = DLEQ_Batched_Verify(G,Y,[ Mi ],[ Zi ],D), output N
+ 3. Output "error"
+~~~
 
 # Supported ciphersuites {#ciphersuites}
 
