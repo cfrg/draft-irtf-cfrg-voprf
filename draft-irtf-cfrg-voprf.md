@@ -402,8 +402,20 @@ batched proofs ({{batch}}) our construction differs slightly in that we can
 perform multiple VOPRF evaluations in one go, whilst only constructing one NIZK
 proof object.
 
-We highlight the computational assumptions that are necessary for proving the
-security of this construction in {{assumptions}}.
+In this section we describe the OPRF and VOPRF protocols. Recall that such a
+protocol takes place between a verifier (V) and a prover (P). We may commonly
+think of the verifier as the client, and the prover as the server in the
+interaction (we will use these names interchangeably throughout). The server
+holds a key k for a PRF. The protocol allows the client to learn PRF evaluations
+on chosen inputs x without revealing x to the server.
+
+Our OPRF construction is based on the VOPRF construction known as 2HashDH-NIZK
+given by {{JKK14}}; essentially without providing zero-knowledge proofs that
+verify that the output is correct. Our VOPRF construction (including the NIZK
+DLEQ proofs from {{dleq}}) is identical to the {{JKK14}} construction. With
+batched proofs ({{batch}}) our construction differs slightly in that we can
+perform multiple VOPRF evaluations in one go, whilst only constructing one NIZK
+proof object.
 
 ## Design
 
@@ -438,7 +450,7 @@ notation x .. N to denote the concatenation of the bytes of x and N.
                         <-------
     [b = DLEQ_Verify(G,Y,M,Z,D)]
     N = Zr^(-1) mod p
-    Output H_2(DST, x .. N) mod p [if b=1, else "error"]
+    Output H_2(lbl, x .. N) mod p [if b=1, else "error"]
 ~~~
 
 Steps that are enclosed in square brackets (DLEQ_Generate and DLEQ_Verify) are
@@ -477,8 +489,8 @@ This protocol may be decomposed into a series of steps, as described below:
   not provided then it defaults to 1.
 - OPRF_Unblind(r,Z): Unblind blinded OPRF evaluation Z with blind r, yielding N
   and output N.
-- OPRF_Finalize(x,N): Finalize N to produce the output H_2(DST,x,N) for some
-  fixed label denoted by DST.
+- OPRF_Finalize(x,N,aux): Finalize N by first computing dk := H_2(DST, x .. N).
+  Subsequently output y := H_2(dk, aux), where aux is some auxiliary data.
 
 For verifiability (VOPRF) we modify the algorithms of VOPRF_Setup, VOPRF_Eval
 and VOPRF_Unblind to be the following:
@@ -495,7 +507,7 @@ We leave the rest of the OPRF algorithms unmodified. When referring explicitly
 to VOPRF execution, we replace 'OPRF' in all method names with 'VOPRF'. We
 describe explicit instantiations of these functions in {{oprf}} and {{voprf}}.
 
-### Generalized OPRF
+### Generalized OPRF {#general-oprf}
 
 Using the API provided by the functions above, we can restate the OPRF protocol
 using the following descriptions. The first protocol refers to the OPRF setup
@@ -513,7 +525,7 @@ OPRF setup phase:
 
 OPRF evaluation phase:
 ~~~
-     Verifier(x)                   Prover(k)
+     Verifier(x,aux)                   Prover(k)
   ----------------------------------------------------------
      (r, M) = OPRF_Blind(x)
                             M
@@ -522,10 +534,13 @@ OPRF evaluation phase:
                             Z
                         <-------
     N = OPRF_Unblind(r,Z)
-    Output OPRF_Finalize(x,N)
+    Output OPRF_Finalize(x,N,aux)
 ~~~
 
-### Generalized VOPRF
+Note that in the final output, the client computes OPRF_Finalize over some
+auxiliary input data aux.
+
+### Generalized VOPRF {#general-voprf}
 
 The generalized VOPRF functionality differs slightly from the OPRF protocol
 above. Firstly, the server sends over an extra commitment value Y = kG, where G
@@ -544,7 +559,7 @@ VOPRF setup phase:
 
 VOPRF evaluation phase:
 ~~~
-     Verifier(x,Y)                   Prover(k)
+     Verifier(x,Y,aux)                   Prover(k)
   ----------------------------------------------------------
      (r, M) = VOPRF_Blind(x)
                             M
@@ -553,7 +568,7 @@ VOPRF evaluation phase:
                           (Z,D)
                         <-------
     N = VOPRF_Unblind(r,G,Y,M,Z,D)
-    Output VOPRF_Finalize(x,N)
+    Output VOPRF_Finalize(x,N,aux)
 ~~~
 
 ## Protocol correctness
@@ -562,17 +577,22 @@ Protocol correctness requires that, for any key k, input x, and (r, M) =
 OPRF_Blind(x), it must be true that:
 
 ~~~
-OPRF_Finalize(x, OPRF_Unblind(r,M,OPRF_Eval(k,M))) = H_2(DST, x .. F(k,x))
+OPRF_Finalize(x, OPRF_Unblind(r,M,OPRF_Eval(k,M)), aux)
+    == H_2(H_2(DST, x .. F(k,x)), aux)
 ~~~
 
 with overwhelming probability. Likewise, in the verifiable setting, we require
 that:
 
 ~~~
-VOPRF_Finalize(x, VOPRF_Unblind(r,G,Y,M,(VOPRF_Eval(k,G,Y,M)))) = H_2(DST, x .. F(k,x))
+VOPRF_Finalize(x, VOPRF_Unblind(r,G,Y,M,(VOPRF_Eval(k,G,Y,M))), aux)
+    == H_2(H_2(DST, x .. F(k,x)), aux)
 ~~~
 
-with overwhelming probability, where (r, M) = VOPRF_Blind(x).
+with overwhelming probability, where (r, M) = VOPRF_Blind(x). In other words,
+the inner H_2 invocation effectively derives a key, dk, from the input data lbl,
+x, N. The outer invocation derives the output y by evaluating H_2 over dk and
+auxiliary data aux.
 
 ## Instantiations of GG
 
@@ -607,21 +627,9 @@ curve description.
 
 ## OPRF algorithms {#oprf}
 
-This section provides algorithms for each step in the OPRF protocol. We describe
-the VOPRF analogues in {{voprf}}.
-
-1. P samples a uniformly random key k <- {0,1}^l for sufficient length l, and
-   interprets it as an integer.
-2. V computes X = H_1(x) and a random element r (blinding factor) from GF(p),
-   and computes M = rX.
-3. V sends M to P.
-4. P computes Z = kM = rkX.
-5. In the elliptic curve setting, P multiplies Z by the cofactor (denoted h) of
-   the elliptic curve.
-6. P sends Z to V.
-7. V unblinds Z to compute N = r^(-1)Z = kX.
-8. V outputs y = H_2(DST, x .. N), where DST is a fixed domain separating label.
-   Recall that x .. N refers to the concatenation of the bytes of x and N.
+This section provides descriptions of the algorithms used in the generalized
+protocols from {{general-oprf}}. We describe the VOPRF analogues for the
+protocols in {{general-voprf}} later in {{voprf}}.
 
 We note here that the blinding mechanism that we use can be modified slightly
 with the opportunity for making performance gains in some scenarios. We detail
@@ -710,6 +718,7 @@ Input:
 
  x: PRF input string.
  N: An element in GG.
+ aux: Arbitrary auxiliary data
 
 Output:
 
@@ -717,27 +726,15 @@ Output:
 
 Steps:
 
- 1. DST := "oprf_derive_output"
- 2. y := H_2(DST, x .. N)
- 3. Output y
+ 1. lbl := "oprf_derive_output"
+ 2. dk := H_2(lbl, x .. N)
+ 3. y := H_2(dk, aux)
+ 4. Output y
 ~~~
 
 ## VOPRF algorithms {#voprf}
 
-The steps in the VOPRF setting are written as:
-
-1. P samples a uniformly random key k <- {0,1}^l for sufficient length l, and
-   interprets it as an integer.
-2. P commits to k by computing (G,Y) for Y=kG, where G is the fixed generator of
-   GG. P makes the pair (G,Y) publicly available.
-3. V computes X = H_1(x) and a random element r (blinding factor) from GF(p),
-   and computes M = rX.
-4. V sends M to P.
-5. P computes Z = kM = rkX, and D = DLEQ_Generate(k,G,Y,M,Z).
-6. P sends (Z, D) to V.
-7. V ensures that 1 = DLEQ_Verify(G,Y,M,Z,D). If not, V outputs an error.
-8. V unblinds Z to compute N = r^(-1)Z = kX.
-9. V outputs the pair H_2(DST, x .. N).
+We make modifications to the aforementioned algorithms in the VOPRF setting.
 
 ### VOPRF_Setup
 
@@ -832,6 +829,7 @@ Input:
 
  x: PRF input string.
  N: An element in GG, or "error".
+ aux: Arbitrary auxiliary data.
 
 Output:
 
@@ -841,8 +839,9 @@ Steps:
 
  1. If N == "error", output "error".
  2. DST := "voprf_derive_output"
- 3. y := H_2(DST, x .. N)
- 4. Output y
+ 3. dk := H_2(DST, x .. N)
+ 4. y := H_2(dk, aux)
+ 5. Output y
 ~~~
 
 ## Efficiency gains with pre-processing and fixed-base blinding {#blinding}
@@ -1116,8 +1115,8 @@ and proof verification.
 
 In this section, we describe algorithms for batching the DLEQ generation and
 verification procedure. For these algorithms we require an additional random
-oracle H_5: {0,1}^a x ZZ^3 -> {0,1}^b that takes an inputs of a binary string of
-length a and three integer values, and outputs an element in {0,1}^b.
+oracle H_5: {0,1}^a x ZZ^3 -> {0,1}^b that takes an inputs of a binary
+string of length a and three integer values, and outputs an element in {0,1}^b.
 
 ### Batched_DLEQ_Generate
 
@@ -1244,6 +1243,162 @@ consider ciphersuites that provide strictly greater than 128 bits of security
 
 We remark that the 'label' field is necessary for domain separation of the
 hash-to-curve functionality.
+
+# Recommended protocol integration
+
+We describe some recommendations and suggestions on the topic of integrating the
+(V)OPRF protocol from {{protocol}} into wider protocols. It should be noted that
+since {{JKK14}} provides a security proof of the VPRF construction in the UC
+security model, then any UC-secure protocol that uses the OPRF construction as
+an atomic instantiation will remain UC-secure.
+
+As a result we recommend that any protocol that wishes to include an OPRF stage
+does so by implementing all OPRF evaluation functionality as a contiguous block
+of operations during the protocol. This does not include the OPRF setup phase,
+which should be run before the entire protocol interaction. For example, such an
+instantiation for a wider protocol W would look like the following.
+
+~~~
+    ================================================================
+                           OPRF setup phase
+    ================================================================
+
+    > ...
+    > BEGIN(protocol W)
+    > ...
+    > PAUSE(protocol W)
+
+    ================================================================
+                         OPRF evaluation phase
+    ================================================================
+
+    > RESTART(protocol W)
+    > ...
+    > END(protocol W)
+~~~
+
+In other words, no messages from protocol W should take place during the OPRF
+protocol instantiation. This DOES NOT preclude the participants in protocol W
+from using the outputs of the OPRF evaluation, once the OPRF protocol is
+complete. Note that the OPRF protocol can involve batched evaluations, as well
+as single evaluations.
+
+## Setup phase
+
+In the VOPRF setting, the server must send to the client (p,Y) where p is the
+prime used in instantiating the group used for the VOPRF operations, and Y is a
+commitment to the server key k. From this information, the client and server
+must agree on a generator G for the group description. It is important that the
+generator G of GG is not chosen by the server, and that it is agreed upon before
+the protocol starts. In the elliptic curve setting, we recommend that G is
+chosen as the standard generator for the curve.
+
+As we mentioned above, if an implementer wants to embed OPRF evaluation as part
+of a wider protocol, then we recommend that this setup phase should occur before
+all communication takes place; including all communication required for the
+wider protocol. We recommend that any server implementation only implements one
+group instantiation at any one time. This means that the client does not have to
+pick a specific instantiation when it sends the first evaluation message.
+
+## Evaluation phase
+
+The evaluation phase of the OPRF results in a client receiving pseudorandom
+function evaluations from the server. It is important that the client is able to
+link the computation that it performs in the first step, with the output that it
+receives from the server. In other words, the client must store the data (r,M)
+output by OPRF_Blind(x). When it receives Z from the server, it must then use
+(r,M) as inputs to OPRF_Blind.
+
+In the batched setting, the client stores multiple values (ri,Mi) and sends each
+Mi to the server. Both client and server should preserve this ordering
+throughout the evaluation phase so that the client can successfully finalize the
+output in the final step.
+
+## Client-specific considerations
+
+### Inputs
+
+The client input to the OPRF evaluation phase is a set of bytes x. These bytes
+do not have to be uniformly distributed. However, we should note that if the
+bytes are sampled from a predictable distribution, then it is likely that the
+server will also be able to predict the client's input to the OPRF. Therefore
+the utility of client privacy is reduced somewhat.
+
+### Output
+
+The client receives y = H_2(lbl, x .. N) at the end of the protocol. We suggest
+that clients store the pair (x, y) as bytes. This allows the client to use the
+the output of the protocol in conjunction with the input used to create it
+later.
+
+### Messages
+
+The client message contains a group element and should be encoded as bytes. In
+the elliptic curve setting this corresponds to an encoded curve point. Both
+compressed and uncompressed point encodings should be supported by the server.
+The length of the point encoding should be enough to determine the encoding of
+the point.
+
+## Server-specific considerations
+
+### Setup
+
+As mentioned previously, the server should pick a single group instantiation and
+advertise this as the only way of evaluating the OPRF.
+
+### Inputs
+
+The server input to the evaluation phase is a key k. This key can be stored
+simply as bytes. The key must be protected at all times. If the server ever
+suspects that the key has been compromised then it must be rotated immediately.
+In addition, the key should be rotated somewhat frequently for security reasons
+to reduce the impact of an unknown compromise. For more information on
+appropriate key schedules, see {{key-rotation}}.
+
+Every time the server key is rotated, a new setup phase will have to be run. The
+server should publish public key commitments (Y) to a public, trusted registry
+to avoid notifying all client's individually. The registry should be considered
+tamper-proof from the client perspective and should retain a history of all
+edits. We recommend that all commitments come with an expiry date to enforce
+rotation policies, and optionally a signature using a long-term signing key
+(with public verification key made available via another public beacon). The
+signature is only necessary to prevent active attackers that may be able to
+route the client to an untrusted registry.
+
+Below, we recommend the following proposed JSON structure for holding public
+commitment data.
+
+~~~
+{
+  "Y": <bytes_of_commitment>,
+  "expiry": <date-of-expiry>,
+  "sig": <commitment_signature>
+}
+~~~
+
+This data should be retrieved and validated by the client when verifying VOPRF
+messages from the server. For efficiency reasons, the client may want to cache
+the value of "Y" and "expiry". Any commitment that has expired should not be
+used by the client.
+
+Each commitment should be versioned according to some obvious convention. After
+a key rotation the server should append a new commitment object with a new
+version tag.
+
+### Outputs
+
+The server need not not preserve any information during the evaluation exchange.
+For efficiency and client-privacy reasons, we recommend that all data received
+from the client in the evaluation phase is destroyed after the server has
+responded.
+
+### Messages
+
+In the VOPRF setting, when the server sends the response, it needs to indicate
+which version of key that it has used. This enables the client to retrieve the
+correct commitment from the public registry. We recommend that the server sends
+it's response as a JSON object that specifies separate members for the values Z
+and D, along with the key version that is used.
 
 # Security Considerations {#sec}
 
