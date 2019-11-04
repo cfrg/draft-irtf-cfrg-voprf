@@ -2,13 +2,17 @@
 *.pdf
 *.redxml
 *.swp
+*.txt
 *.upload
 *~
 .refcache
 .tags
 .targets.mk
 /*-[0-9][0-9].xml
+draft-irtf-cfrg-voprf.txt
+draft-irtf-cfrg-voprf.xml
 issues.json
+lib
 pulls.json
 report.xml
 venv/
