@@ -726,7 +726,7 @@ Output:
 
 Steps:
 
- 1. lbl := "oprf_derive_output"
+ 1. DST := "oprf_derive_output"
  2. dk := H_2(DST, x .. N)
  3. y := H_2(dk, aux)
  4. Output y
