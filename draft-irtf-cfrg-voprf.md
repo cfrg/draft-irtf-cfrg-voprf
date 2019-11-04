@@ -450,7 +450,7 @@ notation x .. N to denote the concatenation of the bytes of x and N.
                         <-------
     [b = DLEQ_Verify(G,Y,M,Z,D)]
     N = Zr^(-1) mod p
-    Output H_2(lbl, x .. N) mod p [if b=1, else "error"]
+    Output H_2(DST, x .. N) mod p [if b=1, else "error"]
 ~~~
 
 Steps that are enclosed in square brackets (DLEQ_Generate and DLEQ_Verify) are
@@ -495,7 +495,7 @@ This protocol may be decomposed into a series of steps, as described below:
 For verifiability (VOPRF) we modify the algorithms of VOPRF_Setup, VOPRF_Eval
 and VOPRF_Unblind to be the following:
 
-- VOPRF_Setup(l): Run (k,p) = OPRF_Setup(l), compute Y = k*G, where G is a
+- VOPRF_Setup(l): Run (k,p) = OPRF_Setup(l), compute Y = kG, where G is a
   generator of the group GG. Output (k,p,Y).
 - VOPRF_Eval(k,G,Y,M,h?): Evaluates on input M using secret key k to produce Z.
   Generate a NIZK proof D = DLEQ_Generate(k,G,Y,M,Z), and output (Z, D). The
@@ -590,7 +590,7 @@ VOPRF_Finalize(x, VOPRF_Unblind(r,G,Y,M,(VOPRF_Eval(k,G,Y,M))), aux)
 ~~~
 
 with overwhelming probability, where (r, M) = VOPRF_Blind(x). In other words,
-the inner H_2 invocation effectively derives a key, dk, from the input data lbl,
+the inner H_2 invocation effectively derives a key, dk, from the input data DST,
 x, N. The outer invocation derives the output y by evaluating H_2 over dk and
 auxiliary data aux.
 
@@ -1348,7 +1348,7 @@ the utility of client privacy is reduced somewhat.
 
 ### Output
 
-The client receives y = H_2(lbl, x .. N) at the end of the protocol. We suggest
+The client receives y = H_2(DST, x .. N) at the end of the protocol. We suggest
 that clients store the pair (x, y) as bytes. This allows the client to use the
 the output of the protocol in conjunction with the input used to create it
 later.
@@ -1445,15 +1445,15 @@ of order p.
 
 #### Discrete-log (DL) problem {#dl}
 
-Given G, a generator of GG, and H = h*G for some h in FFp; output h.
+Given G, a generator of GG, and H = hG for some h in FFp; output h.
 
 #### Decisional Diffie-Hellman (DDH) problem {#ddh}
 
-Sample a uniformly random bit d in {0,1}. Given (G, a\*G, b\*G, C), where:
+Sample a uniformly random bit d in {0,1}. Given (G, aG, bG, C), where:
 
 - G is a generator of GG;
 - a,b are elements of FFp;
-- if d == 0: C = ab*G; else: C is sampled uniformly GG(sp).
+- if d == 0: C = abG; else: C is sampled uniformly GG(sp).
 
 Output d' == d.
 
@@ -1513,7 +1513,7 @@ queries can reduce the security of the instantiation by log_2(2^20) = 20 bits.
 
 Notice that it is easy to instantiate a Q-sDH oracle using the OPRF
 functionality that we provide. A client can just submit sequential queries of
-the form (G, k*G, (k^2)*G, ..., (k^(Q-1))*G), where each query is the output of
+the form (G, kG, (k^2)G, ..., (k^(Q-1))G), where each query is the output of
 the previous interaction. This means that any client that submit Q queries to
 the OPRF can use the aforementioned attacks to reduce security of the group
 instantiation by log_2(Q) bits.
@@ -1661,7 +1661,7 @@ publicly audit their rotations.
 
 # Applications {#apps}
 
-This section describes various applications of the VOPRF protocol.
+This section describes various applications of the (V)OPRF protocol.
 
 ## Privacy Pass
 
@@ -1716,50 +1716,4 @@ consistency.
 
 # Test Vectors {#testvecs}
 
-This section includes test vectors for the VOPRF-P256-HKDF-SHA256 VOPRF
-ciphersuite, including batched DLEQ output.
-
-~~~
-P-256
-X: 04b14b08f954f5b6ab1d014b1398f03881d70842acdf06194eb96a6d08186f8cb985c1c5521 \
-    f4ee19e290745331f7eb89a4053de0673dc8ef14cfe9bf8226c6b31
-r: b72265c85b1ba42cfed7caaf00d2ccac0b1a99259ba0dbb5a1fc2941526a6849
-M: 046025a41f81a160c648cfe8fdcaa42e5f7da7a71055f8e23f1dc7e4204ab84b705043ba5c7 \
-    000123e1fd058150a4d3797008f57a8b2537766d9419c7396ba5279
-k: f84e197c8b712cdf452d2cff52dec1bd96220ed7b9a6f66ed28c67503ae62133
-Z: 043ab5ccb690d844dcb780b2d9e59126d62bc853ba01b2c339ba1c1b78c03e4b6adc5402f77 \
-    9fc29f639edc138012f0e61960e1784973b37f864e4dc8abbc68e0b
-N: 04e8aa6792d859075821e2fba28500d6974ba776fe230ba47ef7e42be1d967654ce776f889e \
-    e1f374ffa0bce904408aaa4ed8a19c6cc7801022b7848031f4e442a
-D: { s: faddfaf6b5d6b4b6357adf856fc1e0044614ebf9dafdb4c6541c1c9e61243c5b,
-     c: 8b403e170b56c915cc18864b3ab3c2502bd8f5ca25301bc03ab5138343040c7b }
-
-P-256
-X: 047e8d567e854e6bdc95727d48b40cbb5569299e0a4e339b6d707b2da3508eb6c238d3d4cb4 \
-    68afc6ffc82fccbda8051478d1d2c9b21ffdfd628506c873ebb1249
-r: f222dfe530fdbfcb02eb851867bfa8a6da1664dfc7cee4a51eb6ff83c901e15e
-M: 04e2efdc73747e15e38b7a1bb90fe5e4ef964b3b8dccfda428f85a431420c84efca02f0f09c \
-    83a8241b44572a059ab49c080a39d0bce2d5d0b44ff5d012b5184e7
-k: fb164de0a87e601fd4435c0d7441ff822b5fa5975d0c68035beac05a82c41118
-Z: 049d01e1c555bd3324e8ce93a13946b98bdcc765298e6d60808f93c00bdfba2ebf48eef8f28 \
-    d8c91c903ad6bea3d840f3b9631424a6cc543a0a0e1f2d487192d5b
-N: 04723880e480b60b4415ca627585d1715ab5965570d30c94391a8b023f8854ac26f76c1d6ab \
-    bb38688a5affbcadad50ecbf7c93ef33ddfd735003b5a4b1a21ba14
-D: { s: dfdf6ae40d141b61d5b2d72cf39c4a6c88db6ac5b12044a70c212e2bf80255b4,
-     c: 271979a6b51d5f71719127102621fe250e3235867cfcf8dea749c3e253b81997 }
-
-Batched DLEQ (P256)
-M_0: 046025a41f81a160c648cfe8fdcaa42e5f7da7a71055f8e23f1dc7e4204ab84b705043ba5c\
-    7000123e1fd058150a4d3797008f57a8b2537766d9419c7396ba5279
-M_1: 04e2efdc73747e15e38b7a1bb90fe5e4ef964b3b8dccfda428f85a431420c84efca02f0f09\
-    c83a8241b44572a059ab49c080a39d0bce2d5d0b44ff5d012b5184e7
-Z_0: 043ab5ccb690d844dcb780b2d9e59126d62bc853ba01b2c339ba1c1b78c03e4b6adc5402f7\
-    79fc29f639edc138012f0e61960e1784973b37f864e4dc8abbc68e0b
-Z_1: 04647e1ab7946b10c1c1c92dd333e2fc9e93e85fdef5939bf2f376ae859248513e0cd91115\
-    e48c6852d8dd173956aec7a81401c3f63a133934898d177f2a237eeb
-k: f84e197c8b712cdf452d2cff52dec1bd96220ed7b9a6f66ed28c67503ae62133
-H_5: HKDF-Expand-SHA256
-label: "DLEQ_PROOF"
-D: { s: b2123044e633d4721894d573decebc9366869fe3c6b4b79a00311ecfa46c9e34,
-     c: 3506df9008e60130fcddf86fdb02cbfe4ceb88ff73f66953b1606f6603309862 }
-~~~
+[[TODO: add when done]]
