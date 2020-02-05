@@ -387,14 +387,53 @@ In the following, we may also refer to this commitment as a public key.
 
 ## Prime-order group instantiation
 
-- description (operations, order etc.)
-- instantiations (curves, cofactor considerations)
+In this document, we assume the construction of a prime-order group GG for
+performing all mathematical operations. Such a group MUST provide the interface
+provided by cyclic group under the addition operation (for example, well-defined
+addition of group elements). We also assume the presence of a fixed generator G
+that can be detailed as a fixed parameter in the description of the group. We
+write p = order(GG) to represent the order of the group throughout this
+document.
+
+It is common in cryptographic applications to instantiate such prime-order
+groups using elliptic curves, such as those detailed in {{SEC2}}. For some
+choices of elliptic curves (e.g. those detailed in {{RFC7748}} require
+accounting for cofactors) there are some implementation issues that introduce
+inherent discrepancies between standard prime-order groups and the elliptic
+curve instantiation. In this document, all algorithms that we detail assume that
+the group is a prime-order group, and this MUST be upheld by any implementer.
+That is, any curve instantiation shoudl be written such that any discrepancies
+with a prime-order group instantiation are removed. In the case of cofactors,
+for example, this can be done by building cofactor multiplication into all
+elliptic curve operations.
 
 ## Conventions
 
-- {0,1}^*
-- uniform sampling
-- point, scalar notation
+We detail a list of conventions that we use throughout this document.
+
+### Binary strings
+
+- We use the notation x <-$ Q to denote sampling x from the uniform distribution
+  over the set Q.
+- We use x <- {0,1}^u to denote sampling x uniformly from the set of binary
+  strings of length u. We may interpret x afterwards as a byte array.
+- We say that x is a binary string of arbitrary-length (or alternatively sampled
+  from {0,1}^*) if there is no fixed-size requirement on x.
+- For two byte arrays x & y, write x .. y to denote their concatenation.
+
+### Group notation
+
+- We use the letter p to denote the order of a group GG throughout, where the
+  instantiation of the specific group is defined by context.
+- For elements A & B of GG, we write A + B to denote the addition of thr group
+  elements.
+- We use GF(p) to denote the Galois Field of scalar values associated with the
+  group GG.
+- For a scalar r in GF(p), and a group element A, we write rA to denote the
+  scalar multiplication of A.
+- For two scalars r, s in GF(p), we use r+s to denote the resulting scalar in
+  GF(p) (we may optionally write r+s mod p to make the modular reduction
+  explicit).
 
 # OPRF Protocol {#protocol}
 
@@ -441,15 +480,14 @@ random oracles. Let L be the security parameter. Let k be the prover's secret
 key, and Y = kG be its corresponding 'public key' for some fixed generator G
 taken from the description of the group GG. This public key Y is also referred
 to as a commitment to the OPRF key k, and the pair (G,Y) as a commitment pair.
-Let x be the verifier's input to the OPRF protocol (commonly, it is a random
-L-bit string, though this is not required).
+Let x be the binary string that is the verifier's input to the OPRF protocol
+(this can be of arbitrary length).
 
 The OPRF protocol begins with V blinding its input for the OPRF evaluator such
 that it appears uniformly distributed GG. The latter then applies its secret key
 to the blinded value and returns the result. To finish the computation, V then
 removes its blind and hashes the result (along with a domain separating label
-DST) using H_2 to yield an output. This flow is illustrated below. We use the
-notation x .. N to denote the concatenation of the bytes of x and N.
+DST) using H_2 to yield an output. This flow is illustrated below.
 
 ~~~
      Verifier(x)                   Prover(k)
