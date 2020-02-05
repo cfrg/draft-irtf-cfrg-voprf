@@ -533,7 +533,7 @@ embedding (V)OPRF protocols into wider protocols in {{embed}}.
 This protocol may be decomposed into a series of steps, as described below:
 
 - OPRF_Setup(l): Let GG=GG(l) be a group with a prime-order p=p(l) (e.g., p is
-  l-bits long). Randomly sample an integer k in GF(p) and output (k,p)
+  l-bits long). Randomly sample an integer k in GF(p) and output (k,GG)
 - OPRF_Blind(x): Compute and return a blind, r, and blinded representation of x
   in GG, denoted M.
 - OPRF_Eval(k,M,h?): Evaluates on input M using secret key k to produce Z, the
@@ -547,8 +547,8 @@ This protocol may be decomposed into a series of steps, as described below:
 For verifiability (VOPRF) we modify the algorithms of VOPRF_Setup, VOPRF_Eval
 and VOPRF_Unblind to be the following:
 
-- VOPRF_Setup(l): Run (k,p) = OPRF_Setup(l), compute Y = kG, where G is a
-  generator of the group GG. Output (k,p,Y).
+- VOPRF_Setup(l): Run (k,GG) = OPRF_Setup(l), compute Y = kG, where G is a
+  generator of the group GG. Output (k,GG,Y).
 - VOPRF_Eval(k,G,Y,M,h?): Evaluates on input M using secret key k to produce Z.
   Generate a NIZK proof D = DLEQ_Generate(k,G,Y,M,Z), and output (Z, D). The
   optional cofactor h can also be provided, as in OPRF_Eval.
@@ -571,8 +571,8 @@ OPRF setup phase:
 ~~~
      Verifier()                   Prover(l)
   ----------------------------------------------------------
-                                  (k,p) = OPRF_Setup(l)
-                            p
+                                  (k,GG) = OPRF_Setup(l)
+                           GG
                         <-------
 ~~~
 
@@ -607,8 +607,8 @@ VOPRF setup phase:
 ~~~
      Verifier()                   Prover(l)
   ----------------------------------------------------------
-                                  (k,p,Y) = VOPRF_Setup(l)
-                          (p,Y)
+                                  (k,GG,Y) = VOPRF_Setup(l)
+                         (GG,Y)
                         <-------
 ~~~
 
@@ -652,7 +652,7 @@ auxiliary data aux.
 
 ## Instantiations of GG
 
-As we remarked above, GG is a subgroup with associated prime-order p. While we
+As we remarked above, GG is a group with associated prime-order p. While we
 choose to write operations in the setting where GG comes equipped with an
 additive operation, we could also define the operations in the multiplicative
 setting. In the multiplicative setting we can choose GG to be a prime-order
@@ -1029,13 +1029,12 @@ as single evaluations.
 
 ### Setup phase
 
-In the VOPRF setting, the server must send to the client (p,Y) where p is the
-prime used in instantiating the group used for the VOPRF operations, and Y is a
-commitment to the server key k. From this information, the client and server
-must agree on a generator G for the group description. It is important that the
-generator G of GG is not chosen by the server, and that it is agreed upon before
-the protocol starts. In the elliptic curve setting, we recommend that G is
-chosen as the standard generator for the curve.
+In the VOPRF setting, the server must send to the client Y (the commitment to
+the server key k. From this information, the client and server must agree on a
+generator G for the group description. It is important that the generator G of
+GG is not chosen by the server, and that it is agreed upon before the protocol
+starts. In the elliptic curve setting, we recommend that G is chosen as the
+standard generator for the curve.
 
 As we mentioned above, if an implementer wants to embed OPRF evaluation as part
 of a wider protocol, then we recommend that this setup phase should occur before
@@ -1115,10 +1114,11 @@ Output:
 Steps:
 
  1. r <-$ GF(p)
- 2. A := rG and B := rM
- 3. c <- H_3(G,Y,M,Z,A,B) (mod p)
- 4. s := (r - ck) (mod p)
- 5. Output D := (c, s)
+ 2. A := rG
+ 3. B := rM
+ 4. c <- H_3(G,Y,M,Z,A,B) (mod p)
+ 5. s := (r - ck) (mod p)
+ 6. Output D := (c, s)
 ~~~
 
 We note here that it is essential that a different r value is used for every
@@ -1204,7 +1204,7 @@ Steps:
 
  1. seed <- H_4(G,Y,[Mi,Zi]))
  2. i' := i
- 3. for i in [n]:
+ 3. for i in [m]:
     1. di <- H_5(seed,i',info)
     2. if di > p:
        1. i' = i'+1
@@ -1235,7 +1235,7 @@ Steps:
 
  1. seed <- H_4(G,Y,[Mi,Zi]))
  2. i' := i
- 3. for i in [n]:
+ 3. for i in [m]:
     1. di <- H_5(seed,i',info)
     2. if di > p:
        1. i' = i'+1
@@ -1250,8 +1250,8 @@ Steps:
 ## Modified algorithms
 
 The VOPRF protocol from Section {{protocol}} changes to allow specifying
-multiple blinded PRF inputs [ Mi ] for i in 1...n. P computes the array [ Zi ]
-and replaces DLEQ_Generate with DLEQ_Batched_Generate over these arrays.
+multiple blinded PRF inputs `[ Mi ]` for i in 1...n. P computes the array `[ Zi
+]` and replaces DLEQ_Generate with DLEQ_Batched_Generate over these arrays.
 Concretely, we modify the following algorithms:
 
 ### VOPRF_Blind
@@ -1449,8 +1449,7 @@ as single evaluations.
 
 ## Setup phase
 
-In the VOPRF setting, the server must send to the client (p,Y) where p is the
-prime used in instantiating the group used for the VOPRF operations, and Y is a
+In the VOPRF setting, the server must send Y to the client where Y is a
 commitment to the server key k. From this information, the client and server
 must agree on a generator G for the group description. It is important that the
 generator G of GG is not chosen by the server, and that it is agreed upon before
