@@ -1,7 +1,7 @@
 ---
 title: Oblivious Pseudorandom Functions (OPRFs) using Prime-Order Groups
 abbrev: OPRFs
-docname: draft-irtf-cfrg-voprf-latest
+docname: draft-irtf-cfrg-voprf-latest-00
 date:
 category: info
 
@@ -46,12 +46,15 @@ normative:
   NIST:
     title: Keylength - NIST Report on Cryptographic Key Length and Cryptoperiod (2016)
     target: https://www.keylength.com/en/4/
+    date: false
   PrivacyPass:
     title: Privacy Pass
     target: https://github.com/privacypass/challenge-bypass-server
+    date: false
   ChaumPedersen:
     title: Wallet Databases with Observers
     target: https://chaum.com/publications/Wallet_Databases.pdf
+    date: false
     authors:
         -
           ins: D. Chaum
@@ -62,6 +65,7 @@ normative:
   ChaumBlindSignature:
     title: Blind Signatures for Untraceable Payments
     target: http://sceweb.sce.uhcl.edu/yang/teaching/csci5234WebSecurityFall2011/Chaum-blind-signatures.PDF
+    date: false
     authors:
       -
         ins: D. Chaum
@@ -69,6 +73,7 @@ normative:
   BB04:
     title: Short Signatures Without Random Oracles
     target: http://ai.stanford.edu/~xb/eurocrypt04a/bbsigs.pdf
+    date: false
     authors:
       -
         ins: D. Boneh
@@ -79,6 +84,7 @@ normative:
   BG04:
     title: The Static Diffie-Hellman Problem
     target: https://eprint.iacr.org/2004/306
+    date: false
     authors:
       -
         ins: D. Brown
@@ -89,6 +95,7 @@ normative:
   Cheon06:
     title: Security Analysis of the Strong Diffie-Hellman Problem
     target: https://www.iacr.org/archive/eurocrypt2006/40040001/40040001.pdf
+    date: false
     authors:
       -
         ins: J. H. Cheon
@@ -96,6 +103,7 @@ normative:
   JKKX16:
     title: Highly-Efficient and Composable Password-Protected Secret Sharing (Or, How to Protect Your Bitcoin Wallet Online)
     target: https://eprint.iacr.org/2016/144
+    date: false
     authors:
       -
         ins: S. Jarecki
@@ -112,6 +120,7 @@ normative:
   JKK14:
     title:  Round-Optimal Password-Protected Secret Sharing and T-PAKE in the Password-Only model
     target: https://eprint.iacr.org/2014/650
+    date: false
     authors:
       -
         ins: S. Jarecki
@@ -126,6 +135,7 @@ normative:
     title: >
       TOPPSS: Cost-minimal Password-Protected Secret Sharing based on Threshold OPRF
     target: https://eprint.iacr.org/2017/363
+    date: false
     authors:
       -
         ins: S. Jarecki
@@ -142,6 +152,7 @@ normative:
   SJKS17:
     title:  SPHINX, A Password Store that Perfectly Hides from Itself
     target: https://eprint.iacr.org/2018/695
+    date: false
     authors:
       -
         ins: M. Shirvanian
@@ -158,6 +169,7 @@ normative:
   DGSTV18:
     title: Privacy Pass, Bypassing Internet Challenges Anonymously
     target: https://www.degruyter.com/view/j/popets.2018.2018.issue-3/popets-2018-0026/popets-2018-0026.xml
+    date: false
     authors:
       -
         ins: A. Davidson
@@ -177,6 +189,7 @@ normative:
   RISTRETTO:
     title: The ristretto255 Group
     target: https://tools.ietf.org/html/draft-hdevalence-cfrg-ristretto-01
+    date: false
     authors:
       -
         ins: H. de Valence
@@ -191,6 +204,7 @@ normative:
   DECAF:
     title: Decaf, Eliminating cofactors through point compression
     target: https://www.shiftleft.org/papers/decaf/decaf.pdf
+    date: false
     authors:
       -
         ins: M. Hamburg
@@ -198,6 +212,7 @@ normative:
   OPAQUE:
     title: The OPAQUE Asymmetric PAKE Protocol
     target: https://tools.ietf.org/html/draft-krawczyk-cfrg-opaque-02
+    date: false
     authors:
       -
         ins: H. Krawczyk
@@ -205,6 +220,7 @@ normative:
   SHAKE:
     title: SHA-3 Standard, Permutation-Based Hash and Extendable-Output Functions
     target: https://www.nist.gov/publications/sha-3-standard-permutation-based-hash-and-extendable-output-functions?pub_id=919061
+    date: false
     authors:
       -
         ins: Morris J. Dworkin
@@ -212,12 +228,14 @@ normative:
   SEC2:
     title: "SEC 2: Recommended Elliptic Curve Domain Parameters"
     target: http://www.secg.org/sec2-v2.pdf
+    date: false
     author:
       -
         ins: Standards for Efficient Cryptography Group (SECG)
   keytrans:
     title: "Security Through Transparency"
     target: https://security.googleblog.com/2017/01/security-through-transparency.html
+    date: false
     authors:
       -
         ins: Ryan Hurst
