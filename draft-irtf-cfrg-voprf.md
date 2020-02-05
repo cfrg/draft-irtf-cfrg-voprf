@@ -385,14 +385,27 @@ requires that P commits to the key k before the actual protocol execution takes
 place. Then V verifies that P has used k in the protocol using this commitment.
 In the following, we may also refer to this commitment as a public key.
 
+## Prime-order group instantiation
+
+- description (operations, order etc.)
+- instantiations (curves, cofactor considerations)
+
+## Conventions
+
+- {0,1}^*
+- uniform sampling
+- point, scalar notation
+
 # OPRF Protocol {#protocol}
 
 In this section we describe the OPRF and VOPRF protocols. Recall that such a
-protocol takes place between a verifier (V) and a prover (P). Commonly, V is a client and P is a server, and so we use these names interchangeably throughout.
-think of the verifier as the client, and the prover as the server in the
-interaction (we will use these names interchangeably throughout). The server
-holds a secret key k for a PRF. The protocol allows the client to learn PRF evaluations
-on chosen inputs x in such a way that the server learns nothing of x.
+protocol takes place between a verifier (V) and a prover (P). Commonly, V is a
+client and P is a server, and so we use these names interchangeably throughout.
+We always operate under the assumption that the verifier is a client, and the
+prover is a server in the interaction (and so we will use these names
+interchangeably throughout). The server holds a secret key k for a PRF. The
+protocol allows the client to learn PRF evaluations on chosen inputs x in such a
+way that the server learns nothing of x.
 
 Our OPRF construction is based on the VOPRF construction known as 2HashDH-NIZK
 given by {{JKK14}}; essentially without providing zero-knowledge proofs that
@@ -421,14 +434,15 @@ proof object.
 
 Let GG be an additive group of prime-order p, let GF(p) be the Galois field
 defined by the integers modulo p. Define distinct hash functions H_1 and H_2,
-where H_1 maps arbitrary input onto GG and H_2 maps arbitrary input to a
-fixed-length output, e.g., SHA256. All hash functions in the protocol are
-modeled as random oracles. Let L be the security parameter. Let k be the
-prover's secret key, and Y = kG be its corresponding 'public key' for some fixed
-generator G taken from the description of the group GG. This public key Y is
-also referred to as a commitment to the OPRF key k, and the pair (G,Y) as a
-commitment pair. Let x be the verifier's input to the OPRF protocol (commonly,
-it is a random L-bit string, though this is not required).
+where H_1 maps arbitrary input onto GG (H_1: {0,1}^* -> GG) and H_2 maps
+two arbitrary inputs to a fixed-length (w) output (H_2: {0,1}^u x {0,1}^v ->
+{0,1}^w), e.g., HMAC_SHA256. All hash functions in the protocol are modeled as
+random oracles. Let L be the security parameter. Let k be the prover's secret
+key, and Y = kG be its corresponding 'public key' for some fixed generator G
+taken from the description of the group GG. This public key Y is also referred
+to as a commitment to the OPRF key k, and the pair (G,Y) as a commitment pair.
+Let x be the verifier's input to the OPRF protocol (commonly, it is a random
+L-bit string, though this is not required).
 
 The OPRF protocol begins with V blinding its input for the OPRF evaluator such
 that it appears uniformly distributed GG. The latter then applies its secret key
@@ -469,8 +483,8 @@ F(k, x) = N = kH_1(x)
 It is clear that this is a PRF H_1(x) maps x to a random element in GG, and GG
 is cyclic. This output is computed when the client computes Zr^(-1) by the
 commutativity of the multiplication. The client finishes the computation by
-outputting H_2(x,N). Note that the output from P is not the PRF value because
-the actual input x is blinded by r.
+outputting H_2(DST, x .. N). Note that the output from P is not the PRF value
+because the actual input x is blinded by r.
 
 The security of our construction is discussed in more detail in
 {{protocol-sec}}. We discuss the considerations that should be made when
@@ -515,6 +529,7 @@ phase that is run by the server. This generates the secret input used by the
 server and the public information that is given to the client.
 
 OPRF setup phase:
+
 ~~~
      Verifier()                   Prover(l)
   ----------------------------------------------------------
@@ -524,6 +539,7 @@ OPRF setup phase:
 ~~~
 
 OPRF evaluation phase:
+
 ~~~
      Verifier(x,aux)                   Prover(k)
   ----------------------------------------------------------
@@ -549,6 +565,7 @@ over both outputs from VOPRF_Eval in the evaluation phase, and the client also
 verifies the server's output.
 
 VOPRF setup phase:
+
 ~~~
      Verifier()                   Prover(l)
   ----------------------------------------------------------
@@ -558,8 +575,9 @@ VOPRF setup phase:
 ~~~
 
 VOPRF evaluation phase:
+
 ~~~
-     Verifier(x,Y,aux)                   Prover(k)
+     Verifier(x,Y,aux)            Prover(k)
   ----------------------------------------------------------
      (r, M) = VOPRF_Blind(x)
                             M
@@ -577,16 +595,16 @@ Protocol correctness requires that, for any key k, input x, and (r, M) =
 OPRF_Blind(x), it must be true that:
 
 ~~~
-OPRF_Finalize(x, OPRF_Unblind(r,M,OPRF_Eval(k,M)), aux)
-    == H_2(H_2(DST, x .. F(k,x)), aux)
+  OPRF_Finalize(x, OPRF_Unblind(r,M,OPRF_Eval(k,M)), aux)
+      == H_2(H_2(DST, x .. F(k,x)), aux)
 ~~~
 
 with overwhelming probability. Likewise, in the verifiable setting, we require
 that:
 
 ~~~
-VOPRF_Finalize(x, VOPRF_Unblind(r,G,Y,M,(VOPRF_Eval(k,G,Y,M))), aux)
-    == H_2(H_2(DST, x .. F(k,x)), aux)
+  VOPRF_Finalize(x, VOPRF_Unblind(r,G,Y,M,(VOPRF_Eval(k,G,Y,M))), aux)
+      == H_2(H_2(DST, x .. F(k,x)), aux)
 ~~~
 
 with overwhelming probability, where (r, M) = VOPRF_Blind(x). In other words,
@@ -645,13 +663,14 @@ Input:
 
 Output:
 
- k: A key chosen from {0,1}^l and interpreted as an integer value.
+ k:  A key chosen from {0,1}^l and interpreted as a scalar in [1,p-1].
+ GG: A cyclic group with prime-order p of length l bits.
 
 Steps:
 
- 1. Let GG = GG(l) be a group with prime-order p of length l bits
- 2. Sample a uniform scalar k <-$ GF(p)
- 3. Output (k,p)
+ 1. Construct a group GG = GG(l) with prime-order p of length l bits
+ 2. k <-$ GF(p)
+ 3. Output (k,GG)
 ~~~
 
 ### OPRF_Blind
@@ -659,12 +678,12 @@ Steps:
 ~~~
 Input:
 
- x: V's PRF input.
+ x: Binary string taken from {0,1}^*.
 
 Output:
 
  r: Random scalar in [1, p - 1].
- M: Blinded representation of x using blind r, an element in GG.
+ M: An element in GG.
 
 Steps:
 
@@ -678,19 +697,17 @@ Steps:
 ~~~
 Input:
 
- k: Evaluator secret key.
+ k: A scalar value taken from [1,p-1].
  M: An element in GG.
- h: optional cofactor (defaults to 1).
 
 Output:
 
- Z: Scalar multiplication of the point M by k, element in GG.
+ Z: An element in GG.
 
 Steps:
 
  1. Z := kM
- 2. Z <- hZ
- 3. Output Z
+ 2. Output Z
 ~~~
 
 ### OPRF_Unblind
@@ -703,7 +720,7 @@ Input:
 
 Output:
 
- N: Unblinded OPRF evaluation, element in GG.
+ N: An element in GG.
 
 Steps:
 
@@ -716,9 +733,9 @@ Steps:
 ~~~
 Input:
 
- x: PRF input string.
+ x: Binary string taken from {0,1}^*.
  N: An element in GG.
- aux: Arbitrary auxiliary data
+ aux: Arbitrary auxiliary data (as bytes).
 
 Output:
 
@@ -746,14 +763,15 @@ Input:
 
 Output:
 
- k: A key chosen from {0,1}^l and interpreted as an integer value.
- (G,Y): A pair of curve points, where Y=kG.
+ k:  A key chosen from {0,1}^l and interpreted as a scalar in [1,p-1].
+ GG: A cyclic group with prime-order p of length l bits.
+ Y:  A group element in GG.
 
 Steps:
 
-  1. (k,p) <- OPRF_Setup(l)
+  1. (k,GG) <- OPRF_Setup(l)
   2. Y := kG
-  3. Output (k,p,Y)
+  3. Output (k,GG,Y)
 ~~~
 
 ### VOPRF_Blind
@@ -766,13 +784,13 @@ Input:
 Output:
 
  r: Random scalar in [1, p - 1].
- M: Blinded representation of x using blind r, an element in GG.
+ M: An element in GG.
 
 Steps:
 
  1.  r <-$ GF(p)
  2.  M := rH_1(x)
- 3.  Output (r, M)
+ 3.  Output (r,M)
 ~~~
 
 ### VOPRF_Eval
@@ -780,15 +798,14 @@ Steps:
 ~~~
 Input:
 
- k: Evaluator secret key.
+ k: A random scalar in [1,p-1].
  G: Public fixed generator of group GG.
- Y: Evaluator public key (= kG).
+ Y: An element in GG.
  M: An element in GG.
- h: optional cofactor (defaults to 1).
 
 Output:
 
- Z: Scalar multiplication of the point M by k, element in GG.
+ Z: An element in GG.
  D: DLEQ proof that log_G(Y) == log_M(Z).
 
 Steps:
@@ -806,20 +823,20 @@ Input:
 
  r: Random scalar in [1, p - 1].
  G: Public fixed generator of group GG.
- Y: Evaluator public key.
- M: Blinded representation of x using blind r, an element in GG.
+ Y: An element in GG.
+ M: An element in GG.
  Z: An element in GG.
- D: D = DLEQ_Generate(k,G,Y,M,Z).
+ D: DLEQ proof object.
 
 Output:
 
- N: Unblinded OPRF evaluation, element in GG.
+ N: An element in GG.
 
 Steps:
 
- 1. N := (r^(-1))Z
- 2. If 1 = DLEQ_Verify(G,Y,M,Z,D), output N
- 3. Output "error"
+ 1. if DLEQ_Verify(G,Y,M,Z,D) == false: output "error"
+ 2. N := (r^(-1))Z
+ 3. Output N
 ~~~
 
 ### VOPRF_Finalize
@@ -827,13 +844,13 @@ Steps:
 ~~~
 Input:
 
- x: PRF input string.
- N: An element in GG, or "error".
- aux: Arbitrary auxiliary data.
+ x:   Binary string in {0,1}^*.
+ N:   An element in GG, or "error".
+ aux: Arbitrary auxiliary data in {0,1}^*.
 
 Output:
 
- y: Random element in {0,1}^L, or "error"
+ y:   Random element in {0,1}^L, or "error"
 
 Steps:
 
@@ -878,11 +895,11 @@ computation of P does not change.
 ~~~
 Input:
 
- G: Public fixed generator of GG
+ G:  Public fixed generator of GG
 
 Output:
 
- r: Random scalar in [1, p-1]
+ r:  Random scalar in [1, p-1]
  rG: An element in GG.
  rY: An element in GG.
 
@@ -897,12 +914,12 @@ Steps:
 ~~~
 Input:
 
- x: V's PRF input.
- rG: Preprocessed element of GG.
+ x:  Binary string in {0,1}^*.
+ rG: An element in GG.
 
 Output:
 
- M: Blinded representation of x using blind r, an element in GG.
+ M: An element in GG.
 
 Steps:
 
@@ -915,13 +932,13 @@ Steps:
 ~~~
 Input:
 
- rY: Preprocessed element of GG.
- M: Blinded representation of x using rG, an element in GG.
- Z: An element in GG.
+ rY: An element in GG.
+ M:  An element in GG.
+ Z:  An element in GG.
 
 Output:
 
- N: Unblinded OPRF evaluation, element in GG.
+ N: An element in GG.
 
 Steps:
 
@@ -1094,14 +1111,14 @@ Steps:
  4. Output c == c' (mod p)
 ~~~
 
-## Batched VOPRF evaluation {#batch}
+# Batched VOPRF evaluation {#batch}
 
 Common applications (e.g. {{PrivacyPass}}) require V to obtain multiple PRF
-evaluations from P. In the VOPRF case, this would also require generation and
-verification of a DLEQ proof for each Zi received by V. This is costly, both in
-terms of computation and communication. To get around this, applications use a
-'batching' procedure for generating and verifying DLEQ proofs for a finite
-number of PRF evaluation pairs (Mi,Zi). For n PRF evaluations:
+evaluations from P. In the VOPRF case, this would naïvely require running
+multiple protocol invocations. This is costly, both in terms of computation and
+communication. To get around this, applications can use a 'batching' procedure
+for generating and verifying DLEQ proofs for a finite number of PRF evaluation
+pairs (Mi,Zi). For n PRF evaluations:
 
 - Proof generation is slightly more expensive from 2n modular exponentiations to
   2n+2.
@@ -1109,28 +1126,30 @@ number of PRF evaluation pairs (Mi,Zi). For n PRF evaluations:
   2n+4.
 - Communications falls from 2n to 2 group elements.
 
-Therefore, since P is usually a powerful server, we can tolerate a slight
-increase in proof generation complexity for much more efficient communication
-and proof verification.
+Since P is the VOPRF server, it may be able to tolerate a slight increase in
+proof generation complexity for much more efficient communication and proof
+verification.
 
 In this section, we describe algorithms for batching the DLEQ generation and
-verification procedure. For these algorithms we require an additional random
-oracle H_5: {0,1}^a x ZZ^3 -> {0,1}^b that takes an inputs of a binary string of
-length a and three integer values, and outputs an element in {0,1}^b.
+verification procedure. For these algorithms we require two additional hash
+functions H_4: GG^(2n+2) -> {0,1}^a, and H_5: {0,1}^a x ZZ^3 -> {0,1}^b (both
+modeled as random oracles).
 
 We can instantiate the random oracle function H_4 using the same hash function
-that is used for H_1,H_2,H_3. For H_5, we can also use a similar instantiation,
-or we can use a variable-length output generator. For example, for groups with
-an order of 256-bit, valid instantiations include functions such as SHAKE-256
-{{SHAKE}} or HKDF-Expand-SHA256 {{RFC5869}}.
+that is used for H_3 previosuly. For H_5, we can also use a similar
+instantiation, or we can use a variable-length output generator. For example,
+for groups with an order of 256-bit, valid instantiations include functions such
+as SHAKE-256 {{SHAKE}} or HKDF-Expand-SHA256 {{RFC5869}}. This is preferable in
+situations where we may require outputs that are larger than 512 bits in length,
+for example.
 
-### Batched_DLEQ_Generate
+## Batched_DLEQ_Generate
 
 ~~~
 Input:
 
  k: Evaluator secret key.
- G: Public fixed generator of group GG.
+ G: Public fixed generator of group GG (with order p).
  Y: Evaluator public key (= kG).
  n: Number of PRF evaluations.
  [ Mi ]: An array of points in GG of length n.
@@ -1146,19 +1165,25 @@ Output:
 Steps:
 
  1. seed <- H_4(G,Y,[Mi,Zi]))
- 2. for i in [n]: di <- H_5(seed,i,label)
- 3. c1,...,cn := (int)d1,...,(int)dn
- 4. M := c1M1 + ... + cnMn
- 5. Z := c1Z1 + ... + cnZn
- 6. Output D <- DLEQ_Generate(k,G,Y,M,Z)
+ 2. i' := i
+ 3. for i in [n]:
+    1. di <- H_5(seed,i',info)
+    2. if di > p:
+       1. i' = i'+1
+       2. i = i-1 // decrement and try again
+       3. continue
+ 4. c1,...,cn := (int)d1,...,(int)dn
+ 5. M := c1M1 + ... + cnMn
+ 6. Z := c1Z1 + ... + cnZn
+ 7. Output DLEQ_Generate(k,G,Y,M,Z)
 ~~~
 
-### DLEQ_Batched_Verify
+## DLEQ_Batched_Verify
 
 ~~~
 Input:
 
- G: Public fixed generator of group GG.
+ G: Public fixed generator of group GG (with order p).
  Y: Evaluator public key.
  [ Mi ]: An array of points in GG of length n.
  [ Zi ]: An array of points in GG of length n.
@@ -1184,16 +1209,95 @@ Steps:
  7. Output DLEQ_Verify(G,Y,M,Z,D)
 ~~~
 
-### Modified protocol execution
+## Modified algorithms
 
 The VOPRF protocol from Section {{protocol}} changes to allow specifying
 multiple blinded PRF inputs [ Mi ] for i in 1...n. P computes the array [ Zi ]
-and replaces DLEQ_Generate with DLEQ_Batched_Generate over these arrays. The
-same applies to the algorithm VOPRF_Eval. The same applies for replacing
-DLEQ_Verify with DLEQ_Batched_Verify when V verifies the response from P and
-during the algorithm VOPRF_Unblind.
+and replaces DLEQ_Generate with DLEQ_Batched_Generate over these arrays.
+Concretely, we modify the following algorithms:
 
-### Random oracle instantiations for proofs
+### VOPRF_Blind
+
+~~~
+Input:
+
+ [ xi ]: An array of m binary strings taken from {0,1}^*.
+
+Output:
+
+ [ ri ]: An array of m random scalars in [1, p - 1].
+ [ Mi ]: An array of elements in GG.
+
+Steps:
+
+ 1.  groupElems = []
+ 2.  blinds = []
+ 3.  for i in [m]:
+     1.  ri <-$ GF(p)
+     2.  Mi := rH_1(xi)
+     3.  blinds.push(ri)
+     4.  groupElems.push(Mi)
+ 4.  Output (blinds, groupElems)
+~~~
+
+### VOPRF_Eval
+
+~~~
+Input:
+
+ k:      Evaluator secret key.
+ G:      Public fixed generator of group GG.
+ Y:      Evaluator public key (= kG).
+ [ Mi ]: An array of m elements in GG.
+
+Output:
+
+ [ Zi ]: An array of m elements in GG.
+ D:      Batched DLEQ proof object.
+
+Steps:
+
+ 1.  outputElems = []
+ 2.  for i in [m]:
+     1. Zi := kMi
+     2. outputElems.push(Zi)
+ 3. D = Batched_DLEQ_Generate(k,G,Y,[ Mi ],outputElems)
+ 4. Output (outputElems, D)
+~~~
+
+### VOPRF_Unblind
+
+~~~
+Input:
+
+ G:      Public fixed generator of group GG.
+ Y:      Evaluator public key (= kG).
+ [ Mi ]: An array of m elements in GG.
+ [ Zi ]: An array of m elements in GG.
+ [ ri ]: An array of m random scalars in [1, p - 1].
+ D:      Batched DLEQ proof object.
+
+Output:
+
+ [ Ni ]: An array of n elements in GG.
+
+Steps:
+
+ 1. if !Batch_DLEQ_Verify(G,Y,[ Mi ],[ Zi ],D): Output "error"
+ 2. N = []
+ 3.  for i in [m]:
+     1. Ni := (ri^(-1))Zi
+     2. N.push(Ni)
+ 4. Output N
+~~~
+
+### VOPRF_Finalize
+
+The description of this algorithm does not change in the batched case. Instead,
+the protocol description in {{general-voprf}} changes so that `VOPRF_Finalize`
+runs once for each of the outputs of `VOPRF_Unblind`.
+
+## Random oracle instantiations for proofs
 
 We can instantiate the random oracle function H_4 using the same hash function
 that is used for H_1,H_2,H_3. For H_5, we can also use a similar instantiation,
