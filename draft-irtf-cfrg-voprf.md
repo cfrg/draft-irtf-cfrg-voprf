@@ -42,6 +42,7 @@ normative:
   RFC2119:
   RFC5869:
   RFC7748:
+  RFC8017:
   I-D.irtf-cfrg-hash-to-curve:
   NIST:
     title: Keylength - NIST Report on Cryptographic Key Length and Cryptoperiod (2016)
@@ -441,12 +442,16 @@ We detail a list of conventions that we use throughout this document.
 
 ### Group notation
 
-- We use the letter p to denote the order of a group GG throughout, where the
-  instantiation of the specific group is defined by context.
+- We reserve the usage of the notation GG for prime-order additive groups.
+- We reserve the letter n to denote the order of the group GG (otherwise written
+  order(GG)).
+- We reserve the letter p to denote the order of the underlying Galois Field
+  associated with the group GG throughout. Formally, we use GF(p) to denote the
+  Galois Field of scalar values associated with the group GG.
+- We let byteLength(GF(p)) = (p+7)/8 refer to the number of bytes needed to
+  write all elements in GF(p).
 - For elements A & B of GG, we write A + B to denote the addition of thr group
   elements.
-- We use GF(p) to denote the Galois Field of scalar values associated with the
-  group GG.
 - For a scalar r in GF(p), and a group element A, we write rA to denote the
   scalar multiplication of A.
 - For two scalars r, s in GF(p), we use r+s to denote the resulting scalar in
@@ -872,6 +877,10 @@ Steps:
  4. Output (Z, D)
 ~~~
 
+Internal functions:
+
+ - DLEQ_Generate: {{dleq-generate}}
+
 ### VOPRF_Unblind
 
 ~~~
@@ -894,6 +903,10 @@ Steps:
  2. N := (r^(-1))Z
  3. Output N
 ~~~
+
+Internal functions:
+
+ - DLEQ_Verify: {{dleq-verify}}
 
 ### VOPRF_Finalize
 
@@ -1113,7 +1126,7 @@ discrete logarithm equality (DLEQ) algorithm built on a Chaum-Pedersen
 {{ChaumPedersen}} proof. This proof is divided into two procedures:
 DLEQ_Generate and DLEQ_Verify. These are specified below.
 
-## DLEQ_Generate
+## DLEQ_Generate {#dleq-generate}
 
 ~~~
 Input:
@@ -1123,7 +1136,6 @@ Input:
  Y: Evaluator public key (= kG).
  M: An element in GG.
  Z: An element in GG.
- H_3: A hash function from GG to {0,1}^L, modeled as a random oracle.
 
 Output:
 
@@ -1134,17 +1146,26 @@ Steps:
  1. r <-$ GF(p)
  2. A := rG
  3. B := rM
- 4. c <- H_3(G,Y,M,Z,A,B) (mod p)
- 5. s := (r - ck) (mod p)
- 6. Output D := (c, s)
+ 4. seed <- H_3(G,Y,M,Z,A,B) (mod p)
+ 5. label := bytes("voprf_dleq_challenge")
+ 6. ctr := 1
+ 7. c, _ := hash_to_field(seed, label, ctr)
+ 8. s := (r - ck) (mod p)
+ 9. Output D := (c, s)
 ~~~
+
+Internal functions:
+
+ - H_3:           A map from GG^6 to {0,1}^a.
+ - hash_to_field: A map from {0,1}^a x {0,1}^* x ZZ to {0,1}^b,
+                  where b = byteLength(GF(p)) ({{hash-to-field}}).
 
 We note here that it is essential that a different r value is used for every
 invocation. If this is not done, then this may leak the key k in a similar
 fashion as is possible in Schnorr or (EC)DSA scenarios where fresh randomness is
 not used.
 
-## DLEQ_Verify
+## DLEQ_Verify {#dleq-verify}
 
 ~~~
 Input:
@@ -1163,9 +1184,18 @@ Steps:
 
  1. A' := (sG + cY)
  2. B' := (sM + cZ)
- 3. c' <- H_3(G,Y,M,Z,A',B') (mod p)
+ 3. seed <- H_3(G,Y,M,Z,A,B) (mod p)
+ 5. label := bytes("voprf_dleq_challenge")
+ 6. ctr := 1
+ 7. c', _ := hash_to_field(seed, label, ctr)
  4. Output c == c' (mod p)
 ~~~
+
+Internal functions:
+
+ - H_3:           A map from GG^6 to {0,1}^a.
+ - hash_to_field: A map from {0,1}^a x {0,1}^* x ZZ to {0,1}^b,
+                  where b = byteLength(GF(p)) ({{hash-to-field}}).
 
 # Batched VOPRF evaluation {#batch}
 
@@ -1188,8 +1218,8 @@ verification.
 
 In this section, we describe algorithms for batching the DLEQ generation and
 verification procedure. For these algorithms we require two additional hash
-functions H_4: GG^(2n+2) -> {0,1}^a, and H_5: {0,1}^a x ZZ^3 -> {0,1}^b (both
-modeled as random oracles).
+functions H_4: GG^(2n+2) -> {0,1}^a, and H_5: {0,1}^a x ZZ^3 -> {0,1}^b where b
+= byteLength(GF(p)) (both functions modeled as random oracles).
 
 We can instantiate the random oracle function H_4 using the same hash function
 that is used for H_3 previosuly. For H_5, we can also use a similar
@@ -1199,20 +1229,18 @@ as SHAKE-256 {{SHAKE}} or HKDF-Expand-SHA256 {{RFC5869}}. This is preferable in
 situations where we may require outputs that are larger than 512 bits in length,
 for example.
 
-## Batched_DLEQ_Generate
+## Batched_DLEQ_Generate {#batch-generate}
 
 ~~~
 Input:
 
- k: Evaluator secret key.
- G: Public fixed generator of group GG (with order p).
- Y: Evaluator public key (= kG).
- n: Number of PRF evaluations.
+ k:      Evaluator secret key.
+ G:      Public fixed generator of group GG (with order p).
+ Y:      Evaluator public key (= kG).
+ n:      Number of PRF evaluations.
  [ Mi ]: An array of points in GG of length n.
  [ Zi ]: An array of points in GG of length n.
- H_4: A hash function from GG^(2n+2) to {0,1}^a, modeled as a random oracle.
- H_5: A hash function from {0,1}^a x ZZ^2 to {0,1}^b, modeled as a random oracle.
- label: An integer label value for the splitting the domain of H_5
+ label:  An integer label value for the splitting the domain of H_5
 
 Output:
 
@@ -1221,29 +1249,34 @@ Output:
 Steps:
 
  1. seed <- H_4(G,Y,[Mi,Zi]))
- 2. i' := i
- 3. for i in [m]:
-    1. di <- H_5(seed,i',info)
-    2. if di > p:
-       1. i' = i'+1
-       2. i = i-1 // decrement and try again
-       3. continue
- 4. c1,...,cn := (int)d1,...,(int)dn
- 5. M := c1M1 + ... + cnMn
- 6. Z := c1Z1 + ... + cnZn
- 7. Output DLEQ_Generate(k,G,Y,M,Z)
+ 2. ctr := 1
+ 3. d = []
+ 4. for i in [m]:
+    1. label := bytes("voprf_batch_dleq")
+    2. di, ctr := hash_to_field(seed, label, ctr)
+    3. d[i] = di;
+ 5. c1,...,cm := (int)d[0],...,(int)d[m-1]
+ 6. M := c1M1 + ... + cmMm
+ 7. Z := c1Z1 + ... + cmZm
+ 8. Output DLEQ_Generate(k,G,Y,M,Z)
 ~~~
 
-## DLEQ_Batched_Verify
+Internal functions:
+
+ - H_4:           A map from GG^(2n+2) to {0,1}^a.
+ - hash_to_field: A map from {0,1}^a x {0,1}^* x ZZ to {0,1}^b,
+                  where b = byteLength(GF(p)) ({{hash-to-field}}).
+
+## DLEQ_Batched_Verify {#batch-verify}
 
 ~~~
 Input:
 
- G: Public fixed generator of group GG (with order p).
- Y: Evaluator public key.
+ G:      Public fixed generator of group GG (with order p).
+ Y:      Evaluator public key.
  [ Mi ]: An array of points in GG of length n.
  [ Zi ]: An array of points in GG of length n.
- D: DLEQ proof (c, s).
+ D:      DLEQ proof (c, s).
 
 Output:
 
@@ -1252,18 +1285,23 @@ Output:
 Steps:
 
  1. seed <- H_4(G,Y,[Mi,Zi]))
- 2. i' := i
- 3. for i in [m]:
-    1. di <- H_5(seed,i',info)
-    2. if di > p:
-       1. i' = i'+1
-       2. i = i-1 // decrement and try again
-       3. continue
- 4. c1,...,cn := (int)d1,...,(int)dn
- 5. M := c1M1 + ... + cnMn
- 6. Z := c1Z1 + ... + cnZn
- 7. Output DLEQ_Verify(G,Y,M,Z,D)
+ 2. ctr := 1
+ 3. d = []
+ 4. for i in [m]:
+    1. label := bytes("voprf_batch_dleq")
+    2. di, ctr := hash_to_field(seed, label, ctr)
+    3. d[i] = di;
+ 5. c1,...,cm := (int)d1,...,(int)dm
+ 6. M := c1M1 + ... + cmMm
+ 7. Z := c1Z1 + ... + cmZm
+ 8. Output DLEQ_Verify(G,Y,M,Z,D)
 ~~~
+
+Internal functions:
+
+ - H_4:           A map from GG^(2n+2) to {0,1}^a.
+ - hash_to_field: A map from {0,1}^a x {0,1}^* x ZZ to {0,1}^b,
+                  where b = byteLength(GF(p)) ({{hash-to-field}}).
 
 ## Modified algorithms
 
@@ -1321,6 +1359,10 @@ Steps:
  4. Output (outputElems, D)
 ~~~
 
+Internal functions:
+
+ - Batched_DLEQ_Generate: {{batch-generate}}
+
 ### VOPRF_Unblind
 
 ~~~
@@ -1346,6 +1388,10 @@ Steps:
      2. N.push(Ni)
  4. Output N
 ~~~
+
+Internal functions:
+
+ - Batched_DLEQ_Verify: {{batch-verify}}
 
 ### VOPRF_Finalize
 
@@ -1401,7 +1447,7 @@ consider ciphersuites that provide strictly greater than 128 bits of security
 - H_2: HMAC_SHA512 {{RFC2104}}
 - H_3: SHA512
 - H_4: SHA512
-- H_5: HKDF-Expand-SHA512
+- H_5: HKDF-Expand-SHA512 (used in {{hash-to-field}})
 
 ## VOPRF-p384-HKDF-SHA512-ICART:
 
@@ -1411,7 +1457,7 @@ consider ciphersuites that provide strictly greater than 128 bits of security
 - H_2: HMAC_SHA512 {{RFC2104}}
 - H_3: SHA512
 - H_4: SHA512
-- H_5: HKDF-Expand-SHA512
+- H_5: HKDF-Expand-SHA512 (used in {{hash-to-field}})
 
 ## VOPRF-p521-HKDF-SHA512-SSWU:
 
@@ -1421,7 +1467,7 @@ consider ciphersuites that provide strictly greater than 128 bits of security
 - H_2: HMAC_SHA512 {{RFC2104}}
 - H_3: SHA512
 - H_4: SHA512
-- H_5: HKDF-Expand-SHA512
+- H_5: HKDF-Expand-SHA512 (used in {{hash-to-field}})
 
 We remark that the 'label' field is necessary for domain separation of the
 hash-to-curve functionality.
@@ -1550,11 +1596,11 @@ Below, we recommend the following proposed JSON structure for holding public
 commitment data.
 
 ~~~
-{
-  "Y": <bytes_of_commitment>,
-  "expiry": <date-of-expiry>,
-  "sig": <commitment_signature>
-}
+  {
+    "Y": <bytes_of_commitment>,
+    "expiry": <date-of-expiry>,
+    "sig": <commitment_signature>
+  }
 ~~~
 
 This data should be retrieved and validated by the client when verifying VOPRF
@@ -1627,19 +1673,19 @@ Gap DH is computationally difficult to solve.
 The (N,Q)-One-More Gap DH (OMDH) problem asks the following.
 
 ~~~
-    Given:
-    - G, kG, G_1, ... , G_N where G, G1, ... GN are elements of the group GG;
-    - oracle access to an OPRF functionality using the key k;
-    - oracle access to DDH solvers.
+  Given:
+  - G, kG, G_1, ... , G_N where G, G1, ... GN are elements of the group GG;
+  - oracle access to an OPRF functionality using the key k;
+  - oracle access to DDH solvers.
 
-    Find Q+1 pairs of the form below:
+  Find Q+1 pairs of the form below:
 
-    (G_{j_s}, kG_{j_s})
+  (G_{j_s}, kG_{j_s})
 
-    where the following conditions hold:
-      - s is a number between 1 and Q+1;
-      - j_s is a number between 1 and N for each s;
-      - Q is the number of allowed queries.
+  where the following conditions hold:
+    - s is a number between 1 and Q+1;
+    - j_s is a number between 1 and N for each s;
+    - Q is the number of allowed queries.
 ~~~
 
 The original paper {{JKK14}} gives a security proof that the 2HashDH-NIZK
@@ -1655,9 +1701,9 @@ constructing Q-strong-DH (Q-sDH) samples. The Q-Strong-DH problem asks the
 following.
 
 ~~~
-    Given G1, G2, h*G2, (h^2)*G2, ..., (h^Q)*G2; for G1 and G2 generators of GG.
+  Given G1, G2, h*G2, (h^2)*G2, ..., (h^Q)*G2; for G1 and G2 generators of GG.
 
-    Output ( (1/(k+c))*G1, c ) where c is an element of FFp
+  Output ( (1/(k+c))*G1, c ) where c is an element of FFp
 ~~~
 
 The assumption that this problem is hard was first introduced in {{BB04}}. Since
@@ -1872,6 +1918,48 @@ Krawczyk. Eli-Shaoul Khedouri provided additional review and comments on key
 consistency.
 
 --- back
+
+# Utility functions
+
+We give a list of utility functions that are used throughout.
+
+## hash_to_field {#hash-to-field}
+
+Sample a scalar from GF(p) based on a counter value, the counter is incremented
+every time the internal loop is run and then output at the end.
+
+~~~
+Inputs:
+
+ seed:    A binary string in {0,1}^*.
+ label:   A binary string in {0,1}^*.
+ ctr:     An integer value.
+ H_5:     A map from {0,1}^* to {0,1}^b, where b = byteLength(GF(p))
+
+Outputs:
+
+ d:       A scalar value in GF(p)
+ octr:    An integer value.
+
+Steps:
+
+  1. d = null
+  2. if d > p or d == null:
+    1. info := I2osp(ctr,4) .. label;
+    2. d <- H_5(seed,info);
+    3. ctr = ctr+1;
+    4. continue;
+  3. Output (d, ctr);
+~~~
+
+Internal functions:
+
+ - I2osp: {{i2osp}}
+
+## I2osp {#i2osp}
+
+This is the I2osp function as defined in {{RFC8017}} that converts integers `x`
+into byte arrays of length `xLen`.
 
 # Test Vectors {#testvecs}
 
