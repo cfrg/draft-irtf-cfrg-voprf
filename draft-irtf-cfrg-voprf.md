@@ -1,7 +1,7 @@
 ---
 title: Oblivious Pseudorandom Functions (OPRFs) using Prime-Order Groups
 abbrev: OPRFs
-docname: draft-irtf-cfrg-voprf-latest-00
+docname: draft-irtf-cfrg-voprf-latest
 date:
 category: info
 
