@@ -550,27 +550,27 @@ embedding (V)OPRF protocols into wider protocols in {{embed}}.
 
 This protocol may be decomposed into a series of steps, as described below:
 
-- OPRF_Setup(l): Let GG=GG(l) be a group with a prime-order p=p(l) (e.g., p is
+- Setup(l): Let GG=GG(l) be a group with a prime-order p=p(l) (e.g., p is
   l-bits long). Randomly sample an integer k in GF(p) and output (k,GG)
-- OPRF_Blind(x): Compute and return a blind, r, and blinded representation of x
+- Blind(x): Compute and return a blind, r, and blinded representation of x
   in GG, denoted M.
-- OPRF_Eval(k,M,h?): Evaluates on input M using secret key k to produce Z, the
+- Evaluate(k,M,h?): Evaluates on input M using secret key k to produce Z, the
   input h is optional and equal to the cofactor of an elliptic curve. If h is
   not provided then it defaults to 1.
-- OPRF_Unblind(r,Z): Unblind blinded OPRF evaluation Z with blind r, yielding N
+- Unblind(r,Z): Unblind blinded OPRF evaluation Z with blind r, yielding N
   and output N.
-- OPRF_Finalize(x,N,aux): Finalize N by first computing dk := H_2(DST, x .. N).
+- Finalize(x,N,aux): Finalize N by first computing dk := H_2(DST, x .. N).
   Subsequently output y := H_2(dk, aux), where aux is some auxiliary data.
 
-For verifiability (VOPRF) we modify the algorithms of VOPRF_Setup, VOPRF_Eval
-and VOPRF_Unblind to be the following:
+For verifiability (VOPRF) we modify the algorithms of VerifiableSetup, VerifiableEvaluate
+and VerifiableUnblind to be the following:
 
-- VOPRF_Setup(l): Run (k,GG) = OPRF_Setup(l), compute Y = kG, where G is a
+- VerifiableSetup(l): Run (k,GG) = Setup(l), compute Y = kG, where G is a
   generator of the group GG. Output (k,GG,Y).
-- VOPRF_Eval(k,G,Y,M,h?): Evaluates on input M using secret key k to produce Z.
+- VerifiableEvaluate(k,G,Y,M,h?): Evaluates on input M using secret key k to produce Z.
   Generate a NIZK proof D = DLEQ_Generate(k,G,Y,M,Z), and output (Z, D). The
-  optional cofactor h can also be provided, as in OPRF_Eval.
-- VOPRF_Unblind(r,G,Y,M,Z,D): Unblind blinded OPRF evaluation Z with blind r,
+  optional cofactor h can also be provided, as in Evaluate.
+- VerifiableUnblind(r,G,Y,M,Z,D): Unblind blinded OPRF evaluation Z with blind r,
   yielding N. Output N if 1 = DLEQ_Verify(G,Y,M,Z,D). Otherwise, output "error".
 
 We leave the rest of the OPRF algorithms unmodified. When referring explicitly
@@ -589,7 +589,7 @@ OPRF setup phase:
 ~~~
      Verifier()                   Prover(l)
   ----------------------------------------------------------
-                                  (k,GG) = OPRF_Setup(l)
+                                  (k,GG) = Setup(l)
                            GG
                         <-------
 ~~~
@@ -599,17 +599,17 @@ OPRF evaluation phase:
 ~~~
      Verifier(x,aux)                   Prover(k)
   ----------------------------------------------------------
-     (r, M) = OPRF_Blind(x)
+     (r, M) = Blind(x)
                             M
                         ------->
-                                  Z = OPRF_Eval(k,M)
+                                  Z = Evaluate(k,M)
                             Z
                         <-------
-    N = OPRF_Unblind(r,Z)
-    Output OPRF_Finalize(x,N,aux)
+    N = Unblind(r,Z)
+    Output Finalize(x,N,aux)
 ~~~
 
-Note that in the final output, the client computes OPRF_Finalize over some
+Note that in the final output, the client computes Finalize over some
 auxiliary input data aux.
 
 ### Generalized VOPRF {#general-voprf}
@@ -617,7 +617,7 @@ auxiliary input data aux.
 The generalized VOPRF functionality differs slightly from the OPRF protocol
 above. Firstly, the server sends over an extra commitment value Y = kG, where G
 is a common generator known to both participants. Secondly, the server sends
-over both outputs from VOPRF_Eval in the evaluation phase, and the client also
+over both outputs from VerifiableEvaluate in the evaluation phase, and the client also
 verifies the server's output.
 
 VOPRF setup phase:
@@ -625,7 +625,7 @@ VOPRF setup phase:
 ~~~
      Verifier()                   Prover(l)
   ----------------------------------------------------------
-                                  (k,GG,Y) = VOPRF_Setup(l)
+                                  (k,GG,Y) = VerifiableSetup(l)
                          (GG,Y)
                         <-------
 ~~~
@@ -635,23 +635,23 @@ VOPRF evaluation phase:
 ~~~
      Verifier(x,Y,aux)            Prover(k)
   ----------------------------------------------------------
-     (r, M) = VOPRF_Blind(x)
+     (r, M) = VerifiableBlind(x)
                             M
                         ------->
-                                  (Z,D) = VOPRF_Eval(k,G,Y,M)
+                                  (Z,D) = VerifiableEvaluate(k,G,Y,M)
                           (Z,D)
                         <-------
-    N = VOPRF_Unblind(r,G,Y,M,Z,D)
-    Output VOPRF_Finalize(x,N,aux)
+    N = VerifiableUnblind(r,G,Y,M,Z,D)
+    Output VerifiableFinalize(x,N,aux)
 ~~~
 
 ## Protocol correctness
 
 Protocol correctness requires that, for any key k, input x, and (r, M) =
-OPRF_Blind(x), it must be true that:
+Blind(x), it must be true that:
 
 ~~~
-  OPRF_Finalize(x, OPRF_Unblind(r,M,OPRF_Eval(k,M)), aux)
+  Finalize(x, Unblind(r,M,Evaluate(k,M)), aux)
       == H_2(H_2(DST, x .. F(k,x)), aux)
 ~~~
 
@@ -659,11 +659,11 @@ with overwhelming probability. Likewise, in the verifiable setting, we require
 that:
 
 ~~~
-  VOPRF_Finalize(x, VOPRF_Unblind(r,G,Y,M,(VOPRF_Eval(k,G,Y,M))), aux)
+  VerifiableFinalize(x, VerifiableUnblind(r,G,Y,M,(VerifiableEvaluate(k,G,Y,M))), aux)
       == H_2(H_2(DST, x .. F(k,x)), aux)
 ~~~
 
-with overwhelming probability, where (r, M) = VOPRF_Blind(x). In other words,
+with overwhelming probability, where (r, M) = VerifiableBlind(x). In other words,
 the inner H_2 invocation effectively derives a key, dk, from the input data DST,
 x, N. The outer invocation derives the output y by evaluating H_2 over dk and
 auxiliary data aux.
@@ -709,7 +709,7 @@ We note here that the blinding mechanism that we use can be modified slightly
 with the opportunity for making performance gains in some scenarios. We detail
 these modifications in Section {{blinding}}.
 
-### OPRF_Setup
+### Setup
 
 ~~~
 Input:
@@ -729,7 +729,7 @@ Steps:
  3. Output (k,GG)
 ~~~
 
-### OPRF_Blind
+### Blind
 
 ~~~
 Input:
@@ -748,7 +748,7 @@ Steps:
  3.  Output (r, M)
 ~~~
 
-### OPRF_Eval
+### Evaluate
 
 ~~~
 Input:
@@ -766,7 +766,7 @@ Steps:
  2. Output Z
 ~~~
 
-### OPRF_Unblind
+### Unblind
 
 ~~~
 Input:
@@ -784,7 +784,7 @@ Steps:
  2. Output N
 ~~~
 
-### OPRF_Finalize
+### Finalize
 
 ~~~
 Input:
@@ -809,7 +809,7 @@ Steps:
 
 We make modifications to the aforementioned algorithms in the VOPRF setting.
 
-### VOPRF_Setup
+### VerifiableSetup
 
 ~~~
 Input:
@@ -825,12 +825,12 @@ Output:
 
 Steps:
 
-  1. (k,GG) <- OPRF_Setup(l)
+  1. (k,GG) <- Setup(l)
   2. Y := kG
   3. Output (k,GG,Y)
 ~~~
 
-### VOPRF_Blind
+### VerifiableBlind
 
 ~~~
 Input:
@@ -849,7 +849,7 @@ Steps:
  3.  Output (r,M)
 ~~~
 
-### VOPRF_Eval
+### VerifiableEvaluate
 
 ~~~
 Input:
@@ -872,7 +872,7 @@ Steps:
  4. Output (Z, D)
 ~~~
 
-### VOPRF_Unblind
+### VerifiableUnblind
 
 ~~~
 Input:
@@ -895,7 +895,7 @@ Steps:
  3. Output N
 ~~~
 
-### VOPRF_Finalize
+### VerifiableFinalize
 
 ~~~
 Input:
@@ -937,16 +937,16 @@ these values rG (where r is the scalar value that is used), then computing
 H_1(x)+rG is more efficient than computing rH_1(x) (one addition against
 log_2(r)). Therefore, it may be advantageous to define the OPRF and VOPRF
 protocols using additive blinding rather than multiplicative blinding. In fact,
-the only algorithms that need to change are OPRF_Blind and OPRF_Unblind (and
+the only algorithms that need to change are Blind and Unblind (and
 similarly for the VOPRF variants).
 
 We define the FBB variants of the algorithms in {{oprf}} below along with a new
-algorithm OPRF_Preprocess that defines how preprocessing is carried out. The
+algorithm Preprocess that defines how preprocessing is carried out. The
 equivalent algorithms for VOPRF are almost identical and so we do not redefine
 them here. Notice that the only computation that changes is for V, the necessary
 computation of P does not change.
 
-### OPRF_Preprocess
+### Preprocess
 
 ~~~
 Input:
@@ -965,7 +965,7 @@ Steps:
  2.  Output (r, rG, rY)
 ~~~
 
-### OPRF_Blind
+### Blind
 
 ~~~
 Input:
@@ -983,7 +983,7 @@ Steps:
  2.  Output M
 ~~~
 
-### OPRF_Unblind
+### Unblind
 
 ~~~
 Input:
@@ -1002,9 +1002,9 @@ Steps:
  2. Output N
 ~~~
 
-Notice that OPRF_Unblind computes (Z-rY) = k(H_1(x)+rG) - rkG = kH_1(x) by the
+Notice that Unblind computes (Z-rY) = k(H_1(x)+rG) - rkG = kH_1(x) by the
 commutativity of scalar multiplication in GG. This is the same output as in the
-original OPRF_Unblind algorithm.
+original Unblind algorithm.
 
 ## Recommended protocol integration {#embed}
 
@@ -1067,8 +1067,8 @@ The evaluation phase of the OPRF results in a client receiving pseudorandom
 function evaluations from the server. It is important that the client is able to
 link the computation that it performs in the first step, with the output that it
 receives from the server. In other words, the client must store the data (r,M)
-output by OPRF_Blind(x). When it receives Z from the server, it must then use
-(r,M) as inputs to OPRF_Blind.
+output by Blind(x). When it receives Z from the server, it must then use
+(r,M) as inputs to Blind.
 
 In the batched setting, the client stores multiple values (ri,Mi) and sends each
 Mi to the server. Both client and server should preserve this ordering
@@ -1101,8 +1101,8 @@ contents of D correctly.
 
 For the VOPRF protocol we require that V is able to verify that P has used its
 private key k to evaluate the PRF. We can do this by showing that the original
-commitment (G,Y) output by VOPRF_Setup(l) satisfies log_G(Y) == log_M(Z) where Z
-is the output of VOPRF_Eval(k,G,Y,M).
+commitment (G,Y) output by VerifiableSetup(l) satisfies log_G(Y) == log_M(Z) where Z
+is the output of VerifiableEvaluate(k,G,Y,M).
 
 This may be used, for example, to ensure that P uses the same private key for
 computing the VOPRF output and does not attempt to "tag" individual verifiers
@@ -1272,7 +1272,7 @@ multiple blinded PRF inputs `[ Mi ]` for i in 1...n. P computes the array `[ Zi
 ]` and replaces DLEQ_Generate with DLEQ_Batched_Generate over these arrays.
 Concretely, we modify the following algorithms:
 
-### VOPRF_Blind
+### VerifiableBlind
 
 ~~~
 Input:
@@ -1296,7 +1296,7 @@ Steps:
  4.  Output (blinds, groupElems)
 ~~~
 
-### VOPRF_Eval
+### VerifiableEvaluate
 
 ~~~
 Input:
@@ -1321,7 +1321,7 @@ Steps:
  4. Output (outputElems, D)
 ~~~
 
-### VOPRF_Unblind
+### VerifiableUnblind
 
 ~~~
 Input:
@@ -1347,11 +1347,11 @@ Steps:
  4. Output N
 ~~~
 
-### VOPRF_Finalize
+### VerifiableFinalize
 
 The description of this algorithm does not change in the batched case. Instead,
-the protocol description in {{general-voprf}} changes so that `VOPRF_Finalize`
-runs once for each of the outputs of `VOPRF_Unblind`.
+the protocol description in {{general-voprf}} changes so that `VerifiableFinalize`
+runs once for each of the outputs of `VerifiableUnblind`.
 
 ## Random oracle instantiations for proofs
 
@@ -1511,8 +1511,8 @@ The evaluation phase of the OPRF results in a client receiving pseudorandom
 function evaluations from the server. It is important that the client is able to
 link the computation that it performs in the first step, with the output that it
 receives from the server. In other words, the client must store the data (r,M)
-output by OPRF_Blind(x). When it receives Z from the server, it must then use
-(r,M) as inputs to OPRF_Blind.
+output by Blind(x). When it receives Z from the server, it must then use
+(r,M) as inputs to Blind.
 
 In the batched setting, the client stores multiple values (ri,Mi) and sends each
 Mi to the server. Both client and server should preserve this ordering
@@ -1867,7 +1867,7 @@ protocol. For more details, see {{DGSTV18}}.
 ## Private Password Checker
 
 In this application, let D be a collection of plaintext passwords obtained by
-prover P. For each password p in D, P computes VOPRF_Eval on H_1(p), where H_1
+prover P. For each password p in D, P computes VerifiableEvaluate on H_1(p), where H_1
 is as described above, and stores the result in a separate collection D'. P then
 publishes D' with Y, its public key. If a client C wishes to query D' for a
 password p', it runs the VOPRF protocol using p as input x to obtain output y.
