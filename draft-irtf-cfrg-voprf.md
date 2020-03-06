@@ -432,7 +432,7 @@ implementation issues that introduce inherent discrepancies between
 standard prime-order groups and the elliptic curve instantiation. In
 this document, all algorithms that we detail assume that the group is a
 prime-order group, and this MUST be upheld by any implementer. That is,
-any curve instantiation shoudl be written such that any discrepancies
+any curve instantiation should be written such that any discrepancies
 with a prime-order group instantiation are removed. In the case of
 cofactors, for example, this can be done by building cofactor
 multiplication into all elliptic curve operations.
@@ -578,9 +578,10 @@ below:
   curve. If h is not provided then it defaults to 1.
 - Unblind(r,Z): Unblind blinded OPRF evaluation Z with blind r, yielding
   N and output N.
-- Finalize(x,N,aux): Finalize N by first computing dk := H_2(DST, x ..
+- Finalize(x,N,aux?): Finalize N by first computing dk := H_2(DST, x ..
   N). Subsequently output y := H_2(dk, aux), where aux is some auxiliary
-  data.
+  data encoded as a byte string. If aux is not specified, it defaults to
+  the empty byte string.
 
 For verifiability (VOPRF) we modify the algorithms of VerifiableSetup,
 VerifiableEvaluate and VerifiableUnblind to be the following:
@@ -692,6 +693,15 @@ with overwhelming probability, where (r, M) = VerifiableBlind(x). In
 other words, the inner H_2 invocation effectively derives a key, dk,
 from the input data DST, x, N. The outer invocation derives the output y
 by evaluating H_2 over dk and auxiliary data aux.
+
+## Domain separation
+
+The Finalize procedure accepts optional auxiliary byte string input (aux) as
+a means of modifying the PRF output. This parameter SHOULD be used for domain
+separation in (V)OPRF the protocol. Specifically, any system which has
+multiple (V)OPRF applications should use separate aux values to to ensure
+finalized outputs are separate. Guidance for constructing aux can be found
+in {{I-D.irtf-cfrg-hash-to-curve}}; Section 3.1.
 
 ## Instantiations of GG
 
@@ -1227,7 +1237,7 @@ additional hash functions H_4: GG^(2n+2) -> {0,1}^a, and H_5: {0,1}^a x
 ZZ^3 -> {0,1}^b (both modeled as random oracles).
 
 We can instantiate the random oracle function H_4 using the same hash
-function that is used for H_3 previosuly. For H_5, we can also use a
+function that is used for H_3 previously. For H_5, we can also use a
 similar instantiation, or we can use a variable-length output generator.
 For example, for groups with an order of 256-bit, valid instantiations
 include functions such as SHAKE-256 {{SHAKE}} or HKDF-Expand-SHA256
