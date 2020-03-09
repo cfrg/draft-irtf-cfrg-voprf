@@ -595,6 +595,9 @@ VerifiableEvaluate and VerifiableUnblind to be the following:
 - VerifiableUnblind(r,G,Y,M,Z,D): Unblind blinded OPRF evaluation Z with
   blind r, yielding N. Output N if 1 = DLEQ_Verify(G,Y,M,Z,D).
   Otherwise, output "error".
+- VerifiableFinalize(x,Y,N,aux?): Same as Finalize, except we now
+  compute dk := H_2(DST, x .. Y .. N), i.e. we also certify the public
+  key in the finalization process.
 
 We leave the rest of the OPRF algorithms unmodified. When referring
 explicitly to VOPRF execution, we replace 'OPRF' in all method names
@@ -667,7 +670,7 @@ VOPRF evaluation phase:
                           (Z,D)
                         <-------
     N = VerifiableUnblind(r,G,Y,M,Z,D)
-    Output VerifiableFinalize(x,N,aux)
+    Output VerifiableFinalize(x,Y,N,aux)
 ~~~
 
 ## Protocol correctness
@@ -685,7 +688,7 @@ require that:
 
 ~~~
   Z = VerifiableEvaluate(k,G,Y,M)
-  VerifiableFinalize(x, VerifiableUnblind(r,G,Y,M,Z), aux)
+  VerifiableFinalize(x, Y, VerifiableUnblind(r,G,Y,M,Z), aux)
       == H_2(H_2(DST, x .. F(k,x)), aux)
 ~~~
 
@@ -938,6 +941,7 @@ Steps:
 Input:
 
  x:   Binary string in {0,1}^*.
+ Y:   An element in GG.
  N:   An element in GG, or "error".
  aux: Arbitrary auxiliary data in {0,1}^*.
 
@@ -949,7 +953,7 @@ Steps:
 
  1. If N == "error", output "error".
  2. DST := "voprf_derive_output"
- 3. dk := H_2(DST, x .. N)
+ 3. dk := H_2(DST, x .. Y .. N)
  4. y := H_2(dk, aux)
  5. Output y
 ~~~
