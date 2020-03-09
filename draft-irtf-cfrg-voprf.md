@@ -319,7 +319,24 @@ document is structured as follows:
 
 ## Change log
 
-[draft-01](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-00):
+[draft-03](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-03):
+
+- Certify public key during VerifiableFinalize
+- Remove protocol integration advice
+- Add text discussing how to perform domain separation
+- Drop OPRF_/VOPRF_ prefix from algorithm names
+- Make prime-order group assumption explicit
+- Changes to algorithms accepting batched inputs
+- Changes to construction of batched DLEQ proofs
+- Updated ciphersuites to be consistent with hash-to-curve and added
+  OPRF specific ciphersuites
+
+[draft-02](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-02):
+
+- Added section discussing cryptographic security and static DH oracles
+- Updated batched proof algorithms
+
+[draft-01](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-01):
 
 - Updated ciphersuites to be in line with
   https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-04
