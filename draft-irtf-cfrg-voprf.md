@@ -300,7 +300,8 @@ document is structured as follows:
 
 - {{background}}: Describe background, related work, and use cases of
   OPRF/VOPRF protocols.
-- {{properties}}: Discuss security properties of OPRFs/VOPRFs.
+- {{preliminaries}}: Describe conventions and assumptions made relating
+  to security of (V)OPRFs and prime-order group instantiations.
 - {{protocol}}: Specify an authentication protocol from OPRF
   functionality, based in prime-order groups (with an optional
   verifiable mode). Algorithms are stated formally for OPRFs in {{oprf}}
@@ -577,8 +578,7 @@ the computation by outputting H_2(DST, x .. N). Note that the output
 from P is not the PRF value because the actual input x is blinded by r.
 
 The security of our construction is discussed in more detail in
-{{protocol-sec}}. We discuss the considerations that should be made when
-embedding (V)OPRF protocols into wider protocols in {{embed}}.
+{{protocol-sec}}.
 
 ## Protocol functionality
 
@@ -1065,101 +1065,6 @@ Steps:
 Notice that Unblind computes (Z-rY) = k(H_1(x)+rG) - rkG = kH_1(x) by
 the commutativity of scalar multiplication in GG. This is the same
 output as in the original Unblind algorithm.
-
-## Recommended protocol integration {#embed}
-
-We describe some recommendations and suggestions on the topic of
-integrating the (V)OPRF protocol from {{protocol}} into wider protocols.
-It should be noted that since {{JKK14}} provides a security proof of the
-VOPRF construction in the UC security model, then any UC-secure protocol
-that uses the OPRF construction as an atomic instantiation will remain
-UC-secure.
-
-Thus, it is RECOMMENDED that any protocol that wishes to include an OPRF
-stage does so by implementing all OPRF evaluation functionality as a
-contiguous block of operations during the protocol. This does not
-include the OPRF setup phase, which should be run before the entire
-protocol interaction. For example, such an instantiation for a wider
-protocol W would look like the following.
-
-~~~
-    ================================================================
-                           OPRF setup phase
-    ================================================================
-
-    > ...
-    > BEGIN(protocol W)
-    > ...
-    > PAUSE(protocol W)
-
-    ================================================================
-                         OPRF evaluation phase
-    ================================================================
-
-    > RESTART(protocol W)
-    > ...
-    > END(protocol W)
-~~~
-
-In other words, no messages from protocol W should take place during the
-OPRF protocol instantiation. This DOES NOT preclude the participants in
-protocol W from using the outputs of the OPRF evaluation, once the OPRF
-protocol is complete. Note that the OPRF protocol can involve batched
-evaluations, as well as single evaluations.
-
-### Setup phase
-
-In the VOPRF setting, the server must send to the client Y (the
-commitment to the server key k. From this information, the client and
-server must agree on a generator G for the group description. It is
-important that the generator G of GG is not chosen by the server, and
-that it is agreed upon before the protocol starts. In the elliptic curve
-setting, we recommend that G is chosen as the standard generator for the
-curve.
-
-As we mentioned above, if an implementer wants to embed OPRF evaluation
-as part of a wider protocol, then we recommend that this setup phase
-should occur before all communication takes place; including all
-communication required for the wider protocol. We recommend that any
-server implementation only implements one group instantiation at any one
-time. This means that the client does not have to pick a specific
-instantiation when it sends the first evaluation message.
-
-### Evaluation phase
-
-The evaluation phase of the OPRF results in a client receiving
-pseudorandom function evaluations from the server. It is important that
-the client is able to link the computation that it performs in the first
-step, with the output that it receives from the server. In other words,
-the client must store the data (r,M) output by Blind(x). When it
-receives Z from the server, it must then use (r,M) as inputs to Blind.
-
-In the batched setting, the client stores multiple values (ri,Mi) and
-sends each Mi to the server. Both client and server should preserve this
-ordering throughout the evaluation phase so that the client can
-successfully finalize the output in the final step.
-
-### Additional requirements
-
-The client input to the OPRF evaluation phase is a set of bytes x. These
-bytes are RECOMMENDED to be uniformly distributed. If the bytes are
-sampled from a predictable distribution instead, then it is likely that
-the server will also be able to predict the client's input to the OPRF.
-Therefore client privacy is reduced.
-
-Protocols that embed an OPRF evaluation MUST specify exactly how group
-elements are encoded in messages.
-
-The server need not not preserve any information during the evaluation
-exchange. For efficiency and client-privacy reasons, we recommend that
-all data received from the client in the evaluation phase is destroyed
-after the server has responded.
-
-In the VOPRF setting, when the server sends the response, it needs to
-indicate which version of key that it has used. This enables the client
-to retrieve the correct commitment from the public registry. The server
-MUST include a key identifier as part of its response, to ensure that
-the client can verify the contents of D correctly.
 
 # NIZK Discrete Logarithm Equality Proof {#dleq}
 
