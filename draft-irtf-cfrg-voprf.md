@@ -272,9 +272,9 @@ cooperate in computing F(k, x) with P's secret key k and V's input x
 such that: V learns F(k, x) without learning anything about k; and P
 does not learn anything about x. A Verifiable OPRF (VOPRF) is an OPRF
 wherein P can prove to V that F(k, x) was computed using key k, which is
-bound to a trusted public key Y = kG. Informally, this is done by
+bound to a trusted public key Y = kG, and G is the generator of a group. Informally, this is done by
 presenting a non-interactive zero-knowledge (NIZK) proof of equality
-between (G, Y) and (Z, M), where Z = kM for some point M.
+between (G, Y) and (Z, M), where Z and M are group elements such that Z = kM.
 
 OPRFs have been shown to be useful for constructing: password-protected
 secret sharing schemes {{JKK14}}; privacy-preserving password stores
@@ -290,7 +290,7 @@ also been used for password-protected secret sharing schemes e.g.
 
 This document introduces an OPRF protocol built in prime-order groups,
 applying to finite fields of prime-order and also elliptic curve (EC)
-settings. The protocol has the option of being extended to a VOPRF with
+groups. The protocol has the option of being extended to a VOPRF with
 the addition of a NIZK proof for proving discrete log equality
 relations. This proof demonstrates correctness of the computation using
 a known public key that serves as a commitment to the server's secret
@@ -348,7 +348,7 @@ document is structured as follows:
 The following terms are used throughout this document.
 
 - PRF: Pseudorandom Function.
-- OPRF: Oblivious PRF.
+- OPRF: Oblivious Pseudorandom Function.
 - VOPRF: Verifiable Oblivious Pseudorandom Function.
 - Verifier (V): Protocol initiator when computing F(k, x), also known as
   client.
@@ -468,18 +468,18 @@ We detail a list of conventions that we use throughout this document.
   array.
 - We say that x is a binary string of arbitrary-length (or alternatively
   sampled from {0,1}^*) if there is no fixed-size requirement on x.
-- For two byte arrays x & y, write x .. y to denote their concatenation.
+- For two byte arrays x and y, write x .. y to denote their concatenation.
 
 ### Group notation
 
 - We use the letter p to denote the order of a group GG throughout,
   where the instantiation of the specific group is defined by context.
-- For elements A & B of GG, we write A + B to denote the addition of thr
-  group elements.
+- For elements A and B of GG, we write A + B to denote the group addition
+  operation.
 - We use GF(p) to denote the Galois Field of scalar values associated
   with the group GG.
 - For a scalar r in GF(p), and a group element A, we write rA to denote
-  the scalar multiplication of A.
+  the scalar multiplication of A by r.
 - For two scalars r, s in GF(p), we use r+s to denote the resulting
   scalar in GF(p) (we may optionally write r+s mod p to make the modular
   reduction explicit).
@@ -487,7 +487,7 @@ We detail a list of conventions that we use throughout this document.
 # OPRF Protocol {#protocol}
 
 In this section we describe the OPRF and VOPRF protocols. Recall that
-such a protocol takes place between a verifier (V) and a prover (P).
+these protocols take place between a verifier (V) and a prover (P).
 Commonly, V is a client and P is a server, and so we use these names
 interchangeably throughout. We always operate under the assumption that
 the verifier is a client, and the prover is a server in the interaction
@@ -504,66 +504,51 @@ to the {{JKK14}} construction. With batched proofs ({{batch}}) our
 construction differs slightly in that we can perform multiple VOPRF
 evaluations in one go, whilst only constructing one NIZK proof object.
 
-In this section we describe the OPRF and VOPRF protocols. Recall that
-such a protocol takes place between a verifier (V) and a prover (P). We
-may commonly think of the verifier as the client, and the prover as the
-server in the interaction (we will use these names interchangeably
-throughout). The server holds a key k for a PRF. The protocol allows the
-client to learn PRF evaluations on chosen inputs x without revealing x
-to the server.
-
-Our OPRF construction is based on the VOPRF construction known as
-2HashDH-NIZK given by {{JKK14}}; essentially without providing
-zero-knowledge proofs that verify that the output is correct. Our VOPRF
-construction (including the NIZK DLEQ proofs from {{dleq}}) is identical
-to the {{JKK14}} construction. With batched proofs ({{batch}}) our
-construction differs slightly in that we can perform multiple VOPRF
-evaluations in one go, whilst only constructing one NIZK proof object.
-
 ## Design
 
-Let GG be an additive group of prime-order p, let GF(p) be the Galois
-field defined by the integers modulo p. Define distinct hash functions
-H_1 and H_2, where H_1 maps arbitrary input onto GG (H_1: {0,1}^* -> GG)
-and H_2 maps two arbitrary inputs to a fixed-length (w) output (H_2:
-{0,1}^u x {0,1}^v -> {0,1}^w), e.g., HMAC_SHA256. All hash functions in
-the protocol are modeled as random oracles. Let L be the security
+Define two hash functions H_1 and H_2 as
+
+~~~
+H_1: {0,1}^* -> GG
+H_2: {0,1}^u x {0,1}^v -> {0,1}^w
+~~~
+
+where H_1 maps arbitrary-length binary strings onto GG, and H_2 maps two
+fixed-length input strings to a fixed-length output string. All hash functions in the protocol are modeled as random oracles. Let L be the security
 parameter. Let k be the prover's secret key, and Y = kG be its
 corresponding 'public key' for some fixed generator G taken from the
 description of the group GG. This public key Y is also referred to as a
 commitment to the OPRF key k, and the pair (G,Y) as a commitment pair.
-Let x be the binary string that is the verifier's input to the OPRF
-protocol (this can be of arbitrary length).
+Let x be an arbitrary-length binary string representing the verifier's input to the OPRF protocol.
 
 The OPRF protocol begins with V blinding its input for the OPRF
-evaluator such that it appears uniformly distributed GG. The latter then
-applies its secret key to the blinded value and returns the result. To
-finish the computation, V then removes its blind and hashes the result
-(along with a domain separating label DST) using H_2 to yield an output.
-This flow is illustrated below.
+evaluator such that it appears uniformly distributed from GG. The verifier then
+multiplies the blinded value by its secret key and returns the resulting element. To finish the procotol, V then removes its blind and uses H_2 to hash the result (along with a domain separating label DST) yielding an output.
+The protocol is illustrated below.
 
 ~~~
      Verifier(x)                   Prover(k)
   ----------------------------------------------------------
      r <-$ GF(p)
-     M = rH_1(x) mod p
+     M = rH_1(x)
                            M
                         ------->
-                                  Z = kM mod p
+                                  Z = kM
                                   [D = DLEQ_Generate(k,G,Y,M,Z)]
                           Z[,D]
                         <-------
     [b = DLEQ_Verify(G,Y,M,Z,D)]
-    N = Zr^(-1) mod p
-    Output H_2(DST, x .. N) mod p [if b=1, else "error"]
+    N = r^(-1)Z
+    h = H_2(DST, x .. N) mod p
+    Output h [if b=false, abort]
 ~~~
 
 Steps that are enclosed in square brackets (DLEQ_Generate and
-DLEQ_Verify) are optional for achieving verifiability. These are
+DLEQ_Verify) are REQUIRED for achieving verifiability. These steps are
 described in {{dleq}}. In the verifiable mode, we assume that P has
 previously committed to their choice of key k with some values (G,Y=kG)
 and these are publicly known by V. Notice that revealing (G,Y) does not
-reveal k by the well-known hardness of the discrete log problem.
+reveal k due to the hardness of the discrete logarithm problem.
 
 Strictly speaking, the actual PRF function that is computed is:
 
@@ -571,7 +556,7 @@ Strictly speaking, the actual PRF function that is computed is:
 F(k, x) = N = kH_1(x)
 ~~~
 
-It is clear that this is a PRF H_1(x) maps x to a random element in GG,
+It is clear that this is a PRF because H_1(x) maps x to a random element in GG,
 and GG is cyclic. This output is computed when the client computes
 Zr^(-1) by the commutativity of the multiplication. The client finishes
 the computation by outputting H_2(DST, x .. N). Note that the output
@@ -585,20 +570,19 @@ The security of our construction is discussed in more detail in
 This protocol may be decomposed into a series of steps, as described
 below:
 
-- Setup(l): Let GG=GG(l) be a group with a prime-order p=p(l) (e.g., p
-  is l-bits long). Randomly sample an integer k in GF(p) and output
-  (k,GG)
-- Blind(x): Compute and return a blind, r, and blinded representation of
-  x in GG, denoted M.
-- Evaluate(k,M,h?): Evaluates on input M using secret key k to produce
-  Z, the input h is optional and equal to the cofactor of an elliptic
-  curve. If h is not provided then it defaults to 1.
-- Unblind(r,Z): Unblind blinded OPRF evaluation Z with blind r, yielding
-  N and output N.
+- Setup(L): Let GG be a group of prime-order p such that the discrete logarithm
+  problem in GG can be solved in 2^L operations. The Prover randomly samples a
+  secret scalar k in GF(p).
+- Blind(x): This operation allows the Verifier to compute M, a blinded
+  representation of x in GG. To do so, the Verifier requires a blind r, which is a scalar uniformly sampled from GF(p).
+- Evaluate(k,M): The Prover uses the secret key k to produce a commitment Z
+  from input M.
+- Unblind(r,Z): The verifier unblinds Z, the blinded OPRF evaluation of the
+  Prover, with blind r yielding N, and outputs N.
 - Finalize(x,N,aux?): Finalize N by first computing dk := H_2(DST, x ..
   N). Subsequently output y := H_2(dk, aux), where aux is some auxiliary
   data encoded as a byte string. If aux is not specified, it defaults to
-  the empty byte string.
+  the empty string.
 
 For verifiability (VOPRF) we modify the algorithms of VerifiableSetup,
 VerifiableEvaluate and VerifiableUnblind to be the following:
@@ -719,41 +703,30 @@ by evaluating H_2 over dk and auxiliary data aux.
 The Finalize procedure accepts optional auxiliary byte string input (aux) as
 a means of modifying the PRF output. This parameter SHOULD be used for domain
 separation in (V)OPRF the protocol. Specifically, any system which has
-multiple (V)OPRF applications should use separate aux values to to ensure
-finalized outputs are separate. Guidance for constructing aux can be found
-in {{I-D.irtf-cfrg-hash-to-curve}}; Section 3.1.
+multiple (V)OPRF applications should use different aux values to ensure
+finalized outputs are separate. Guidance for constructing domain separation
+string aux can be found in {{I-D.irtf-cfrg-hash-to-curve}}; Section 3.1.
 
 ## Instantiations of GG
 
-As we remarked above, GG is a group with associated prime-order p. While
-we choose to write operations in the setting where GG comes equipped
-with an additive operation, we could also define the operations in the
-multiplicative setting. In the multiplicative setting we can choose GG
-to be a prime-order subgroup of a finite field FF_p. For example, let p
-be some large prime (e.g. > 2048 bits) where p = 2q+1 for some other
-prime q. Then the subgroup of squares of FF_p (elements u^2 where u is
-an element of FF_p) is cyclic, and we can pick a generator of this
-subgroup by picking G from FF_p (ignoring the identity element).
+A secure instance is to choose GG as the group of squares of a finite field FF.
+Let FF be field of order q = 2p+1 such that p and q are primes, then the
+squares of FF (elements u^2 where u is an element of FF) form a cyclic group of
+order p.
 
-For practicality of the protocol, it is preferable to focus on the cases
-where GG is an additive subgroup so that we can instantiate the OPRF in
-the elliptic curve setting. This amounts to choosing GG to be a
-prime-order subgroup of an elliptic curve over base field GF(p) for
-prime p. There are also other settings where GG is a prime-order
-subgroup of an elliptic curve over a base field of non-prime order,
-these include the work of Ristretto {{RISTRETTO}} and Decaf {{DECAF}}.
+A more efficient and secure way to instance the (V)OPRF protocol is using
+groups resultant from elliptic curves. Given an elliptic curve defined by an
+equation, the points that satisfy the curve equation form a group, and this
+group can be used as GG if its order is prime. Note, however, that some
+elliptic curves generate groups of composite-order. In this case, GG is usually
+chosen as the largest prime-order subgroup of the elliptic curve. Alternatively,
+GG can be instantiated as a quotient of groups, such as Ristretto {{RISTRETTO}}
+and Decaf {{DECAF}} groups.
 
-We will use p > 0 generally for constructing the base field GF(p), not
-just those where p is prime. To reiterate, we focus only on the additive
-case, and so we focus only on the cases where GF(p) is indeed the base
-field.
-
-Unless otherwise stated, we will always assume that the generator G that
-we use for the group GG is a fixed generator. This generator should be
-available to both the client and the server ahead of the protocol, or
-derived for each different group instantiation using a fixed method. In
-the elliptic curve setting, we recommend using the fixed generators that
-are given as part of the curve description.
+Unless otherwise stated, it is assumed that the generator G of the group GG is
+a fixed generator. This generator should be available to both the client and
+the server ahead of the protocol, or derived for each different group
+instantiation using a fixed method. In most of cases, the fixed generators are given as part of the group description.
 
 ## OPRF algorithms {#oprf}
 
@@ -763,7 +736,7 @@ analogues for the protocols in {{general-voprf}} later in {{voprf}}.
 
 We note here that the blinding mechanism that we use can be modified
 slightly with the opportunity for making performance gains in some
-scenarios. We detail these modifications in Section {{blinding}}.
+scenarios. We detail these modifications in {{blinding}}.
 
 ### Setup
 
@@ -977,7 +950,7 @@ Steps:
 
 ## Efficiency gains with pre-processing and fixed-base blinding {#blinding}
 
-In Section {{oprf}} we assume that the client-side blinding is carried
+In {{oprf}} we assume that the client-side blinding is carried
 out directly on the output of H_1(x), i.e. computing rH_1(x) for some r
 <-$ GF(p). In the {{OPAQUE}} draft, it is noted that it may be more
 efficient to use additive blinding rather than multiplicative if the
@@ -1063,7 +1036,7 @@ Steps:
 ~~~
 
 Notice that Unblind computes (Z-rY) = k(H_1(x)+rG) - rkG = kH_1(x) by
-the commutativity of scalar multiplication in GG. This is the same
+the commutativity of scalars. This is the same
 output as in the original Unblind algorithm.
 
 # NIZK Discrete Logarithm Equality Proof {#dleq}
@@ -1105,8 +1078,8 @@ Steps:
  1. r <-$ GF(p)
  2. A := rG
  3. B := rM
- 4. c <- H_3(G,Y,M,Z,A,B) (mod p)
- 5. s := (r - ck) (mod p)
+ 4. c <- H_3(G,Y,M,Z,A,B) mod p
+ 5. s := (r - ck) mod p
  6. Output D := (c, s)
 ~~~
 
@@ -1134,8 +1107,8 @@ Steps:
 
  1. A' := (sG + cY)
  2. B' := (sM + cZ)
- 3. c' <- H_3(G,Y,M,Z,A',B') (mod p)
- 4. Output c == c' (mod p)
+ 3. c' <- H_3(G,Y,M,Z,A',B') mod p
+ 4. Output c == c'
 ~~~
 
 # Batched VOPRF evaluation {#batch}
@@ -1238,7 +1211,7 @@ Steps:
 
 ## Modified algorithms
 
-The VOPRF protocol from Section {{protocol}} changes to allow specifying
+The VOPRF protocol from {{protocol}} changes to allow specifying
 multiple blinded PRF inputs `[ Mi ]` for i in 1...n. P computes the
 array `[ Zi]` and replaces DLEQ_Generate with DLEQ_Batched_Generate over
 these arrays. Concretely, we modify the following algorithms:
@@ -1427,7 +1400,7 @@ separation of the hash-to-curve functionality.
 
 This section discusses the cryptographic security of our protocol, along
 with some suggestions and trade-offs that arise from the implementation
-of the implementation of an OPRF.
+of an OPRF.
 
 ## Cryptographic security {#cryptanalysis}
 
@@ -1473,7 +1446,7 @@ The (N,Q)-One-More Gap DH (OMDH) problem asks the following.
 
 ~~~
     Given:
-    - G, kG, G_1, ... , G_N where G, G1, ... GN are elements od GG;
+    - G, kG, G_1, ... , G_N where G, G1, ... GN are elements of GG;
     - oracle access to an OPRF functionality using the key k;
     - oracle access to DDH solvers.
 
