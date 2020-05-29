@@ -540,7 +540,7 @@ The protocol is illustrated below.
     [b = DLEQ_Verify(G,Y,M,Z,D)]
     N = r^(-1)Z
     h = H_2(DST, x .. N) mod p
-    Output h [if b=false, abort]
+    Output h [if b=false: abort]
 ~~~
 
 Steps that are enclosed in square brackets (DLEQ_Generate and
@@ -709,12 +709,12 @@ string aux can be found in {{I-D.irtf-cfrg-hash-to-curve}}; Section 3.1.
 
 ## Instantiations of GG
 
-A secure instance is to choose GG as the group of squares of a finite field FF.
+A secure instance includes choosing GG as the group of squares of a finite field FF.
 Let FF be field of order q = 2p+1 such that p and q are primes, then the
 squares of FF (elements u^2 where u is an element of FF) form a cyclic group of
 order p.
 
-A more efficient and secure way to instance the (V)OPRF protocol is using
+A more efficient way to instanciate the (V)OPRF protocol is using
 groups resultant from elliptic curves. Given an elliptic curve defined by an
 equation, the points that satisfy the curve equation form a group, and this
 group can be used as GG if its order is prime. Note, however, that some
