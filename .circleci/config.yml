@@ -16,16 +16,26 @@ jobs:
       - restore_cache:
           name: "Restoring cache - Git"
           keys:
-            - v1-cache-git-{{ .Branch }}-{{ .Revision }}
-            - v1-cache-git-{{ .Branch }}
-            - v1-cache-git-master
-            - v1-cache-git-
+            - v2-cache-git-{{ .Branch }}-{{ .Revision }}
+            - v2-cache-git-{{ .Branch }}
+            - v2-cache-git-
 
       - restore_cache:
           name: "Restoring cache - References"
           keys:
             - v1-cache-references-{{ epoch }}
             - v1-cache-references-
+
+      # Workaround for https://discuss.circleci.com/t/22437
+      - run:
+          name: Tag Checkout
+          command: |
+            if [ -n "$CIRCLE_TAG" ] && [ -d .git ]; then
+              remote=$(echo "$CIRCLE_REPOSITORY_URL" | \
+                       sed -e 's,/^git.github.com:,https://github.com/,')
+              git fetch -f "$remote" "refs/tags/$CIRCLE_TAG:refs/tags/$CIRCLE_TAG" || \
+                (echo 'Removing .git cache for tag build'; rm -rf .git)
+            fi
 
       - checkout
 
@@ -38,7 +48,7 @@ jobs:
       - run:
           name: "Update GitHub Pages"
           command: |
-            if [ "${CIRCLE_TAG#draft-}" == "${CIRCLE_TAG}" ]; then
+            if [ "${CIRCLE_TAG#draft-}" == "$CIRCLE_TAG" ]; then
               make gh-pages
             fi
 
@@ -46,14 +56,14 @@ jobs:
       - deploy:
           name: "Upload to Datatracker"
           command: |
-            if [ "${CIRCLE_TAG#draft-}" != "${CIRCLE_TAG}" ]; then
+            if [ "${CIRCLE_TAG#draft-}" != "$CIRCLE_TAG" ]; then
               make upload
             fi
 
-      # Save GitHub issues
+      # Archive GitHub Issues
       - run:
-          name: "Save GitHub Issues"
-          command: "make issues || make issues DISABLE_ISSUE_FETCH=true && make gh-issues"
+          name: "Archive GitHub Issues"
+          command: "make archive || make archive DISABLE_ARCHIVE_FETCH=true && make gh-archive"
 
       # Create and store artifacts
       - run:
@@ -65,13 +75,13 @@ jobs:
 
       - run:
           name: "Prepare for Caching"
-          command: "git gc --auto"
+          command: "git reflog expire --expire=now --all && git gc --prune=now"
 
       - save_cache:
           name: "Saving Cache - Git"
-          key: v1-cache-git-{{ .Branch }}-{{ .Revision }}
+          key: v2-cache-git-{{ .Branch }}-{{ .Revision }}
           paths:
-            - ~/draft
+            - ~/draft/.git
 
       - save_cache:
           name: "Saving Cache - Drafts"
