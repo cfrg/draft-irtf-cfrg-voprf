@@ -570,15 +570,16 @@ The security of our construction is discussed in more detail in
 This protocol may be decomposed into a series of steps, as described
 below:
 
-- Setup(L): Let GG be a group of prime-order p such that the discrete logarithm
-  problem in GG can be solved in 2^L operations. The Prover randomly samples a
-  secret scalar k in GF(p).
-- Blind(x): This operation allows the Verifier to compute M, a blinded
-  representation of x in GG. To do so, the Verifier requires a blind r, which is a scalar uniformly sampled from GF(p).
-- Evaluate(k,M): The Prover uses the secret key k to produce a commitment Z
-  from input M.
-- Unblind(r,Z): The verifier unblinds Z, the blinded OPRF evaluation of the
-  Prover, with blind r yielding N, and outputs N.
+- Setup(l): Let GG=GG(l) be a group with a prime-order p=p(l) (e.g., p
+  is l-bits long). Randomly sample an integer k in GF(p) and output
+  (k,GG)
+- Blind(x): Compute and return a blind, r, and blinded representation of
+  x in GG, denoted M.
+- Evaluate(k,M,h?): Evaluates on input M using secret key k to produce
+  Z, the input h is optional and equal to the cofactor of an elliptic
+  curve. If h is not provided then it defaults to 1.
+- Unblind(r,Z): Unblind blinded OPRF evaluation Z with blind r, yielding
+  N and output N.
 - Finalize(x,N,aux?): Finalize N by first computing dk := H_2(DST, x ..
   N). Subsequently output y := H_2(dk, aux), where aux is some auxiliary
   data encoded as a byte string. If aux is not specified, it defaults to
