@@ -2,12 +2,15 @@
 *.pdf
 *.redxml
 *.swp
+*.txt
 *.upload
 *~
 .refcache
 .tags
 .targets.mk
+.vscode/
 /*-[0-9][0-9].xml
+archive.json
 draft-irtf-cfrg-voprf.txt
 draft-irtf-cfrg-voprf.xml
 issues.json
@@ -17,5 +20,3 @@ report.xml
 venv/
 lib
 draft-irtf-cfrg-voprf.xml
-draft-irtf-cfrg-voprf.txt
-.vscode/
