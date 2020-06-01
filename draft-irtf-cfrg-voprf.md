@@ -519,11 +519,13 @@ parameter. Let k be the prover's secret key, and Y = kG be its
 corresponding 'public key' for some fixed generator G taken from the
 description of the group GG. This public key Y is also referred to as a
 commitment to the OPRF key k, and the pair (G,Y) as a commitment pair.
-Let x be an arbitrary-length binary string representing the verifier's input to the OPRF protocol.
+Let x be an arbitrary-length byte string representing the verifier's input to the OPRF protocol.
 
 The OPRF protocol begins with V blinding its input for the OPRF
 evaluator such that it appears uniformly distributed from GG. The verifier then
-multiplies the blinded value by its secret key and returns the resulting element. To finish the procotol, V then removes its blind and uses H_2 to hash the result (along with a domain separating label DST) yielding an output.
+multiplies the blinded value by its secret key and returns the resulting element. 
+To finish the protocol, V then removes its blind and uses H_2 to hash the result (along 
+with a domain separating label DST) yielding an output.
 The protocol is illustrated below.
 
 ~~~
@@ -544,7 +546,7 @@ The protocol is illustrated below.
 ~~~
 
 Steps that are enclosed in square brackets (DLEQ_Generate and
-DLEQ_Verify) are REQUIRED for achieving verifiability. These steps are
+DLEQ_Verify) are REQUIRED for verifiability. These steps are
 described in {{dleq}}. In the verifiable mode, we assume that P has
 previously committed to their choice of key k with some values (G,Y=kG)
 and these are publicly known by V. Notice that revealing (G,Y) does not
