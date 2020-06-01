@@ -432,15 +432,53 @@ protocol execution takes place. Then V verifies that P has used k in the
 protocol using this commitment. In the following, we may also refer to
 this commitment as a public key.
 
-## Prime-order group instantiation
+## Prime-order group API {#pog}
 
-In this document, we assume the construction of a prime-order group GG
-for performing all mathematical operations. Such a group MUST provide
-the interface provided by cyclic group under the addition operation (for
-example, well-defined addition of group elements). We also assume the
-presence of a fixed generator G that can be detailed as a fixed
-parameter in the description of the group. We write p = order(GG) to
-represent the order of the group throughout this document.
+In this document, we assume the construction of an additive, prime-order
+group `GG` for performing all mathematical operations. Such groups are
+uniquely determined by the choice of the prime `p` that defines the
+order of the group. We assume that such a group MUST provide the
+following public interface.
+
+- Generator(): A deterministic member function of `GG` that takes no
+  inputs returns a fixed generator `G` for the group.
+- Adding elements: For any elements `A` and `B` that are members of the
+  group `GG`. Then `A + B = B + A` is also a member of `GG`.
+- Scalar multiplication: There is an efficient method for taking a
+  scalar `r`, associated with the Galois field `GF(p)`, and performing
+  `r * A = A + ... + A` for any `A` that is a member of `GG`. We may
+  also write `rA` to denote this operation.
+- Order(): Outputs the order of the group as a scalar (i.e. `p`).
+- Generator(): Takes no inputs and returns a fixed generator `G` for the
+  group.
+- Identity(): Takes no inputs and returns the identity element of the
+  group.
+- Serialize(): A member function of `GG` that maps a group element `A`
+  to a unique array of bytes `buf` that corresponds uniquely to the
+  point `A`.
+- Deserialize(): A member function of `GG` that maps an array of bytes
+  `buf` to a group element `A`.
+- HashToGroup(): A member function of `GG` that deterministically maps
+  an array of bytes `x` to a random element of `GG`. The map should be
+  implemented in such a way that it is computationally difficult for any
+  adversary that receives: `R = HashToGroup(x)` without knowing `x` to
+  reverse the mapping. For an example of such a mapping, see
+  {{I-D.irtf-cfrg-hash-to-curve}}.
+
+Note that prime-order groups also define an inverse function such that
+the following property holds:
+
+- for any `A` in `GG`, `A + I = I + A = A`;
+- for any `A` in `GG` there exists `-A` where `A + (-A) = (-A) + A = I`.
+
+However, we don't explicit use of the inverse property in our protocol,
+and so we don't explicitly assume these properties within the public
+API. Lastly, for any scalar `r` that is an element of the galois field
+of scalars `GF(p)` associated with `GG`, we assume it is always written
+in byte array format for the purpose of providing whereever it is
+supplied as an input or give as an output of a function.
+
+### Group instantiations
 
 It is common in cryptographic applications to instantiate such
 prime-order groups using elliptic curves, such as those detailed in
@@ -455,11 +493,21 @@ with a prime-order group instantiation are removed. In the case of
 cofactors, for example, this can be done by building cofactor
 multiplication into all elliptic curve operations.
 
-## Conventions
+Secure instances of such groups can also be constructed by choosing `GG`
+as the group of squares of a finite field `FF`. Let `FF` be field of
+order `q = 2p+1` such that `p` and `q` are primes, then the squares of
+`FF` (elements `u^2` where `u` is an element of `FF`) form a cyclic
+group of order `p`.
 
-We detail a list of conventions that we use throughout this document.
+## Other conventions
 
-### Binary strings
+- We use the notation `x <-$ Q` to denote sampling `x` from the uniform
+  distribution over the set `Q`.
+- We use `x <- {0,1}^u` to denote sampling `x` uniformly from the set of
+  binary strings of length `u`. We may interpret `x` afterwards as a
+  byte array.
+- For two byte arrays `x` and `y`, write `x || y` to denote their
+  concatenation.
 
 - We use the notation x <-$ Q to denote sampling x from the uniform
   distribution over the set Q.
