@@ -272,9 +272,10 @@ cooperate in computing F(k, x) with P's secret key k and V's input x
 such that: V learns F(k, x) without learning anything about k; and P
 does not learn anything about x. A Verifiable OPRF (VOPRF) is an OPRF
 wherein P can prove to V that F(k, x) was computed using key k, which is
-bound to a trusted public key Y = kG, and G is the generator of a group. Informally, this is done by
-presenting a non-interactive zero-knowledge (NIZK) proof of equality
-between (G, Y) and (Z, M), where Z and M are group elements such that Z = kM.
+bound to a trusted public key Y = kG, and G is the generator of a group.
+Informally, this is done by presenting a non-interactive zero-knowledge
+(NIZK) proof of equality between (G, Y) and (Z, M), where Z and M are
+group elements such that Z = kM.
 
 OPRFs have been shown to be useful for constructing: password-protected
 secret sharing schemes {{JKK14}}; privacy-preserving password stores
@@ -302,15 +303,12 @@ document is structured as follows:
   OPRF/VOPRF protocols.
 - {{preliminaries}}: Describe conventions and assumptions made relating
   to security of (V)OPRFs and prime-order group instantiations.
-- {{protocol}}: Specify an authentication protocol from OPRF
-  functionality, based in prime-order groups (with an optional
-  verifiable mode). Algorithms are stated formally for OPRFs in {{oprf}}
-  and for VOPRFs in {{voprf}}.
+- {{protocol}}: Specify the protocol required to instantiate the (V)OPRF
+  functionality using prime-order groups.
+- {{api}}: A list of API functions that are used to instantiate the
+  protocols from {{protocol}}.
 - {{dleq}}: Specify the NIZK discrete logarithm equality (DLEQ)
   construction used for constructing the VOPRF protocol.
-- {{batch}}: Specifies how the DLEQ proof mechanism can be batched for
-  multiple VOPRF invocations, and how this changes the protocol
-  execution.
 - {{ciphersuites}}: Considers explicit instantiations of the protocol in
   the elliptic curve setting.
 - {{sec}}: Discusses the security considerations for the OPRF and VOPRF
@@ -440,8 +438,6 @@ uniquely determined by the choice of the prime `p` that defines the
 order of the group. We assume that such a group MUST provide the
 following public interface.
 
-- Generator(): A deterministic member function of `GG` that takes no
-  inputs returns a fixed generator `G` for the group.
 - Adding elements: For any elements `A` and `B` that are members of the
   group `GG`. Then `A + B = B + A` is also a member of `GG`.
 - Scalar multiplication: There is an efficient method for taking a
@@ -468,7 +464,6 @@ following public interface.
 Note that prime-order groups also define an inverse function such that
 the following property holds:
 
-- for any `A` in `GG`, `A + I = I + A = A`;
 - for any `A` in `GG` there exists `-A` where `A + (-A) = (-A) + A = I`.
 
 However, we don't explicit use of the inverse property in our protocol,
@@ -509,30 +504,7 @@ group of order `p`.
 - For two byte arrays `x` and `y`, write `x || y` to denote their
   concatenation.
 
-- We use the notation x <-$ Q to denote sampling x from the uniform
-  distribution over the set Q.
-- We use x <- {0,1}^u to denote sampling x uniformly from the set of
-  binary strings of length u. We may interpret x afterwards as a byte
-  array.
-- We say that x is a binary string of arbitrary-length (or alternatively
-  sampled from {0,1}^*) if there is no fixed-size requirement on x.
-- For two byte arrays x and y, write x .. y to denote their concatenation.
-
-### Group notation
-
-- We use the letter p to denote the order of a group GG throughout,
-  where the instantiation of the specific group is defined by context.
-- For elements A and B of GG, we write A + B to denote the group addition
-  operation.
-- We use GF(p) to denote the Galois Field of scalar values associated
-  with the group GG.
-- For a scalar r in GF(p), and a group element A, we write rA to denote
-  the scalar multiplication of A by r.
-- For two scalars r, s in GF(p), we use r+s to denote the resulting
-  scalar in GF(p) (we may optionally write r+s mod p to make the modular
-  reduction explicit).
-
-# OPRF Protocol {#protocol}
+# Protocol {#protocol}
 
 In this section we describe the OPRF and VOPRF protocols. Recall that
 these protocols take place between a verifier (V) and a prover (P).
@@ -544,37 +516,30 @@ holds a secret key k for a PRF. The protocol allows the client to learn
 PRF evaluations on chosen inputs x in such a way that the server learns
 nothing of x.
 
-Our OPRF construction is based on the VOPRF construction known as
-2HashDH-NIZK given by {{JKK14}}; essentially without providing
-zero-knowledge proofs that verify that the output is correct. Our VOPRF
-construction (including the NIZK DLEQ proofs from {{dleq}}) is identical
-to the {{JKK14}} construction. With batched proofs ({{batch}}) our
-construction differs slightly in that we can perform multiple VOPRF
-evaluations in one go, whilst only constructing one NIZK proof object.
+## Overview {#overview}
 
-## Design
+Let GG be an additive group of prime-order p with the API defined in
+{{pog}}, let GF(p) be the Galois field defined by the integers modulo p.
+Define distinct hash functions H_1 and H_2, where:
 
-Define two hash functions H_1 and H_2 as
+- `H_1(x) = GG.EncodeToGroup(x)` for a byte array `x`;
+- `H_2(x, y) = z`, where `x`, `y`, `z` are fixed-length byte arrays.
 
-~~~
-H_1: {0,1}^* -> GG
-H_2: {0,1}^u x {0,1}^v -> {0,1}^w
-~~~
-
-where H_1 maps arbitrary-length binary strings onto GG, and H_2 maps two
-fixed-length input strings to a fixed-length output string. All hash functions in the protocol are modeled as random oracles. Let L be the security
-parameter. Let k be the prover's secret key, and Y = kG be its
-corresponding 'public key' for some fixed generator G taken from the
-description of the group GG. This public key Y is also referred to as a
-commitment to the OPRF key k, and the pair (G,Y) as a commitment pair.
-Let x be an arbitrary-length byte string representing the verifier's input to the OPRF protocol.
+All hash functions in the protocol are modeled as random oracles. Let
+`k` be the prover's PrivateKey, and `Y = kG` be its corresponding
+PublicKey, for the fixed generator `G` of `GG`. This public key is also
+referred to as a commitment to the OPRF key `k`. Let x be the byte array
+that is the verifier's input to the OPRF protocol (this can be of
+arbitrary length). We provide an overview of the protocol below as an
+introduction to the general flow. We will describe the functionality
+using API function calls in {{api}}.
 
 The OPRF protocol begins with V blinding its input for the OPRF
-evaluator such that it appears uniformly distributed from GG. The verifier then
-multiplies the blinded value by its secret key and returns the resulting element. 
-To finish the protocol, V then removes its blind and uses H_2 to hash the result (along 
-with a domain separating label DST) yielding an output.
-The protocol is illustrated below.
+evaluator such that it appears uniformly distributed from GG. The
+verifier then multiplies the blinded value by its secret key and returns
+the resulting element. To finish the protocol, V then removes its blind
+and uses H_2 to hash the result (along with a domain separating label
+DST) yielding an output. The protocol is illustrated below.
 
 ~~~
      Verifier(x)                   Prover(k)
@@ -583,22 +548,22 @@ The protocol is illustrated below.
      M = rH_1(x)
                            M
                         ------->
-                                  Z = kM
-                                  [D = DLEQ_Generate(k,G,Y,M,Z)]
-                          Z[,D]
+
+                              Z = kM mod p
+                              [[ D = generate_zk_proof(k,G,Y,M,Z) ]]
+
+                          Z[[, D]]
                         <-------
-    [b = DLEQ_Verify(G,Y,M,Z,D)]
-    N = r^(-1)Z
-    h = H_2(DST, x .. N) mod p
-    Output h [if b=false: abort]
+    [[ b = verify_zk_proof(G,Y,M,Z,D) ]]
+    N = Zr^(-1) mod p
+    Output H_2(DST, x || N) mod p [if (b=0): abort]
 ~~~
 
-Steps that are enclosed in square brackets (DLEQ_Generate and
-DLEQ_Verify) are REQUIRED for verifiability. These steps are
-described in {{dleq}}. In the verifiable mode, we assume that P has
-previously committed to their choice of key k with some values (G,Y=kG)
-and these are publicly known by V. Notice that revealing (G,Y) does not
-reveal k due to the hardness of the discrete logarithm problem.
+Steps that are enclosed in `[[ ]]` are REQUIRED for achieving
+verifiability. These functions are described in {{dleq}}. In the
+verifiable mode, we assume that P's public key is known by V. Notice
+that revealing `Y` does not reveal k by the well-known hardness of the
+discrete log problem.
 
 Strictly speaking, the actual PRF function that is computed is:
 
@@ -606,226 +571,153 @@ Strictly speaking, the actual PRF function that is computed is:
 F(k, x) = N = kH_1(x)
 ~~~
 
-It is clear that this is a PRF because H_1(x) maps x to a random element in GG,
-and GG is cyclic. This output is computed when the client computes
-Zr^(-1) by the commutativity of the multiplication. The client finishes
-the computation by outputting H_2(DST, x .. N). Note that the output
-from P is not the PRF value because the actual input x is blinded by r.
+It is clear that this is a PRF because H_1(x) maps x to a random element
+in GG, and GG is cyclic. This output is computed when the client
+computes Zr^(-1) by the commutativity of the multiplication. The client
+finishes the computation by outputting H_2(DST, x || N). Note that the
+output from P is not the PRF value because the actual input x is blinded
+by r.
 
 The security of our construction is discussed in more detail in
 {{protocol-sec}}.
 
-## Protocol functionality
+# Protocol API {#api}
 
-This protocol may be decomposed into a series of steps, as described
-below:
+We restate the (V)OPRF protocol using a concrete API that we describe in
+{{algorithms}} below.
 
-- Setup(l): Let GG=GG(l) be a group with a prime-order p=p(l) (e.g., p
-  is l-bits long). Randomly sample an integer k in GF(p) and output
-  (k,GG)
-- Blind(x): Compute and return a blind, r, and blinded representation of
-  x in GG, denoted M.
-- Evaluate(k,M,h?): Evaluates on input M using secret key k to produce
-  Z, the input h is optional and equal to the cofactor of an elliptic
-  curve. If h is not provided then it defaults to 1.
-- Unblind(r,Z): Unblind blinded OPRF evaluation Z with blind r, yielding
-  N and output N.
-- Finalize(x,N,aux?): Finalize N by first computing dk := H_2(DST, x ..
-  N). Subsequently output y := H_2(dk, aux), where aux is some auxiliary
-  data encoded as a byte string. If aux is not specified, it defaults to
-  the empty string.
+Firstly, we assume that the server chooses a valid ciphersuite from
+{{ciphersuites}} and instantiates the prime-order group `GG` associated
+with the ciphersuite. It samples a PrivateKey `k` from `GF(p)`, and
+computes the public key `public_key = GG.Serialize(kG)` where
+`G=GG.generator()`. It publishes `(ciphersuite, public_key)` publicly,
+so that it is available to any possible clients.
 
-For verifiability (VOPRF) we modify the algorithms of VerifiableSetup,
-VerifiableEvaluate and VerifiableUnblind to be the following:
+Secondly, before the protocol samples an array of `ClientInput` objects
+and provides these as `ins` as their protocol input, along with a DST
+`aux`.
 
-- VerifiableSetup(l): Run (k,GG) = Setup(l), compute Y = kG, where G is
-  a generator of the group GG. Output (k,GG,Y).
-- VerifiableEvaluate(k,G,Y,M,h?): Evaluates on input M using secret key
-  k to produce Z. Generate a NIZK proof D = DLEQ_Generate(k,G,Y,M,Z),
-  and output (Z, D). The optional cofactor h can also be provided, as in
-  Evaluate.
-- VerifiableUnblind(r,G,Y,M,Z,D): Unblind blinded OPRF evaluation Z with
-  blind r, yielding N. Output N if 1 = DLEQ_Verify(G,Y,M,Z,D).
-  Otherwise, output "error".
-- VerifiableFinalize(x,Y,N,aux?): Same as Finalize, except we now
-  compute dk := H_2(DST, x .. Y .. N), i.e. we also certify the public
-  key in the finalization process.
-
-We leave the rest of the OPRF algorithms unmodified. When referring
-explicitly to VOPRF execution, we replace 'OPRF' in all method names
-with 'VOPRF'. We describe explicit instantiations of these functions in
-{{oprf}} and {{voprf}}.
-
-### Generalized OPRF {#general-oprf}
-
-Using the API provided by the functions above, we can restate the OPRF
-protocol using the following descriptions. The first protocol refers to
-the OPRF setup phase that is run by the server. This generates the
-secret input used by the server and the public information that is given
-to the client.
-
-OPRF setup phase:
+Both participants also provide a boolean input `vv` and `vp` for the
+verifier and prover respectively. These boolean values should be equal,
+and correspond to whether the protocol is executed with verifiability
+intended, or not. In other words, whether the functionality computes an
+OPRF protocol (`vv = vp = 0`), or a VOPRF protocol (`vv = vp = 1`). If
+`vv = 1 && vp = 0`, then the protocol will abort in `Unblind` when the
+client attempts to verify the zero-knowledge proof.
 
 ~~~
-     Verifier()                   Prover(l)
+   Verifier(ins,aux,vv)                  Prover(k,vp)
   ----------------------------------------------------------
-                                  (k,GG) = Setup(l)
-                           GG
-                        <-------
+    toks, bts = Blind(inputs)
+
+                          bts
+                      ---------->
+
+                                  ev = Evaluate(k,public_key,bts,vp)
+
+                           ev
+                      <----------
+    unb_toks = Unblind(public_key,toks,bts,ev,vv)
+    outputs = []
+    for i in [ins.length]:
+     outputs[i] = Finalize(ins[i],unb_toks[i],aux)
+    Output outputs
 ~~~
 
-OPRF evaluation phase:
-
-~~~
-     Verifier(x,aux)                   Prover(k)
-  ----------------------------------------------------------
-     (r, M) = Blind(x)
-                            M
-                        ------->
-                                  Z = Evaluate(k,M)
-                            Z
-                        <-------
-    N = Unblind(r,Z)
-    Output Finalize(x,N,aux)
-~~~
+In `Blind` the client generates the tokens and blinding data. The prover
+computes the (V)OPRF evaluation in `Evaluation` over the client's
+blinded tokens. In `Unblind` the client unblinds the server response
+(and verifies the prover's proof if verifiability is required). In
+`Finalize`, the client outputs a byte array corresponding to each token
+that was evaluated over.
 
 Note that in the final output, the client computes Finalize over some
-auxiliary input data aux.
-
-### Generalized VOPRF {#general-voprf}
-
-The generalized VOPRF functionality differs slightly from the OPRF
-protocol above. Firstly, the server sends over an extra commitment value
-Y = kG, where G is a common generator known to both participants.
-Secondly, the server sends over both outputs from VerifiableEvaluate in
-the evaluation phase, and the client also verifies the server's output.
-
-VOPRF setup phase:
-
-~~~
-     Verifier()                   Prover(l)
-  ----------------------------------------------------------
-                                  (k,GG,Y) = VerifiableSetup(l)
-                         (GG,Y)
-                        <-------
-~~~
-
-VOPRF evaluation phase:
-
-~~~
-     Verifier(x,Y,aux)            Prover(k)
-  ----------------------------------------------------------
-     (r, M) = VerifiableBlind(x)
-                            M
-                        ------->
-                                  (Z,D) = VerifiableEvaluate(k,G,Y,M)
-                          (Z,D)
-                        <-------
-    N = VerifiableUnblind(r,G,Y,M,Z,D)
-    Output VerifiableFinalize(x,Y,N,aux)
-~~~
-
-## Protocol correctness
-
-Protocol correctness requires that, for any key k, input x, and (r, M) =
-Blind(x), it must be true that:
-
-~~~
-  Finalize(x, Unblind(r,M,Evaluate(k,M)), aux)
-      == H_2(H_2(DST, x .. F(k,x)), aux)
-~~~
-
-with overwhelming probability. Likewise, in the verifiable setting, we
-require that:
-
-~~~
-  Z = VerifiableEvaluate(k,G,Y,M)
-  VerifiableFinalize(x, Y, VerifiableUnblind(r,G,Y,M,Z), aux)
-      == H_2(H_2(DST, x .. F(k,x)), aux)
-~~~
-
-with overwhelming probability, where (r, M) = VerifiableBlind(x). In
-other words, the inner H_2 invocation effectively derives a key, dk,
-from the input data DST, x, N. The outer invocation derives the output y
-by evaluating H_2 over dk and auxiliary data aux.
-
-## Domain separation
-
-The Finalize procedure accepts optional auxiliary byte string input (aux) as
-a means of modifying the PRF output. This parameter SHOULD be used for domain
+auxiliary input data `aux`. This parameter SHOULD be used for domain
 separation in (V)OPRF the protocol. Specifically, any system which has
-multiple (V)OPRF applications should use different aux values to ensure
-finalized outputs are separate. Guidance for constructing domain separation
-string aux can be found in {{I-D.irtf-cfrg-hash-to-curve}}; Section 3.1.
+multiple (V)OPRF applications should use separate aux values to to
+ensure finalized outputs are separate. Guidance for constructing aux can
+be found in {{I-D.irtf-cfrg-hash-to-curve}}; Section 3.1.
 
-## Instantiations of GG
+## Data structures {#structs}
 
-A secure instance includes choosing GG as the group of squares of a finite field FF.
-Let FF be field of order q = 2p+1 such that p and q are primes, then the
-squares of FF (elements u^2 where u is an element of FF) form a cyclic group of
-order p.
+The following is a list of data structures that are defined for
+providing inputs and outputs for each of the API functions defined in
+{{algorithms}}.
 
-A more efficient way to instanciate the (V)OPRF protocol is using
-groups resultant from elliptic curves. Given an elliptic curve defined by an
-equation, the points that satisfy the curve equation form a group, and this
-group can be used as GG if its order is prime. Note, however, that some
-elliptic curves generate groups of composite-order. In this case, GG is usually
-chosen as the largest prime-order subgroup of the elliptic curve. Alternatively,
-GG can be instantiated as a quotient of groups, such as Ristretto {{RISTRETTO}}
-and Decaf {{DECAF}} groups.
+The following types are a list of aliases that are used throughout the
+protocol.
 
-Unless otherwise stated, it is assumed that the generator G of the group GG is
-a fixed generator. This generator should be available to both the client and
-the server ahead of the protocol, or derived for each different group
-instantiation using a fixed method. In most of cases, the fixed generators are given as part of the group description.
+```
+opaque group_id<1..2^16-1>
+opaque Scalar<1..2^16-1>;
+opaque SerializedGroupElement<1..2^16-1>;
+Scalar PrivateKey;
+SerializedGroupElement PublicKey;
+SerializedGroupElement BlindedToken;
+```
 
-## OPRF algorithms {#oprf}
+A `ClientInput` is simply a byte array.
 
-This section provides descriptions of the algorithms used in the
-generalized protocols from {{general-oprf}}. We describe the VOPRF
-analogues for the protocols in {{general-voprf}} later in {{voprf}}.
+```
+opaque ClientInput<1..2^16-1>
+```
+
+A `Token` is an object created by a client when constructing a (V)OPRF
+protocol input. It is stored so that it can be used after receiving the
+server response.
+
+```
+struct {
+  opaque input_data<1..2^16-1>;
+  opaque blind<1..2^16-1>;
+} Token;
+```
+
+An `Evaluation` is the type output by the `Evaluate` and
+`VerifiableEvaluate` algorithms. The member `proof` is added in the
+output of `VerifiableEvaluate` only.
+
+```
+struct {
+  SerializedGroupElement elements<1..2^16-1>;
+  [[ Scalar proof[2] ]]; /* optional */
+} Evaluation;
+```
+
+## Algorithms
+
+The `verifiable` mode of the protocol (VOPRF) is controlled by a boolean
+input to a subset of the functions. Each function assumes knowledge of a
+global group `GG` (satisfying the API in {{pog}}) that is published
+publicly by the server before the protocol exchange.
 
 We note here that the blinding mechanism that we use can be modified
 slightly with the opportunity for making performance gains in some
 scenarios. We detail these modifications in {{blinding}}.
-
-### Setup
-
-~~~
-Input:
-
- l: Some suitable choice of prime length for instantiating a group
-    structure (e.g. as described in [NIST]).
-
-Output:
-
- k:  A key chosen from {0,1}^l and interpreted as a scalar in [1,p-1].
- GG: A cyclic group with prime-order p of length l bits.
-
-Steps:
-
- 1. Construct a group GG = GG(l) with prime-order p of length l bits
- 2. k <-$ GF(p)
- 3. Output (k,GG)
-~~~
 
 ### Blind
 
 ~~~
 Input:
 
- x: Binary string taken from {0,1}^*.
+ ClientInput inputs<1..m>
 
 Output:
 
- r: Random scalar in [1, p - 1].
- M: An element in GG.
+ Token tokens<1..m>
+ BlindedToken blinded_tokens<1..m>
 
 Steps:
 
- 1.  r <-$ GF(p)
- 2.  M := rH_1(x)
- 3.  Output (r, M)
+ 1. tokens = []
+ 2. blinded_tokens = []
+ 3. for i in [m]:
+    1. r <-$ GF(p)
+    2. if r == 0: return to the previous step
+    3. P = GG.EncodeToGroup(inputs[i])
+    4. tokens[i] = Token{ data: x, blind: r }
+    5. blinded_tokens[i] = GG.Serialize(rP)
+ 4. Output (tokens, blinded_tokens)
 ~~~
 
 ### Evaluate
@@ -833,17 +725,27 @@ Steps:
 ~~~
 Input:
 
- k: A scalar value taken from [1,p-1].
- M: An element in GG.
+ PrivateKey k
+ PublicKey public_key
+ BlindedToken blinded_tokens<1..m>
+ boolean verifiable
 
 Output:
 
- Z: An element in GG.
+ Evaluation Ev
 
 Steps:
 
- 1. Z := kM
- 2. Output Z
+ 1. elements = []
+ 2. for i in 1..m:
+    1. BT = GG.Deserialize(blinded_tokens[i])
+    2. Z = k * BT
+    3. elements[i] = GG.Serialize(Z)
+ 3. Ev = Evaluation{ elements: elements }
+ 4. if verifiable:
+    1. proof = GenerateProof(k, public_key, blinded_tokens, elements)
+    2. Ev.proof = proof
+ 5. Output Ev
 ~~~
 
 ### Unblind
@@ -851,17 +753,27 @@ Steps:
 ~~~
 Input:
 
- r: Random scalar in [1, p - 1].
- Z: An element in GG.
+ PublicKey public_key
+ Token tokens<1..m>
+ BlindedToken blinded_tokens<1..m>
+ Evaluation ev
+ boolean verifiable
 
 Output:
 
- N: An element in GG.
+ SerializedGroupElement unblinded_tokens<1..m>
 
 Steps:
 
- 1. N := (r^(-1))Z
- 2. Output N
+ 1. if verifiable:
+    1. if (VerifyProof(public_key, blinded_tokens, ev) == false): abort
+ 2. unblinded_tokens = []
+ 3. for i in [m]:
+    1. r = tokens[i].blind
+    2. Z = GG.Deserialize(Evaluation.elements[i])
+    3. N = (r^(-1)) * Z
+    4. unblinded_tokens[i] = GG.Serialize(N)
+ 4. Output unblinded_tokens
 ~~~
 
 ### Finalize
@@ -869,141 +781,28 @@ Steps:
 ~~~
 Input:
 
- x: Binary string taken from {0,1}^*.
- N: An element in GG.
- aux: Arbitrary auxiliary data (as bytes).
+ Token T
+ SerializedGroupElement E
+ opaque aux<1..2^16-1>
 
 Output:
 
- y: Random element in {0,1}^L.
+ opaque output<1..2^16-1>
 
 Steps:
 
- 1. DST := "oprf_derive_output"
- 2. dk := H_2(DST, x .. N)
- 3. y := H_2(dk, aux)
- 4. Output y
+ 1. DST = "oprf_derive_output"
+ 2. dk = H_2(DST, T.data || E)
+ 3. output = H_2(dk, aux)
+ 4. Output output
 ~~~
 
-## VOPRF algorithms {#voprf}
+## Fixed-base blinding {#blinding}
 
-We make modifications to the aforementioned algorithms in the VOPRF
-setting.
-
-### VerifiableSetup
-
-~~~
-Input:
-
- G: Public fixed generator of GG.
- l: Some suitable choice of key-length (e.g. as described in [NIST]).
-
-Output:
-
- k:  A key chosen from {0,1}^l and interpreted as a scalar in [1,p-1].
- GG: A cyclic group with prime-order p of length l bits.
- Y:  A group element in GG.
-
-Steps:
-
-  1. (k,GG) <- Setup(l)
-  2. Y := kG
-  3. Output (k,GG,Y)
-~~~
-
-### VerifiableBlind
-
-~~~
-Input:
-
- x: V's PRF input.
-
-Output:
-
- r: Random scalar in [1, p - 1].
- M: An element in GG.
-
-Steps:
-
- 1.  r <-$ GF(p)
- 2.  M := rH_1(x)
- 3.  Output (r,M)
-~~~
-
-### VerifiableEvaluate
-
-~~~
-Input:
-
- k: A random scalar in [1,p-1].
- G: Public fixed generator of group GG.
- Y: An element in GG.
- M: An element in GG.
-
-Output:
-
- Z: An element in GG.
- D: DLEQ proof that log_G(Y) == log_M(Z).
-
-Steps:
-
- 1. Z := kM
- 2. Z <- hZ
- 3. D = DLEQ_Generate(k,G,Y,M,Z)
- 4. Output (Z, D)
-~~~
-
-### VerifiableUnblind
-
-~~~
-Input:
-
- r: Random scalar in [1, p - 1].
- G: Public fixed generator of group GG.
- Y: An element in GG.
- M: An element in GG.
- Z: An element in GG.
- D: DLEQ proof object.
-
-Output:
-
- N: An element in GG.
-
-Steps:
-
- 1. if DLEQ_Verify(G,Y,M,Z,D) == false: output "error"
- 2. N := (r^(-1))Z
- 3. Output N
-~~~
-
-### VerifiableFinalize
-
-~~~
-Input:
-
- x:   Binary string in {0,1}^*.
- Y:   An element in GG.
- N:   An element in GG, or "error".
- aux: Arbitrary auxiliary data in {0,1}^*.
-
-Output:
-
- y:   Random element in {0,1}^L, or "error"
-
-Steps:
-
- 1. If N == "error", output "error".
- 2. DST := "voprf_derive_output"
- 3. dk := H_2(DST, x .. Y .. N)
- 4. y := H_2(dk, aux)
- 5. Output y
-~~~
-
-## Efficiency gains with pre-processing and fixed-base blinding {#blinding}
-
-In {{oprf}} we assume that the client-side blinding is carried
-out directly on the output of H_1(x), i.e. computing rH_1(x) for some r
-<-$ GF(p). In the {{OPAQUE}} draft, it is noted that it may be more
+Let `H_1` refer to the function `GG.EncodeToGroup`, in Section
+{{algorithms}} we assume that the client-side blinding is carried out
+directly on the output of H_1(x), i.e. computing rH_1(x) for some r <-$
+GF(p). In the {{OPAQUE}} draft, it is noted that it may be more
 efficient to use additive blinding rather than multiplicative if the
 client can preprocess some values. For example, a valid way of computing
 additive blinding would be to instead compute H_1(x)+rG, where G is the
@@ -1015,38 +814,59 @@ instantiation. We refer to the additive blinding case as fixed-base
 blinding (FBB) since the blinding is applied to the same generator each
 time (when computing rG).
 
-By pre-processing tables of blinded scalar multiplications for the
-specific choice of G it is possible to gain a computational advantage.
-Choosing one of these values rG (where r is the scalar value that is
-used), then computing H_1(x)+rG is more efficient than computing rH_1(x)
-(one addition against log_2(r)). Therefore, it may be advantageous to
-define the OPRF and VOPRF protocols using additive blinding rather than
-multiplicative blinding. In fact, the only algorithms that need to
-change are Blind and Unblind (and similarly for the VOPRF variants).
+The advantage of fixed-base blinding is that it allows the client to
+pre-process tables of blinded scalar multiplications for the fixed
+generator G. This may give it a computational efficiency advantage.
+Pre-processing also reduces the amount of computation that needs to be
+done in the online exchange. Choosing one of these values `rG` (where
+`r` is the scalar value that is used), then computing `H_1(x)+rG` is
+more efficient than computing `rH_1(x)` (one addition against log_2(r)).
+Therefore, it may be advantageous to define the OPRF and VOPRF protocols
+using additive blinding rather than multiplicative blinding. In fact,
+the only algorithms that need to change are Blind and Unblind (and
+similarly for the VOPRF variants).
 
-We define the FBB variants of the algorithms in {{oprf}} below along
-with a new algorithm Preprocess that defines how preprocessing is
-carried out. The equivalent algorithms for VOPRF are almost identical
-and so we do not redefine them here. Notice that the only computation
-that changes is for V, the necessary computation of P does not change.
+We define the FBB variants of the algorithms in {{algorithms}} below,
+along with a new algorithm Preprocess. The Proprocess algorithm can take
+place offline and before the rest of the OPRF protocol. The Blind
+algorithm takes the proprocessed values as inputs, but the signature of
+Unblind remains the same.
 
 ### Preprocess
 
 ~~~
+struct {
+  Scalar blind;
+  SerializedGroupElement blinded_generator;
+  SerializedGroupElement blinded_public_key;
+} PreprocessedBlind;
+~~~
+
+~~~
 Input:
 
- G:  Public fixed generator of GG
+ PublicKey public_key;
+ uint16 m;
 
 Output:
 
- r:  Random scalar in [1, p-1]
- rG: An element in GG.
- rY: An element in GG.
+ PrepocessedBlind preprocs<1..m>;
 
 Steps:
 
- 1.  r <-$ GF(p)
- 2.  Output (r, rG, rY)
+ 1. preprocs = []
+ 2. PK = GG.Deserialize(public_key)
+ 3. for i in [m]:
+    1. r <-$ GF(p)
+    2. if r == 0: return to the previous step
+    3. blinded_generator = GG.Serialize(r * GG.Generator())
+    4. blinded_public_key = GG.Serialize(r * PK)
+    5. preprocs[i] = PrepocessedBlind{
+         blind: r,
+         blinded_generator: blinded_generator,
+         blinded_public_key: blinded_public_key,
+       }
+ 4. Output preprocs
 ~~~
 
 ### Blind
@@ -1054,17 +874,26 @@ Steps:
 ~~~
 Input:
 
- x:  Binary string in {0,1}^*.
- rG: An element in GG.
+ ClientInput inputs<1..m>
+ PreprocessedBlinds preprocs<1..m>
 
 Output:
 
- M: An element in GG.
+ Token tokens<1..m>
+ BlindedToken blinded_tokens<1..m>
 
 Steps:
 
- 1.  M := H_1(x)+rG
- 2.  Output M
+ 1. tokens = []
+ 2. blinded_tokens = []
+ 3. for i in [m]:
+    1. pre = preprocs[i]
+    2. r = pre.blind
+    3. rG = GG.Deserialize(pre.blinded_generator)
+    4. P = GG.EncodeToGroup(inputs[i])
+    5. tokens[i] = Token{ data: x, blind: pre.blinded_public_key }
+    6. blinded_tokens[i] = GG.Serialize(P + rG)
+ 4. Output (tokens, blinded_tokens)
 ~~~
 
 ### Unblind
@@ -1072,66 +901,85 @@ Steps:
 ~~~
 Input:
 
- rY: An element in GG.
- M:  An element in GG.
- Z:  An element in GG.
+ Token tokens<1..m>
+ Evaluation ev
+ PublicKey public_key
+ BlindedToken blinded_tokens<1..m>
+ boolean verifiable
 
 Output:
 
- N: An element in GG.
+ SerializedGroupElement unblinded<1..m>
 
 Steps:
 
- 1. N := Z-rY
- 2. Output N
+ 1. if (verifiable):
+    1. if (VerifyProof(public_key, blinded_tokens, ev) == false): abort
+ 2. unblinded_tokens = []
+ 3. for i in [m]:
+    1. PKr = GG.Deserialize(tokens[i].blind)
+    2. Z = GG.Deserialize(ev.elements[i])
+    3. N := Z-PKr
+    4. unblinded_tokens[i] = GG.Serialize(N)
+ 4. Output unblinded_tokens
 ~~~
 
-Notice that Unblind computes (Z-rY) = k(H_1(x)+rG) - rkG = kH_1(x) by
-the commutativity of scalars. This is the same
-output as in the original Unblind algorithm.
+Notice that Unblind computes (Z-PKr) = k(H_1(x)+rG) - rkG = kH_1(x) by
+the commutativity of scalar multiplication in GG. This is the same
+output as in the Unblind algorithm for variable-based blinding.
 
 # NIZK Discrete Logarithm Equality Proof {#dleq}
 
 For the VOPRF protocol we require that V is able to verify that P has
-used its private key k to evaluate the PRF. We can do this by showing
-that the original commitment (G,Y) output by VerifiableSetup(l)
-satisfies log_G(Y) == log_M(Z) where Z is the output of
-VerifiableEvaluate(k,G,Y,M).
+used its private key k to evaluate the PRF. As in the original work of
+{{JKK14}}, we provide a zero-knowledge proof that the key provided as
+input by the server in the `Evaluate` function is the same key as it
+used to produce their public key.
 
-This may be used, for example, to ensure that P uses the same private
-key for computing the VOPRF output and does not attempt to "tag"
-individual verifiers with select keys. This proof must not reveal the
-P's long-term private key to V.
+As an example of the nature of attacks that this prevents, this ensures
+that P uses the same private key for computing the VOPRF output and does
+not attempt to "tag" individual verifiers with select keys. This proof
+must not reveal P's long-term private key to V.
 
 Consequently, this allows extending the OPRF protocol with a
 (non-interactive) discrete logarithm equality (DLEQ) algorithm built on
 a Chaum-Pedersen {{ChaumPedersen}} proof. This proof is divided into two
-procedures: DLEQ_Generate and DLEQ_Verify. These are specified below.
+procedures: GenerateProof and( VerifyProof. These are specified below).
 
-## DLEQ_Generate
+The proof generation and verification algorithms are denoted by
+`GenerateProof` and `VerifyProof` respectively, see below for
+descriptions. Note that both algorithms create a batched proof for
+multiple evaluations of the VOPRF. Note further that both algorithms can
+be domain-separated using the global `opaque DST_dleq<1..2^16-1>` value.
+
+## GenerateProof
 
 ~~~
 Input:
 
- k: Evaluator secret key.
- G: Public fixed generator of GG.
- Y: Evaluator public key (= kG).
- M: An element in GG.
- Z: An element in GG.
- H_3: A hash function from GG to {0,1}^L, modeled as a random oracle.
+ PrivateKey k
+ PublicKey public_key
+ BlindedTokens blinded_tokens<1..m>
+ Evaluation ev
 
 Output:
 
- D: DLEQ proof (c, s).
+ Scalar proof[2]
 
 Steps:
 
- 1. r <-$ GF(p)
- 2. A := rG
- 3. B := rM
- 4. c <- H_3(G,Y,M,Z,A,B) mod p
- 5. s := (r - ck) mod p
- 6. Output D := (c, s)
+ 1.  G = GG.Generator()
+ 2.  gen = GG.Serialize(G)
+ 3.  (a1, a2) = compute_composites(
+                  gen, public_key, blinded_tokens, ev, DST_dleq
+                )
+ 4.  r <-$ GF(p)
+ 5.  if (r == 0): go back to the previous step
+ 6.  a3 = GG.Serialize(rG)
+ 7.  a4 = GG.Serialize(rM)
+ 8.  c = H_3(gen || public_key || a1 || a2 || a3 || a4) (mod p)
+ 9.  s = (r - ck) (mod p)
+ 10. Output (c, s)
 ~~~
 
 We note here that it is essential that a different r value is used for
@@ -1139,245 +987,81 @@ every invocation. If this is not done, then this may leak the key k in a
 similar fashion as is possible in Schnorr or (EC)DSA scenarios where
 fresh randomness is not used.
 
-## DLEQ_Verify
+## VerifyProof
 
 ~~~
 Input:
 
- G: Public fixed generator of GG.
- Y: Evaluator public key.
- M: An element in GG.
- Z: An element in GG.
- D: DLEQ proof (c, s).
+ PublicKey public_key
+ BlindedTokens blinded_tokens<1..m>
+ Evaluation ev
+ Scalar proof[2]
 
 Output:
 
- True if log_G(Y) == log_M(Z), False otherwise.
+ boolean verified
 
 Steps:
 
- 1. A' := (sG + cY)
- 2. B' := (sM + cZ)
- 3. c' <- H_3(G,Y,M,Z,A',B') mod p
- 4. Output c == c'
+ 1. G = GG.Generator()
+ 2. gen = GG.Serialize(G)
+ 3. (a1, a2) = compute_composites(
+                 gen, public_key, blinded_tokens, ev, DST_dleq
+               )
+ 4. A' = (proof[1] * G + proof[0] * Y)
+ 5. B' = (proof[1] * M + proof[0] * Z)
+ 6. a3 = GG.Serialize(A')
+ 7. a4 = GG.Serialize(B')
+ 8. c  = H_3(gen || public_key || a1 || a2 || a3 || a4) (mod p)
+ 9. Output c == proof[0] (mod p)
 ~~~
 
-# Batched VOPRF evaluation {#batch}
+## compute_composites
 
-Common applications (e.g. {{PrivacyPass}}) require V to obtain multiple
-PRF evaluations from P. In the VOPRF case, this would naïvely require
-running multiple protocol invocations. This is costly, both in terms of
-computation and communication. To get around this, applications can use
-a 'batching' procedure for generating and verifying DLEQ proofs for a
-finite number of PRF evaluation pairs (Mi,Zi). For n PRF evaluations:
-
-- Proof generation is slightly more expensive from 2n modular
-  exponentiations to 2n+2.
-- Proof verification is much more efficient, from 4n modular
-  exponentiations to 2n+4.
-- Communications falls from 2n to 2 group elements.
-
-Since P is the VOPRF server, it may be able to tolerate a slight
-increase in proof generation complexity for much more efficient
-communication and proof verification.
-
-In this section, we describe algorithms for batching the DLEQ generation
-and verification procedure. For these algorithms we require two
-additional hash functions H_4: GG^(2n+2) -> {0,1}^a, and H_5: {0,1}^a x
-ZZ^3 -> {0,1}^b (both modeled as random oracles).
-
-We can instantiate the random oracle function H_4 using the same hash
-function that is used for H_3 previously. For H_5, we can also use a
-similar instantiation, or we can use a variable-length output generator.
-For example, for groups with an order of 256-bit, valid instantiations
-include functions such as SHAKE-256 {{SHAKE}} or HKDF-Expand-SHA256
-{{RFC5869}}. This is preferable in situations where we may require
-outputs that are larger than 512 bits in length, for example.
-
-## Batched_DLEQ_Generate
+The `compute_composites` function is a utility function used in both
+`GenerateProof` and `VerifyProof`.
 
 ~~~
 Input:
 
- k: Evaluator secret key.
- G: Public fixed generator of group GG (with order p).
- Y: Evaluator public key (= kG).
- n: Number of PRF evaluations.
- [ Mi ]: An array of points in GG of length n.
- [ Zi ]: An array of points in GG of length n.
- H_4: A random oracle hash function from GG^(2n+2) to {0,1}^a.
- H_5: A random oracle hash function from {0,1}^a x ZZ^2 to {0,1}^b.
- label: An integer label value for the splitting the domain of H_5
+ SerializedGroupElement gen
+ PublicKey public_key
+ BlindedTokens blinded_tokens<1..m>
+ Evaluation ev
+ opaque DST_dleq<1..2^16-1>
 
 Output:
 
- D: DLEQ proof (c, s).
+ SerializedGroupElement composites[2]
 
 Steps:
 
- 1. seed <- H_4(G,Y,[Mi,Zi]))
- 2. i' := i
- 3. for i in [m]:
-    1. di <- H_5(seed,i',info)
-    2. if di > p:
-       1. i' = i'+1
-       2. i = i-1 // decrement and try again
-       3. continue
- 4. c1,...,cn := (int)d1,...,(int)dn
- 5. M := c1M1 + ... + cnMn
- 6. Z := c1Z1 + ... + cnZn
- 7. Output DLEQ_Generate(k,G,Y,M,Z)
+ 1. seed = H_4(gen || public_key || blinded_tokens || ev.elements)
+ 2. i' = 0
+ 3. M = GG.Identity()
+ 4. Z = GG.Identity()
+ 5. for i in [m]:
+    1. di = 1
+    2. Mi = GG.Deserialize(blinded_tokens[i])
+    3. Zi = GG.Deserialize(ev.elements[i])
+    4. if (m > 1):
+       1. di = H_5(seed || i' || DST_dleq)
+       2. if (di > GG.order()):
+          1. i = i-1 /* decrement and try again */
+       3. i  = i + 1
+       4. i' = i' + 1
+    5. M = di * Mi + M
+    6. Z = di * Zi + Z
+ 6. Output (GG.Serialize(M), GG.Serialize(Z))
 ~~~
 
-## DLEQ_Batched_Verify
+## Hash function instantiations
 
-~~~
-Input:
-
- G: Public fixed generator of group GG (with order p).
- Y: Evaluator public key.
- [ Mi ]: An array of points in GG of length n.
- [ Zi ]: An array of points in GG of length n.
- D: DLEQ proof (c, s).
-
-Output:
-
- True if log_G(Y) == log_(Mi)(Zi) for each i in 1...n, False otherwise.
-
-Steps:
-
- 1. seed <- H_4(G,Y,[Mi,Zi]))
- 2. i' := i
- 3. for i in [m]:
-    1. di <- H_5(seed,i',info)
-    2. if di > p:
-       1. i' = i'+1
-       2. i = i-1 // decrement and try again
-       3. continue
- 4. c1,...,cn := (int)d1,...,(int)dn
- 5. M := c1M1 + ... + cnMn
- 6. Z := c1Z1 + ... + cnZn
- 7. Output DLEQ_Verify(G,Y,M,Z,D)
-~~~
-
-## Modified algorithms
-
-The VOPRF protocol from {{protocol}} changes to allow specifying
-multiple blinded PRF inputs `[ Mi ]` for i in 1...n. P computes the
-array `[ Zi]` and replaces DLEQ_Generate with DLEQ_Batched_Generate over
-these arrays. Concretely, we modify the following algorithms:
-
-### VerifiableBlind
-
-~~~
-Input:
-
- [ xi ]: An array of m binary strings taken from {0,1}^*.
-
-Output:
-
- [ ri ]: An array of m random scalars in [1, p - 1].
- [ Mi ]: An array of elements in GG.
-
-Steps:
-
- 1.  groupElems = []
- 2.  blinds = []
- 3.  for i in [m]:
-     1.  ri <-$ GF(p)
-     2.  Mi := rH_1(xi)
-     3.  blinds.push(ri)
-     4.  groupElems.push(Mi)
- 4.  Output (blinds, groupElems)
-~~~
-
-### VerifiableEvaluate
-
-~~~
-Input:
-
- k:      Evaluator secret key.
- G:      Public fixed generator of group GG.
- Y:      Evaluator public key (= kG).
- [ Mi ]: An array of m elements in GG.
-
-Output:
-
- [ Zi ]: An array of m elements in GG.
- D:      Batched DLEQ proof object.
-
-Steps:
-
- 1.  outputElems = []
- 2.  for i in [m]:
-     1. Zi := kMi
-     2. outputElems.push(Zi)
- 3. D = Batched_DLEQ_Generate(k,G,Y,[ Mi ],outputElems)
- 4. Output (outputElems, D)
-~~~
-
-### VerifiableUnblind
-
-~~~
-Input:
-
- G:      Public fixed generator of group GG.
- Y:      Evaluator public key (= kG).
- [ Mi ]: An array of m elements in GG.
- [ Zi ]: An array of m elements in GG.
- [ ri ]: An array of m random scalars in [1, p - 1].
- D:      Batched DLEQ proof object.
-
-Output:
-
- [ Ni ]: An array of n elements in GG.
-
-Steps:
-
- 1. if !Batch_DLEQ_Verify(G,Y,[ Mi ],[ Zi ],D): Output "error"
- 2. N = []
- 3.  for i in [m]:
-     1. Ni := (ri^(-1))Zi
-     2. N.push(Ni)
- 4. Output N
-~~~
-
-### VerifiableFinalize
-
-The description of this algorithm does not change in the batched case.
-Instead, the protocol description in {{general-voprf}} changes so that
-`VerifiableFinalize` runs once for each of the outputs of
-`VerifiableUnblind`.
-
-## Random oracle instantiations for proofs
-
-We can instantiate the random oracle function H_4 using the same hash
-function that is used for H_1,H_2,H_3. For H_5, we can also use a
-similar instantiation, or we can use a variable-length output generator.
-For example, for groups with an order of 256-bit, valid instantiations
-include functions such as SHAKE-256 {{SHAKE}} or HKDF-Expand-SHA256
-{{RFC5869}}.
-
-~~~
-Input:
-
- [ ri ]: Random scalars in [1, p - 1].
- G: Public fixed generator of group GG.
- Y: Evaluator public key.
- [ Mi ]: Blinded elements of GG.
- [ Zi ]: Server-generated elements in GG.
- D: A batched DLEQ proof object.
-
-Output:
-
- N: element in GG, or "error".
-
-Steps:
-
- 1. N := (r^(-1))Z
- 2. If 1 = DLEQ_Batched_Verify(G,Y,[ Mi ],[ Zi ],D), output N
- 3. Output "error"
-~~~
+In the above algorithmms, we define three new functions `H_3`, `H_4` and
+`H_5`. Note that `H_3` and `H_4` are hash function that maps arbitrary
+length byte outputs to a fixed size output. The function `H_5` should
+output a uniform scalar value in `GF(GG.Order())`. Both functions are
+modelled as random oracles for the purpose of arguing security.
 
 # Supported ciphersuites {#ciphersuites}
 
@@ -1486,12 +1170,17 @@ Output d' == d.
 
 ### Protocol security {#protocol-sec}
 
-As aforementioned, our OPRF and VOPRF constructions are based heavily on
-the 2HashDH-NIZK construction given in {{JKK14}}, except for
-considerations on how we instantiate the NIZK DLEQ proof system. This
-means that the cryptographic security of our construction is also based
-on the assumption that the One-More Gap DH is computationally difficult
-to solve.
+Our OPRF construction is based on the VOPRF construction known as
+2HashDH-NIZK given by {{JKK14}}; essentially without providing
+zero-knowledge proofs that verify that the output is correct. Our VOPRF
+construction (including the NIZK DLEQ proofs from {{dleq}}) is identical
+to the {{JKK14}} construction, except that we can perform multiple VOPRF
+evaluations in one go, whilst only constructing one NIZK proof object.
+This is enabled using an established batching technique.
+
+Consequently the cryptographic security of our construction is based on
+the assumption that the One-More Gap DH is computationally difficult to
+solve.
 
 The (N,Q)-One-More Gap DH (OMDH) problem asks the following.
 
@@ -1594,7 +1283,7 @@ in {{I-D.irtf-cfrg-hash-to-curve}} when instantiating the function H1.
 To ensure no information is leaked during protocol execution, all
 operations that use secret data MUST be constant time. Operations that
 SHOULD be constant time include: H_1() (hashing arbitrary strings to
-curves) and DLEQ_Generate(). As mentioned previously,
+curves) and GenerateProof(). As mentioned previously,
 {{I-D.irtf-cfrg-hash-to-curve}} describes various algorithms for
 constant-time implementations of H_1.
 
