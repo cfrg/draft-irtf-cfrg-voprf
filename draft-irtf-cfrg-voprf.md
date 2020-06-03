@@ -266,28 +266,29 @@ A pseudorandom function (PRF) F(k, x) is an efficiently computable
 function with secret key k on input x. Roughly, F is pseudorandom if the
 output y = F(k, x) is indistinguishable from uniformly sampling any
 element in F's range for random choice of k. An oblivious PRF (OPRF) is
-a two-party protocol between a prover P and verifier V where P holds a
-PRF key k and V holds some input x. The protocol allows both parties to
-cooperate in computing F(k, x) with P's secret key k and V's input x
-such that: V learns F(k, x) without learning anything about k; and P
-does not learn anything about x. A Verifiable OPRF (VOPRF) is an OPRF
-wherein P can prove to V that F(k, x) was computed using key k, which is
-bound to a trusted public key Y = k * G, and G is the generator of a
-group. Informally, this is done by presenting a non-interactive
-zero-knowledge (NIZK) proof of equality between (G, Y) and (Z, M), where
-Z and M are group elements such that Z = k * M.
+a two-party protocol between a Server and a Client, where Server holds a
+PRF key k and Client holds some input x. The protocol allows both
+parties to cooperate in computing F(k, x) with Server's secret key k and
+Client's input x such that: Client learns F(k, x) without learning
+anything about k; and P does not learn anything about x. A Verifiable
+OPRF (VOPRF) is an OPRF wherein Client can prove to Server that F(k, x)
+was computed using key k, which is bound to a trusted public key Y = k *
+G, and G is the generator of a group. Informally, this is done by
+presenting a non-interactive zero-knowledge (NIZK) proof of equality
+between (G, Y) and (Z, M), where Z and M are group elements such that Z
+= k * M.
 
 OPRFs have been shown to be useful for constructing: password-protected
 secret sharing schemes {{JKK14}}; privacy-preserving password stores
 {{SJKS17}}; and password-authenticated key exchange or PAKE {{OPAQUE}}.
-VOPRFs are useful for producing tokens that are verifiable by V. This
-may be needed, for example, if V wants assurance that P did not use a
-unique key in its computation, i.e., if V wants key consistency from P.
-This property is necessary in some applications, e.g., the Privacy Pass
-protocol {{PrivacyPass}}, wherein this VOPRF is used to generate
-one-time authentication tokens to bypass CAPTCHA challenges. VOPRFs have
-also been used for password-protected secret sharing schemes e.g.
-{{JKKX16}}.
+VOPRFs are useful for producing tokens that are verifiable by Client.
+This may be needed, for example, if Client wants assurance that Server
+did not use a unique key in its computation, i.e., if Client wants key
+consistency from Server. This property is necessary in some
+applications, e.g., the Privacy Pass protocol {{PrivacyPass}}, wherein
+this VOPRF is used to generate one-time authentication tokens to bypass
+CAPTCHA challenges. VOPRFs have also been used for password-protected
+secret sharing schemes e.g. {{JKKX16}}.
 
 This document introduces an OPRF protocol built in prime-order groups,
 applying to finite fields of prime-order and also elliptic curve (EC)
@@ -348,9 +349,10 @@ The following terms are used throughout this document.
 - PRF: Pseudorandom Function.
 - OPRF: Oblivious Pseudorandom Function.
 - VOPRF: Verifiable Oblivious Pseudorandom Function.
-- Verifier (V): Protocol initiator when computing F(k, x), also known as
-  client.
-- Prover (P): Holder of secret key k, also known as server.
+- Client: Protocol initiator, eventually learns pseudorandom function
+  evaluation as the output of the protocol.
+- Server: Computes the pseudorandom function over a secret key, learns
+  nothing about the client's input.
 - NIZK: Non-interactive zero knowledge.
 - DLEQ: Discrete Logarithm Equality.
 
@@ -408,37 +410,40 @@ be non-malleable to maintain indistinguishability.
 
 An OPRF protocol must also satisfy the following property:
 
-- Oblivious: P must learn nothing about V's input or the output of the
-  function. In addition, V must learn nothing about P's private key.
+- Oblivious: Server must learn nothing about Client's input or the
+  output of the function. In addition, Client must learn nothing about
+  Server's private key.
 
-Essentially, obliviousness tells us that, even if P learns V's input x
-at some point in the future, then P will not be able to link any
-particular OPRF evaluation to x. This property is also known as
+Essentially, obliviousness tells us that, even if Server learns Client's
+input x at some point in the future, then Server will not be able to
+link any particular OPRF evaluation to x. This property is also known as
 unlinkability {{DGSTV18}}.
 
 Optionally, for any protocol that satisfies the above properties, there
 is an additional security property:
 
-- Verifiable: V must only complete execution of the protocol if it can
-  successfully assert that the OPRF output computed by V is correct,
-  with respect to the OPRF key held by P.
+- Verifiable: Client must only complete execution of the protocol if it
+  can successfully assert that the OPRF output it computes is correct,
+  with respect to the OPRF key held by Server.
 
 Any OPRF that satisfies the 'verifiable' security property is known as a
 verifiable OPRF, or VOPRF for short. In practice, the notion of
-verifiability requires that P commits to the key k before the actual
-protocol execution takes place. Then V verifies that P has used k in the
-protocol using this commitment. In the following, we may also refer to
-this commitment as a public key.
+verifiability requires that Server commits to the key k before the
+actual protocol execution takes place. Then Client verifies that Server
+has used k in the protocol using this commitment. In the following, we
+may also refer to this commitment as a public key.
 
 ## Prime-order group API {#pog}
 
 In this document, we assume the construction of an additive, prime-order
 group `GG` for performing all mathematical operations. Such groups are
 uniquely determined by the choice of the prime `p` that defines the
-order of the group. The fundamental group operation is addition (+) Specifically, for any 
-elements `A` and `B` that are members of the group `GG`, `A + B = B + A` is also a member 
-of `GG`. Scalar multiplication (*) is an efficient method for repeated addition operations. 
-Given a scalar `r` in `GF(p)` and element `A` in `GG`, `r*A = A + ... + A` (`r` times). 
+order of the group. The fundamental group operation is addition (+)
+Specifically, for any elements `A` and `B` that are members of the group
+`GG`, `A + B = B + A` is also a member of `GG`. Scalar multiplication
+(*) is an efficient method for repeated addition operations. Given a
+scalar `r` in `GF(p)` and element `A` in `GG`, `r*A = A + ... + A` (`r`
+times). 
 
 Note that prime-order groups also define an inverse function such that
 the following property holds:
@@ -492,23 +497,18 @@ multiplication into all elliptic curve operations.
 ## Other conventions
 
 - We use the notation `x <-$ Q` to denote sampling `x` from the uniform
-  distribution over the set `Q`. As an example, we use `x <- {0,1}^u` to
-  denote sampling `x` uniformly from the set of binary strings of length
-  `u`. We may interpret `x` afterwards as a byte array.
+  distribution over the set `Q`.
 - For two byte arrays `x` and `y`, write `x || y` to denote their
   concatenation.
 
 # Protocol {#protocol}
 
 In this section we describe the OPRF and VOPRF protocols. Recall that
-these protocols take place between a verifier (V) and a prover (P).
-Commonly, V is a client and P is a server, and so we use these names
-interchangeably throughout. We always operate under the assumption that
-the verifier is a client, and the prover is a server in the interaction
-(and so we will use these names interchangeably throughout). The server
-holds a secret key k for a PRF. The protocol allows the client to learn
-PRF evaluations on chosen inputs x in such a way that the server learns
-nothing of x.
+these protocols take place between a client and a server. We will refer
+to these participants by Client and Server, respectively, throughout.
+The Server holds a secret key k for a PRF. The protocol allows the
+client to learn PRF evaluations on chosen inputs x in such a way that
+the Server learns nothing of x.
 
 ## Overview {#overview}
 
@@ -520,23 +520,23 @@ p. Define distinct hash functions H_1 and H_2, where:
 - `H_2(x, y) = z`, where `x`, `y`, `z` are fixed-length byte arrays.
 
 All hash functions in the protocol are modeled as random oracles. Let
-`k` be the prover's private key, and `Y = k * G` be its corresponding
+`k` be the Server's private key, and `Y = k * G` be its corresponding
 public key, for the fixed generator `G` of `GG`. This public key is also
 referred to as a commitment to the OPRF key `k`. Let x be the byte array
-that is the verifier's input to the OPRF protocol (this can be of
+that is the Server's input to the OPRF protocol (this can be of
 arbitrary length). We provide an overview of the protocol below as an
 introduction to the general flow. We will describe the functionality
 using interface function calls in {{api}}.
 
-The OPRF protocol begins with V blinding its input for the OPRF
-evaluator such that it appears uniformly distributed from GG. The
-verifier then multiplies the blinded value by its secret key and outputs
-the resulting element. To finish the protocol, V then removes its blind
+The OPRF protocol begins with Client blinding its input for the OPRF
+evaluator such that it appears uniformly distributed from GG. The Server
+then multiplies the blinded value by its private key and returns the
+resulting element. To finish the protocol, Client then removes its blind
 and uses H_2 to hash the result (along with a domain separating label
 DST) yielding an output. This flow is illustrated below.
 
 ~~~
-     Verifier(x)                   Prover(k)
+     Client(x)                   Server(k)
   ----------------------------------------------------------
      r <-$ GF(p)
      M = rH_1(x)
@@ -553,10 +553,9 @@ DST) yielding an output. This flow is illustrated below.
     Output H_2(DST, x || N) mod p [if (b=0): abort]
 ~~~
 
-Steps enclosed in `[[ ]]` are REQUIRED for verifiability.
-These functions are described in {{dleq}}. In the verifiable mode, we
-assume that P's public key is known by V. 
-
+Steps that are enclosed in `[[ ]]` are REQUIRED for achieving
+verifiability. These functions are described in {{dleq}}. In the
+verifiable mode, we assume that Server's public key is known by Client.
 
 Strictly speaking, the actual PRF function that is computed is:
 
@@ -564,9 +563,9 @@ Strictly speaking, the actual PRF function that is computed is:
 F(k, x) = N = kH_1(x)
 ~~~
 
-This output is computed when the client computes r^(-1) * Z by the
-commutativity of the multiplication. The client finishes the computation
-by outputting H_2(DST, x || N). Note that the output from P is not the
+This output is computed when the Client computes r^(-1) * Z by the
+commutativity of the multiplication. Client finishes the computation by
+outputting H_2(DST, x || N). Note that the output from Server is not the
 PRF value because the actual input x is blinded by r.
 
 The security of our construction is discussed in more detail in
@@ -589,7 +588,7 @@ and provides these as `ins` as their protocol input, along with a DST
 `aux`.
 
 Both participants also provide a boolean input `vv` and `vp` for the
-verifier and prover respectively. These boolean values should be equal,
+Client and Server respectively. These boolean values should be equal,
 and correspond to whether the protocol is executed with verifiability
 intended, or not. In other words, whether the functionality computes an
 OPRF protocol (`vv = vp = 0`), or a VOPRF protocol (`vv = vp = 1`). If
@@ -597,7 +596,7 @@ OPRF protocol (`vv = vp = 0`), or a VOPRF protocol (`vv = vp = 1`). If
 client attempts to verify the zero-knowledge proof.
 
 ~~~
-   Verifier(ins,aux,vv)                  Prover(k,vp)
+   Client(ins,aux,vv)                  Server(k,vp)
   ----------------------------------------------------------
     toks, bts = Blind(inputs)
 
@@ -615,10 +614,10 @@ client attempts to verify the zero-knowledge proof.
     Output outputs
 ~~~
 
-In `Blind` the client generates the tokens and blinding data. The prover
+In `Blind` the client generates the tokens and blinding data. The Server
 computes the (V)OPRF evaluation in `Evaluation` over the client's
 blinded tokens. In `Unblind` the client unblinds the server response
-(and verifies the prover's proof if verifiability is required). In
+(and verifies the Server's proof if verifiability is required). In
 `Finalize`, the client outputs a byte array corresponding to each token
 that was evaluated over.
 
@@ -917,16 +916,16 @@ kH_1(x) by the commutativity of scalar multiplication in GG.
 
 # NIZK Discrete Logarithm Equality Proof {#dleq}
 
-For the VOPRF protocol we require that V is able to verify that P has
-used its private key k to evaluate the PRF. As in the original work of
-{{JKK14}}, we provide a zero-knowledge proof that the key provided as
-input by the server in the `Evaluate` function is the same key as it
-used to produce their public key.
+For the VOPRF protocol we require that Client is able to verify that
+Server has used its private key k to evaluate the PRF. As in the
+original work of {{JKK14}}, we provide a zero-knowledge proof that the
+key provided as input by the server in the `Evaluate` function is the
+same key as it used to produce their public key.
 
 As an example of the nature of attacks that this prevents, this ensures
-that P uses the same private key for computing the VOPRF output and does
-not attempt to "tag" individual verifiers with select keys. This proof
-must not reveal P's long-term private key to V.
+that Server uses the same private key for computing the VOPRF output and
+does not attempt to "tag" individual Servers with select keys. This
+proof must not reveal Server's long-term private key to Client.
 
 Consequently, this allows extending the OPRF protocol with a
 (non-interactive) discrete logarithm equality (DLEQ) algorithm built on
@@ -1008,8 +1007,8 @@ Steps:
 
 ## ComputeComposites
 
-`ComputeComposites` is a utility function used in both
-`GenerateProof` and `VerifyProof`.
+`ComputeComposites` is a utility function used in both `GenerateProof`
+and `VerifyProof`.
 
 ~~~
 Input:
@@ -1403,13 +1402,13 @@ VOPRF protocol. For more details, see {{DGSTV18}}.
 ## Private Password Checker
 
 In this application, let D be a collection of plaintext passwords
-obtained by prover P. For each password p in D, P computes
-VerifiableEvaluate on H_1(p), where H_1 is as described above, and
-stores the result in a separate collection D'. P then publishes D' with
-Y, its public key. If a client C wishes to query D' for a password p',
-it runs the VOPRF protocol using p as input x to obtain output y. By
-construction, y will be the OPRF evaluation of p hashed onto the curve.
-C can then search D' for y to determine if there is a match.
+obtained by Server. For each password p in D, Server computes `Evaluate`
+on H_1(p), where H_1 is as described above, and stores the result in a
+separate collection D'. Server then publishes D' with Y, its public key.
+If Client wishes to query D' for a password p', it runs the VOPRF
+protocol using p as input x to obtain output y. By construction, y will
+be the OPRF evaluation of p hashed onto the curve. Then Client can
+search D' for y to determine if there is a match.
 
 Concrete examples of important applications in the password domain
 include:
@@ -1420,19 +1419,20 @@ include:
 
 ### Parameter Commitments
 
-For some applications, it may be desirable for P to bind tokens to
+For some applications, it may be desirable for Server to bind tokens to
 certain parameters, e.g., protocol versions, ciphersuites, etc. To
-accomplish this, P should use a distinct scalar for each parameter
-combination. Upon redemption of a token T from V, P can later verify
-that T was generated using the scalar associated with the corresponding
-parameters.
+accomplish this, Server should use a distinct scalar for each parameter
+combination. Upon redemption of a token T from Client, Server can later
+verify that T was generated using the scalar associated with the
+corresponding parameters.
 
 # Contributors
 
-- Alex Davidson       (alex.davidson92@gmail.com)
-- Nick Sullivan       (nick@cloudflare.com)
-- Chris Wood          (cawood@apple.com)
-- Eli-Shaoul Khedouri (eli@intuitionmachines.com)
+- Alex Davidson         (alex.davidson92@gmail.com)
+- Nick Sullivan         (nick@cloudflare.com)
+- Chris Wood            (cawood@apple.com)
+- Eli-Shaoul Khedouri   (eli@intuitionmachines.com)
+- Armando Faz Hernandez (armfazh@cloudflare.com)
 
 # Acknowledgements
 
