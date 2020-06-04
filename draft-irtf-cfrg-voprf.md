@@ -438,7 +438,7 @@ uniquely determined by the choice of the prime `p` that defines the
 order of the group. We assume that such a group MUST provide the
 following public interface.
 
-- Adding elements: For any elements `A` and `B` that are members of the
+- Addition: For any elements `A` and `B` that are members of the
   group `GG`. Then `A + B = B + A` is also a member of `GG`.
 - Scalar multiplication: There is an efficient method for taking a
   scalar `r`, associated with the Galois field `GF(p)`, and performing
@@ -458,7 +458,7 @@ following public interface.
   an array of bytes `x` to a random element of `GG`. The map should be
   implemented in such a way that it is computationally difficult for any
   adversary that receives: `R = HashToGroup(x)` without knowing `x` to
-  reverse the mapping. For an example of such a mapping, see
+  reverse the mapping. For an example of such a mapping to prime-order (sub)groups of elliptic curves, see
   {{I-D.irtf-cfrg-hash-to-curve}}.
 
 Note that prime-order groups also define an inverse function such that
@@ -470,7 +470,7 @@ However, we don't explicit use of the inverse property in our protocol,
 and so we don't explicitly assume these properties within the public
 API. Lastly, for any scalar `r` that is an element of the galois field
 of scalars `GF(p)` associated with `GG`, we assume it is always written
-in byte array format for the purpose of providing whereever it is
+in network-order byte array format for the purpose of providing wherever it is
 supplied as an input or give as an output of a function.
 
 ### Group instantiations
@@ -518,7 +518,7 @@ nothing of x.
 
 ## Overview {#overview}
 
-Let GG be an additive group of prime-order p with the API defined in
+Let GG be an additive group of prime-order p with the interface defined in
 {{pog}}, let GF(p) be the Galois field defined by the integers modulo p.
 Define distinct hash functions H_1 and H_2, where:
 
@@ -526,8 +526,8 @@ Define distinct hash functions H_1 and H_2, where:
 - `H_2(x, y) = z`, where `x`, `y`, `z` are fixed-length byte arrays.
 
 All hash functions in the protocol are modeled as random oracles. Let
-`k` be the prover's PrivateKey, and `Y = kG` be its corresponding
-PublicKey, for the fixed generator `G` of `GG`. This public key is also
+`k` be the prover's private key, and `Y = k * G` be its corresponding
+public key, for the fixed generator `G` of `GG`. This public key is also
 referred to as a commitment to the OPRF key `k`. Let x be the byte array
 that is the verifier's input to the OPRF protocol (this can be of
 arbitrary length). We provide an overview of the protocol below as an
@@ -539,7 +539,7 @@ evaluator such that it appears uniformly distributed from GG. The
 verifier then multiplies the blinded value by its secret key and returns
 the resulting element. To finish the protocol, V then removes its blind
 and uses H_2 to hash the result (along with a domain separating label
-DST) yielding an output. The protocol is illustrated below.
+DST) yielding an output. This flow is illustrated below.
 
 ~~~
      Verifier(x)                   Prover(k)
@@ -559,10 +559,11 @@ DST) yielding an output. The protocol is illustrated below.
     Output H_2(DST, x || N) mod p [if (b=0): abort]
 ~~~
 
-Steps that are enclosed in `[[ ]]` are REQUIRED for achieving
+Steps enclosed in `[[ ]]` are REQUIRED for achieving
 verifiability. These functions are described in {{dleq}}. In the
-verifiable mode, we assume that P's public key is known by V. Notice
-that revealing `Y` does not reveal k by the well-known hardness of the
+verifiable mode, we assume that P's public key is known by V. 
+
+Note that revealing `Y` does not reveal k by the well-known hardness of the
 discrete log problem.
 
 Strictly speaking, the actual PRF function that is computed is:
@@ -571,8 +572,7 @@ Strictly speaking, the actual PRF function that is computed is:
 F(k, x) = N = kH_1(x)
 ~~~
 
-It is clear that this is a PRF because H_1(x) maps x to a random element
-in GG, and GG is cyclic. This output is computed when the client
+This output is computed when the client
 computes Zr^(-1) by the commutativity of the multiplication. The client
 finishes the computation by outputting H_2(DST, x || N). Note that the
 output from P is not the PRF value because the actual input x is blinded
@@ -680,7 +680,7 @@ output of `VerifiableEvaluate` only.
 ```
 struct {
   SerializedGroupElement elements<1..2^16-1>;
-  [[ Scalar proof[2] ]]; /* optional */
+  Scalar proof<0...2^16-1>; /* optional */
 } Evaluation;
 ```
 
@@ -814,14 +814,14 @@ instantiation. We refer to the additive blinding case as fixed-base
 blinding (FBB) since the blinding is applied to the same generator each
 time (when computing rG).
 
-The advantage of fixed-base blinding is that it allows the client to
+The advantage of FBB is that it allows the client to
 pre-process tables of blinded scalar multiplications for the fixed
 generator G. This may give it a computational efficiency advantage.
 Pre-processing also reduces the amount of computation that needs to be
 done in the online exchange. Choosing one of these values `rG` (where
 `r` is the scalar value that is used), then computing `H_1(x)+rG` is
 more efficient than computing `rH_1(x)` (one addition against log_2(r)).
-Therefore, it may be advantageous to define the OPRF and VOPRF protocols
+Therefore, it may be advantageous to implement the OPRF and VOPRF protocols
 using additive blinding rather than multiplicative blinding. In fact,
 the only algorithms that need to change are Blind and Unblind (and
 similarly for the VOPRF variants).
@@ -856,7 +856,7 @@ Steps:
 
  1. preprocs = []
  2. PK = GG.Deserialize(public_key)
- 3. for i in [m]:
+ 3. for i = 0 to m:
     1. r <-$ GF(p)
     2. if r == 0: return to the previous step
     3. blinded_generator = GG.Serialize(r * GG.Generator())
@@ -886,7 +886,7 @@ Steps:
 
  1. tokens = []
  2. blinded_tokens = []
- 3. for i in [m]:
+ 3. for i = 0 to m:
     1. pre = preprocs[i]
     2. r = pre.blind
     3. rG = GG.Deserialize(pre.blinded_generator)
@@ -914,7 +914,7 @@ Output:
 Steps:
 
  1. if (verifiable):
-    1. if (VerifyProof(public_key, blinded_tokens, ev) == false): abort
+    1. if (VerifyProof(public_key, blinded_tokens, ev) == false): ABORT
  2. unblinded_tokens = []
  3. for i in [m]:
     1. PKr = GG.Deserialize(tokens[i].blind)
@@ -925,8 +925,7 @@ Steps:
 ~~~
 
 Notice that Unblind computes (Z-PKr) = k(H_1(x)+rG) - rkG = kH_1(x) by
-the commutativity of scalar multiplication in GG. This is the same
-output as in the Unblind algorithm for variable-based blinding.
+the commutativity of scalar multiplication in GG. 
 
 # NIZK Discrete Logarithm Equality Proof {#dleq}
 
@@ -970,7 +969,7 @@ Steps:
 
  1.  G = GG.Generator()
  2.  gen = GG.Serialize(G)
- 3.  (a1, a2) = compute_composites(
+ 3.  (a1, a2) = ComputeComposites(
                   gen, public_key, blinded_tokens, ev, DST_dleq
                 )
  4.  r <-$ GF(p)
@@ -1016,7 +1015,7 @@ Steps:
  9. Output c == proof[0] (mod p)
 ~~~
 
-## compute_composites
+## ComputeComposites
 
 The `compute_composites` function is a utility function used in both
 `GenerateProof` and `VerifyProof`.
@@ -1047,18 +1046,18 @@ Steps:
     4. if (m > 1):
        1. di = H_5(seed || i' || DST_dleq)
        2. if (di > GG.order()):
-          1. i = i-1 /* decrement and try again */
+          1. i = i-1 # decrement and try again
        3. i  = i + 1
        4. i' = i' + 1
     5. M = di * Mi + M
     6. Z = di * Zi + Z
- 6. Output (GG.Serialize(M), GG.Serialize(Z))
+ 6. Output [GG.Serialize(M), GG.Serialize(Z)]
 ~~~
 
 ## Hash function instantiations
 
 In the above algorithmms, we define three new functions `H_3`, `H_4` and
-`H_5`. Note that `H_3` and `H_4` are hash function that maps arbitrary
+`H_5`. `H_3` and `H_4` are hash functions that map arbitrary
 length byte outputs to a fixed size output. The function `H_5` should
 output a uniform scalar value in `GF(GG.Order())`. Both functions are
 modelled as random oracles for the purpose of arguing security.
