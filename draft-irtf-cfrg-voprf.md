@@ -435,14 +435,10 @@ this commitment as a public key.
 In this document, we assume the construction of an additive, prime-order
 group `GG` for performing all mathematical operations. Such groups are
 uniquely determined by the choice of the prime `p` that defines the
-order of the group. We assume that such a group MUST provide the
-following public interface.
-
-- Addition: For any elements `A` and `B` that are members of the group
-  `GG`. Then `A + B = B + A` is also a member of `GG`.
-- Scalar multiplication: There is an efficient method for taking a
-  scalar `r`, associated with the Galois field `GF(p)`, and performing
-  `r * A = A + ... + A` for any `A` that is a member of `GG`.
+order of the group. The fundamental group operation is addition (+) Specifically, for any 
+elements `A` and `B` that are members of the group `GG`, `A + B = B + A` is also a member 
+of `GG`. Scalar multiplication (*) is an efficient method for repeated addition operations. 
+Given a scalar `r` in `GF(p)` and element `A` in `GG`, `r*A = A + ... + A` (`r` times). 
 
 Note that prime-order groups also define an inverse function such that
 the following property holds:
