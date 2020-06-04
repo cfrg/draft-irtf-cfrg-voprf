@@ -1008,7 +1008,7 @@ Steps:
 
 ## ComputeComposites
 
-The `ComputeComposites` function is a utility function used in both
+`ComputeComposites` is a utility function used in both
 `GenerateProof` and `VerifyProof`.
 
 ~~~
