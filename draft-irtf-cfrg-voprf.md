@@ -272,10 +272,10 @@ cooperate in computing F(k, x) with P's secret key k and V's input x
 such that: V learns F(k, x) without learning anything about k; and P
 does not learn anything about x. A Verifiable OPRF (VOPRF) is an OPRF
 wherein P can prove to V that F(k, x) was computed using key k, which is
-bound to a trusted public key Y = kG, and G is the generator of a group.
-Informally, this is done by presenting a non-interactive zero-knowledge
-(NIZK) proof of equality between (G, Y) and (Z, M), where Z and M are
-group elements such that Z = kM.
+bound to a trusted public key Y = k * G, and G is the generator of a
+group. Informally, this is done by presenting a non-interactive
+zero-knowledge (NIZK) proof of equality between (G, Y) and (Z, M), where
+Z and M are group elements such that Z = k * M.
 
 OPRFs have been shown to be useful for constructing: password-protected
 secret sharing schemes {{JKK14}}; privacy-preserving password stores
@@ -438,16 +438,28 @@ uniquely determined by the choice of the prime `p` that defines the
 order of the group. We assume that such a group MUST provide the
 following public interface.
 
-- Addition: For any elements `A` and `B` that are members of the
-  group `GG`. Then `A + B = B + A` is also a member of `GG`.
+- Addition: For any elements `A` and `B` that are members of the group
+  `GG`. Then `A + B = B + A` is also a member of `GG`.
 - Scalar multiplication: There is an efficient method for taking a
   scalar `r`, associated with the Galois field `GF(p)`, and performing
-  `r * A = A + ... + A` for any `A` that is a member of `GG`. We may
-  also write `rA` to denote this operation.
+  `r * A = A + ... + A` for any `A` that is a member of `GG`.
+
+Note that prime-order groups also define an inverse function such that
+the following property holds:
+
+- for any `A` in `GG` there exists `-A` where `A + (-A) = (-A) + A = I`.
+
+However, we don't explicit use of the inverse property in our protocol,
+and so we don't explicitly assume these properties within the public
+API.
+
+We now detail a number of member functions that can be invoked on a
+prime-order group.
+
 - Order(): Outputs the order of the group as a scalar (i.e. `p`).
-- Generator(): Takes no inputs and returns a fixed generator `G` for the
+- Generator(): Takes no inputs and outputs a fixed generator `G` for the
   group.
-- Identity(): Takes no inputs and returns the identity element of the
+- Identity(): Takes no inputs and outputs the identity element of the
   group.
 - Serialize(): A member function of `GG` that maps a group element `A`
   to a unique array of bytes `buf` that corresponds uniquely to the
@@ -458,20 +470,13 @@ following public interface.
   an array of bytes `x` to a random element of `GG`. The map should be
   implemented in such a way that it is computationally difficult for any
   adversary that receives: `R = HashToGroup(x)` without knowing `x` to
-  reverse the mapping. For an example of such a mapping to prime-order (sub)groups of elliptic curves, see
-  {{I-D.irtf-cfrg-hash-to-curve}}.
+  reverse the mapping. For an example of such a mapping to prime-order
+  (sub)groups of elliptic curves, see {{I-D.irtf-cfrg-hash-to-curve}}.
 
-Note that prime-order groups also define an inverse function such that
-the following property holds:
-
-- for any `A` in `GG` there exists `-A` where `A + (-A) = (-A) + A = I`.
-
-However, we don't explicit use of the inverse property in our protocol,
-and so we don't explicitly assume these properties within the public
-API. Lastly, for any scalar `r` that is an element of the galois field
-of scalars `GF(p)` associated with `GG`, we assume it is always written
-in network-order byte array format for the purpose of providing wherever it is
-supplied as an input or give as an output of a function.
+Lastly, for any scalar `r` that is an element of the galois field of
+scalars `GF(p)` associated with `GG`, we assume it is always written in
+network-order byte array format for the purpose of providing wherever it
+is supplied as an input or give as an output of a function.
 
 ### Group instantiations
 
@@ -488,19 +493,12 @@ with a prime-order group instantiation are removed. In the case of
 cofactors, for example, this can be done by building cofactor
 multiplication into all elliptic curve operations.
 
-Secure instances of such groups can also be constructed by choosing `GG`
-as the group of squares of a finite field `FF`. Let `FF` be field of
-order `q = 2p+1` such that `p` and `q` are primes, then the squares of
-`FF` (elements `u^2` where `u` is an element of `FF`) form a cyclic
-group of order `p`.
-
 ## Other conventions
 
 - We use the notation `x <-$ Q` to denote sampling `x` from the uniform
-  distribution over the set `Q`.
-- We use `x <- {0,1}^u` to denote sampling `x` uniformly from the set of
-  binary strings of length `u`. We may interpret `x` afterwards as a
-  byte array.
+  distribution over the set `Q`. As an example, we use `x <- {0,1}^u` to
+  denote sampling `x` uniformly from the set of binary strings of length
+  `u`. We may interpret `x` afterwards as a byte array.
 - For two byte arrays `x` and `y`, write `x || y` to denote their
   concatenation.
 
@@ -518,11 +516,11 @@ nothing of x.
 
 ## Overview {#overview}
 
-Let GG be an additive group of prime-order p with the interface defined in
-{{pog}}, let GF(p) be the Galois field defined by the integers modulo p.
-Define distinct hash functions H_1 and H_2, where:
+Let GG be an additive group of prime-order p with the interface defined
+in {{pog}}, let GF(p) be the Galois field defined by the integers modulo
+p. Define distinct hash functions H_1 and H_2, where:
 
-- `H_1(x) = GG.EncodeToGroup(x)` for a byte array `x`;
+- `H_1(x) = GG.HashToGroup(x)` for a byte array `x`;
 - `H_2(x, y) = z`, where `x`, `y`, `z` are fixed-length byte arrays.
 
 All hash functions in the protocol are modeled as random oracles. Let
@@ -532,11 +530,11 @@ referred to as a commitment to the OPRF key `k`. Let x be the byte array
 that is the verifier's input to the OPRF protocol (this can be of
 arbitrary length). We provide an overview of the protocol below as an
 introduction to the general flow. We will describe the functionality
-using API function calls in {{api}}.
+using interface function calls in {{api}}.
 
 The OPRF protocol begins with V blinding its input for the OPRF
 evaluator such that it appears uniformly distributed from GG. The
-verifier then multiplies the blinded value by its secret key and returns
+verifier then multiplies the blinded value by its secret key and outputs
 the resulting element. To finish the protocol, V then removes its blind
 and uses H_2 to hash the result (along with a domain separating label
 DST) yielding an output. This flow is illustrated below.
@@ -549,22 +547,22 @@ DST) yielding an output. This flow is illustrated below.
                            M
                         ------->
 
-                              Z = kM mod p
+                              Z = k * M mod p
                               [[ D = generate_zk_proof(k,G,Y,M,Z) ]]
 
                           Z[[, D]]
                         <-------
     [[ b = verify_zk_proof(G,Y,M,Z,D) ]]
-    N = Zr^(-1) mod p
+    N = r^(-1) * Z mod p
     Output H_2(DST, x || N) mod p [if (b=0): abort]
 ~~~
 
-Steps enclosed in `[[ ]]` are REQUIRED for achieving
-verifiability. These functions are described in {{dleq}}. In the
-verifiable mode, we assume that P's public key is known by V. 
+Steps enclosed in `[[ ]]` are REQUIRED for achieving verifiability.
+These functions are described in {{dleq}}. In the verifiable mode, we
+assume that P's public key is known by V. 
 
-Note that revealing `Y` does not reveal k by the well-known hardness of the
-discrete log problem.
+Note that revealing `Y` does not reveal k by the well-known hardness of
+the discrete log problem.
 
 Strictly speaking, the actual PRF function that is computed is:
 
@@ -572,11 +570,10 @@ Strictly speaking, the actual PRF function that is computed is:
 F(k, x) = N = kH_1(x)
 ~~~
 
-This output is computed when the client
-computes Zr^(-1) by the commutativity of the multiplication. The client
-finishes the computation by outputting H_2(DST, x || N). Note that the
-output from P is not the PRF value because the actual input x is blinded
-by r.
+This output is computed when the client computes r^(-1) * Z by the
+commutativity of the multiplication. The client finishes the computation
+by outputting H_2(DST, x || N). Note that the output from P is not the
+PRF value because the actual input x is blinded by r.
 
 The security of our construction is discussed in more detail in
 {{protocol-sec}}.
@@ -589,7 +586,7 @@ We restate the (V)OPRF protocol using a concrete API that we describe in
 Firstly, we assume that the server chooses a valid ciphersuite from
 {{ciphersuites}} and instantiates the prime-order group `GG` associated
 with the ciphersuite. It samples a PrivateKey `k` from `GF(p)`, and
-computes the public key `public_key = GG.Serialize(kG)` where
+computes the public key `public_key = GG.Serialize(k * G)` where
 `G=GG.generator()`. It publishes `(ciphersuite, public_key)` publicly,
 so that it is available to any possible clients.
 
@@ -689,36 +686,39 @@ struct {
 The `verifiable` mode of the protocol (VOPRF) is controlled by a boolean
 input to a subset of the functions. Each function assumes knowledge of a
 global group `GG` (satisfying the API in {{pog}}) that is published
-publicly by the server before the protocol exchange.
-
-We note here that the blinding mechanism that we use can be modified
-slightly with the opportunity for making performance gains in some
-scenarios. We detail these modifications in {{blinding}}.
+publicly by the server before the protocol exchange. Note that any
+algorithm that takes inputs, or issues outputs of the form `T x[m]`
+refers to an array of fixed-size relative to an integer parameter `m`
+chosen by the client.
 
 ### Blind
 
 ~~~
 Input:
 
- ClientInput inputs<1..m>
+ ClientInput inputs[m]
 
 Output:
 
- Token tokens<1..m>
- BlindedToken blinded_tokens<1..m>
+ Token tokens[m]
+ BlindedToken blinded_tokens[m]
 
 Steps:
 
  1. tokens = []
  2. blinded_tokens = []
- 3. for i in [m]:
+ 3. for i = 0 to m:
     1. r <-$ GF(p)
     2. if r == 0: return to the previous step
-    3. P = GG.EncodeToGroup(inputs[i])
+    3. P = GG.HashToGroup(inputs[i])
     4. tokens[i] = Token{ data: x, blind: r }
-    5. blinded_tokens[i] = GG.Serialize(rP)
+    5. blinded_tokens[i] = GG.Serialize(r * P)
  4. Output (tokens, blinded_tokens)
 ~~~
+
+This blinding mechanism can be modified slightly with the opportunity
+for making performance gains in some scenarios. We detail these
+modifications in {{blinding}}.
 
 ### Evaluate
 
@@ -727,7 +727,7 @@ Input:
 
  PrivateKey k
  PublicKey public_key
- BlindedToken blinded_tokens<1..m>
+ BlindedToken blinded_tokens[m]
  boolean verifiable
 
 Output:
@@ -754,21 +754,21 @@ Steps:
 Input:
 
  PublicKey public_key
- Token tokens<1..m>
- BlindedToken blinded_tokens<1..m>
+ Token tokens[m]
+ BlindedToken blinded_tokens[m]
  Evaluation ev
  boolean verifiable
 
 Output:
 
- SerializedGroupElement unblinded_tokens<1..m>
+ SerializedGroupElement unblinded_tokens[m]
 
 Steps:
 
  1. if verifiable:
     1. if (VerifyProof(public_key, blinded_tokens, ev) == false): abort
  2. unblinded_tokens = []
- 3. for i in [m]:
+ 3. for i = 0 to m:
     1. r = tokens[i].blind
     2. Z = GG.Deserialize(Evaluation.elements[i])
     3. N = (r^(-1)) * Z
@@ -799,38 +799,32 @@ Steps:
 
 ## Fixed-base blinding {#blinding}
 
-Let `H_1` refer to the function `GG.EncodeToGroup`, in Section
+Let `H_1` refer to the function `GG.HashToGroup`, in Section
 {{algorithms}} we assume that the client-side blinding is carried out
-directly on the output of H_1(x), i.e. computing rH_1(x) for some r <-$
-GF(p). In the {{OPAQUE}} draft, it is noted that it may be more
-efficient to use additive blinding rather than multiplicative if the
-client can preprocess some values. For example, a valid way of computing
-additive blinding would be to instead compute H_1(x)+rG, where G is the
+directly on the output of H_1(x), i.e. computing r * H_1(x) for some r
+<-$ GF(p). A more efficient alternative to multiplication blinding is to
+to use 'additive blinding' rather than multiplicative if the client can
+preprocess some values. For example, a valid way of computing additive
+blinding would be to instead compute H_1(x) + r * G, where G is the
 fixed generator for the group GG.
 
-We refer to the 'multiplicative' blinding as variable-base blinding
-(VBB), since the base of the blinding (H_1(x)) varies with each
-instantiation. We refer to the additive blinding case as fixed-base
-blinding (FBB) since the blinding is applied to the same generator each
-time (when computing rG).
-
-The advantage of FBB is that it allows the client to
+The advantage of additive blinding is that it allows the client to
 pre-process tables of blinded scalar multiplications for the fixed
 generator G. This may give it a computational efficiency advantage.
 Pre-processing also reduces the amount of computation that needs to be
-done in the online exchange. Choosing one of these values `rG` (where
-`r` is the scalar value that is used), then computing `H_1(x)+rG` is
-more efficient than computing `rH_1(x)` (one addition against log_2(r)).
-Therefore, it may be advantageous to implement the OPRF and VOPRF protocols
-using additive blinding rather than multiplicative blinding. In fact,
-the only algorithms that need to change are Blind and Unblind (and
-similarly for the VOPRF variants).
+done in the online exchange. Choosing one of these values `r * G` (where
+`r` is the scalar value that is used), then computing `H_1(x)+r * G` is
+more efficient than computing `r * H_1(x)` (one addition against
+log_2(r)). Therefore, it may be advantageous to implement the OPRF and
+VOPRF protocols using additive blinding rather than multiplicative
+blinding. In fact, the only algorithms that need to change are Blind and
+Unblind (and similarly for the VOPRF variants).
 
-We define the FBB variants of the algorithms in {{algorithms}} below,
-along with a new algorithm Preprocess. The Proprocess algorithm can take
-place offline and before the rest of the OPRF protocol. The Blind
-algorithm takes the proprocessed values as inputs, but the signature of
-Unblind remains the same.
+We define the additive variants of the algorithms in {{algorithms}}
+below, along with a new algorithm Preprocess. The Proprocess algorithm
+can take place offline and before the rest of the OPRF protocol. The
+Blind algorithm takes the proprocessed values as inputs, but the
+signature of Unblind remains the same.
 
 ### Preprocess
 
@@ -850,7 +844,7 @@ Input:
 
 Output:
 
- PrepocessedBlind preprocs<1..m>;
+ PrepocessedBlind preprocs[m];
 
 Steps:
 
@@ -874,13 +868,13 @@ Steps:
 ~~~
 Input:
 
- ClientInput inputs<1..m>
- PreprocessedBlinds preprocs<1..m>
+ ClientInput inputs[m]
+ PreprocessedBlinds preprocs[m]
 
 Output:
 
- Token tokens<1..m>
- BlindedToken blinded_tokens<1..m>
+ Token tokens[m]
+ BlindedToken blinded_tokens[m]
 
 Steps:
 
@@ -889,10 +883,10 @@ Steps:
  3. for i = 0 to m:
     1. pre = preprocs[i]
     2. r = pre.blind
-    3. rG = GG.Deserialize(pre.blinded_generator)
-    4. P = GG.EncodeToGroup(inputs[i])
+    3. r * G = GG.Deserialize(pre.blinded_generator)
+    4. P = GG.HashToGroup(inputs[i])
     5. tokens[i] = Token{ data: x, blind: pre.blinded_public_key }
-    6. blinded_tokens[i] = GG.Serialize(P + rG)
+    6. blinded_tokens[i] = GG.Serialize(P + r * G)
  4. Output (tokens, blinded_tokens)
 ~~~
 
@@ -901,31 +895,31 @@ Steps:
 ~~~
 Input:
 
- Token tokens<1..m>
+ Token tokens[m]
  Evaluation ev
  PublicKey public_key
- BlindedToken blinded_tokens<1..m>
+ BlindedToken blinded_tokens[m]
  boolean verifiable
 
 Output:
 
- SerializedGroupElement unblinded<1..m>
+ SerializedGroupElement unblinded[m]
 
 Steps:
 
  1. if (verifiable):
     1. if (VerifyProof(public_key, blinded_tokens, ev) == false): ABORT
  2. unblinded_tokens = []
- 3. for i in [m]:
-    1. PKr = GG.Deserialize(tokens[i].blind)
+ 3. for i = 0 to m:
+    1. PKR = GG.Deserialize(tokens[i].blind)
     2. Z = GG.Deserialize(ev.elements[i])
-    3. N := Z-PKr
+    3. N := Z - PKR
     4. unblinded_tokens[i] = GG.Serialize(N)
  4. Output unblinded_tokens
 ~~~
 
-Notice that Unblind computes (Z-PKr) = k(H_1(x)+rG) - rkG = kH_1(x) by
-the commutativity of scalar multiplication in GG. 
+Notice that Unblind computes (Z-PKr) = k(H_1(x)+r * G) - rk * G =
+kH_1(x) by the commutativity of scalar multiplication in GG. 
 
 # NIZK Discrete Logarithm Equality Proof {#dleq}
 
@@ -943,7 +937,7 @@ must not reveal P's long-term private key to V.
 Consequently, this allows extending the OPRF protocol with a
 (non-interactive) discrete logarithm equality (DLEQ) algorithm built on
 a Chaum-Pedersen {{ChaumPedersen}} proof. This proof is divided into two
-procedures: GenerateProof and( VerifyProof. These are specified below).
+procedures: GenerateProof and VerifyProof. These are specified below.
 
 The proof generation and verification algorithms are denoted by
 `GenerateProof` and `VerifyProof` respectively, see below for
@@ -958,7 +952,7 @@ Input:
 
  PrivateKey k
  PublicKey public_key
- BlindedTokens blinded_tokens<1..m>
+ BlindedTokens blinded_tokens[m]
  Evaluation ev
 
 Output:
@@ -974,10 +968,10 @@ Steps:
                 )
  4.  r <-$ GF(p)
  5.  if (r == 0): go back to the previous step
- 6.  a3 = GG.Serialize(rG)
+ 6.  a3 = GG.Serialize(r * G)
  7.  a4 = GG.Serialize(rM)
- 8.  c = H_3(gen || public_key || a1 || a2 || a3 || a4) (mod p)
- 9.  s = (r - ck) (mod p)
+ 8.  c = H_3(gen || public_key || a1 || a2 || a3 || a4) mod p
+ 9.  s = (r - ck) mod p
  10. Output (c, s)
 ~~~
 
@@ -988,11 +982,14 @@ fresh randomness is not used.
 
 ## VerifyProof
 
+This algorithm outputs a boolean `verified` which indicates whether the
+proof verifies correctly, or not.
+
 ~~~
 Input:
 
  PublicKey public_key
- BlindedTokens blinded_tokens<1..m>
+ BlindedTokens blinded_tokens[m]
  Evaluation ev
  Scalar proof[2]
 
@@ -1004,20 +1001,20 @@ Steps:
 
  1. G = GG.Generator()
  2. gen = GG.Serialize(G)
- 3. (a1, a2) = compute_composites(
+ 3. (a1, a2) = ComputeComposites(
                  gen, public_key, blinded_tokens, ev, DST_dleq
                )
  4. A' = (proof[1] * G + proof[0] * Y)
  5. B' = (proof[1] * M + proof[0] * Z)
  6. a3 = GG.Serialize(A')
  7. a4 = GG.Serialize(B')
- 8. c  = H_3(gen || public_key || a1 || a2 || a3 || a4) (mod p)
- 9. Output c == proof[0] (mod p)
+ 8. c  = H_3(gen || public_key || a1 || a2 || a3 || a4) mod p
+ 9. Output c == proof[0] mod p
 ~~~
 
 ## ComputeComposites
 
-The `compute_composites` function is a utility function used in both
+The `ComputeComposites` function is a utility function used in both
 `GenerateProof` and `VerifyProof`.
 
 ~~~
@@ -1025,7 +1022,7 @@ Input:
 
  SerializedGroupElement gen
  PublicKey public_key
- BlindedTokens blinded_tokens<1..m>
+ BlindedTokens blinded_tokens[m]
  Evaluation ev
  opaque DST_dleq<1..2^16-1>
 
@@ -1039,12 +1036,12 @@ Steps:
  2. i' = 0
  3. M = GG.Identity()
  4. Z = GG.Identity()
- 5. for i in [m]:
+ 5. for i = 0 to m:
     1. di = 1
     2. Mi = GG.Deserialize(blinded_tokens[i])
     3. Zi = GG.Deserialize(ev.elements[i])
     4. if (m > 1):
-       1. di = H_5(seed || i' || DST_dleq)
+       1. di = H_3(seed || i' || DST_dleq)
        2. if (di > GG.order()):
           1. i = i-1 # decrement and try again
        3. i  = i + 1
@@ -1056,10 +1053,11 @@ Steps:
 
 ## Hash function instantiations
 
-In the above algorithmms, we define three new functions `H_3`, `H_4` and
-`H_5`. `H_3` and `H_4` are hash functions that map arbitrary
-length byte outputs to a fixed size output. The function `H_5` should
-output a uniform scalar value in `GF(GG.Order())`. Both functions are
+In the above algorithmms, we define two new functions `H_3` and `H_4`.
+The function `H_3` should induce an output distribution in
+`GF(GG.Order())` that is statistically close to uniformly random. The
+function `H_4` maps arbitrary length byte outputs to a fixed size output
+depending on the security profile of the application. Both functions are
 modelled as random oracles for the purpose of arguing security.
 
 # Supported ciphersuites {#ciphersuites}
@@ -1079,7 +1077,6 @@ provide strictly greater than 128 bits of security {{NIST}}.
 - H_1: curve448-SHA512-ELL2-RO {{I-D.irtf-cfrg-hash-to-curve}}
   - hash-to-curve DST: "RFCXXXX-OPRF-curve448-SHA512-ELL2-RO-"
 - H_2: HMAC_SHA512 {{RFC2104}}
-- H_3: SHA512
 
 ## OPRF-P384-HKDF-SHA512-SSWU-RO:
 
@@ -1087,7 +1084,6 @@ provide strictly greater than 128 bits of security {{NIST}}.
 - H_1: P384-SHA512-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
   - hash-to-curve DST: "RFCXXXX-OPRF-P384-SHA512-SSWU-RO-"
 - H_2: HMAC_SHA512 {{RFC2104}}
-- H_3: SHA512
 
 ## OPRF-P521-HKDF-SHA512-SSWU-RO:
 
@@ -1095,7 +1091,6 @@ provide strictly greater than 128 bits of security {{NIST}}.
 - H_1: P521-SHA512-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
   - hash-to-curve DST: "RFCXXXX-OPRF-P521-SHA512-SSWU-RO-"
 - H_2: HMAC_SHA512 {{RFC2104}}
-- H_3: SHA512
 
 ## VOPRF-curve448-HKDF-SHA512-ELL2-RO:
 
@@ -1103,9 +1098,8 @@ provide strictly greater than 128 bits of security {{NIST}}.
 - H_1: curve448-SHA512-ELL2-RO {{I-D.irtf-cfrg-hash-to-curve}}
   - hash-to-curve DST: "RFCXXXX-VOPRF-curve448-SHA512-ELL2-RO-"
 - H_2: HMAC_SHA512 {{RFC2104}}
-- H_3: SHA512
+- H_3: HKDF-Expand-SHA512
 - H_4: SHA512
-- H_5: HKDF-Expand-SHA512
 
 ## VOPRF-P384-HKDF-SHA512-SSWU-RO:
 
@@ -1113,9 +1107,8 @@ provide strictly greater than 128 bits of security {{NIST}}.
 - H_1: P384-SHA512-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
   - hash-to-curve DST: "RFCXXXX-VOPRF-P384-SHA512-SSWU-RO-"
 - H_2: HMAC_SHA512 {{RFC2104}}
-- H_3: SHA512
+- H_3: HKDF-Expand-SHA512
 - H_4: SHA512
-- H_5: HKDF-Expand-SHA512
 
 ## VOPRF-P521-HKDF-SHA512-SSWU-RO:
 
@@ -1123,9 +1116,8 @@ provide strictly greater than 128 bits of security {{NIST}}.
 - H_1: P521-SHA512-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
   - hash-to-curve DST: "RFCXXXX-VOPRF-P521-SHA512-SSWU-RO-"
 - H_2: HMAC_SHA512 {{RFC2104}}
-- H_3: SHA512
+- H_3: HKDF-Expand-SHA512
 - H_4: SHA512
-- H_5: HKDF-Expand-SHA512
 
 We remark that the 'hash-to-curve DST' field is necessary for domain
 separation of the hash-to-curve functionality.
@@ -1185,13 +1177,13 @@ The (N,Q)-One-More Gap DH (OMDH) problem asks the following.
 
 ~~~
     Given:
-    - G, kG, G_1, ... , G_N where G, G1, ... GN are elements of GG;
+    - G, k * G, G_1, ... , G_N where G, G1, ... GN are elements of GG;
     - oracle access to an OPRF functionality using the key k;
     - oracle access to DDH solvers.
 
     Find Q+1 pairs of the form below:
 
-    (G_{j_s}, kG_{j_s})
+    (G_{j_s}, k * G_{j_s})
 
     where the following conditions hold:
       - s is a number between 1 and Q+1;
@@ -1233,10 +1225,10 @@ log_2(2^20) = 20 bits.
 
 Notice that it is easy to instantiate a Q-sDH oracle using the OPRF
 functionality that we provide. A client can just submit sequential
-queries of the form (G, kG, (k^2)G, ..., (k^(Q-1))G), where each query
-is the output of the previous interaction. This means that any client
-that submit Q queries to the OPRF can use the aforementioned attacks to
-reduce security of the group instantiation by log_2(Q) bits.
+queries of the form (G, k * G, (k^2)G, ..., (k^(Q-1))G), where each
+query is the output of the previous interaction. This means that any
+client that submit Q queries to the OPRF can use the aforementioned
+attacks to reduce security of the group instantiation by log_2(Q) bits.
 
 Recall that from a malicious client's perspective, the adversary wins if
 they can distinguish the OPRF interaction from a protocol that computes
