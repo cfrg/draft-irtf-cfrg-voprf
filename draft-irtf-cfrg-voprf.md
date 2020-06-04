@@ -557,8 +557,6 @@ Steps enclosed in `[[ ]]` are REQUIRED for verifiability.
 These functions are described in {{dleq}}. In the verifiable mode, we
 assume that P's public key is known by V. 
 
-Note that revealing `Y` does not reveal k by the well-known hardness of
-the discrete log problem.
 
 Strictly speaking, the actual PRF function that is computed is:
 
