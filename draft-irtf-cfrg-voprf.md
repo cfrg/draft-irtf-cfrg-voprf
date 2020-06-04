@@ -553,7 +553,7 @@ DST) yielding an output. This flow is illustrated below.
     Output H_2(DST, x || N) mod p [if (b=0): abort]
 ~~~
 
-Steps enclosed in `[[ ]]` are REQUIRED for achieving verifiability.
+Steps enclosed in `[[ ]]` are REQUIRED for verifiability.
 These functions are described in {{dleq}}. In the verifiable mode, we
 assume that P's public key is known by V. 
 
