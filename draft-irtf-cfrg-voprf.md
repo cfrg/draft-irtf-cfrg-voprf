@@ -1120,10 +1120,8 @@ need to be made.
 ### Computational hardness assumptions {#assumptions}
 
 Each assumption states that the problems specified below are
-computationally difficult to solve in relation to a paritcular choice of
-security parameter `sp`. In other words, the probability that an
-adversary has in solving the problem is bounded by a function negl(sp),
-where negl(sp) < 1/f(sp) for all polynomial functions f().
+computationally difficult to solve in relation to a particular choice of
+security parameter `sp`.
 
 Let GG = GG(sp) be a group with prime-order p, and let FFp be the finite
 field of order p.
