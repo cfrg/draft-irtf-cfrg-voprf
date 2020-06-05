@@ -305,9 +305,8 @@ document is structured as follows:
 - {{preliminaries}}: Describe conventions and assumptions made relating
   to security of (V)OPRFs and prime-order group instantiations.
 - {{protocol}}: Specify the protocol required to instantiate the (V)OPRF
-  functionality using prime-order groups.
-- {{api}}: A list of API functions that are used to instantiate the
-  protocols from {{protocol}}.
+  functionality via prime-order groups. Includes specification of the
+  data structures and API that is used by the client and server.
 - {{dleq}}: Specify the NIZK discrete logarithm equality (DLEQ)
   construction used for constructing the VOPRF protocol.
 - {{ciphersuites}}: Considers explicit instantiations of the protocol in
@@ -503,89 +502,69 @@ multiplication into all elliptic curve operations.
 
 # Protocol {#protocol}
 
-In this section we describe the OPRF and VOPRF protocols. Recall that
-these protocols take place between a client and a server. We will refer
-to these participants by Client and Server, respectively, throughout.
-The Server holds a secret key k for a PRF. The protocol allows the
-client to learn PRF evaluations on chosen inputs x in such a way that
-the Server learns nothing of x.
+This section contains the full description of the (V)OPRF protocol
+between Client and Server. The layout of the section is as follows:
 
-## Overview {#overview}
+- {{protocol-ciphersuite}}: Describes the format of the ciphersuite that
+  is used by Client and Server throughout.
+- {{setup}}: Lays out the setup requirements for the Server, and what
+  information should be made publicly available for Client.
+- {{message-flow}}: Describes the API calls made by both Client and
+  Server, and the flow of messages between them.
+- {{structs}}: Data structures describing the format of objects that are
+  inputs and outputs of the API.
+- {{api}}: Function descriptions for API.
 
-Let GG be an additive group of prime-order p with the interface defined
-in {{pog}}, let GF(p) be the Galois field defined by the integers modulo
-p. Define distinct hash functions H_1 and H_2, where:
+The cryptographic security of the protocol is discussed in {{sec}}.
 
-- `H_1(x) = GG.HashToGroup(x)` for a byte array `x`;
-- `H_2(x, y) = z`, where `x`, `y`, `z` are fixed-length byte arrays.
+## Ciphersuite {#protocol-ciphersuite}
 
-All hash functions in the protocol are modeled as random oracles. Let
-`k` be the Server's private key, and `Y = k * G` be its corresponding
-public key, for the fixed generator `G` of `GG`. This public key is also
-referred to as a commitment to the OPRF key `k`. Let x be the byte array
-that is the Server's input to the OPRF protocol (this can be of
-arbitrary length). We provide an overview of the protocol below as an
-introduction to the general flow. We will describe the functionality
-using interface function calls in {{api}}.
+A ciphersuite for the protocol wraps the functionality required for the
+protocol to take place. This ciphersuite should be available to both
+Client and Server, and agreement on the specific instantiation is
+assumed throughout. A ciphersuite contains instantiations of the
+following functionalities.
 
-The OPRF protocol begins with Client blinding its input for the OPRF
-evaluator such that it appears uniformly distributed from GG. The Server
-then multiplies the blinded value by its private key and returns the
-resulting element. To finish the protocol, Client then removes its blind
-and uses H_2 to hash the result (along with a domain separating label
-DST) yielding an output. This flow is illustrated below.
+- `GG`: A prime-order group exposing the API detailed in {{pog}}.
+- `H_1`: A hash function mapping two fixed-length byte arrays to another
+  byte array of fixed-length depending on security requirements.
 
-~~~
-     Client(x)                   Server(k)
-  ----------------------------------------------------------
-     r <-$ GF(p)
-     M = rH_1(x)
-                           M
-                        ------->
+If a ciphersuite corresponds to an instantiation of the protocol in the
+verifiable setting (VOPRF), then it will contain instantiations of the
+following functions.
 
-                              Z = k * M mod p
-                              [[ D = generate_zk_proof(k,G,Y,M,Z) ]]
+- `H_2`: Maps an arbitrary-length sequence of bytes to a Scalar value in
+  `GF(p)`, where `p = GG.Order()`.
+- `H_3`: Maps an arbitrary-length sequence of bytes to a another byte
+  array of fixed-length depending on security requirements.
 
-                          Z[[, D]]
-                        <-------
-    [[ b = verify_zk_proof(G,Y,M,Z,D) ]]
-    N = r^(-1) * Z mod p
-    Output H_2(DST, x || N) mod p [if (b=0): abort]
-~~~
+Specific instantiations of these ciphersuites are given in
+{{ciphersuites}}.
 
-Steps that are enclosed in `[[ ]]` are REQUIRED for achieving
-verifiability. These functions are described in {{dleq}}. In the
-verifiable mode, we assume that Server's public key is known by Client.
+## Setup {#setup}
 
-Strictly speaking, the actual PRF function that is computed is:
+Before the protocol takes place, the Server MUST select a valid
+ciphersuite from the list in {{ciphersuites}}. Once a selection is made,
+it publishes the ciphersuite that it is using to make it available to
+any Client that connects to it.
+
+The Server SHOULD sample a new PrivateKey object corresponding to its
+secret input. This value can be used across multiple instantiations of
+the protocol. If the server ciphersuite supports verifiability, then it
+interprets its private key as a Scalar `k` in `GF(p)` and computes:
 
 ~~~
-F(k, x) = N = kH_1(x)
+PK = k * GG.Generator()
 ~~~
 
-This output is computed when the Client computes r^(-1) * Z by the
-commutativity of the multiplication. Client finishes the computation by
-outputting H_2(DST, x || N). Note that the output from Server is not the
-PRF value because the actual input x is blinded by r.
+Servers that support verifiability MUST make `PK` available to
+clients.
 
-The security of our construction is discussed in more detail in
-{{protocol-sec}}.
+## Protocol message flow {#message-flow}
 
-# Protocol API {#api}
-
-We restate the (V)OPRF protocol using a concrete API that we describe in
-{{algorithms}} below.
-
-Firstly, we assume that the server chooses a valid ciphersuite from
-{{ciphersuites}} and instantiates the prime-order group `GG` associated
-with the ciphersuite. It samples a PrivateKey `k` from `GF(p)`, and
-computes the public key `public_key = GG.Serialize(k * G)` where
-`G=GG.generator()`. It publishes `(ciphersuite, public_key)` publicly,
-so that it is available to any possible clients.
-
-Secondly, before the protocol samples an array of `ClientInput` objects
-and provides these as `ins` as their protocol input, along with a DST
-`aux`.
+Before the protocol, Client samples an array of `ClientInput` objects
+and provides these together as `ins` as their protocol input, along with
+a DST `aux`.
 
 Both participants also provide a boolean input `vv` and `vp` for the
 Client and Server respectively. These boolean values should be equal,
@@ -607,6 +586,7 @@ client attempts to verify the zero-knowledge proof.
 
                            ev
                       <----------
+
     unb_toks = Unblind(public_key,toks,bts,ev,vv)
     outputs = []
     for i in [ins.length]:
@@ -631,8 +611,8 @@ be found in {{I-D.irtf-cfrg-hash-to-curve}}; Section 3.1.
 ## Data structures {#structs}
 
 The following is a list of data structures that are defined for
-providing inputs and outputs for each of the API functions defined in
-{{algorithms}}.
+providing inputs and outputs for each of the interface defined in
+{{api}}.
 
 The following types are a list of aliases that are used throughout the
 protocol.
@@ -663,9 +643,9 @@ struct {
 } Token;
 ```
 
-An `Evaluation` is the type output by the `Evaluate` and
-`VerifiableEvaluate` algorithms. The member `proof` is added in the
-output of `VerifiableEvaluate` only.
+An `Evaluation` is the type output by the `Evaluate` algorithm. The
+member `proof` is added only in the case where verifiability is
+required.
 
 ```
 struct {
@@ -674,7 +654,7 @@ struct {
 } Evaluation;
 ```
 
-## Algorithms
+## Protocol interface {#api}
 
 The `verifiable` mode of the protocol (VOPRF) is controlled by a boolean
 input to a subset of the functions. Each function assumes knowledge of a
@@ -685,6 +665,10 @@ refers to an array of fixed-size relative to an integer parameter `m`
 chosen by the client.
 
 ### Blind
+
+We note here that the blinding mechanism that we use can be modified
+slightly with the opportunity for making performance gains in some
+scenarios. We detail these modifications in {{blinding}}.
 
 ~~~
 Input:
@@ -785,39 +769,45 @@ Output:
 Steps:
 
  1. DST = "oprf_derive_output"
- 2. dk = H_2(DST, T.data || E)
- 3. output = H_2(dk, aux)
+ 2. dk = H_1(DST, T.data || E)
+ 3. output = H_1(dk, aux)
  4. Output output
 ~~~
 
 ## Fixed-base blinding {#blinding}
 
-Let `H_1` refer to the function `GG.HashToGroup`, in Section
-{{algorithms}} we assume that the client-side blinding is carried out
-directly on the output of H_1(x), i.e. computing r * H_1(x) for some r
-<-$ GF(p). A more efficient alternative to multiplication blinding is to
-to use 'additive blinding' rather than multiplicative if the client can
-preprocess some values. For example, a valid way of computing additive
-blinding would be to instead compute H_1(x) + r * G, where G is the
-fixed generator for the group GG.
+Let `H` refer to the function `GG.HashToGroup`, in {{pog}} we assume
+that the client-side blinding is carried out directly on the output of
+`H(x)`, i.e. computing `r * H(x)` for some `r <-$ GF(p)`. In the {{OPAQUE}}
+draft, it is noted that it may be more efficient to use additive
+blinding rather than multiplicative if the client can preprocess some
+values. For example, a valid way of computing additive blinding would be
+to instead compute `H(x) + (r * G)`, where `G` is the fixed generator for the
+group `GG`.
 
-The advantage of additive blinding is that it allows the client to
-pre-process tables of blinded scalar multiplications for the fixed
-generator G. This may give it a computational efficiency advantage.
-Pre-processing also reduces the amount of computation that needs to be
-done in the online exchange. Choosing one of these values `r * G` (where
-`r` is the scalar value that is used), then computing `H_1(x)+r * G` is
-more efficient than computing `r * H_1(x)` (one addition against
-log_2(r)). Therefore, it may be advantageous to implement the OPRF and
-VOPRF protocols using additive blinding rather than multiplicative
-blinding. In fact, the only algorithms that need to change are Blind and
-Unblind (and similarly for the VOPRF variants).
+We refer to the 'multiplicative' blinding as variable-base blinding
+(VBB), since the base of the blinding (`H(x)`) varies with each
+instantiation. We refer to the additive blinding case as fixed-base
+blinding (FBB) since the blinding is applied to the same generator each
+time (when computing `r * G`).
 
-We define the additive variants of the algorithms in {{algorithms}}
-below, along with a new algorithm Preprocess. The Proprocess algorithm
-can take place offline and before the rest of the OPRF protocol. The
-Blind algorithm takes the proprocessed values as inputs, but the
-signature of Unblind remains the same.
+The advantage of fixed-base blinding is that it allows the client to
+pre-process tables of blinded scalar multiplications for `G`. This may
+give it a computational efficiency advantage. Pre-processing also
+reduces the amount of computation that needs to be done in the online
+exchange. Choosing one of these values `r * G` (where `r` is the scalar
+value that is used), then computing `H(x) + (r * G)` is more efficient than
+computing `r * H(x)` (one addition against log_2(r)). Therefore, it may be
+advantageous to define the OPRF and VOPRF protocols using additive
+blinding rather than multiplicative blinding. In fact, the only
+algorithms that need to change are Blind and Unblind (and similarly for
+the VOPRF variants).
+
+We define the FBB variants of the algorithms in {{api}} below, along
+with a new algorithm Preprocess. The Proprocess algorithm can take place
+offline and before the rest of the OPRF protocol. The Blind algorithm
+takes the proprocessed values as inputs, but the signature of Unblind
+remains the same.
 
 ### Preprocess
 
@@ -911,8 +901,14 @@ Steps:
  4. Output unblinded_tokens
 ~~~
 
-Notice that Unblind computes (Z-PKr) = k(H_1(x)+r * G) - rk * G =
-kH_1(x) by the commutativity of scalar multiplication in GG. 
+Let `P = GG.HashToGroup(x)`. Notice that Unblind computes:
+
+~~~
+Z - PKR = k(P + r * G) - (rk) * G = k * P
+~~~
+
+by the commutativity of scalar multiplication in GG. This is the same
+output as in the Unblind algorithm for variable-based blinding.
 
 # NIZK Discrete Logarithm Equality Proof {#dleq}
 
@@ -963,7 +959,7 @@ Steps:
  5.  if (r == 0): go back to the previous step
  6.  a3 = GG.Serialize(r * G)
  7.  a4 = GG.Serialize(rM)
- 8.  c = H_3(gen || public_key || a1 || a2 || a3 || a4) mod p
+ 8.  c = H_2(gen || public_key || a1 || a2 || a3 || a4) mod p
  9.  s = (r - ck) mod p
  10. Output (c, s)
 ~~~
@@ -1001,7 +997,7 @@ Steps:
  5. B' = (proof[1] * M + proof[0] * Z)
  6. a3 = GG.Serialize(A')
  7. a4 = GG.Serialize(B')
- 8. c  = H_3(gen || public_key || a1 || a2 || a3 || a4) mod p
+ 8. c  = H_2(gen || public_key || a1 || a2 || a3 || a4) mod p
  9. Output c == proof[0] mod p
 ~~~
 
@@ -1025,7 +1021,7 @@ Output:
 
 Steps:
 
- 1. seed = H_4(gen || public_key || blinded_tokens || ev.elements)
+ 1. seed = H_3(gen || public_key || blinded_tokens || ev.elements)
  2. i' = 0
  3. M = GG.Identity()
  4. Z = GG.Identity()
@@ -1034,7 +1030,7 @@ Steps:
     2. Mi = GG.Deserialize(blinded_tokens[i])
     3. Zi = GG.Deserialize(ev.elements[i])
     4. if (m > 1):
-       1. di = H_3(seed || i' || DST_dleq)
+       1. di = H_2(seed || i' || DST_dleq)
        2. if (di > GG.order()):
           1. i = i-1 # decrement and try again
        3. i  = i + 1
@@ -1043,15 +1039,6 @@ Steps:
     6. Z = di * Zi + Z
  6. Output [GG.Serialize(M), GG.Serialize(Z)]
 ~~~
-
-## Hash function instantiations
-
-In the above algorithmms, we define two new functions `H_3` and `H_4`.
-The function `H_3` should induce an output distribution in
-`GF(GG.Order())` that is statistically close to uniformly random. The
-function `H_4` maps arbitrary length byte outputs to a fixed size output
-depending on the security profile of the application. Both functions are
-modelled as random oracles for the purpose of arguing security.
 
 # Supported ciphersuites {#ciphersuites}
 
@@ -1067,50 +1054,52 @@ provide strictly greater than 128 bits of security {{NIST}}.
 ## OPRF-curve448-HKDF-SHA512-ELL2-RO:
 
 - GG: curve448 {{RFC7748}}
-- H_1: curve448-SHA512-ELL2-RO {{I-D.irtf-cfrg-hash-to-curve}}
-  - hash-to-curve DST: "RFCXXXX-OPRF-curve448-SHA512-ELL2-RO-"
-- H_2: HMAC_SHA512 {{RFC2104}}
+  - HashToGroup(): curve448-SHA512-ELL2-RO
+    {{I-D.irtf-cfrg-hash-to-curve}}
+    - hash-to-curve DST: "RFCXXXX-OPRF-curve448-SHA512-ELL2-RO-"
+- H_1: HMAC_SHA512 {{RFC2104}}
 
 ## OPRF-P384-HKDF-SHA512-SSWU-RO:
 
 - GG: secp384r1 {{SEC2}}
-- H_1: P384-SHA512-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
-  - hash-to-curve DST: "RFCXXXX-OPRF-P384-SHA512-SSWU-RO-"
-- H_2: HMAC_SHA512 {{RFC2104}}
+  - HashToGroup(): P384-SHA512-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
+    - hash-to-curve DST: "RFCXXXX-OPRF-P384-SHA512-SSWU-RO-"
+- H_1: HMAC_SHA512 {{RFC2104}}
 
 ## OPRF-P521-HKDF-SHA512-SSWU-RO:
 
 - GG: secp521r1 {{SEC2}}
-- H_1: P521-SHA512-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
-  - hash-to-curve DST: "RFCXXXX-OPRF-P521-SHA512-SSWU-RO-"
-- H_2: HMAC_SHA512 {{RFC2104}}
+  - HashToGroup(): P521-SHA512-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
+    - hash-to-curve DST: "RFCXXXX-OPRF-P521-SHA512-SSWU-RO-"
+- H_1: HMAC_SHA512 {{RFC2104}}
 
 ## VOPRF-curve448-HKDF-SHA512-ELL2-RO:
 
 - GG: curve448 {{RFC7748}}
-- H_1: curve448-SHA512-ELL2-RO {{I-D.irtf-cfrg-hash-to-curve}}
-  - hash-to-curve DST: "RFCXXXX-VOPRF-curve448-SHA512-ELL2-RO-"
-- H_2: HMAC_SHA512 {{RFC2104}}
-- H_3: HKDF-Expand-SHA512
-- H_4: SHA512
+  - HashToGroup(): curve448-SHA512-ELL2-RO
+    {{I-D.irtf-cfrg-hash-to-curve}}
+    - hash-to-curve DST: "RFCXXXX-VOPRF-curve448-SHA512-ELL2-RO-"
+- H_1: HMAC_SHA512 {{RFC2104}}
+- H_2: HKDF-Expand-SHA512
+- H_3: SHA512
 
 ## VOPRF-P384-HKDF-SHA512-SSWU-RO:
 
 - GG: secp384r1 {{SEC2}}
-- H_1: P384-SHA512-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
-  - hash-to-curve DST: "RFCXXXX-VOPRF-P384-SHA512-SSWU-RO-"
-- H_2: HMAC_SHA512 {{RFC2104}}
-- H_3: HKDF-Expand-SHA512
-- H_4: SHA512
+  - HashToGroup(): P384-SHA512-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
+    - hash-to-curve DST: "RFCXXXX-VOPRF-P384-SHA512-SSWU-RO-"
+- H_1: HMAC_SHA512 {{RFC2104}}
+- H_2: HKDF-Expand-SHA512
+- H_3: SHA512
 
 ## VOPRF-P521-HKDF-SHA512-SSWU-RO:
 
 - GG: secp521r1 {{SEC2}}
-- H_1: P521-SHA512-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
-  - hash-to-curve DST: "RFCXXXX-VOPRF-P521-SHA512-SSWU-RO-"
-- H_2: HMAC_SHA512 {{RFC2104}}
-- H_3: HKDF-Expand-SHA512
-- H_4: SHA512
+  - HashToGroup(): P521-SHA512-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
+    - hash-to-curve DST: "RFCXXXX-VOPRF-P521-SHA512-SSWU-RO-"
+- H_1: HMAC_SHA512 {{RFC2104}}
+- H_2: HKDF-Expand-SHA512
+- H_3: SHA512
 
 We remark that the 'hash-to-curve DST' field is necessary for domain
 separation of the hash-to-curve functionality.
@@ -1123,17 +1112,15 @@ of an OPRF.
 
 ## Cryptographic security {#cryptanalysis}
 
-We discuss the cryptographic security of the OPRF protocol from
+We discuss the cryptographic security of the (V)OPRF protocol from
 {{protocol}}, relative to the necessary cryptographic assumptions that
 need to be made.
 
 ### Computational hardness assumptions {#assumptions}
 
 Each assumption states that the problems specified below are
-computationally difficult to solve in relation to sp (the security
-parameter). In other words, the probability that an adversary has in
-solving the problem is bounded by a function negl(sp), where negl(sp) <
-1/f(sp) for all polynomial functions f().
+computationally difficult to solve in relation to a particular choice of
+security parameter `sp`.
 
 Let GG = GG(sp) be a group with prime-order p, and let FFp be the finite
 field of order p.
@@ -1266,10 +1253,11 @@ in {{I-D.irtf-cfrg-hash-to-curve}} when instantiating the function H1.
 
 To ensure no information is leaked during protocol execution, all
 operations that use secret data MUST be constant time. Operations that
-SHOULD be constant time include: H_1() (hashing arbitrary strings to
-curves) and GenerateProof(). As mentioned previously,
-{{I-D.irtf-cfrg-hash-to-curve}} describes various algorithms for
-constant-time implementations of H_1.
+SHOULD be constant time include all prime-order group operations and
+proof-specific operations (`GenerateProof()` and `VerifyProof()`). As
+mentioned previously, {{I-D.irtf-cfrg-hash-to-curve}} describes various
+algorithms for constant-time implementations of the `GG.HashToGroup()`
+functionality.
 
 ## User segregation
 
@@ -1402,13 +1390,13 @@ VOPRF protocol. For more details, see {{DGSTV18}}.
 ## Private Password Checker
 
 In this application, let D be a collection of plaintext passwords
-obtained by Server. For each password p in D, Server computes `Evaluate`
-on H_1(p), where H_1 is as described above, and stores the result in a
-separate collection D'. Server then publishes D' with Y, its public key.
-If Client wishes to query D' for a password p', it runs the VOPRF
-protocol using p as input x to obtain output y. By construction, y will
-be the OPRF evaluation of p hashed onto the curve. Then Client can
-search D' for y to determine if there is a match.
+obtained by prover P. For each password p in D, P computes Evaluate on
+`GG.HashToGroup(p)`, and stores the result in a separate collection D'.
+P then publishes D' with Y, its public key. If a client C wishes to
+query D' for a password p', it runs the VOPRF protocol using p as input
+x to obtain output y. By construction, y will be the OPRF evaluation of
+p hashed onto the curve. C can then search D' for y to determine if
+there is a match.
 
 Concrete examples of important applications in the password domain
 include:
