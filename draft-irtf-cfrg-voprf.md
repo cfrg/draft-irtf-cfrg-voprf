@@ -555,11 +555,10 @@ interprets its private key as a Scalar `k` in `GF(p)` and computes:
 
 ~~~
 PK = k * GG.Generator()
-public_key = GG.Serialize(PK)
 ~~~
 
-The Server MUST publish `public_key` so that any valid Client can use it
-during the protocol to verify messages from Server.
+Servers that support verifiability MUST make public_key available to
+clients.
 
 ## Protocol message flow {#message-flow}
 
@@ -779,26 +778,26 @@ Steps:
 
 Let `H` refer to the function `GG.HashToGroup`, in {{pog}} we assume
 that the client-side blinding is carried out directly on the output of
-`H(x)`, i.e. computing `rH(x)` for some `r <-$ GF(p)`. In the {{OPAQUE}}
+`H(x)`, i.e. computing `r * H(x)` for some `r <-$ GF(p)`. In the {{OPAQUE}}
 draft, it is noted that it may be more efficient to use additive
 blinding rather than multiplicative if the client can preprocess some
 values. For example, a valid way of computing additive blinding would be
-to instead compute `H(x)+rG`, where `G` is the fixed generator for the
+to instead compute `H(x) + (r * G)`, where `G` is the fixed generator for the
 group `GG`.
 
 We refer to the 'multiplicative' blinding as variable-base blinding
 (VBB), since the base of the blinding (`H(x)`) varies with each
 instantiation. We refer to the additive blinding case as fixed-base
 blinding (FBB) since the blinding is applied to the same generator each
-time (when computing `rG`).
+time (when computing `r * G`).
 
 The advantage of fixed-base blinding is that it allows the client to
 pre-process tables of blinded scalar multiplications for `G`. This may
 give it a computational efficiency advantage. Pre-processing also
 reduces the amount of computation that needs to be done in the online
-exchange. Choosing one of these values `rG` (where `r` is the scalar
-value that is used), then computing `H(x)+rG` is more efficient than
-computing `rH(x)` (one addition against log_2(r)). Therefore, it may be
+exchange. Choosing one of these values `r * G` (where `r` is the scalar
+value that is used), then computing `H(x) + (r * G)` is more efficient than
+computing `r * H(x)` (one addition against log_2(r)). Therefore, it may be
 advantageous to define the OPRF and VOPRF protocols using additive
 blinding rather than multiplicative blinding. In fact, the only
 algorithms that need to change are Blind and Unblind (and similarly for
