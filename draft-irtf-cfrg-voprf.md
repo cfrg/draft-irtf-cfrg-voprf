@@ -557,7 +557,7 @@ interprets its private key as a Scalar `k` in `GF(p)` and computes:
 PK = k * GG.Generator()
 ~~~
 
-Servers that support verifiability MUST make public_key available to
+Servers that support verifiability MUST make `PK` available to
 clients.
 
 ## Protocol message flow {#message-flow}
@@ -904,7 +904,7 @@ Steps:
 Let `P = GG.HashToGroup(x)`. Notice that Unblind computes:
 
 ~~~
-(Z-PKR) = k(P + r * G) - (rk) * G = k * P
+Z - PKR = k(P + r * G) - (rk) * G = k * P
 ~~~
 
 by the commutativity of scalar multiplication in GG. This is the same
