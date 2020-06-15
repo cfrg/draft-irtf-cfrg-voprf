@@ -768,8 +768,8 @@ Output:
 
 Steps:
 
- 1. DST = "oprf_derive_output"
- 2. hash_input = len(dst) || dst || len(T.data) || T.data || len(E) || E || len(aux) || aux)
+ 1. DST = "RFCXXXX-Finalize"
+ 2. hash_input = len(DST) || DST || len(T.data) || T.data || len(E) || E || len(aux) || aux)
  3. output = H_1(hash_input)
  4. Output output
 ~~~
