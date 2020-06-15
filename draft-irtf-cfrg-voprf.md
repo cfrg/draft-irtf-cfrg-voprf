@@ -442,7 +442,7 @@ Specifically, for any elements `A` and `B` that are members of the group
 `GG`, `A + B = B + A` is also a member of `GG`. Scalar multiplication
 (*) is an efficient method for repeated addition operations. Given a
 scalar `r` in `GF(p)` and element `A` in `GG`, `r*A = A + ... + A` (`r`
-times). 
+times).
 
 Note that prime-order groups also define an inverse function such that
 the following property holds:
@@ -463,7 +463,7 @@ prime-order group.
   group.
 - Serialize(): A member function of `GG` that maps a group element `A`
   to a unique array of bytes `buf` that corresponds uniquely to the
-  point `A`.
+  element `A`.
 - Deserialize(): A member function of `GG` that maps an array of bytes
   `buf` to a group element `A`.
 - HashToGroup(): A member function of `GG` that deterministically maps
@@ -526,8 +526,8 @@ assumed throughout. A ciphersuite contains instantiations of the
 following functionalities.
 
 - `GG`: A prime-order group exposing the API detailed in {{pog}}.
-- `H_1`: A hash function mapping two fixed-length byte arrays to another
-  byte array of fixed-length depending on security requirements.
+- `H_1`: A cryptographic hash function that is indifferentiable from
+  a Random Oracle.
 
 If a ciphersuite corresponds to an instantiation of the protocol in the
 verifiable setting (VOPRF), then it will contain instantiations of the
@@ -769,8 +769,8 @@ Output:
 Steps:
 
  1. DST = "oprf_derive_output"
- 2. dk = H_1(DST, T.data || E)
- 3. output = H_1(dk, aux)
+ 2. hash_input = len(dst) || dst || len(T.data) || T.data || len(E) || E || len(aux) || aux)
+ 3. output = H_1(hash_input)
  4. Output output
 ~~~
 
@@ -1043,13 +1043,16 @@ Steps:
 # Supported ciphersuites {#ciphersuites}
 
 This section specifies supported VOPRF group and hash function
-instantiations. We only provide ciphersuites in the EC setting as these
-provide the most efficient way of instantiating the OPRF. Our
-instantiation includes considerations for providing the DLEQ proofs that
-make the instantiation a VOPRF. Supporting OPRF operations alone can be
-allowed by simply dropping the relevant components. For reasons that are
-detailed in {{cryptanalysis}}, we only consider ciphersuites that
-provide strictly greater than 128 bits of security {{NIST}}.
+instantiations. For each group, we specify the HashToGroup and Serialize functionalities.
+The Deserialize functionality is the inverse of the corresponding Serialize functionality.
+
+We only provide ciphersuites in the EC setting as these provide the most efficient way of
+instantiating the OPRF. Our instantiation includes considerations for providing the DLEQ
+proofs that make the instantiation a VOPRF. Supporting OPRF operations alone can be
+allowed by simply dropping the relevant components.
+
+For reasons that are detailed in {{cryptanalysis}}, we only consider ciphersuites
+that provide strictly greater than 128 bits of security {{NIST}}.
 
 ## OPRF-curve448-HKDF-SHA512-ELL2-RO:
 
@@ -1057,21 +1060,28 @@ provide strictly greater than 128 bits of security {{NIST}}.
   - HashToGroup(): curve448-SHA512-ELL2-RO
     {{I-D.irtf-cfrg-hash-to-curve}}
     - hash-to-curve DST: "RFCXXXX-OPRF-curve448-SHA512-ELL2-RO-"
-- H_1: HMAC_SHA512 {{RFC2104}}
+  - Serialize: The standard 56-byte representation of the public key
+- H_1: SHA512 {{RFC2104}}
 
 ## OPRF-P384-HKDF-SHA512-SSWU-RO:
 
 - GG: secp384r1 {{SEC2}}
   - HashToGroup(): P384-SHA512-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
     - hash-to-curve DST: "RFCXXXX-OPRF-P384-SHA512-SSWU-RO-"
-- H_1: HMAC_SHA512 {{RFC2104}}
+  - Serialize: A single byte set to 4, followed by the X-coordinate and
+    the Y-coordinate of the point, encoded as 32-byte big-endian
+    integers
+- H_1: SHA512 {{RFC2104}}
 
 ## OPRF-P521-HKDF-SHA512-SSWU-RO:
 
 - GG: secp521r1 {{SEC2}}
   - HashToGroup(): P521-SHA512-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
     - hash-to-curve DST: "RFCXXXX-OPRF-P521-SHA512-SSWU-RO-"
-- H_1: HMAC_SHA512 {{RFC2104}}
+  - Serialize: A single byte set to 4, followed by the X-coordinate and
+    the Y-coordinate of the point, encoded as 32-byte big-endian
+    integers
+- H_1: SHA512 {{RFC2104}}
 
 ## VOPRF-curve448-HKDF-SHA512-ELL2-RO:
 
@@ -1079,7 +1089,8 @@ provide strictly greater than 128 bits of security {{NIST}}.
   - HashToGroup(): curve448-SHA512-ELL2-RO
     {{I-D.irtf-cfrg-hash-to-curve}}
     - hash-to-curve DST: "RFCXXXX-VOPRF-curve448-SHA512-ELL2-RO-"
-- H_1: HMAC_SHA512 {{RFC2104}}
+  - Serialize: The standard 56-byte representation of the public key
+- H_1: SHA512 {{RFC2104}}
 - H_2: HKDF-Expand-SHA512
 - H_3: SHA512
 
@@ -1088,7 +1099,10 @@ provide strictly greater than 128 bits of security {{NIST}}.
 - GG: secp384r1 {{SEC2}}
   - HashToGroup(): P384-SHA512-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
     - hash-to-curve DST: "RFCXXXX-VOPRF-P384-SHA512-SSWU-RO-"
-- H_1: HMAC_SHA512 {{RFC2104}}
+  - Serialize: A single byte set to 4, followed by the X-coordinate and
+    the Y-coordinate of the point, encoded as 32-byte big-endian
+    integers
+- H_1: SHA512 {{RFC2104}}
 - H_2: HKDF-Expand-SHA512
 - H_3: SHA512
 
@@ -1097,7 +1111,10 @@ provide strictly greater than 128 bits of security {{NIST}}.
 - GG: secp521r1 {{SEC2}}
   - HashToGroup(): P521-SHA512-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
     - hash-to-curve DST: "RFCXXXX-VOPRF-P521-SHA512-SSWU-RO-"
-- H_1: HMAC_SHA512 {{RFC2104}}
+  - Serialize: A single byte set to 4, followed by the X-coordinate and
+    the Y-coordinate of the point, encoded as 32-byte big-endian
+    integers
+- H_1: SHA512 {{RFC2104}}
 - H_2: HKDF-Expand-SHA512
 - H_3: SHA512
 
