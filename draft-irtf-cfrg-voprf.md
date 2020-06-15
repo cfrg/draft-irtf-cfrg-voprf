@@ -442,7 +442,7 @@ Specifically, for any elements `A` and `B` that are members of the group
 `GG`, `A + B = B + A` is also a member of `GG`. Scalar multiplication
 (*) is an efficient method for repeated addition operations. Given a
 scalar `r` in `GF(p)` and element `A` in `GG`, `r*A = A + ... + A` (`r`
-times). 
+times).
 
 Note that prime-order groups also define an inverse function such that
 the following property holds:
@@ -1047,62 +1047,84 @@ instantiations. We only provide ciphersuites in the EC setting as these
 provide the most efficient way of instantiating the OPRF. Our
 instantiation includes considerations for providing the DLEQ proofs that
 make the instantiation a VOPRF. Supporting OPRF operations alone can be
-allowed by simply dropping the relevant components. For reasons that are
-detailed in {{cryptanalysis}}, we only consider ciphersuites that
-provide strictly greater than 128 bits of security {{NIST}}.
+allowed by simply dropping the relevant components.
 
-## OPRF-curve448-HKDF-SHA512-ELL2-RO:
+Applications should take caution in using ciphersuites targeting P-256 and
+curve25519. See {{cryptanalysis}} for related discussion.
+
+## Non-Verifiable Ciphersuites
+
+### OPRF-curve25519\_XMD:SHA-512\_ELL2_RO\_:
+
+- GG: curve25519 {{RFC7748}}
+  - HashToGroup(): curve25519_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-curve25519_XMD:SHA-512_ELL2_RO_"
+- H_1: HMAC_SHA512 {{RFC2104}}
+
+### OPRF-curve448\_XMD:SHA-512\_ELL2\_RO\_:
 
 - GG: curve448 {{RFC7748}}
-  - HashToGroup(): curve448-SHA512-ELL2-RO
-    {{I-D.irtf-cfrg-hash-to-curve}}
-    - hash-to-curve DST: "RFCXXXX-OPRF-curve448-SHA512-ELL2-RO-"
+  - HashToGroup(): curve448_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-curve448_XMD:SHA-512_ELL2_RO_"
 - H_1: HMAC_SHA512 {{RFC2104}}
 
-## OPRF-P384-HKDF-SHA512-SSWU-RO:
+### OPRF-P256\_XMD:SHA-256\_SSWU\_RO\_:
+
+- GG: P-256 {{SEC2}}
+- HashToGroup(): P256_XMD:SHA-256_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P256_XMD:SHA-256_SSWU_RO_"
+- H_1: HMAC_SHA512 {{RFC2104}}
+
+### OPRF-P384\_XMD:SHA-512\_SSWU\_RO\_:
 
 - GG: secp384r1 {{SEC2}}
-  - HashToGroup(): P384-SHA512-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
-    - hash-to-curve DST: "RFCXXXX-OPRF-P384-SHA512-SSWU-RO-"
+  - HashToGroup(): P384_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P384_XMD:SHA-512_SSWU_RO_"
 - H_1: HMAC_SHA512 {{RFC2104}}
 
-## OPRF-P521-HKDF-SHA512-SSWU-RO:
+### OPRF-P521\_XMD:SHA-512\_SSWU\_RO\_:
 
 - GG: secp521r1 {{SEC2}}
-  - HashToGroup(): P521-SHA512-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
-    - hash-to-curve DST: "RFCXXXX-OPRF-P521-SHA512-SSWU-RO-"
+  - HashToGroup(): P521_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P521_XMD:SHA-512_SSWU_RO_"
 - H_1: HMAC_SHA512 {{RFC2104}}
 
-## VOPRF-curve448-HKDF-SHA512-ELL2-RO:
+## Verifiable Ciphersuites
+
+### VOPRF-curve25519\_XMD:SHA-512\_ELL2\_RO\_:
+
+- GG: curve25519 {{RFC7748}}
+  - HashToGroup(): curve25519_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-curve25519_XMD:SHA-512_ELL2_RO_"
+- H_1: HMAC_SHA512 {{RFC2104}}
+- H_2: HKDF-Expand-SHA512
+- H_3: SHA512
+
+### VOPRF-curve448\_XMD:SHA-512\_ELL2\_RO\_:
 
 - GG: curve448 {{RFC7748}}
-  - HashToGroup(): curve448-SHA512-ELL2-RO
-    {{I-D.irtf-cfrg-hash-to-curve}}
-    - hash-to-curve DST: "RFCXXXX-VOPRF-curve448-SHA512-ELL2-RO-"
+  - HashToGroup(): curve448_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-curve448_XMD-SHA-512_ELL2_RO_"
 - H_1: HMAC_SHA512 {{RFC2104}}
 - H_2: HKDF-Expand-SHA512
 - H_3: SHA512
 
-## VOPRF-P384-HKDF-SHA512-SSWU-RO:
+### VOPRF-P256\_XMD:SHA-256\_SSWU\_RO\_:
+
+- GG: P-256 {{SEC2}}
+- HashToGroup(): P256_XMD:SHA-256_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-P256_XMD:SHA-256_SSWU_RO_"
+- H_1: HMAC_SHA512 {{RFC2104}}
+- H_2: HKDF-Expand-SHA512
+- H_3: SHA512
+
+### VOPRF-P384\_XMD:SHA-512\_SSWU\_RO\_:
 
 - GG: secp384r1 {{SEC2}}
-  - HashToGroup(): P384-SHA512-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
-    - hash-to-curve DST: "RFCXXXX-VOPRF-P384-SHA512-SSWU-RO-"
+  - HashToGroup(): P384_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-P384_XMD:SHA-512_SSWU_RO_"
 - H_1: HMAC_SHA512 {{RFC2104}}
 - H_2: HKDF-Expand-SHA512
 - H_3: SHA512
 
-## VOPRF-P521-HKDF-SHA512-SSWU-RO:
+### VOPRF-P521\_XMD:SHA-512\_SSWU\_RO\_:
 
 - GG: secp521r1 {{SEC2}}
-  - HashToGroup(): P521-SHA512-SSWU-RO {{I-D.irtf-cfrg-hash-to-curve}}
-    - hash-to-curve DST: "RFCXXXX-VOPRF-P521-SHA512-SSWU-RO-"
+  - HashToGroup(): P521_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-P521_XMD:SHA-512_SSWU_RO_"
 - H_1: HMAC_SHA512 {{RFC2104}}
 - H_2: HKDF-Expand-SHA512
 - H_3: SHA512
-
-We remark that the 'hash-to-curve DST' field is necessary for domain
-separation of the hash-to-curve functionality.
 
 # Security Considerations {#sec}
 
