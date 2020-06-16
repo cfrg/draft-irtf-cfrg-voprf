@@ -9,20 +9,11 @@ import binascii
 from hash_to_field import I2OSP
 
 try:
-    # from sagelib.suite_p256 import p256_sswu_ro
+    from sagelib.suite_p256 import p256_sswu_ro, p256_order, p256_p, p256_F, p256_A, p256_B
     from sagelib.suite_p384 import p384_sswu_ro, p384_order, p384_p, p384_F, p384_A, p384_B
-    # from sagelib.suite_p521 import p521_sswu_ro
-    # from sagelib.suite_secp256k1 import secp256k1_sswu_ro
-    # from sagelib.suite_25519 import \
-    #     edw25519_sha256_ro,   \
-    #     monty25519_sha256_ro, \
-    #     edw25519_sha512_ro,   \
-    #     monty25519_sha512_ro
-    # from sagelib.suite_448 import \
-    #     edw448_hash_ro,   \
-    #     monty448_hash_ro
+    from sagelib.suite_p521 import p521_sswu_ro, p521_order, p521_p, p521_F, p521_A, p521_B
 except ImportError as e:
-    sys.exit("Error loading preprocessed sage files. Try running `make clean pyfiles`." + e)
+    sys.exit("Error loading preprocessed sage files. Try running `make setup && make clean pyfiles`. Full error: " + e)
 
 if sys.version_info[0] == 3:
     xrange = range
@@ -31,6 +22,12 @@ if sys.version_info[0] == 3:
 else:
     _as_bytes = lambda x: x
     _strxor = lambda str1, str2: ''.join( chr(ord(s1) ^ ord(s2)) for (s1, s2) in zip(str1, str2) )
+
+def to_hex(octet_string):
+    if isinstance(octet_string, str):
+        return "".join("{:02x}".format(ord(c)) for c in octet_string)
+    assert isinstance(octet_string, bytes)
+    return "0x" + "".join("{:02x}".format(c) for c in octet_string)
 
 
 class Group(object):
@@ -61,79 +58,111 @@ class Group(object):
 	def __str__(self):
 		return self.name
 
-class GroupP384(Group):
-	def __init__(self):
-		Group.__init__(self, "P-384")
-		self.F = p384_F
-		EC = EllipticCurve(p384_F, [p384_F(p384_A), p384_F(p384_B)])
-		# https://safecurves.cr.yp.to/base.html
-		gx = 26247035095799689268623156744566981891852923491109213387815615900925518854738050089022388053975719786650872476732087
-		gy = 8325710961489029985546751289520108179287853048861315594709205902480503199884419224438643760392947333078086511627871
+class GroupNISTCurve(Group):
+	def __init__(self, name, suite, F, A, B, p, order, gx, gy):
+		Group.__init__(self, name)
+		self.F = F
+		EC = EllipticCurve(F, [F(A), F(B)])
 		self.curve = EC
-		self.G = EC(self.F(gx), self.F(gy))
+		self.gx = gx
+		self.gy = gy
+		self.p = p
+		self.order = order
+		self.h2c_suite = suite
+		self.G = EC(F(gx), F(gy))
 
 	def suite_name(self):
-		return "P384_XMD:SHA-512_SSWU_RO_"
+		return self.name
 
 	def order(self):
-		return p384_order
+		return self.order
 
 	def generator(self):
 		return self.G
 
 	def random_scalar(self):
-		return p384_F.random_element()
+		return self.F.random_element()
 
 	def identity(self):
 		return self.curve.random_element() * self.order()
 
 	def serialize(self, element):
 		x, y = element[0], element[1]
-		L = ZZ((int(((log(p384_p, 2).n() * 8) + 8) / 8)) / 8)
+		L = int(((log(self.p, 2) + 8) / 8).n())
 		return I2OSP(4, 1) + I2OSP(x, L) + I2OSP(y, L)
 
 	def deserialize(self, encoded):
-		return None
+		# 0x04 || x || y
+		assert(encoded[0] == 0x04) 
+		assert(len(encoded) % 2 != 0)
+		element_length = (len(encoded) - 1) / 2
+		x = OS2IP(encoded[1:element_length+1])
+		y = OS2IP(encoded[1+element_length:])
+		return self.EC(F(x), F(y))
 
 	def hash_to_group(self, msg, dst):
-		p384_sswu_ro.dst = dst
-		return p384_sswu_ro(msg)
+		self.h2c_suite.dst = dst
+		return self.h2c_suite(msg)
+
+class GroupP256(GroupNISTCurve):
+	def __init__(self):
+		# See FIPS 186-3, section D.2.3
+		gx = 0x6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296
+		gy = 0x4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5
+		GroupNISTCurve.__init__(self, "P256_XMD:SHA-512_SSWU_RO_", p256_sswu_ro, p256_F, p256_A, p256_B, p256_p, p256_order, gx, gy)
+
+class GroupP384(GroupNISTCurve):
+	def __init__(self):
+		# See FIPS 186-3, section D.2.4
+		gx = 0xaa87ca22be8b05378eb1c71ef320ad746e1d3b628ba79b9859f741e082542a385502f25dbf55296c3a545e3872760ab7
+		gy = 0x3617de4a96262c6f5d9e98bf9292dc29f8f41dbd289a147ce9da3113b5f0b8c00a60b1ce1d7e819d7a431d7c90ea0e5f
+		GroupNISTCurve.__init__(self, "P384_XMD:SHA-512_SSWU_RO_", p384_sswu_ro, p384_F, p384_A, p384_B, p384_p, p384_order, gx, gy)
+
+class GroupP521(GroupNISTCurve):
+	def __init__(self):
+		# See FIPS 186-3, section D.2.5
+		gx = 0xc6858e06b70404e9cd9e3ecb662395b4429c648139053fb521f828af606b4d3dbaa14b5e77efe75928fe1dc127a2ffa8de3348b3c1856a429bf97e7e31c2e5bd66
+		gy = 0x11839296a789a3bc0045c8a5fb42c7d1bd998f54449579b446817afbd17273e662c97ee72995ef42640c550b9013fad0761353c7086a272c24088be94769fd16650
+		GroupNISTCurve.__init__(self, "P521_XMD:SHA-512_SSWU_RO_", p521_sswu_ro, p521_F, p521_A, p521_B, p521_p, p521_order, gx, gy)
 
 
-class ServerConfig(object):
-	# TODO(caw): this should include whatever content(s) we want in the configuration structure
-	def __init__(self, suite, pkS):
-		self.suite = suite
-		self.pkS = pkS
+class Ciphersuite(object):
+	def __init__(self, name, group, H1):
+		self.name = name
+		self.group = group
+		self.H1 = H1
+
+	def __str__(self):
+		return self.name
+
+class VerifiableCiphersuite(Ciphersuite):
+	def __init__(self, name, group, H1, H2, H3):
+		Ciphersuite.__init__(self, name, group, H1)
+		self.H2 = H2
+		self.H3 = H3
 
 
 class Client(object):
-	def __init__(self, group, RO):
-		self.group = group
-		self.RO = RO
-		self.dst = _as_bytes("RFCXXXX-VOPRF-" + group.suite_name())
+	def __init__(self, suite):
+		self.suite = suite
+		self.dst = _as_bytes("RFCXXXX-VOPRF-" + self.suite.group.suite_name())
 
 	def blind(self, x):
-		r = ZZ(self.group.random_scalar())
-		P = self.group.hash_to_group(x, self.dst)
+		r = ZZ(self.suite.group.random_scalar())
+		P = self.suite.group.hash_to_group(x, self.dst)
 		X = r * P
 		return r, X, P
 
 	def unblind(self, N, r):
-		r_inv = inverse_mod(r, self.group.G.order())
+		r_inv = inverse_mod(r, self.suite.group.G.order())
 		y = r_inv * N
 		return y
 
 	def finalize(self, x, y, aux):
-		# struct {
-		#   opaque dst<0..2^16-1>;
-		#   opaque input<0..2^16-1>;
-		#   opaque point<0..2^16-1>;
-		# } FinalizeInput
-		h = self.RO()
+		h = self.suite.H1()
 
-		finalize_dst = _as_bytes("oprf_derive_output") # TODO(caw): this needs to change
-		encoded_point = self.group.serialize(y)
+		finalize_dst = _as_bytes("RFCXXXX-Finalize")
+		encoded_point = self.suite.group.serialize(y)
 
 		h.update(I2OSP(len(finalize_dst), 2))
 		h.update(finalize_dst)
@@ -144,11 +173,10 @@ class Client(object):
 
 		return h.digest()
 
-
 class Server(object):
-	def __init__(self, group):
-		self.group = group
-		self.k = ZZ(self.group.random_scalar())
+	def __init__(self, suite):
+		self.suite = suite
+		self.k = ZZ(self.suite.group.random_scalar())
 
 	def set_key(self, k):
 		self.k = k
@@ -156,11 +184,6 @@ class Server(object):
 	def evaluate(self, element):
 		return self.k * element
 
-def to_hex(octet_string):
-    if isinstance(octet_string, str):
-        return "".join("{:02x}".format(ord(c)) for c in octet_string)
-    assert isinstance(octet_string, bytes)
-    return "0x" + "".join("{:02x}".format(c) for c in octet_string)
 
 class Protocol(object):
 	def __init__(self):
@@ -169,10 +192,9 @@ class Protocol(object):
 	def run_vector(self, vector):
 		raise Exception("Not implemented")
 
-	def run(self, client, server):
-		assert(client.group == server.group)
-		group = client.group
-		aux = "aux"
+	def run(self, client, server, aux):
+		assert(client.suite.group == server.suite.group)
+		group = client.suite.group
 
 		vectors = []
 		for x in self.inputs:
@@ -193,65 +215,27 @@ class Protocol(object):
 		vector = {}
 		vector["k"] = hex(server.k)
 		vector["aux"] = aux
-		# vector["suite"] = client.suite
+		vector["suite"] = client.suite.name
 		vector["vectors"] = vectors
 
 		return vector
 
+ciphersuites = {
+	Ciphersuite("OPRF-P256-HKDF-SHA512-SSWU-RO", GroupP256(), hashlib.sha512),
+	Ciphersuite("OPRF-P384-HKDF-SHA512-SSWU-RO", GroupP384(), hashlib.sha512),
+	Ciphersuite("OPRF-P521-HKDF-SHA512-SSWU-RO", GroupP521(), hashlib.sha512),
+}
 
 def main():
-	GG = GroupP384()
-	client = Client(GG, hashlib.sha512)
-	server = Server(GG)
+	vectors = {}
+	for suite in ciphersuites:
+		client = Client(suite)
+		server = Server(suite)
+		protocol = Protocol()
+		vectors[suite.name] = protocol.run(client, server, "test auxiliary information")
 
-	protocol = Protocol()
-	vectors = protocol.run(client, server)
 	print(json.dumps(vectors))
 
-
-def fixed_voprf():
-	x = _as_bytes(bytearray.fromhex('00').decode())
-	GG = GroupP384()
-
-	dst = _as_bytes("RFCXXXX-VOPRF-P384_XMD:SHA-512_SSWU_RO_")
-
-	P_expected = bytearray.fromhex("0415d7f4f49f59a0e09ca9fe743f8bbdd7fbe0abb76b10b947f06db1d80f363a6292ae5cc95c0a1f59fca92eb3b9cc4779cc9fed910160cf8c150835393b4ca9c040567228a1b44bfebb426f9ecee0731f2a5be5194bfcefc6339684d5600dc44f")
-	P_actual = GG.serialize(GG.hash_to_group(x, dst))
-	if P_expected != P_actual:
-		print(binascii.hexlify(P_expected))
-		print(binascii.hexlify(P_actual))
-		assert(P_expected == P_actual)
-
-	# (26247035095799689268623156744566981891852923491109213387815615900925518854738050089022388053975719786650872476732087,
-	# 8325710961489029985546751289520108179287853048861315594709205902480503199884419224438643760392947333078086511627871)
-	# = (0xaa87ca22be8b05378eb1c71ef320ad746e1d3b628ba79b9859f741e082542a385502f25dbf55296c3a545e3872760ab7,
-	# 0x3617de4a96262c6f5d9e98bf9292dc29f8f41dbd289a147ce9da3113b5f0b8c00a60b1ce1d7e819d7a431d7c90ea0e5f)
-	# 04aa87ca22be8b05378eb1c71ef320ad746e1d3b628ba79b9859f741e082542a385502f25dbf55296c3a545e3872760ab73617de4a96262c6f5d9e98bf9292dc29f8f41dbd289a147ce9da3113b5f0b8c00a60b1ce1d7e819d7a431d7c90ea0e5f
-	# print(binascii.hexlify(GG.serialize(GG.generator())))
-
-	client = Client(GG, hashlib.sha512)
-	server = Server(GG)
-	k = ZZ("731eb0cbe382f110010d354e3fa36f6512bd056daf3f3d00996ae3ac642edb4726d410db80c2321771a93f0308ded9c9", 16)
-	server.set_key(k)
-
-	r, X, _ = client.blind(x)
-
-	# P_expected = bytearray.fromhex("0415d7f4f49f59a0e09ca9fe743f8bbdd7fbe0abb76b10b947f06db1d80f363a6292ae5cc95c0a1f59fca92eb3b9cc4779cc9fed910160cf8c150835393b4ca9c040567228a1b44bfebb426f9ecee0731f2a5be5194bfcefc6339684d5600dc44f")
-	# P_actual = GG.serialize(P)
-	# print(binascii.hexlify(P_expected))
-	# print(binascii.hexlify(P_actual))
-	# print(P_expected == P_actual)
-
-	T = server.evaluate(X)
-	Z = client.unblind(T, r)
-	output = binascii.hexlify(client.finalize(x, Z, "aux"))
-
-	output_hex = b'1bcf7f7b3886ce8a46581116174e27504a86bc4b582a33aeecc59bef9a922beac56febdb930cf54302a890ef6712f29540dcd58a66e262fe5cfd24541efb0264'
-	if output != output_hex:
-		print(output)
-		print(output_hex)
-		assert(output == output_hex)
-
 if __name__ == "__main__":
-    fixed_voprf()
+    # fixed_voprf()
     main()
