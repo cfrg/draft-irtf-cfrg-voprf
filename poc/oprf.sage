@@ -164,12 +164,14 @@ class Client(object):
 		finalize_dst = _as_bytes("RFCXXXX-Finalize")
 		encoded_point = self.suite.group.serialize(y)
 
-		h.update(I2OSP(len(finalize_dst), 2))
-		h.update(finalize_dst)
 		h.update(I2OSP(len(x), 2))
 		h.update(x)
 		h.update(I2OSP(len(encoded_point), 2))
 		h.update(encoded_point)
+		h.update(I2OSP(len(aux), 2))
+		h.update(aux)
+		h.update(I2OSP(len(finalize_dst), 2))
+		h.update(finalize_dst)
 
 		return h.digest()
 
