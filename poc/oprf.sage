@@ -158,18 +158,20 @@ class Client(object):
 		y = r_inv * N
 		return y
 
-	def finalize(self, x, y, aux):
+	def finalize(self, x, y, info):
 		h = self.suite.H1()
 
 		finalize_dst = _as_bytes("RFCXXXX-Finalize")
 		encoded_point = self.suite.group.serialize(y)
 
-		h.update(I2OSP(len(finalize_dst), 2))
-		h.update(finalize_dst)
 		h.update(I2OSP(len(x), 2))
 		h.update(x)
 		h.update(I2OSP(len(encoded_point), 2))
 		h.update(encoded_point)
+		h.update(I2OSP(len(info), 2))
+		h.update(info)
+		h.update(I2OSP(len(finalize_dst), 2))
+		h.update(finalize_dst)
 
 		return h.digest()
 
@@ -192,7 +194,7 @@ class Protocol(object):
 	def run_vector(self, vector):
 		raise Exception("Not implemented")
 
-	def run(self, client, server, aux):
+	def run(self, client, server, info):
 		assert(client.suite.group == server.suite.group)
 		group = client.suite.group
 
@@ -201,7 +203,7 @@ class Protocol(object):
 			r, R, P = client.blind(x)
 			T = server.evaluate(R)
 			Z = client.unblind(T, r)
-			y = client.finalize(x, Z, aux)
+			y = client.finalize(x, Z, info)
 
 			vector = {}
 			vector["x"] = to_hex(x)
@@ -214,7 +216,7 @@ class Protocol(object):
 
 		vector = {}
 		vector["k"] = hex(server.k)
-		vector["aux"] = aux
+		vector["info"] = info
 		vector["suite"] = client.suite.name
 		vector["vectors"] = vectors
 
@@ -232,7 +234,7 @@ def main():
 		client = Client(suite)
 		server = Server(suite)
 		protocol = Protocol()
-		vectors[suite.name] = protocol.run(client, server, "test auxiliary information")
+		vectors[suite.name] = protocol.run(client, server, "test information")
 
 	print(json.dumps(vectors))
 

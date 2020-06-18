@@ -564,7 +564,7 @@ clients.
 
 Before the protocol, Client samples an array of `ClientInput` objects
 and provides these together as `ins` as their protocol input, along with
-a DST `aux`.
+application-layer information `info`.
 
 Both participants also provide a boolean input `vv` and `vp` for the
 Client and Server respectively. These boolean values should be equal,
@@ -575,22 +575,22 @@ OPRF protocol (`vv = vp = 0`), or a VOPRF protocol (`vv = vp = 1`). If
 client attempts to verify the zero-knowledge proof.
 
 ~~~
-   Client(ins,aux,vv)                  Server(k,vp)
+   Client(ins, info, vv)                  Server(k, vp)
   ----------------------------------------------------------
     toks, bts = Blind(inputs)
 
                           bts
                       ---------->
 
-                                  ev = Evaluate(k,public_key,bts,vp)
+                                  ev = Evaluate(k, public_key, bts, vp)
 
                            ev
                       <----------
 
-    unb_toks = Unblind(public_key,toks,bts,ev,vv)
+    unb_toks = Unblind(public_key, toks, bts, ev, vv)
     outputs = []
     for i in [ins.length]:
-     outputs[i] = Finalize(ins[i],unb_toks[i],aux)
+     outputs[i] = Finalize(ins[i], unb_toks[i], info)
     Output outputs
 ~~~
 
@@ -602,10 +602,10 @@ blinded tokens. In `Unblind` the client unblinds the server response
 that was evaluated over.
 
 Note that in the final output, the client computes Finalize over some
-auxiliary input data `aux`. This parameter SHOULD be used for domain
+auxiliary input data `info`. This parameter SHOULD be used for domain
 separation in (V)OPRF the protocol. Specifically, any system which has
-multiple (V)OPRF applications should use separate aux values to to
-ensure finalized outputs are separate. Guidance for constructing aux can
+multiple (V)OPRF applications should use separate auxiliary values to to
+ensure finalized outputs are separate. Guidance for constructing info can
 be found in {{I-D.irtf-cfrg-hash-to-curve}}; Section 3.1.
 
 ## Data structures {#structs}
@@ -760,7 +760,7 @@ Input:
 
  Token T
  SerializedGroupElement E
- opaque aux<1..2^16-1>
+ opaque info<1..2^16-1>
 
 Output:
 
@@ -769,7 +769,7 @@ Output:
 Steps:
 
  1. DST = "RFCXXXX-Finalize"
- 2. hash_input = len(DST) || DST || len(T.data) || T.data || len(E) || E || len(aux) || aux)
+ 2. hash_input = len(T.data) || T.data || len(E) || E || len(info) || info) || len(DST) || DST
  3. output = H_1(hash_input)
  4. Output output
 ~~~
