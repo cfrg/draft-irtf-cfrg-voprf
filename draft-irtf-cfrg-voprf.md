@@ -225,6 +225,13 @@ normative:
       -
         ins: Morris J. Dworkin
         org: Federal Inf. Process. Stds. (NIST FIPS)
+  SEC1:
+    title: "SEC 1: Elliptic Curve Cryptography"
+    target: https://www.secg.org/sec1-v2.pdff
+    date: false
+    author:
+      -
+        ins: Standards for Efficient Cryptography Group (SECG)
   SEC2:
     title: "SEC 2: Recommended Elliptic Curve Domain Parameters"
     target: http://www.secg.org/sec2-v2.pdf
@@ -1060,41 +1067,35 @@ curve25519. See {{cryptanalysis}} for related discussion.
 
 - GG: curve25519 {{RFC7748}}
   - HashToGroup(): curve25519_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-curve25519_XMD:SHA-512_ELL2_RO_"
-  - Serialize: The standard 32-byte representation of the public key {{!RFC7748}}
+  - Serialize(): The standard 32-byte representation of the public key {{!RFC7748}}
 - H1: SHA512
 
 ### OPRF-curve448\_XMD:SHA-512\_ELL2\_RO\_:
 
 - GG: curve448 {{RFC7748}}
   - HashToGroup(): curve448_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-curve448_XMD:SHA-512_ELL2_RO_"
-  - Serialize: The standard 56-byte representation of the public key {{!RFC7748}}
+  - Serialize(): The standard 56-byte representation of the public key {{!RFC7748}}
 - H1: SHA512
 
 ### OPRF-P256\_XMD:SHA-256\_SSWU\_RO\_:
 
 - GG: P-256 {{SEC2}}
   - HashToGroup(): P256_XMD:SHA-256_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P256_XMD:SHA-256_SSWU_RO_"
-  - Serialize: A single byte set to 4, followed by the X-coordinate and
-    the Y-coordinate of the point, encoded as 32-byte big-endian
-    integers
+  - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 33 bytes.
 - H1: SHA512
 
 ### OPRF-P384\_XMD:SHA-512\_SSWU\_RO\_:
 
 - GG: secp384r1 {{SEC2}}
   - HashToGroup(): P384_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P384_XMD:SHA-512_SSWU_RO_"
-  - Serialize: A single byte set to 4, followed by the X-coordinate and
-    the Y-coordinate of the point, encoded as 48-byte big-endian
-    integers
+  - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 49 bytes.
 - H1: SHA512
 
 ### OPRF-P521\_XMD:SHA-512\_SSWU\_RO\_:
 
 - GG: secp521r1 {{SEC2}}
   - HashToGroup(): P521_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P521_XMD:SHA-512_SSWU_RO_"
-  - Serialize: A single byte set to 4, followed by the X-coordinate and
-    the Y-coordinate of the point, encoded as 66-byte big-endian
-    integers
+  - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 67 bytes.
 - H1: SHA512
 
 ## Verifiable Ciphersuites
@@ -1103,8 +1104,8 @@ curve25519. See {{cryptanalysis}} for related discussion.
 
 - GG: curve25519 {{RFC7748}}
   - HashToGroup(): curve25519_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-curve25519_XMD:SHA-512_ELL2_RO_"
-  - Serialize: The standard 32-byte representation of the public key {{!RFC7748}}
-- H1: SHA512 {{RFC2104}}
+  - Serialize(): The standard 32-byte representation of the public key {{!RFC7748}}
+- H1: SHA512
 - H2: HKDF-Expand-SHA512
 - H3: SHA512
 
@@ -1112,7 +1113,7 @@ curve25519. See {{cryptanalysis}} for related discussion.
 
 - GG: curve448 {{RFC7748}}
   - HashToGroup(): curve448_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-curve448_XMD-SHA-512_ELL2_RO_"
-  - Serialize: The standard 56-byte representation of the public key {{!RFC7748}}
+  - Serialize(): The standard 56-byte representation of the public key {{!RFC7748}}
 - H1: SHA512
 - H2: HKDF-Expand-SHA512
 - H3: SHA512
@@ -1121,9 +1122,7 @@ curve25519. See {{cryptanalysis}} for related discussion.
 
 - GG: P-256 {{SEC2}}
   - HashToGroup(): P256_XMD:SHA-256_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-P256_XMD:SHA-256_SSWU_RO_"
-  - Serialize: A single byte set to 4, followed by the X-coordinate and
-    the Y-coordinate of the point, encoded as 32-byte big-endian
-    integers
+  - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 33 bytes.
 - H1: SHA512
 - H2: HKDF-Expand-SHA512
 - H3: SHA512
@@ -1132,9 +1131,7 @@ curve25519. See {{cryptanalysis}} for related discussion.
 
 - GG: secp384r1 {{SEC2}}
   - HashToGroup(): P384_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-P384_XMD:SHA-512_SSWU_RO_"
-  - Serialize: A single byte set to 4, followed by the X-coordinate and
-    the Y-coordinate of the point, encoded as 48-byte big-endian
-    integers
+  - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 49 bytes.
 - H1: SHA512
 - H2: HKDF-Expand-SHA512
 - H3: SHA512
@@ -1143,9 +1140,7 @@ curve25519. See {{cryptanalysis}} for related discussion.
 
 - GG: secp521r1 {{SEC2}}
   - HashToGroup(): P521_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-P521_XMD:SHA-512_SSWU_RO_"
-  - Serialize: A single byte set to 4, followed by the X-coordinate and
-    the Y-coordinate of the point, encoded as 66-byte big-endian
-    integers
+  - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 67 bytes.
 - H1: SHA512
 - H2: HKDF-Expand-SHA512
 - H3: SHA512
