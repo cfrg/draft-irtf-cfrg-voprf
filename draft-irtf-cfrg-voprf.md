@@ -270,7 +270,7 @@ groups, including elliptic curves.
 # Introduction
 
 A pseudorandom function (PRF) F(k, x) is an efficiently computable
-function with secret key k on input x. Roughly, F is pseudorandom if the
+function with a private key k on input x. Roughly, F is pseudorandom if the
 output y = F(k, x) is indistinguishable from uniformly sampling any
 element in F's range for random choice of k. An oblivious PRF (OPRF) is
 a two-party protocol between a Server and a Client, where Server holds a
@@ -555,17 +555,10 @@ ciphersuite from the list in {{ciphersuites}}. Once a selection is made,
 it publishes the ciphersuite that it is using to make it available to
 any Client that connects to it.
 
-The Server SHOULD sample a new PrivateKey object corresponding to its
-secret input. This value can be used across multiple instantiations of
-the protocol. If the server ciphersuite supports verifiability, then it
-interprets its private key as a Scalar `k` in `GF(p)` and computes:
-
-~~~
-PK = k * GG.Generator()
-~~~
-
-Servers that support verifiability MUST make `PK` available to
-clients.
+The Server MUST run `KeyGen` to generate `(key, publicKey)`. The
+variable `key` is used as its private key, and `publicKey` is used as
+its public key. Servers that support verifiability MUST make `publicKey`
+available to clients.
 
 ## Protocol message flow {#message-flow}
 
@@ -582,7 +575,7 @@ OPRF protocol (`vv = vp = 0`), or a VOPRF protocol (`vv = vp = 1`). If
 client attempts to verify the zero-knowledge proof.
 
 ~~~
-   Client(ins, info, vv)                  Server(k, vp)
+   Client(ins, info, vv)                  Server(key, vp)
   ----------------------------------------------------------
     toks, bts = Blind(inputs)
 
@@ -671,6 +664,28 @@ algorithm that takes inputs, or issues outputs of the form `T x[m]`
 refers to an array of fixed-size relative to an integer parameter `m`
 chosen by the client.
 
+### KeyGen
+
+This function generates the server's key pair. Note that in the case
+where verifiability is not required, the public key is not strictly
+required for the client.
+
+~~~
+Input:
+ null
+
+Output:
+ PrivateKey key
+ PublicKey publicKey
+
+Steps:
+ 1. k <-$ GF(p)
+ 2. if k == 0: return to the previous step
+ 3. key = k
+ 4. publicKey = k*GG.Generator()
+ 5. Output (key, publicKey)
+~~~
+
 ### Blind
 
 We note here that the blinding mechanism that we use can be modified
@@ -709,7 +724,7 @@ modifications in {{blinding}}.
 ~~~
 Input:
 
- PrivateKey k
+ PrivateKey key
  PublicKey publicKey
  BlindedToken blindedTokens[m]
  boolean verifiable
@@ -727,7 +742,7 @@ Steps:
     3. elements[i] = GG.Serialize(Z)
  3. Ev = Evaluation{ elements: elements }
  4. if verifiable:
-    1. proof = GenerateProof(k, publicKey, blindedTokens, elements)
+    1. proof = GenerateProof(key, publicKey, blindedTokens, elements)
     2. Ev.proof = proof
  5. Output Ev
 ~~~
@@ -920,7 +935,7 @@ output as in the Unblind algorithm for variable-based blinding.
 # NIZK Discrete Logarithm Equality Proof {#dleq}
 
 For the VOPRF protocol we require that Client is able to verify that
-Server has used its private key k to evaluate the PRF. As in the
+Server has used its private key `key` to evaluate the PRF. As in the
 original work of {{JKK14}}, we provide a zero-knowledge proof that the
 key provided as input by the server in the `Evaluate` function is the
 same key as it used to produce their public key.
@@ -946,7 +961,7 @@ be domain-separated using the global `opaque dleqDST<1..2^16-1>` value.
 ~~~
 Input:
 
- PrivateKey k
+ PrivateKey key
  PublicKey publicKey
  BlindedTokens blindedTokens[m]
  Evaluation ev
@@ -967,12 +982,12 @@ Steps:
  6.  a3 = GG.Serialize(r * G)
  7.  a4 = GG.Serialize(rM)
  8.  c = H2(gen || publicKey || a1 || a2 || a3 || a4) mod p
- 9.  s = (r - ck) mod p
+ 9.  s = (r - c * key) mod p
  10. Output (c, s)
 ~~~
 
 We note here that it is essential that a different r value is used for
-every invocation. If this is not done, then this may leak the key k in a
+every invocation. If this is not done, then this may leak `key` in a
 similar fashion as is possible in Schnorr or (EC)DSA scenarios where
 fresh randomness is not used.
 
