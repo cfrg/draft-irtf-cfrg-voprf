@@ -788,7 +788,7 @@ Output:
 
 Steps:
 
- 1. DST = "RFCXXXX-Finalize"
+ 1. finalizeDST = "RFCXXXX-Finalize"
  2. hash_input = len(T.data) || T.data || len(E) || E || len(info) ||
                   info || len(finalizeDST) || finalizeDST
  3. output = H1(hash_input)
@@ -963,8 +963,8 @@ opaque seedDST<1..2^16-1>
 opaque compositeDST<1..2^16-1>
 ~~~
 
-Each of these variables should be chosen by the Server implementation.
-In addition, the choice should be made available to the Client.
+Each of these variables MUST be chosen by the Server implementation.
+In addition, the choice SHOULD be made available to the Client.
 
 ## GenerateProof
 
