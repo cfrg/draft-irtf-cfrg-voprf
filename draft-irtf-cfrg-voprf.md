@@ -434,10 +434,10 @@ is an additional security property:
 
 Any OPRF that satisfies the 'verifiable' security property is known as a
 verifiable OPRF, or VOPRF for short. In practice, the notion of
-verifiability requires that Server commits to the key k before the
+verifiability requires that Server commits to the key before the
 actual protocol execution takes place. Then Client verifies that Server
-has used k in the protocol using this commitment. In the following, we
-may also refer to this commitment as a public key.
+has used the key in the protocol using this commitment. In the
+following, we may also refer to this commitment as a public key.
 
 ## Prime-order group API {#pog}
 
@@ -555,9 +555,9 @@ ciphersuite from the list in {{ciphersuites}}. Once a selection is made,
 it publishes the ciphersuite that it is using to make it available to
 any Client that connects to it.
 
-The Server MUST run `KeyGen` to generate `(key, publicKey)`. The
-variable `key` is used as its private key, and `publicKey` is used as
-its public key. Servers that support verifiability MUST make `publicKey`
+The Server MUST run `KeyGen` to generate `(skS, pkS)`. The
+variable `skS` is used as its private key, and `pkS` is used as
+its public key. Servers that support verifiability MUST make `pkS`
 available to clients.
 
 ## Protocol message flow {#message-flow}
@@ -575,19 +575,19 @@ OPRF protocol (`vv = vp = 0`), or a VOPRF protocol (`vv = vp = 1`). If
 client attempts to verify the zero-knowledge proof.
 
 ~~~
-   Client(ins, info, vv)                  Server(key, vp)
+   Client(ins, pkS, info, vv)             Server(skS, pkS, vp)
   ----------------------------------------------------------
     toks, bts = Blind(inputs)
 
                           bts
                       ---------->
 
-                                  ev = Evaluate(k, publicKey, bts, vp)
+                                  ev = Evaluate(skS, pkS, bts, vp)
 
                            ev
                       <----------
 
-    unbToks = Unblind(publicKey, toks, bts, ev, vv)
+    unbToks = Unblind(pkS, toks, bts, ev, vv)
     outputs = []
     for i in [ins.length]:
      outputs[i] = Finalize(ins[i], unbToks[i], info)
@@ -675,15 +675,15 @@ Input:
  null
 
 Output:
- PrivateKey key
- PublicKey publicKey
+ PrivateKey skS
+ PublicKey pkS
 
 Steps:
  1. k <-$ GF(p)
  2. if k == 0: return to the previous step
- 3. key = k
- 4. publicKey = k*GG.Generator()
- 5. Output (key, publicKey)
+ 3. skS = k
+ 4. pkS = k*GG.Generator()
+ 5. Output (skS, pkS)
 ~~~
 
 ### Blind
@@ -724,8 +724,8 @@ modifications in {{blinding}}.
 ~~~
 Input:
 
- PrivateKey key
- PublicKey publicKey
+ PrivateKey skS
+ PublicKey pkS
  BlindedToken blindedTokens[m]
  boolean verifiable
 
@@ -738,11 +738,11 @@ Steps:
  1. elements = []
  2. for i in 1..m:
     1. BT = GG.Deserialize(blindedTokens[i])
-    2. Z = k * BT
+    2. Z = skS * BT
     3. elements[i] = GG.Serialize(Z)
  3. Ev = Evaluation{ elements: elements }
  4. if verifiable:
-    1. proof = GenerateProof(key, publicKey, blindedTokens, elements)
+    1. proof = GenerateProof(skS, pkS, blindedTokens, elements)
     2. Ev.proof = proof
  5. Output Ev
 ~~~
@@ -752,7 +752,7 @@ Steps:
 ~~~
 Input:
 
- PublicKey publicKey
+ PublicKey pkS
  Token tokens[m]
  BlindedToken blindedTokens[m]
  Evaluation ev
@@ -765,7 +765,7 @@ Output:
 Steps:
 
  1. if verifiable:
-    1. if (VerifyProof(publicKey, blindedTokens, ev) == false): abort
+    1. if (VerifyProof(pkS, blindedTokens, ev) == false): abort
  2. unblindedTokens = []
  3. for i = 0 to m:
     1. r = tokens[i].blind
@@ -844,7 +844,7 @@ struct {
 ~~~
 Input:
 
- PublicKey publicKey;
+ PublicKey pkS;
  uint16 m;
 
 Output:
@@ -854,7 +854,7 @@ Output:
 Steps:
 
  1. preprocs = []
- 2. PK = GG.Deserialize(publicKey)
+ 2. PK = GG.Deserialize(pkS)
  3. for i = 0 to m:
     1. r <-$ GF(p)
     2. if r == 0: return to the previous step
@@ -902,7 +902,7 @@ Input:
 
  Token tokens[m]
  Evaluation ev
- PublicKey publicKey
+ PublicKey pkS
  BlindedToken blindedTokens[m]
  boolean verifiable
 
@@ -913,7 +913,7 @@ Output:
 Steps:
 
  1. if (verifiable):
-    1. if (VerifyProof(publicKey, blindedTokens, ev) == false): ABORT
+    1. if (VerifyProof(pkS, blindedTokens, ev) == false): ABORT
  2. unblindedTokens = []
  3. for i = 0 to m:
     1. PKR = GG.Deserialize(tokens[i].blind)
@@ -935,7 +935,7 @@ output as in the Unblind algorithm for variable-based blinding.
 # NIZK Discrete Logarithm Equality Proof {#dleq}
 
 For the VOPRF protocol we require that Client is able to verify that
-Server has used its private key `key` to evaluate the PRF. As in the
+Server has used its private key `skS` to evaluate the PRF. As in the
 original work of {{JKK14}}, we provide a zero-knowledge proof that the
 key provided as input by the server in the `Evaluate` function is the
 same key as it used to produce their public key.
@@ -961,8 +961,8 @@ be domain-separated using the global `opaque dleqDST<1..2^16-1>` value.
 ~~~
 Input:
 
- PrivateKey key
- PublicKey publicKey
+ PrivateKey skS
+ PublicKey pkS
  BlindedTokens blindedTokens[m]
  Evaluation ev
 
@@ -975,19 +975,19 @@ Steps:
  1.  G = GG.Generator()
  2.  gen = GG.Serialize(G)
  3.  (a1, a2) = ComputeComposites(
-                  gen, publicKey, blindedTokens, ev, dleqDST
+                  gen, pkS, blindedTokens, ev, dleqDST
                 )
  4.  r <-$ GF(p)
  5.  if (r == 0): go back to the previous step
  6.  a3 = GG.Serialize(r * G)
  7.  a4 = GG.Serialize(rM)
- 8.  c = H2(gen || publicKey || a1 || a2 || a3 || a4) mod p
- 9.  s = (r - c * key) mod p
+ 8.  c = H2(gen || pkS || a1 || a2 || a3 || a4) mod p
+ 9.  s = (r - c * skS) mod p
  10. Output (c, s)
 ~~~
 
 We note here that it is essential that a different r value is used for
-every invocation. If this is not done, then this may leak `key` in a
+every invocation. If this is not done, then this may leak `skS` in a
 similar fashion as is possible in Schnorr or (EC)DSA scenarios where
 fresh randomness is not used.
 
@@ -999,7 +999,7 @@ proof verifies correctly, or not.
 ~~~
 Input:
 
- PublicKey publicKey
+ PublicKey pkS
  BlindedTokens blindedTokens[m]
  Evaluation ev
  Scalar proof[2]
@@ -1013,13 +1013,13 @@ Steps:
  1. G = GG.Generator()
  2. gen = GG.Serialize(G)
  3. (a1, a2) = ComputeComposites(
-                 gen, publicKey, blindedTokens, ev, dleqDST
+                 gen, pkS, blindedTokens, ev, dleqDST
                )
  4. A' = (proof[1] * G + proof[0] * Y)
  5. B' = (proof[1] * M + proof[0] * Z)
  6. a3 = GG.Serialize(A')
  7. a4 = GG.Serialize(B')
- 8. c  = H2(gen || publicKey || a1 || a2 || a3 || a4) mod p
+ 8. c  = H2(gen || pkS || a1 || a2 || a3 || a4) mod p
  9. Output c == proof[0] mod p
 ~~~
 
@@ -1032,7 +1032,7 @@ and `VerifyProof`.
 Input:
 
  SerializedGroupElement gen
- PublicKey publicKey
+ PublicKey pkS
  BlindedTokens blindedTokens[m]
  Evaluation ev
  opaque dleqDST<1..2^16-1>
@@ -1043,7 +1043,7 @@ Output:
 
 Steps:
 
- 1. seed = H3(gen || publicKey || blindedTokens || ev.elements)
+ 1. seed = H3(gen || pkS || blindedTokens || ev.elements)
  2. i' = 0
  3. M = GG.Identity()
  4. Z = GG.Identity()
