@@ -526,16 +526,16 @@ assumed throughout. A ciphersuite contains instantiations of the
 following functionalities.
 
 - `GG`: A prime-order group exposing the API detailed in {{pog}}.
-- `H_1`: A cryptographic hash function that is indifferentiable from
+- `H1`: A cryptographic hash function that is indifferentiable from
   a Random Oracle.
 
 If a ciphersuite corresponds to an instantiation of the protocol in the
 verifiable setting (VOPRF), then it will contain instantiations of the
 following functions.
 
-- `H_2`: Maps an arbitrary-length sequence of bytes to a Scalar value in
+- `H2`: Maps an arbitrary-length sequence of bytes to a Scalar value in
   `GF(p)`, where `p = GG.Order()`.
-- `H_3`: Maps an arbitrary-length sequence of bytes to a another byte
+- `H3`: Maps an arbitrary-length sequence of bytes to a another byte
   array of fixed-length depending on security requirements.
 
 Specific instantiations of these ciphersuites are given in
@@ -582,15 +582,15 @@ client attempts to verify the zero-knowledge proof.
                           bts
                       ---------->
 
-                                  ev = Evaluate(k, public_key, bts, vp)
+                                  ev = Evaluate(k, publicKey, bts, vp)
 
                            ev
                       <----------
 
-    unb_toks = Unblind(public_key, toks, bts, ev, vv)
+    unbToks = Unblind(publicKey, toks, bts, ev, vv)
     outputs = []
     for i in [ins.length]:
-     outputs[i] = Finalize(ins[i], unb_toks[i], info)
+     outputs[i] = Finalize(ins[i], unbToks[i], info)
     Output outputs
 ~~~
 
@@ -618,7 +618,7 @@ The following types are a list of aliases that are used throughout the
 protocol.
 
 ```
-opaque group_id<1..2^16-1>
+opaque GroupID<1..2^16-1>
 opaque Scalar<1..2^16-1>;
 opaque SerializedGroupElement<1..2^16-1>;
 Scalar PrivateKey;
@@ -638,7 +638,7 @@ server response.
 
 ```
 struct {
-  opaque input_data<1..2^16-1>;
+  opaque data<1..2^16-1>;
   opaque blind<1..2^16-1>;
 } Token;
 ```
@@ -678,19 +678,19 @@ Input:
 Output:
 
  Token tokens[m]
- BlindedToken blinded_tokens[m]
+ BlindedToken blindedTokens[m]
 
 Steps:
 
  1. tokens = []
- 2. blinded_tokens = []
+ 2. blindedTokens = []
  3. for i = 0 to m:
     1. r <-$ GF(p)
     2. if r == 0: return to the previous step
     3. P = GG.HashToGroup(inputs[i])
     4. tokens[i] = Token{ data: x, blind: r }
-    5. blinded_tokens[i] = GG.Serialize(r * P)
- 4. Output (tokens, blinded_tokens)
+    5. blindedTokens[i] = GG.Serialize(r * P)
+ 4. Output (tokens, blindedTokens)
 ~~~
 
 This blinding mechanism can be modified slightly with the opportunity
@@ -703,8 +703,8 @@ modifications in {{blinding}}.
 Input:
 
  PrivateKey k
- PublicKey public_key
- BlindedToken blinded_tokens[m]
+ PublicKey publicKey
+ BlindedToken blindedTokens[m]
  boolean verifiable
 
 Output:
@@ -715,12 +715,12 @@ Steps:
 
  1. elements = []
  2. for i in 1..m:
-    1. BT = GG.Deserialize(blinded_tokens[i])
+    1. BT = GG.Deserialize(blindedTokens[i])
     2. Z = k * BT
     3. elements[i] = GG.Serialize(Z)
  3. Ev = Evaluation{ elements: elements }
  4. if verifiable:
-    1. proof = GenerateProof(k, public_key, blinded_tokens, elements)
+    1. proof = GenerateProof(k, publicKey, blindedTokens, elements)
     2. Ev.proof = proof
  5. Output Ev
 ~~~
@@ -730,27 +730,27 @@ Steps:
 ~~~
 Input:
 
- PublicKey public_key
+ PublicKey publicKey
  Token tokens[m]
- BlindedToken blinded_tokens[m]
+ BlindedToken blindedTokens[m]
  Evaluation ev
  boolean verifiable
 
 Output:
 
- SerializedGroupElement unblinded_tokens[m]
+ SerializedGroupElement unblindedTokens[m]
 
 Steps:
 
  1. if verifiable:
-    1. if (VerifyProof(public_key, blinded_tokens, ev) == false): abort
- 2. unblinded_tokens = []
+    1. if (VerifyProof(publicKey, blindedTokens, ev) == false): abort
+ 2. unblindedTokens = []
  3. for i = 0 to m:
     1. r = tokens[i].blind
     2. Z = GG.Deserialize(Evaluation.elements[i])
     3. N = (r^(-1)) * Z
-    4. unblinded_tokens[i] = GG.Serialize(N)
- 4. Output unblinded_tokens
+    4. unblindedTokens[i] = GG.Serialize(N)
+ 4. Output unblindedTokens
 ~~~
 
 ### Finalize
@@ -769,8 +769,8 @@ Output:
 Steps:
 
  1. DST = "RFCXXXX-Finalize"
- 2. hash_input = len(T.data) || T.data || len(E) || E || len(info) || info) || len(DST) || DST
- 3. output = H_1(hash_input)
+ 2. hashInput = len(T.data) || T.data || len(E) || E || len(info) || info) || len(DST) || DST
+ 3. output = H1(hashInput)
  4. Output output
 ~~~
 
@@ -814,15 +814,15 @@ remains the same.
 ~~~
 struct {
   Scalar blind;
-  SerializedGroupElement blinded_generator;
-  SerializedGroupElement blinded_public_key;
+  SerializedGroupElement blindedGenerator;
+  SerializedGroupElement blindedPublicKey;
 } PreprocessedBlind;
 ~~~
 
 ~~~
 Input:
 
- PublicKey public_key;
+ PublicKey publicKey;
  uint16 m;
 
 Output:
@@ -832,16 +832,16 @@ Output:
 Steps:
 
  1. preprocs = []
- 2. PK = GG.Deserialize(public_key)
+ 2. PK = GG.Deserialize(publicKey)
  3. for i = 0 to m:
     1. r <-$ GF(p)
     2. if r == 0: return to the previous step
-    3. blinded_generator = GG.Serialize(r * GG.Generator())
-    4. blinded_public_key = GG.Serialize(r * PK)
+    3. blindedGenerator = GG.Serialize(r * GG.Generator())
+    4. blindedPublicKey = GG.Serialize(r * PK)
     5. preprocs[i] = PrepocessedBlind{
          blind: r,
-         blinded_generator: blinded_generator,
-         blinded_public_key: blinded_public_key,
+         blindedGenerator: blindedGenerator,
+         blindedPublicKey: blindedPublicKey,
        }
  4. Output preprocs
 ~~~
@@ -857,20 +857,20 @@ Input:
 Output:
 
  Token tokens[m]
- BlindedToken blinded_tokens[m]
+ BlindedToken blindedTokens[m]
 
 Steps:
 
  1. tokens = []
- 2. blinded_tokens = []
+ 2. blindedTokens = []
  3. for i = 0 to m:
     1. pre = preprocs[i]
     2. r = pre.blind
-    3. r * G = GG.Deserialize(pre.blinded_generator)
+    3. r * G = GG.Deserialize(pre.blindedGenerator)
     4. P = GG.HashToGroup(inputs[i])
-    5. tokens[i] = Token{ data: x, blind: pre.blinded_public_key }
-    6. blinded_tokens[i] = GG.Serialize(P + r * G)
- 4. Output (tokens, blinded_tokens)
+    5. tokens[i] = Token{ data: x, blind: pre.blindedPublicKey }
+    6. blindedTokens[i] = GG.Serialize(P + r * G)
+ 4. Output (tokens, blindedTokens)
 ~~~
 
 ### Unblind
@@ -880,8 +880,8 @@ Input:
 
  Token tokens[m]
  Evaluation ev
- PublicKey public_key
- BlindedToken blinded_tokens[m]
+ PublicKey publicKey
+ BlindedToken blindedTokens[m]
  boolean verifiable
 
 Output:
@@ -891,14 +891,14 @@ Output:
 Steps:
 
  1. if (verifiable):
-    1. if (VerifyProof(public_key, blinded_tokens, ev) == false): ABORT
- 2. unblinded_tokens = []
+    1. if (VerifyProof(publicKey, blindedTokens, ev) == false): ABORT
+ 2. unblindedTokens = []
  3. for i = 0 to m:
     1. PKR = GG.Deserialize(tokens[i].blind)
     2. Z = GG.Deserialize(ev.elements[i])
     3. N := Z - PKR
-    4. unblinded_tokens[i] = GG.Serialize(N)
- 4. Output unblinded_tokens
+    4. unblindedTokens[i] = GG.Serialize(N)
+ 4. Output unblindedTokens
 ~~~
 
 Let `P = GG.HashToGroup(x)`. Notice that Unblind computes:
@@ -932,7 +932,7 @@ The proof generation and verification algorithms are denoted by
 `GenerateProof` and `VerifyProof` respectively, see below for
 descriptions. Note that both algorithms create a batched proof for
 multiple evaluations of the VOPRF. Note further that both algorithms can
-be domain-separated using the global `opaque DST_dleq<1..2^16-1>` value.
+be domain-separated using the global `opaque dleqDST<1..2^16-1>` value.
 
 ## GenerateProof
 
@@ -940,8 +940,8 @@ be domain-separated using the global `opaque DST_dleq<1..2^16-1>` value.
 Input:
 
  PrivateKey k
- PublicKey public_key
- BlindedTokens blinded_tokens[m]
+ PublicKey publicKey
+ BlindedTokens blindedTokens[m]
  Evaluation ev
 
 Output:
@@ -953,13 +953,13 @@ Steps:
  1.  G = GG.Generator()
  2.  gen = GG.Serialize(G)
  3.  (a1, a2) = ComputeComposites(
-                  gen, public_key, blinded_tokens, ev, DST_dleq
+                  gen, publicKey, blindedTokens, ev, dleqDST
                 )
  4.  r <-$ GF(p)
  5.  if (r == 0): go back to the previous step
  6.  a3 = GG.Serialize(r * G)
  7.  a4 = GG.Serialize(rM)
- 8.  c = H_2(gen || public_key || a1 || a2 || a3 || a4) mod p
+ 8.  c = H2(gen || publicKey || a1 || a2 || a3 || a4) mod p
  9.  s = (r - ck) mod p
  10. Output (c, s)
 ~~~
@@ -977,8 +977,8 @@ proof verifies correctly, or not.
 ~~~
 Input:
 
- PublicKey public_key
- BlindedTokens blinded_tokens[m]
+ PublicKey publicKey
+ BlindedTokens blindedTokens[m]
  Evaluation ev
  Scalar proof[2]
 
@@ -991,13 +991,13 @@ Steps:
  1. G = GG.Generator()
  2. gen = GG.Serialize(G)
  3. (a1, a2) = ComputeComposites(
-                 gen, public_key, blinded_tokens, ev, DST_dleq
+                 gen, publicKey, blindedTokens, ev, dleqDST
                )
  4. A' = (proof[1] * G + proof[0] * Y)
  5. B' = (proof[1] * M + proof[0] * Z)
  6. a3 = GG.Serialize(A')
  7. a4 = GG.Serialize(B')
- 8. c  = H_2(gen || public_key || a1 || a2 || a3 || a4) mod p
+ 8. c  = H2(gen || publicKey || a1 || a2 || a3 || a4) mod p
  9. Output c == proof[0] mod p
 ~~~
 
@@ -1010,10 +1010,10 @@ and `VerifyProof`.
 Input:
 
  SerializedGroupElement gen
- PublicKey public_key
- BlindedTokens blinded_tokens[m]
+ PublicKey publicKey
+ BlindedTokens blindedTokens[m]
  Evaluation ev
- opaque DST_dleq<1..2^16-1>
+ opaque dleqDST<1..2^16-1>
 
 Output:
 
@@ -1021,16 +1021,16 @@ Output:
 
 Steps:
 
- 1. seed = H_3(gen || public_key || blinded_tokens || ev.elements)
+ 1. seed = H3(gen || publicKey || blindedTokens || ev.elements)
  2. i' = 0
  3. M = GG.Identity()
  4. Z = GG.Identity()
  5. for i = 0 to m:
     1. di = 1
-    2. Mi = GG.Deserialize(blinded_tokens[i])
+    2. Mi = GG.Deserialize(blindedTokens[i])
     3. Zi = GG.Deserialize(ev.elements[i])
     4. if (m > 1):
-       1. di = H_2(seed || i' || DST_dleq)
+       1. di = H2(seed || i' || dleqDST)
        2. if (di > GG.order()):
           1. i = i-1 # decrement and try again
        3. i  = i + 1
@@ -1061,14 +1061,14 @@ curve25519. See {{cryptanalysis}} for related discussion.
 - GG: curve25519 {{RFC7748}}
   - HashToGroup(): curve25519_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-curve25519_XMD:SHA-512_ELL2_RO_"
   - Serialize: The standard 32-byte representation of the public key {{!RFC7748}}
-- H_1: SHA512
+- H1: SHA512
 
 ### OPRF-curve448\_XMD:SHA-512\_ELL2\_RO\_:
 
 - GG: curve448 {{RFC7748}}
   - HashToGroup(): curve448_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-curve448_XMD:SHA-512_ELL2_RO_"
   - Serialize: The standard 56-byte representation of the public key {{!RFC7748}}
-- H_1: SHA512
+- H1: SHA512
 
 ### OPRF-P256\_XMD:SHA-256\_SSWU\_RO\_:
 
@@ -1077,7 +1077,7 @@ curve25519. See {{cryptanalysis}} for related discussion.
   - Serialize: A single byte set to 4, followed by the X-coordinate and
     the Y-coordinate of the point, encoded as 32-byte big-endian
     integers
-- H_1: SHA512
+- H1: SHA512
 
 ### OPRF-P384\_XMD:SHA-512\_SSWU\_RO\_:
 
@@ -1086,7 +1086,7 @@ curve25519. See {{cryptanalysis}} for related discussion.
   - Serialize: A single byte set to 4, followed by the X-coordinate and
     the Y-coordinate of the point, encoded as 48-byte big-endian
     integers
-- H_1: SHA512
+- H1: SHA512
 
 ### OPRF-P521\_XMD:SHA-512\_SSWU\_RO\_:
 
@@ -1095,7 +1095,7 @@ curve25519. See {{cryptanalysis}} for related discussion.
   - Serialize: A single byte set to 4, followed by the X-coordinate and
     the Y-coordinate of the point, encoded as 66-byte big-endian
     integers
-- H_1: SHA512
+- H1: SHA512
 
 ## Verifiable Ciphersuites
 
@@ -1104,18 +1104,18 @@ curve25519. See {{cryptanalysis}} for related discussion.
 - GG: curve25519 {{RFC7748}}
   - HashToGroup(): curve25519_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-curve25519_XMD:SHA-512_ELL2_RO_"
   - Serialize: The standard 32-byte representation of the public key {{!RFC7748}}
-- H_1: SHA512 {{RFC2104}}
-- H_2: HKDF-Expand-SHA512
-- H_3: SHA512
+- H1: SHA512 {{RFC2104}}
+- H2: HKDF-Expand-SHA512
+- H3: SHA512
 
 ### VOPRF-curve448\_XMD:SHA-512\_ELL2\_RO\_:
 
 - GG: curve448 {{RFC7748}}
   - HashToGroup(): curve448_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-curve448_XMD-SHA-512_ELL2_RO_"
   - Serialize: The standard 56-byte representation of the public key {{!RFC7748}}
-- H_1: SHA512
-- H_2: HKDF-Expand-SHA512
-- H_3: SHA512
+- H1: SHA512
+- H2: HKDF-Expand-SHA512
+- H3: SHA512
 
 ### VOPRF-P256\_XMD:SHA-256\_SSWU\_RO\_:
 
@@ -1124,9 +1124,9 @@ curve25519. See {{cryptanalysis}} for related discussion.
   - Serialize: A single byte set to 4, followed by the X-coordinate and
     the Y-coordinate of the point, encoded as 32-byte big-endian
     integers
-- H_1: SHA512
-- H_2: HKDF-Expand-SHA512
-- H_3: SHA512
+- H1: SHA512
+- H2: HKDF-Expand-SHA512
+- H3: SHA512
 
 ### VOPRF-P384\_XMD:SHA-512\_SSWU\_RO\_:
 
@@ -1135,9 +1135,9 @@ curve25519. See {{cryptanalysis}} for related discussion.
   - Serialize: A single byte set to 4, followed by the X-coordinate and
     the Y-coordinate of the point, encoded as 48-byte big-endian
     integers
-- H_1: SHA512
-- H_2: HKDF-Expand-SHA512
-- H_3: SHA512
+- H1: SHA512
+- H2: HKDF-Expand-SHA512
+- H3: SHA512
 
 ### VOPRF-P521\_XMD:SHA-512\_SSWU\_RO\_:
 
@@ -1146,9 +1146,9 @@ curve25519. See {{cryptanalysis}} for related discussion.
   - Serialize: A single byte set to 4, followed by the X-coordinate and
     the Y-coordinate of the point, encoded as 66-byte big-endian
     integers
-- H_1: SHA512
-- H_2: HKDF-Expand-SHA512
-- H_3: SHA512
+- H1: SHA512
+- H2: HKDF-Expand-SHA512
+- H3: SHA512
 
 # Security Considerations {#sec}
 
@@ -1203,7 +1203,7 @@ The (N,Q)-One-More Gap DH (OMDH) problem asks the following.
 
 ~~~
     Given:
-    - G, k * G, G_1, ... , G_N where G, G1, ... GN are elements of GG;
+    - G, k * G, G_1, ... , G_N where G, G_1, ... G_N are elements of GG;
     - oracle access to an OPRF functionality using the key k;
     - oracle access to DDH solvers.
 
