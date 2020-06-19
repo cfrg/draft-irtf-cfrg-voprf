@@ -955,16 +955,13 @@ descriptions. Note that both algorithms create a batched proof for
 multiple evaluations of the VOPRF.
 
 In all three algorithms that we detail below we make the following
-domain separation labels available as global variables:
+domain separation labels available as global variables.
 
 ~~~
-opaque challengeDST<1..2^16-1>
-opaque seedDST<1..2^16-1>
-opaque compositeDST<1..2^16-1>
+opaque challengeDST<1..2^16-1> = "RFCXXXX-challenge"
+opaque seedDST<1..2^16-1> = "RFCXXXX-seed"
+opaque compositeDST<1..2^16-1> = "RFCXXXX-composite"
 ~~~
-
-Each of these variables MUST be chosen by the Server implementation.
-In addition, the choice SHOULD be made available to the Client.
 
 ## GenerateProof
 
