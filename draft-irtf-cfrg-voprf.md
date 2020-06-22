@@ -431,11 +431,16 @@ prime-order group.
   an array of bytes `x` to a random element in the scalar field of `GG`.
 - RandomScalar(): A member function of `GG` that generates a random, non-zero
   element in the scalar field of `GG`.
+- KeyGen(): A member function of `GG` that generates (skX, pkX), where skX is
+  a random, non-zero element in the scalar field `GG` and pkX is the product
+  of skX and the group's fixed generator.
 
-Lastly, for any scalar `r` that is an element of the galois field of
-scalars `GF(p)` associated with `GG`, we assume it is always written in
-big-endian byte array format for the purpose of providing wherever it
-is supplied as an input or give as an output of a function.
+<!-- TODO(caw): do we need to define RandomScalar and KeyGen in the ciphersuites section? -->
+
+This document uses the types `Element` and `Scalar` to denote elements of
+the group `GG` and its underlying scalar field, respectively. For notational
+clarity, we use the alias `PublicKey` and `PrivateKey` to refer to items of
+type `Element` and `Scalar`, respectively.
 
 It is common in cryptographic applications to instantiate such
 prime-order groups using elliptic curves, such as those detailed in
@@ -554,19 +559,16 @@ defined in {{api}}.
 The following types are a list of aliases that are used throughout the
 protocol.
 
-~~~
-opaque GroupID<1..2^16-1>
-opaque Scalar<1..2^16-1>;
-opaque SerializedGroupElement<1..2^16-1>;
-Scalar PrivateKey;
-SerializedGroupElement PublicKey;
-SerializedGroupElement BlindedToken;
-~~~
-
-A `ClientInput` is simply a byte array.
+A `ClientInput` is a byte array.
 
 ~~~
-opaque ClientInput<1..2^16-1>
+opaque ClientInput<1..2^16-1>;
+~~~
+
+A `SerializedElement` is also a byte array.
+
+~~~
+opaque SerializedElement<1..2^16-1>;
 ~~~
 
 A `Token` is an object created by a client when constructing a (V)OPRF
@@ -576,7 +578,7 @@ server response.
 ~~~
 struct {
   opaque data<1..2^16-1>;
-  opaque blind<1..2^16-1>;
+  Scalar blind<1..2^16-1>;
 } Token;
 ~~~
 
@@ -586,7 +588,7 @@ required.
 
 ~~~
 struct {
-  SerializedGroupElement elements<1..2^16-1>;
+  SerializedElement elements<1..2^16-1>;
   Scalar proof<0...2^16-1>; /* optional */
 } Evaluation;
 ~~~
@@ -608,7 +610,7 @@ Input:
 
   PrivateKey skS
   PublicKey pkS
-  BlindedToken blindedTokens[m]
+  SerializeElement blindedTokens[m]
 
 Output:
 
@@ -633,28 +635,28 @@ and `GenerateProof`, described below.
 
 #### ComputeComposites
 
-<!-- TODO(caw): rewrite this in terms of (serialized?) elements, and rely on the serialize function to take care things for us -->
-
 ~~~
 Input:
 
-  SerializedGroupElement gen
+  SerializedElement gen
   PublicKey pkS
-  BlindedTokens blindedTokens[m]
-  Evaluation ev
+  SerializedElement blindedTokens[m]
+  SerializedElement elements
 
 Output:
 
-  SerializedGroupElement composites[2]
+  SerializedElement composites[2]
 
 def ComputeComposites(gen, pkS, blindedTokens, ev):
   seedDST = "RFCXXXX-seed" + self.contextString
   compositeDST = "RFCXXXX-composite" + self.contextString
-  h1Input = I2OSP(len(gen), 2) || gen || I2OSP(len(pkS), 2) || pkS ||
+  h1Input = I2OSP(len(gen), 2) || gen ||
+            I2OSP(len(pkS), 2) || pkS ||
             I2OSP(len(blindedTokens), 2) || blindedTokens ||
-            I2OSP(len(ev.elements), 2) ||
+            I2OSP(len(elements), 2) || elements ||
             I2OSP(len(seedDST), 2) || seedDST
-  seed = H1(h1Input)
+
+  seed = Hash(h1Input)
   i' = 0
   M = GG.Identity()
   Z = GG.Identity()
@@ -666,8 +668,10 @@ def ComputeComposites(gen, pkS, blindedTokens, ev):
        h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i', 2) ||
                  I2OSP(len(compositeDST), 2) || compositeDST
        di = GG.HashToScalar(h2Input)
+
        if di > GG.order():
           i = i - 1 # decrement and try again
+
        i = i + 1
        i' = i' + 1
     M = di * Mi + M
@@ -682,7 +686,7 @@ Input:
 
   PrivateKey skS
   PublicKey pkS
-  BlindedTokens blindedTokens[m]
+  SerializedElement blindedTokens[m]
   Evaluation ev
 
 Output:
@@ -697,11 +701,14 @@ def GenerateProof(skS, pkS, blindedTokens, ev)
   r = GG.RandomScalar()
   a3 = GG.Serialize(r * G)
   a4 = GG.Serialize(r * M)
+
   challengeDST = "RFCXXXX-challenge" + self.contextString
-  h2Input = I2OSP(len(gen), 2) || gen || I2OSP(len(pkS), 2) || pkS ||
+  h2Input = I2OSP(len(gen), 2) || gen ||
+            I2OSP(len(pkS), 2) || pkS ||
             I2OSP(len(a1), 2) || a1 || I2OSP(len(a2), 2) || a2 ||
             I2OSP(len(a3), 2) || a3 || I2OSP(len(a4), 2) || a4 ||
             I2OSP(len(challengeDST), 2) || challengeDST
+
   c = GG.HashToScalar(h2Input)
   s = (r - c * skS) mod p
   return (c, s)
@@ -719,7 +726,7 @@ Input:
 
   PrivateKey skS
   PublicKey pkS
-  BlindedToken blindedTokens[m]
+  SerializedElement blindedTokens[m]
 
 Output:
 
@@ -756,7 +763,7 @@ Input:
 Output:
 
   Token tokens[m]
-  BlindedToken blindedTokens[m]
+  SerializedElement blindedTokens[m]
 
 def Blind(inputs):
   tokens = []
@@ -780,12 +787,12 @@ Input:
 
   PublicKey pkS
   Token tokens[m]
-  BlindedToken blindedTokens[m]
+  SerializedElement blindedTokens[m]
   Evaluation ev
 
 Output:
 
-  SerializedGroupElement unblindedTokens[m]
+  SerializedElement unblindedTokens[m]
 
 def Unblind(pkS, tokens, blindedTokens, ev):
   unblindedTokens = []
@@ -803,7 +810,7 @@ def Unblind(pkS, tokens, blindedTokens, ev):
 Input:
 
   Token T
-  SerializedGroupElement E
+  SerializedElement E
   opaque info<1..2^16-1>
 
 Output:
@@ -812,8 +819,10 @@ Output:
 
 def Finalize(T, E, info):
   finalizeDST = "RFCXXXX-Finalize" + self.contextString
-  hashInput = len(T.data) || T.data || len(E) || E ||
-              len(info) || info || len(finalizeDST) || finalizeDST
+  hashInput = len(T.data) || T.data ||
+              len(E) || E ||
+              len(info) || info ||
+              len(finalizeDST) || finalizeDST
   return Hash(hashInput)
 ~~~
 
@@ -834,7 +843,7 @@ proof verifies correctly, or not.
 Input:
 
   PublicKey pkS
-  BlindedTokens blindedTokens[m]
+  SerializedElement blindedTokens[m]
   Evaluation ev
   Scalar proof[2]
 
@@ -850,11 +859,14 @@ def VerifyProof(pkS, blindedTokens, ev, proof):
   B' = (proof[1] * M + proof[0] * Z)
   a3 = GG.Serialize(A')
   a4 = GG.Serialize(B')
+
   challengeDST = "RFCXXXX-challenge" + self.contextString
-  h2Input = I2OSP(len(gen), 2) || gen || I2OSP(len(pkS), 2) || pkS ||
+  h2Input = I2OSP(len(gen), 2) || gen ||
+            I2OSP(len(pkS), 2) || pkS ||
             I2OSP(len(a1), 2) || a1 || I2OSP(len(a2), 2) || a2 ||
             I2OSP(len(a3), 2) || a3 || I2OSP(len(a4), 2) || a4 ||
             I2OSP(len(challengeDST), 2) || challengeDST
+
   c  = GG.HashToScalar(h2Input)
   return (c == proof[0] mod p)
 ~~~
@@ -866,16 +878,17 @@ Input:
 
   PublicKey pkS
   Token tokens[m]
-  BlindedToken blindedTokens[m]
+  SerializedElement blindedTokens[m]
   Evaluation ev
 
 Output:
 
-  SerializedGroupElement unblindedTokens[m]
+  SerializedElement unblindedTokens[m]
 
 def Unblind(pkS, tokens, blindedTokens, ev):
   if VerifyProof(pkS, blindedTokens, ev) == false:
     ABORT()
+
   unblindedTokens = []
   for i = 0 to m:
     r = tokens[i].blind
@@ -912,40 +925,40 @@ curve25519. See {{cryptanalysis}} for related discussion.
 ## OPRF(curve25519, SHA-512)
 
 - GG: curve25519 {{RFC7748}}
-  - HashToGroup(): curve25519_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-curve25519_XMD:SHA-512_ELL2_RO_"
-  - HashToScalar(): hash\_to\_field from {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-curve25519_XMD:SHA-512_ELL2_RO_"
+  - HashToGroup(): curve25519_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-curve25519_XMD:SHA-512_ELL2_RO_"
+  - HashToScalar(): hash\_to\_field from {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-curve25519_XMD:SHA-512_ELL2_RO_"
   - Serialize(): The standard 32-byte representation of the public key {{!RFC7748}}
 - Hash: SHA-512
 
 ## OPRF(curve448, SHA-512)
 
 - GG: curve448 {{RFC7748}}
-  - HashToGroup(): curve448_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-curve448_XMD:SHA-512_ELL2_RO_"
-  - HashToScalar(): hash\_to\_field from {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-curve448_XMD:SHA-512_ELL2_RO_"
+  - HashToGroup(): curve448_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-curve448_XMD:SHA-512_ELL2_RO_"
+  - HashToScalar(): hash\_to\_field from {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-curve448_XMD:SHA-512_ELL2_RO_"
   - Serialize(): The standard 56-byte representation of the public key {{!RFC7748}}
 - Hash: SHA-512
 
 ## OPRF(P-256, SHA-512)
 
 - GG: P-256 {{SEC2}}
-  - HashToGroup(): P256_XMD:SHA-256_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P256_XMD:SHA-256_SSWU_RO_"
-  - HashToScalar(): hash\_to\_field from {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P256_XMD:SHA-256_SSWU_RO_"
+  - HashToGroup(): P256_XMD:SHA-256_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-P256_XMD:SHA-256_SSWU_RO_"
+  - HashToScalar(): hash\_to\_field from {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-P256_XMD:SHA-256_SSWU_RO_"
   - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 33 bytes.
 - Hash: SHA-512
 
 ## OPRF(P-384, SHA-512)
 
 - GG: secp384r1 {{SEC2}}
-  - HashToGroup(): P384_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P384_XMD:SHA-512_SSWU_RO_"
-  - HashToScalar(): hash\_to\_field from {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P384_XMD:SHA-512_SSWU_RO_"
+  - HashToGroup(): P384_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-P384_XMD:SHA-512_SSWU_RO_"
+  - HashToScalar(): hash\_to\_field from {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-P384_XMD:SHA-512_SSWU_RO_"
   - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 49 bytes.
 - Hash: SHA-512
 
 ## OPRF(P-521, SHA-512)
 
 - GG: secp521r1 {{SEC2}}
-  - HashToGroup(): P521_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P521_XMD:SHA-512_SSWU_RO_"
-  - HashToScalar(): hash\_to\_field from {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P521_XMD:SHA-512_SSWU_RO_"
+  - HashToGroup(): P521_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-P521_XMD:SHA-512_SSWU_RO_"
+  - HashToScalar(): hash\_to\_field from {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-P521_XMD:SHA-512_SSWU_RO_"
   - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 67 bytes.
 - Hash: SHA-512
 
@@ -1293,8 +1306,8 @@ remains the same.
 ~~~
 struct {
   Scalar blind;
-  SerializedGroupElement blindedGenerator;
-  SerializedGroupElement blindedPublicKey;
+  SerializedElement blindedGenerator;
+  SerializedElement blindedPublicKey;
 } PreprocessedBlind;
 ~~~
 
@@ -1334,7 +1347,7 @@ Input:
 Output:
 
   Token tokens[m]
-  BlindedToken blindedTokens[m]
+  SerializedElement blindedTokens[m]
 
 def Blind(inputs, preprocs):
   tokens = []
@@ -1356,11 +1369,11 @@ Input:
 
   Token tokens[m]
   Evaluation ev
-  BlindedToken blindedTokens[m]
+  SerializedElement blindedTokens[m]
 
 Output:
 
- SerializedGroupElement unblinded[m]
+ SerializedElement unblinded[m]
 
 def Unblind(tokens, ev, blindedTokens):
   unblindedTokens = []
