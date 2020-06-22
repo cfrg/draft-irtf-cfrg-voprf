@@ -482,7 +482,7 @@ prime-order group.
 
 Lastly, for any scalar `r` that is an element of the galois field of
 scalars `GF(p)` associated with `GG`, we assume it is always written in
-network-order byte array format for the purpose of providing wherever it
+big-endian byte array format for the purpose of providing wherever it
 is supplied as an input or give as an output of a function.
 
 ### Group instantiations
@@ -506,6 +506,7 @@ multiplication into all elliptic curve operations.
   distribution over the set `Q`.
 - For two byte arrays `x` and `y`, write `x || y` to denote their
   concatenation.
+- We assume that all byte arrays are defined in big-endian orientation.
 
 # Protocol {#protocol}
 
