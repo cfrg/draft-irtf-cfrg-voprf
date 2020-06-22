@@ -954,13 +954,14 @@ The proof generation and verification algorithms are denoted by
 descriptions. Note that both algorithms create a batched proof for
 multiple evaluations of the VOPRF.
 
-In all three algorithms that we detail below we make the following
-domain separation labels available as global variables.
+In the algorithms below we set the following domain separation labels.
+These are used to control the domains of the hash function evaluations
+that we use.
 
 ~~~
-opaque challengeDST<1..2^16-1> = "RFCXXXX-challenge"
-opaque seedDST<1..2^16-1> = "RFCXXXX-seed"
-opaque compositeDST<1..2^16-1> = "RFCXXXX-composite"
+opaque challengeDST<1..2^16-1>
+opaque seedDST<1..2^16-1>
+opaque compositeDST<1..2^16-1>
 ~~~
 
 ## GenerateProof
@@ -986,13 +987,14 @@ Steps:
  5.  if (r == 0): go back to the previous step
  6.  a3 = GG.Serialize(r * G)
  7.  a4 = GG.Serialize(rM)
- 8.  h2Input = I2OSP(len(gen), 2) || gen || I2OSP(len(pkS), 2) || pkS ||
+ 8.  challengeDST = "RFCXXXX-challenge"
+ 9.  h2Input = I2OSP(len(gen), 2) || gen || I2OSP(len(pkS), 2) || pkS ||
             I2OSP(len(a1), 2) || a1 || I2OSP(len(a2), 2) || a2 ||
             I2OSP(len(a3), 2) || a3 || I2OSP(len(a4), 2) || a4 ||
             I2OSP(len(challengeDST), 2) || challengeDST
- 9.  c = H_2(h2Input) mod p
- 10. s = (r - c * skS) mod p
- 11. Output (c, s)
+ 10. c = H_2(h2Input) mod p
+ 11. s = (r - c * skS) mod p
+ 12. Output (c, s)
 ~~~
 
 We note here that it is essential that a different r value is used for
@@ -1026,12 +1028,13 @@ Steps:
  5. B' = (proof[1] * M + proof[0] * Z)
  6. a3 = GG.Serialize(A')
  7. a4 = GG.Serialize(B')
- 8.  h2Input = I2OSP(len(gen), 2) || gen || I2OSP(len(pkS), 2) || pkS ||
+ 8.  challengeDST = "RFCXXXX-challenge"
+ 9.  h2Input = I2OSP(len(gen), 2) || gen || I2OSP(len(pkS), 2) || pkS ||
             I2OSP(len(a1), 2) || a1 || I2OSP(len(a2), 2) || a2 ||
             I2OSP(len(a3), 2) || a3 || I2OSP(len(a4), 2) || a4 ||
             I2OSP(len(challengeDST), 2) || challengeDST
- 9. c  = H_2(h2Input) mod p
- 10. Output c == proof[0] mod p
+ 10. c  = H_2(h2Input) mod p
+ 11. Output c == proof[0] mod p
 ~~~
 
 ## ComputeComposites
@@ -1053,15 +1056,17 @@ Output:
 
 Steps:
 
- 1. h1Input = I2OSP(len(gen), 2) || gen || I2OSP(len(pkS), 2) || pkS ||
+ 1. seedDST = "RFCXXXX-seed"
+ 2. compositeDST = "RFCXXXX-composite"
+ 3. h1Input = I2OSP(len(gen), 2) || gen || I2OSP(len(pkS), 2) || pkS ||
             I2OSP(len(blindedTokens), 2) || blindedTokens ||
             I2OSP(len(ev.elements), 2) || I2OSP(len(seedDST), 2) ||
             seedDST
- 2. seed = H1(h1Input)
- 3. i' = 0
- 4. M = GG.Identity()
- 5. Z = GG.Identity()
- 6. for i = 0 to m:
+ 4. seed = H1(h1Input)
+ 5. i' = 0
+ 6. M = GG.Identity()
+ 7. Z = GG.Identity()
+ 8. for i = 0 to m:
     1. di = 1
     2. Mi = GG.Deserialize(blindedTokens[i])
     3. Zi = GG.Deserialize(ev.elements[i])
@@ -1075,7 +1080,7 @@ Steps:
        5. i' = i' + 1
     5. M = di * Mi + M
     6. Z = di * Zi + Z
- 7. Output [GG.Serialize(M), GG.Serialize(Z)]
+ 9. Output [GG.Serialize(M), GG.Serialize(Z)]
 ~~~
 
 # Supported ciphersuites {#ciphersuites}
