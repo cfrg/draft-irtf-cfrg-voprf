@@ -565,28 +565,25 @@ Before the protocol, Client samples an array of `ClientInput` objects
 and provides these together as `ins` as their protocol input, along with
 application-layer information `info`.
 
-Both participants also provide a boolean input `vv` and `vp` for the
-Client and Server respectively. These boolean values should be equal,
-and correspond to whether the protocol is executed with verifiability
-intended, or not. In other words, whether the functionality computes an
-OPRF protocol (`vv = vp = 0`), or a VOPRF protocol (`vv = vp = 1`). If
-`vv = 1 && vp = 0`, then the protocol will abort in `Unblind` when the
-client attempts to verify the zero-knowledge proof.
+Both participants agree on the choice of ciphersuite that is used before
+the protocol exchange. Ciphersuites can either be verifiable, or not. A
+verifiable ciphersuite forces the Server to prove the authenticity of
+the evaluation message `ev` that the Server sends using a ZK proof.
 
 ~~~
-   Client(ins, pkS, info, vv)             Server(skS, pkS, vp)
+   Client(ins, pkS, info)                 Server(skS, pkS)
   ----------------------------------------------------------
     toks, bts = Blind(inputs)
 
-                          bts
-                      ---------->
+                            bts
+                        ---------->
 
-                                  ev = Evaluate(skS, pkS, bts, vp)
+                                    ev = Evaluate(skS, pkS, bts)
 
-                           ev
-                      <----------
+                            ev
+                        <----------
 
-    unbToks = Unblind(pkS, toks, bts, ev, vv)
+    unbToks = Unblind(pkS, toks, bts, ev)
     outputs = []
     for i in [ins.length]:
      outputs[i] = Finalize(ins[i], unbToks[i], info)
@@ -655,8 +652,14 @@ struct {
 
 ## Protocol interface {#api}
 
-The `verifiable` mode of the protocol (VOPRF) is controlled by a boolean
-input to a subset of the functions. Each function assumes knowledge of a
+As mentioned previously, the verifiable mode of the protocol (VOPRF) is
+controlled by the ciphersuite that is used by the participants. Recall,
+that the choice of ciphersuite should be made by the Server, and this
+choice should be publicly known to all Clients. We use the global
+variable `verifiable` to indicate where ciphersuite verifiability
+affects the description of the algorithms.
+
+Each function assumes knowledge of a
 global group `GG` (satisfying the API in {{pog}}) that is published
 publicly by the server before the protocol exchange. Note that any
 algorithm that takes inputs, or issues outputs of the form `T x[m]`
@@ -726,7 +729,6 @@ Input:
  PrivateKey skS
  PublicKey pkS
  BlindedToken blindedTokens[m]
- boolean verifiable
 
 Output:
 
@@ -755,7 +757,6 @@ Input:
  Token tokens[m]
  BlindedToken blindedTokens[m]
  Evaluation ev
- boolean verifiable
 
 Output:
 
