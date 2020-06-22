@@ -444,7 +444,7 @@ following, we may also refer to this commitment as a public key.
 In this document, we assume the construction of an additive, prime-order
 group `GG` for performing all mathematical operations. Such groups are
 uniquely determined by the choice of the prime `p` that defines the
-order of the group. We use `GF(p)` to represent the Galois Field of
+order of the group. We use `GF(p)` to represent the finite field of
 order `p`. For the purpose of understanding and implementing this
 document, we take `GF(p)` to be equal to the set of integers defined by
 `{0, 1, ..., p-1}`.
