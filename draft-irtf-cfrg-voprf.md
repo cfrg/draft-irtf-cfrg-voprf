@@ -479,6 +479,8 @@ prime-order group.
   adversary that receives: `R = HashToGroup(x)` without knowing `x` to
   reverse the mapping. For an example of such a mapping to prime-order
   (sub)groups of elliptic curves, see {{I-D.irtf-cfrg-hash-to-curve}}.
+- HashToScalar(): A member function of `GG` that deterministically maps
+  an array of bytes `x` to a random element in the scalar field of `GG`.
 
 Lastly, for any scalar `r` that is an element of the galois field of
 scalars `GF(p)` associated with `GG`, we assume it is always written in
@@ -533,17 +535,8 @@ assumed throughout. A ciphersuite contains instantiations of the
 following functionalities.
 
 - `GG`: A prime-order group exposing the API detailed in {{pog}}.
-- `H1`: A cryptographic hash function that is indifferentiable from
+- `Hash`: A cryptographic hash function that is indifferentiable from
   a Random Oracle.
-
-If a ciphersuite corresponds to an instantiation of the protocol in the
-verifiable setting (VOPRF), then it will contain instantiations of the
-following functions.
-
-- `H2`: Maps an arbitrary-length sequence of bytes to a Scalar value in
-  `GF(p)`, where `p = GG.Order()`.
-- `H3`: Maps an arbitrary-length sequence of bytes to a another byte
-  array of fixed-length depending on security requirements.
 
 Specific instantiations of these ciphersuites are given in
 {{ciphersuites}}.
@@ -727,7 +720,7 @@ Steps:
     3. elements[i] = GG.Serialize(Z)
  3. Ev = Evaluation{ elements: elements }
  4. if verifiable:
-    1. proof = GenerateProof(k, publicKey, blindedTokens, elements)
+    1. proof = GenerateProof(k, publicKey, blindedTokens, ev)
     2. Ev.proof = proof
  5. Output Ev
 ~~~
@@ -777,7 +770,7 @@ Steps:
 
  1. DST = "RFCXXXX-Finalize"
  2. hashInput = len(T.data) || T.data || len(E) || E || len(info) || info) || len(DST) || DST
- 3. output = H1(hashInput)
+ 3. output = Hash(hashInput)
  4. Output output
 ~~~
 
@@ -943,6 +936,8 @@ be domain-separated using the global `opaque dleqDST<1..2^16-1>` value.
 
 ## GenerateProof
 
+<!-- TODO(caw): rM in 7 is wrong it should be r*a1 -->
+
 ~~~
 Input:
 
@@ -966,7 +961,7 @@ Steps:
  5.  if (r == 0): go back to the previous step
  6.  a3 = GG.Serialize(r * G)
  7.  a4 = GG.Serialize(rM)
- 8.  c = H2(gen || publicKey || a1 || a2 || a3 || a4) mod p
+ 8.  c = GG.HashToScalar(gen || publicKey || a1 || a2 || a3 || a4)
  9.  s = (r - ck) mod p
  10. Output (c, s)
 ~~~
@@ -1004,7 +999,7 @@ Steps:
  5. B' = (proof[1] * M + proof[0] * Z)
  6. a3 = GG.Serialize(A')
  7. a4 = GG.Serialize(B')
- 8. c  = H2(gen || publicKey || a1 || a2 || a3 || a4) mod p
+ 8. c  = GG.HashToScalar(gen || publicKey || a1 || a2 || a3 || a4)
  9. Output c == proof[0] mod p
 ~~~
 
@@ -1012,6 +1007,8 @@ Steps:
 
 `ComputeComposites` is a utility function used in both `GenerateProof`
 and `VerifyProof`.
+
+<!-- TODO(caw): rewrite this in terms of (serialized?) elements, and rely on the serialize function to take care things for us -->
 
 ~~~
 Input:
@@ -1037,7 +1034,7 @@ Steps:
     2. Mi = GG.Deserialize(blindedTokens[i])
     3. Zi = GG.Deserialize(ev.elements[i])
     4. if (m > 1):
-       1. di = H2(seed || i' || dleqDST)
+       1. di = GG.HashToScalar(seed || i' || dleqDST)
        2. if (di > GG.order()):
           1. i = i-1 # decrement and try again
        3. i  = i + 1
@@ -1061,89 +1058,45 @@ allowed by simply dropping the relevant components.
 Applications should take caution in using ciphersuites targeting P-256 and
 curve25519. See {{cryptanalysis}} for related discussion.
 
-## Non-Verifiable Ciphersuites
-
-### OPRF-curve25519\_XMD:SHA-512\_ELL2_RO\_:
+## OPRF(curve25519, SHA-512)
 
 - GG: curve25519 {{RFC7748}}
   - HashToGroup(): curve25519_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-curve25519_XMD:SHA-512_ELL2_RO_"
+  - HashToScalar(): hash\_to\_field from {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-curve25519_XMD:SHA-512_ELL2_RO_"
   - Serialize(): The standard 32-byte representation of the public key {{!RFC7748}}
-- H1: SHA512
+- Hash: SHA-512
 
-### OPRF-curve448\_XMD:SHA-512\_ELL2\_RO\_:
+## OPRF(curve448, SHA-512)
 
 - GG: curve448 {{RFC7748}}
   - HashToGroup(): curve448_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-curve448_XMD:SHA-512_ELL2_RO_"
+  - HashToScalar(): hash\_to\_field from {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-curve448_XMD:SHA-512_ELL2_RO_"
   - Serialize(): The standard 56-byte representation of the public key {{!RFC7748}}
-- H1: SHA512
+- Hash: SHA-512
 
-### OPRF-P256\_XMD:SHA-256\_SSWU\_RO\_:
+## OPRF(P-256, SHA-512)
 
 - GG: P-256 {{SEC2}}
   - HashToGroup(): P256_XMD:SHA-256_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P256_XMD:SHA-256_SSWU_RO_"
+  - HashToScalar(): hash\_to\_field from {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P256_XMD:SHA-256_SSWU_RO_"
   - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 33 bytes.
-- H1: SHA512
+- Hash: SHA-512
 
-### OPRF-P384\_XMD:SHA-512\_SSWU\_RO\_:
+## OPRF(P-384, SHA-512)
 
 - GG: secp384r1 {{SEC2}}
   - HashToGroup(): P384_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P384_XMD:SHA-512_SSWU_RO_"
+  - HashToScalar(): hash\_to\_field from {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P384_XMD:SHA-512_SSWU_RO_"
   - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 49 bytes.
-- H1: SHA512
+- Hash: SHA-512
 
-### OPRF-P521\_XMD:SHA-512\_SSWU\_RO\_:
+## OPRF(P-521, SHA-512)
 
 - GG: secp521r1 {{SEC2}}
   - HashToGroup(): P521_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P521_XMD:SHA-512_SSWU_RO_"
+  - HashToScalar(): hash\_to\_field from {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P521_XMD:SHA-512_SSWU_RO_"
   - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 67 bytes.
-- H1: SHA512
-
-## Verifiable Ciphersuites
-
-### VOPRF-curve25519\_XMD:SHA-512\_ELL2\_RO\_:
-
-- GG: curve25519 {{RFC7748}}
-  - HashToGroup(): curve25519_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-curve25519_XMD:SHA-512_ELL2_RO_"
-  - Serialize(): The standard 32-byte representation of the public key {{!RFC7748}}
-- H1: SHA512
-- H2: HKDF-Expand-SHA512
-- H3: SHA512
-
-### VOPRF-curve448\_XMD:SHA-512\_ELL2\_RO\_:
-
-- GG: curve448 {{RFC7748}}
-  - HashToGroup(): curve448_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-curve448_XMD-SHA-512_ELL2_RO_"
-  - Serialize(): The standard 56-byte representation of the public key {{!RFC7748}}
-- H1: SHA512
-- H2: HKDF-Expand-SHA512
-- H3: SHA512
-
-### VOPRF-P256\_XMD:SHA-256\_SSWU\_RO\_:
-
-- GG: P-256 {{SEC2}}
-  - HashToGroup(): P256_XMD:SHA-256_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-P256_XMD:SHA-256_SSWU_RO_"
-  - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 33 bytes.
-- H1: SHA512
-- H2: HKDF-Expand-SHA512
-- H3: SHA512
-
-### VOPRF-P384\_XMD:SHA-512\_SSWU\_RO\_:
-
-- GG: secp384r1 {{SEC2}}
-  - HashToGroup(): P384_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-P384_XMD:SHA-512_SSWU_RO_"
-  - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 49 bytes.
-- H1: SHA512
-- H2: HKDF-Expand-SHA512
-- H3: SHA512
-
-### VOPRF-P521\_XMD:SHA-512\_SSWU\_RO\_:
-
-- GG: secp521r1 {{SEC2}}
-  - HashToGroup(): P521_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-P521_XMD:SHA-512_SSWU_RO_"
-  - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 67 bytes.
-- H1: SHA512
-- H2: HKDF-Expand-SHA512
-- H3: SHA512
+- Hash: SHA-512
 
 # Security Considerations {#sec}
 
@@ -1277,18 +1230,18 @@ the attack surface.
 ## Hashing to curve
 
 A critical aspect of implementing this protocol using elliptic curve
-group instantiations is a method of instantiating the function H1, that
+group instantiations is a method of instantiating the function Hash, that
 maps inputs to group elements. In the elliptic curve setting, this must
 be a deterministic function that maps arbitrary inputs x (as bytes) to
 uniformly chosen points in the curve.
 
-In the security proof of the construction H1 is modeled as a random
-oracle. This implies that any instantiation of H1 must be pre-image and
+In the security proof of the construction Hash is modeled as a random
+oracle. This implies that any instantiation of Hash must be pre-image and
 collision resistant. In {{ciphersuites}} we give instantiations of this
 functionality based on the functions described in
 {{I-D.irtf-cfrg-hash-to-curve}}. Consequently, any OPRF implementation
 must adhere to the implementation and security considerations discussed
-in {{I-D.irtf-cfrg-hash-to-curve}} when instantiating the function H1.
+in {{I-D.irtf-cfrg-hash-to-curve}} when instantiating the function Hash.
 
 ## Timing Leaks
 
