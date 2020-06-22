@@ -542,8 +542,6 @@ following functions.
 
 - `H2`: Maps an arbitrary-length sequence of bytes to a Scalar value in
   `GF(p)`, where `p = GG.Order()`.
-- `H3`: Maps an arbitrary-length sequence of bytes to a another byte
-  array of fixed-length depending on security requirements.
 
 Specific instantiations of these ciphersuites are given in
 {{ciphersuites}}.
@@ -790,9 +788,10 @@ Output:
 
 Steps:
 
- 1. DST = "RFCXXXX-Finalize"
- 2. hashInput = len(T.data) || T.data || len(E) || E || len(info) || info) || len(DST) || DST
- 3. output = H1(hashInput)
+ 1. finalizeDST = "RFCXXXX-Finalize"
+ 2. hash_input = len(T.data) || T.data || len(E) || E || len(info) ||
+                  info || len(finalizeDST) || finalizeDST
+ 3. output = H1(hash_input)
  4. Output output
 ~~~
 
@@ -953,8 +952,17 @@ procedures: GenerateProof and VerifyProof. These are specified below.
 The proof generation and verification algorithms are denoted by
 `GenerateProof` and `VerifyProof` respectively, see below for
 descriptions. Note that both algorithms create a batched proof for
-multiple evaluations of the VOPRF. Note further that both algorithms can
-be domain-separated using the global `opaque dleqDST<1..2^16-1>` value.
+multiple evaluations of the VOPRF.
+
+In the algorithms below we set the following domain separation labels.
+These are used to control the domains of the hash function evaluations
+that we use.
+
+~~~
+opaque challengeDST<1..2^16-1>
+opaque seedDST<1..2^16-1>
+opaque compositeDST<1..2^16-1>
+~~~
 
 ## GenerateProof
 
@@ -974,16 +982,19 @@ Steps:
 
  1.  G = GG.Generator()
  2.  gen = GG.Serialize(G)
- 3.  (a1, a2) = ComputeComposites(
-                  gen, pkS, blindedTokens, ev, dleqDST
-                )
+ 3.  (a1, a2) = ComputeComposites(gen, pkS, blindedTokens, ev)
  4.  r <-$ GF(p)
  5.  if (r == 0): go back to the previous step
  6.  a3 = GG.Serialize(r * G)
  7.  a4 = GG.Serialize(rM)
- 8.  c = H2(gen || pkS || a1 || a2 || a3 || a4) mod p
- 9.  s = (r - c * skS) mod p
- 10. Output (c, s)
+ 8.  challengeDST = "RFCXXXX-challenge"
+ 9.  h2Input = I2OSP(len(gen), 2) || gen || I2OSP(len(pkS), 2) || pkS ||
+            I2OSP(len(a1), 2) || a1 || I2OSP(len(a2), 2) || a2 ||
+            I2OSP(len(a3), 2) || a3 || I2OSP(len(a4), 2) || a4 ||
+            I2OSP(len(challengeDST), 2) || challengeDST
+ 10. c = H_2(h2Input) mod p
+ 11. s = (r - c * skS) mod p
+ 12. Output (c, s)
 ~~~
 
 We note here that it is essential that a different r value is used for
@@ -1012,15 +1023,18 @@ Steps:
 
  1. G = GG.Generator()
  2. gen = GG.Serialize(G)
- 3. (a1, a2) = ComputeComposites(
-                 gen, pkS, blindedTokens, ev, dleqDST
-               )
+ 3. (a1, a2) = ComputeComposites(gen, pkS, blindedTokens, ev)
  4. A' = (proof[1] * G + proof[0] * pkS)
  5. B' = (proof[1] * M + proof[0] * Z)
  6. a3 = GG.Serialize(A')
  7. a4 = GG.Serialize(B')
- 8. c  = H2(gen || pkS || a1 || a2 || a3 || a4) mod p
- 9. Output c == proof[0] mod p
+ 8.  challengeDST = "RFCXXXX-challenge"
+ 9.  h2Input = I2OSP(len(gen), 2) || gen || I2OSP(len(pkS), 2) || pkS ||
+            I2OSP(len(a1), 2) || a1 || I2OSP(len(a2), 2) || a2 ||
+            I2OSP(len(a3), 2) || a3 || I2OSP(len(a4), 2) || a4 ||
+            I2OSP(len(challengeDST), 2) || challengeDST
+ 10. c  = H_2(h2Input) mod p
+ 11. Output c == proof[0] mod p
 ~~~
 
 ## ComputeComposites
@@ -1035,7 +1049,6 @@ Input:
  PublicKey pkS
  BlindedTokens blindedTokens[m]
  Evaluation ev
- opaque dleqDST<1..2^16-1>
 
 Output:
 
@@ -1043,23 +1056,31 @@ Output:
 
 Steps:
 
- 1. seed = H3(gen || pkS || blindedTokens || ev.elements)
- 2. i' = 0
- 3. M = GG.Identity()
- 4. Z = GG.Identity()
- 5. for i = 0 to m:
+ 1. seedDST = "RFCXXXX-seed"
+ 2. compositeDST = "RFCXXXX-composite"
+ 3. h1Input = I2OSP(len(gen), 2) || gen || I2OSP(len(pkS), 2) || pkS ||
+            I2OSP(len(blindedTokens), 2) || blindedTokens ||
+            I2OSP(len(ev.elements), 2) || I2OSP(len(seedDST), 2) ||
+            seedDST
+ 4. seed = H1(h1Input)
+ 5. i' = 0
+ 6. M = GG.Identity()
+ 7. Z = GG.Identity()
+ 8. for i = 0 to m:
     1. di = 1
     2. Mi = GG.Deserialize(blindedTokens[i])
     3. Zi = GG.Deserialize(ev.elements[i])
     4. if (m > 1):
-       1. di = H2(seed || i' || dleqDST)
-       2. if (di > GG.order()):
+       1. h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i', 2) ||
+                  I2OSP(len(compositeDST), 2) || compositeDST
+       2. di = H_2(h2Input) mod p
+       3. if (di > GG.order()):
           1. i = i-1 # decrement and try again
-       3. i  = i + 1
-       4. i' = i' + 1
+       4. i  = i + 1
+       5. i' = i' + 1
     5. M = di * Mi + M
     6. Z = di * Zi + Z
- 6. Output [GG.Serialize(M), GG.Serialize(Z)]
+ 9. Output [GG.Serialize(M), GG.Serialize(Z)]
 ~~~
 
 # Supported ciphersuites {#ciphersuites}
@@ -1119,46 +1140,47 @@ curve25519. See {{cryptanalysis}} for related discussion.
 
 - GG: curve25519 {{RFC7748}}
   - HashToGroup(): curve25519_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-curve25519_XMD:SHA-512_ELL2_RO_"
-  - Serialize(): The standard 32-byte representation of the public key {{!RFC7748}}
-- H1: SHA512
+  - Serialize: The standard 32-byte representation of the public key {{!RFC7748}}
+- H1: SHA512 {{RFC2104}}
 - H2: HKDF-Expand-SHA512
-- H3: SHA512
 
 ### VOPRF-curve448\_XMD:SHA-512\_ELL2\_RO\_:
 
 - GG: curve448 {{RFC7748}}
   - HashToGroup(): curve448_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-curve448_XMD-SHA-512_ELL2_RO_"
-  - Serialize(): The standard 56-byte representation of the public key {{!RFC7748}}
+  - Serialize: The standard 56-byte representation of the public key {{!RFC7748}}
 - H1: SHA512
 - H2: HKDF-Expand-SHA512
-- H3: SHA512
 
 ### VOPRF-P256\_XMD:SHA-256\_SSWU\_RO\_:
 
 - GG: P-256 {{SEC2}}
   - HashToGroup(): P256_XMD:SHA-256_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-P256_XMD:SHA-256_SSWU_RO_"
-  - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 33 bytes.
+  - Serialize: A single byte set to 4, followed by the X-coordinate and
+    the Y-coordinate of the point, encoded as 32-byte big-endian
+    integers
 - H1: SHA512
 - H2: HKDF-Expand-SHA512
-- H3: SHA512
 
 ### VOPRF-P384\_XMD:SHA-512\_SSWU\_RO\_:
 
 - GG: secp384r1 {{SEC2}}
   - HashToGroup(): P384_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-P384_XMD:SHA-512_SSWU_RO_"
-  - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 49 bytes.
+  - Serialize: A single byte set to 4, followed by the X-coordinate and
+    the Y-coordinate of the point, encoded as 48-byte big-endian
+    integers
 - H1: SHA512
 - H2: HKDF-Expand-SHA512
-- H3: SHA512
 
 ### VOPRF-P521\_XMD:SHA-512\_SSWU\_RO\_:
 
 - GG: secp521r1 {{SEC2}}
   - HashToGroup(): P521_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-P521_XMD:SHA-512_SSWU_RO_"
-  - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 67 bytes.
+  - Serialize: A single byte set to 4, followed by the X-coordinate and
+    the Y-coordinate of the point, encoded as 66-byte big-endian
+    integers
 - H1: SHA512
 - H2: HKDF-Expand-SHA512
-- H3: SHA512
 
 # Security Considerations {#sec}
 
