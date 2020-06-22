@@ -449,20 +449,13 @@ order `p`. For the purpose of understanding and implementing this
 document, we take `GF(p)` to be equal to the set of integers defined by
 `{0, 1, ..., p-1}`.
 
-The fundamental group operation is addition (+). Specifically, for any
-elements `A` and `B` that are members of the group `GG`, `A + B = B + A`
-is also a member of `GG`. Scalar multiplication (*) is an efficient
-method for repeated addition operations. Given a scalar `r` in `GF(p)`
-and element `A` in `GG`, `r*A = A + ... + A` (`r` times).
-
-Note that prime-order groups also define an inverse function such that
-the following property holds:
-
-- for any `A` in `GG` there exists `-A` where `A + (-A) = (-A) + A = I`.
-
-However, we don't explicit use of the inverse property in our protocol,
-and so we don't explicitly assume these properties within the public
-API.
+The fundamental group operation is addition `+` with identity element `I`. 
+For any elements `A` and `B` of the group `GG`, `A + B = B + A` is also a 
+member of `GG`. Also, for any `A` in `GG`, it exists an element `-A` such 
+that `A + (-A) = (-A) + A = I`. Scalar multiplication refers to the repeated 
+application of the group operation on an element A with itself `r-1` times, 
+this is denoted as `r*A = A + ... + A`. Any element `A` holds the equality 
+`p*A=I`. The set of scalars corresponds to `GF(p)`.
 
 We now detail a number of member functions that can be invoked on a
 prime-order group.
@@ -478,10 +471,10 @@ prime-order group.
 - Deserialize(): A member function of `GG` that maps an byte arrays
   `buf` to a group element `A`.
 - HashToGroup(): A member function of `GG` that deterministically maps
-  an byte arrays `x` to a random element of `GG`. The map should be
-  implemented in such a way that it is computationally difficult for any
-  adversary that receives: `R = HashToGroup(x)` without knowing `x` to
-  reverse the mapping. For an example of such a mapping to prime-order
+  an array of bytes `x` to an element of `GG`. The map must ensure that
+  for any adversary receiving `R = HashToGroup(x)` be computationally
+  difficult to reverse the mapping. Examples of hash to group functions
+  satisfying this property are the ones described for prime-order
   (sub)groups of elliptic curves, see {{I-D.irtf-cfrg-hash-to-curve}}.
 
 Lastly, for any scalar `r` that is an element of the galois field of
@@ -617,42 +610,42 @@ providing inputs and outputs for each of the interface defined in
 The following types are a list of aliases that are used throughout the
 protocol.
 
-```
+~~~
 opaque GroupID<1..2^16-1>
 opaque Scalar<1..2^16-1>;
 opaque SerializedGroupElement<1..2^16-1>;
 Scalar PrivateKey;
 SerializedGroupElement PublicKey;
 SerializedGroupElement BlindedToken;
-```
+~~~
 
 A `ClientInput` is simply a byte array.
 
-```
+~~~
 opaque ClientInput<1..2^16-1>
-```
+~~~
 
 A `Token` is an object created by a client when constructing a (V)OPRF
 protocol input. It is stored so that it can be used after receiving the
 server response.
 
-```
+~~~
 struct {
   opaque data<1..2^16-1>;
   opaque blind<1..2^16-1>;
 } Token;
-```
+~~~
 
 An `Evaluation` is the type output by the `Evaluate` algorithm. The
 member `proof` is added only in the case where verifiability is
 required.
 
-```
+~~~
 struct {
   SerializedGroupElement elements<1..2^16-1>;
   Scalar proof<0...2^16-1>; /* optional */
 } Evaluation;
-```
+~~~
 
 ## Protocol interface {#api}
 
@@ -806,7 +799,7 @@ Steps:
 Let `H` refer to the function `GG.HashToGroup`, in {{pog}} we assume
 that the client-side blinding is carried out directly on the output of
 `H(x)`, i.e. computing `r * H(x)` for some `r <-$ GF(p)`. In the {{OPAQUE}}
-draft, it is noted that it may be more efficient to use additive
+document, it is noted that it may be more efficient to use additive
 blinding rather than multiplicative if the client can preprocess some
 values. For example, a valid way of computing additive blinding would be
 to instead compute `H(x) + (r * G)`, where `G` is the fixed generator for the
