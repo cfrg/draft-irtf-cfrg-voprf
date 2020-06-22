@@ -1015,7 +1015,7 @@ Steps:
  3. (a1, a2) = ComputeComposites(
                  gen, pkS, blindedTokens, ev, dleqDST
                )
- 4. A' = (proof[1] * G + proof[0] * Y)
+ 4. A' = (proof[1] * G + proof[0] * pkS)
  5. B' = (proof[1] * M + proof[0] * Z)
  6. a3 = GG.Serialize(A')
  7. a4 = GG.Serialize(B')
@@ -1448,7 +1448,7 @@ VOPRF protocol. For more details, see {{DGSTV18}}.
 In this application, let D be a collection of plaintext passwords
 obtained by prover P. For each password p in D, P computes Evaluate on
 `GG.HashToGroup(p)`, and stores the result in a separate collection D'.
-P then publishes D' with Y, its public key. If a client C wishes to
+P then publishes D' with `pkS`, its public key. If a client C wishes to
 query D' for a password p', it runs the VOPRF protocol using p as input
 x to obtain output y. By construction, y will be the OPRF evaluation of
 p hashed onto the curve. C can then search D' for y to determine if
