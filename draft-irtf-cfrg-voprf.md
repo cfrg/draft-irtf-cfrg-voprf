@@ -1102,35 +1102,35 @@ curve25519. See {{cryptanalysis}} for related discussion.
 
 - GG: curve25519 {{RFC7748}}
   - HashToGroup(): curve25519_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-curve25519_XMD:SHA-512_ELL2_RO_"
-  - Serialize(): The standard 32-byte representation of the public key {{!RFC7748}}
+  - Serialization: The standard 32-byte representation of the public key {{!RFC7748}}
 - H1: SHA512
 
 ### OPRF-curve448\_XMD:SHA-512\_ELL2\_RO\_:
 
 - GG: curve448 {{RFC7748}}
   - HashToGroup(): curve448_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-curve448_XMD:SHA-512_ELL2_RO_"
-  - Serialize(): The standard 56-byte representation of the public key {{!RFC7748}}
+  - Serialization: The standard 56-byte representation of the public key {{!RFC7748}}
 - H1: SHA512
 
 ### OPRF-P256\_XMD:SHA-256\_SSWU\_RO\_:
 
 - GG: P-256 {{SEC2}}
   - HashToGroup(): P256_XMD:SHA-256_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P256_XMD:SHA-256_SSWU_RO_"
-  - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 33 bytes.
+  - Serialization: The compressed point encoding for the curve {{SEC1}} consisting of 33 bytes.
 - H1: SHA512
 
 ### OPRF-P384\_XMD:SHA-512\_SSWU\_RO\_:
 
 - GG: secp384r1 {{SEC2}}
   - HashToGroup(): P384_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P384_XMD:SHA-512_SSWU_RO_"
-  - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 49 bytes.
+  - Serialization: The compressed point encoding for the curve {{SEC1}} consisting of 49 bytes.
 - H1: SHA512
 
 ### OPRF-P521\_XMD:SHA-512\_SSWU\_RO\_:
 
 - GG: secp521r1 {{SEC2}}
   - HashToGroup(): P521_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P521_XMD:SHA-512_SSWU_RO_"
-  - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 67 bytes.
+  - Serialization: The compressed point encoding for the curve {{SEC1}} consisting of 67 bytes.
 - H1: SHA512
 
 ## Verifiable Ciphersuites
@@ -1139,15 +1139,15 @@ curve25519. See {{cryptanalysis}} for related discussion.
 
 - GG: curve25519 {{RFC7748}}
   - HashToGroup(): curve25519_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-curve25519_XMD:SHA-512_ELL2_RO_"
-  - Serialize: The standard 32-byte representation of the public key {{!RFC7748}}
-- H1: SHA512 {{RFC2104}}
+  - Serialization: The standard 32-byte representation of the public key {{!RFC7748}}
+- H1: SHA512
 - H2: HKDF-Expand-SHA512
 
 ### VOPRF-curve448\_XMD:SHA-512\_ELL2\_RO\_:
 
 - GG: curve448 {{RFC7748}}
   - HashToGroup(): curve448_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-curve448_XMD-SHA-512_ELL2_RO_"
-  - Serialize: The standard 56-byte representation of the public key {{!RFC7748}}
+  - Serialization: The standard 56-byte representation of the public key {{!RFC7748}}
 - H1: SHA512
 - H2: HKDF-Expand-SHA512
 
@@ -1155,9 +1155,7 @@ curve25519. See {{cryptanalysis}} for related discussion.
 
 - GG: P-256 {{SEC2}}
   - HashToGroup(): P256_XMD:SHA-256_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-P256_XMD:SHA-256_SSWU_RO_"
-  - Serialize: A single byte set to 4, followed by the X-coordinate and
-    the Y-coordinate of the point, encoded as 32-byte big-endian
-    integers
+  - Serialization: The compressed point encoding for the curve {{SEC1}} consisting of 33 bytes.
 - H1: SHA512
 - H2: HKDF-Expand-SHA512
 
@@ -1165,9 +1163,7 @@ curve25519. See {{cryptanalysis}} for related discussion.
 
 - GG: secp384r1 {{SEC2}}
   - HashToGroup(): P384_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-P384_XMD:SHA-512_SSWU_RO_"
-  - Serialize: A single byte set to 4, followed by the X-coordinate and
-    the Y-coordinate of the point, encoded as 48-byte big-endian
-    integers
+  - Serialization: The compressed point encoding for the curve {{SEC1}} consisting of 49 bytes.
 - H1: SHA512
 - H2: HKDF-Expand-SHA512
 
@@ -1175,11 +1171,44 @@ curve25519. See {{cryptanalysis}} for related discussion.
 
 - GG: secp521r1 {{SEC2}}
   - HashToGroup(): P521_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-P521_XMD:SHA-512_SSWU_RO_"
-  - Serialize: A single byte set to 4, followed by the X-coordinate and
-    the Y-coordinate of the point, encoded as 66-byte big-endian
-    integers
+  - Serialization: The compressed point encoding for the curve {{SEC1}} consisting of 67 bytes.
 - H1: SHA512
 - H2: HKDF-Expand-SHA512
+
+## Group instantiations
+
+We use ciphersuites based on elliptic curves to instantiate the protocol
+from {{protocol}}. We discuss exactly how the definition of these curves
+corresponds to the prime-order group API in {{pog}}.
+
+### NIST curves
+
+For the NIST curves: P256, P384, and P521; the instantiation of a
+prime-order group is relatively straightforward. In particular, the
+cofactor of the curve is 1, which means that no special attention to
+small-subgroup attacks has to be taken into account.
+
+Roughly speaking, any valid point on the curve corresponds directly to a
+group element. Adding curve points corresponds to point addition, and
+scalar multiplication algorithms for curve points corresponds to scalar
+multiplication in the group. The `HashToGroup`, `Serialize` and
+`Deserialize` algorithms are handled as explained in the ciphersuite
+definition. The generators of each of the groups are given in {{SEC2}}.
+The identity element of the group is the point at infinity. Finally, the
+`Order` algorithm returns the order of points in the group.
+
+### curve25519 and curve448
+
+These curves come with extra considerations surrounding scalar
+multiplication since the cofactor of the curve is now `4`. This means
+that curve points can either belong to a small subgroup of order `4`, or
+a larger prime-order subgroup. The larger prime-order subgroup
+essentially corresponds to the prime-order group that the (V)OPRF takes
+place in. To ensure that all operations are performed in this subgroup,
+any implementer must check for all-zero outputs of the scalar
+multiplication algorithms wherever they are used. For details on how to
+perform these checks, see {{RFC7748}}. Not checking will result in
+exposing application-level vulnerabilities.
 
 # Security Considerations {#sec}
 
