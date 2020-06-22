@@ -469,12 +469,12 @@ prime-order group.
 - Identity(): Takes no inputs and outputs the identity element of the
   group.
 - Serialize(): A member function of `GG` that maps a group element `A`
-  to a unique array of bytes `buf` that corresponds uniquely to the
+  to a unique byte arrays `buf` that corresponds uniquely to the
   element `A`.
-- Deserialize(): A member function of `GG` that maps an array of bytes
+- Deserialize(): A member function of `GG` that maps an byte arrays
   `buf` to a group element `A`.
 - HashToGroup(): A member function of `GG` that deterministically maps
-  an array of bytes `x` to a random element of `GG`. The map should be
+  an byte arrays `x` to a random element of `GG`. The map should be
   implemented in such a way that it is computationally difficult for any
   adversary that receives: `R = HashToGroup(x)` without knowing `x` to
   reverse the mapping. For an example of such a mapping to prime-order
@@ -541,7 +541,7 @@ If a ciphersuite corresponds to an instantiation of the protocol in the
 verifiable setting (VOPRF), then it will contain instantiations of the
 following functions.
 
-- `H2`: Maps an arbitrary-length sequence of bytes to a Scalar value in
+- `H2`: Maps an arbitrary-length byte arrays to a Scalar value in
   `GF(p)`, where `p = GG.Order()`.
 
 Specific instantiations of these ciphersuites are given in
