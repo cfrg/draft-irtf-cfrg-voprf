@@ -1178,17 +1178,17 @@ curve25519. See {{cryptanalysis}} for related discussion.
 ## Group instantiations
 
 We use ciphersuites based on elliptic curves to instantiate the protocol
-from {{protocol}}. We discuss exactly how the definition of these curves
+from {{protocol}}. We discuss how the definition of these curves
 corresponds to the prime-order group API in {{pog}}.
 
 ### NIST curves
 
-For the NIST curves: P256, P384, and P521; the instantiation of a
+For P256, P384, and P521, the instantiation of a
 prime-order group is relatively straightforward. In particular, the
 cofactor of the curve is 1, which means that no special attention to
 small-subgroup attacks has to be taken into account.
 
-Roughly speaking, any valid point on the curve corresponds directly to a
+Roughly speaking, any valid point on the curve is a
 group element. Adding curve points corresponds to point addition, and
 scalar multiplication algorithms for curve points corresponds to scalar
 multiplication in the group. The `HashToGroup`, `Serialize` and
@@ -1199,10 +1199,10 @@ The identity element of the group is the point at infinity. Finally, the
 
 ### curve25519 and curve448
 
-These curves come with extra considerations surrounding scalar
-multiplication since the cofactor of the curve is now `4`. This means
-that curve points can either belong to a small subgroup of order `4`, or
-a larger prime-order subgroup. The larger prime-order subgroup
+curve25519 and curve448 come with extra considerations surrounding scalar
+multiplication since the cofactor of each is `4`. This means
+that curve points can either belong to a small subgroups that are not of 
+prime order. The larger prime-order subgroup
 essentially corresponds to the prime-order group that the (V)OPRF takes
 place in. To ensure that all operations are performed in this subgroup,
 any implementer must check for all-zero outputs of the scalar
