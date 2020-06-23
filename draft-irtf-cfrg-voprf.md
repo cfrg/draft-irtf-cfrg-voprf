@@ -1098,117 +1098,123 @@ curve25519. See {{cryptanalysis}} for related discussion.
 
 ## Non-Verifiable Ciphersuites
 
-### OPRF-curve25519\_XMD:SHA-512\_ELL2_RO\_:
+### OPRF-curve25519\_XMD:SHA-512\_ELL2_RO\_: {#oprf-c25519}
 
-- GG: curve25519 {{RFC7748}}
-  - HashToGroup(): curve25519_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-curve25519_XMD:SHA-512_ELL2_RO_"
+- Group instantiation:
+  - Elliptic curve: curve25519 {{RFC7748}}
+  - Generator(): Return the point with the following hex coordinates:
+    - x = `09`
+    - y = `20AE19A1B8A086B4E01EDD2C7748D14C923D4D7E6D7C61B229E9C5A27ECED3D9`
+  - HashToGroup(): curve25519_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-curve25519_XMD:SHA-512_ELL2_RO_"
   - Serialization: The standard 32-byte representation of the public key {{!RFC7748}}
+  - Order(): Returns `2^225 - 19`
+  - Addition: Adding curve points directly corresponds to the group
+    addition operation.
+  - Scalar multiplication: Implementers must validate all untrusted
+    input points to the scalar multiplication algorithm. Validation
+    consists of checking for all-zero outputs of scalar multiplication
+    and aborting the protocol if such an output is found. See
+    {{RFC7748}} for more details.
 - H1: SHA512
 
-### OPRF-curve448\_XMD:SHA-512\_ELL2\_RO\_:
+### OPRF-curve448\_XMD:SHA-512\_ELL2\_RO\_: {#oprf-c448}
 
-- GG: curve448 {{RFC7748}}
+- Group instantiation:
+  - Elliptic curve: curve448 {{RFC7748}}
+  - Generator(): Return the point with the following hex coordinates:
+    - x = `05`
+    - y = `7D235D1295F5B1F66C98AB6E58326FCECBAE5D34F55545D060F75DC28DF3F6EDB8027E2346430D211312C4B150677AF76FD7223D457B5B1A`
   - HashToGroup(): curve448_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-curve448_XMD:SHA-512_ELL2_RO_"
   - Serialization: The standard 56-byte representation of the public key {{!RFC7748}}
+  - Order(): Returns `2^448 - 2^224 - 1`
+  - Addition: Adding curve points directly corresponds to the group
+    addition operation.
+  - Scalar multiplication: Implementers must validate all untrusted
+    input points to the scalar multiplication algorithm. Validation
+    consists of checking for all-zero outputs of scalar multiplication
+    and aborting the protocol if such an output is found. See
+    {{RFC7748}} for more details.
 - H1: SHA512
 
-### OPRF-P256\_XMD:SHA-256\_SSWU\_RO\_:
+### OPRF-P256\_XMD:SHA-256\_SSWU\_RO\_: {#oprf-p256}
 
-- GG: P-256 {{SEC2}}
-  - HashToGroup(): P256_XMD:SHA-256_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P256_XMD:SHA-256_SSWU_RO_"
+- Group instantiation:
+  - Elliptic curve: secp256r1 {{SEC2}}
+  - Generator(): Return the point with the following hex coordinates:
+    - x = `6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296`
+    - y = `4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5`
+  - HashToGroup(): P256_XMD:SHA-256_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-P256_XMD:SHA-256_SSWU_RO_"
   - Serialization: The compressed point encoding for the curve {{SEC1}} consisting of 33 bytes.
+  - Order(): Returns `2^224 * (2^32 - 1) + 2^192 + 2^96 - 1`
+  - Addition: Adding curve points directly corresponds to the group
+    addition operation.
+  - Scalar multiplication: Scalar multiplication of curve points
+    directly corresponds with scalar multiplication in the group.
 - H1: SHA512
 
-### OPRF-P384\_XMD:SHA-512\_SSWU\_RO\_:
+### OPRF-P384\_XMD:SHA-512\_SSWU\_RO\_: {#oprf-p384}
 
-- GG: secp384r1 {{SEC2}}
-  - HashToGroup(): P384_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P384_XMD:SHA-512_SSWU_RO_"
+- Group instantiation:
+  - Elliptic curve: secp384r1 {{SEC2}}
+  - Generator(): Return the point with the following hex coordinates:
+    - x = `AA87CA22BE8B05378EB1C71EF320AD746E1D3B628BA79B9859F741E082542A385502F25DBF55296C3A545E3872760AB7`
+    - y = `3617DE4A96262C6F5D9E98BF9292DC29F8F41DBD289A147CE9DA3113B5F0B8C00A60B1CE1D7E819D7A431D7C90EA0E5F`
+  - HashToGroup(): P384_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-P384_XMD:SHA-512_SSWU_RO_"
   - Serialization: The compressed point encoding for the curve {{SEC1}} consisting of 49 bytes.
+  - Order(): Returns `2^384 - 2^128 - 2^96 + 2^32 - 1`
+  - Addition: Adding curve points directly corresponds to the group
+    addition operation.
+  - Scalar multiplication: Scalar multiplication of curve points
+    directly corresponds with scalar multiplication in the group.
 - H1: SHA512
 
-### OPRF-P521\_XMD:SHA-512\_SSWU\_RO\_:
+### OPRF-P521\_XMD:SHA-512\_SSWU\_RO\_: {#oprf-p521}
 
-- GG: secp521r1 {{SEC2}}
-  - HashToGroup(): P521_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-OPRF-P521_XMD:SHA-512_SSWU_RO_"
+- Group instantiation:
+  - Elliptic curve: secp521r1 {{SEC2}}
+  - Generator(): Return the point with the following hex coordinates:
+    - x = `00C6858E06B70404E9CD9E3ECB662395B4429C648139053FB521F828AF606B4D3DBAA14B5E77EFE75928FE1DC127A2FFA8DE3348B3C1856A429BF97E7E31C2E5BD66`
+    - y = `011839296A789A3BC0045C8A5FB42C7D1BD998F54449579B446817AFBD17273E662C97EE72995EF42640C550B9013FAD0761353C7086A272C24088BE94769FD16650`
+  - HashToGroup(): P521_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-P521_XMD:SHA-512_SSWU_RO_"
   - Serialization: The compressed point encoding for the curve {{SEC1}} consisting of 67 bytes.
+  - Order(): Returns `2^521 - 1`
+  - Addition: Adding curve points directly corresponds to the group
+    addition operation.
+  - Scalar multiplication: Scalar multiplication of curve points
+    directly corresponds with scalar multiplication in the group.
 - H1: SHA512
 
 ## Verifiable Ciphersuites
 
 ### VOPRF-curve25519\_XMD:SHA-512\_ELL2\_RO\_:
 
-- GG: curve25519 {{RFC7748}}
-  - HashToGroup(): curve25519_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-curve25519_XMD:SHA-512_ELL2_RO_"
-  - Serialization: The standard 32-byte representation of the public key {{!RFC7748}}
+- Group instantiation: see {{oprf-c25519}}
 - H1: SHA512
 - H2: HKDF-Expand-SHA512
 
 ### VOPRF-curve448\_XMD:SHA-512\_ELL2\_RO\_:
 
-- GG: curve448 {{RFC7748}}
-  - HashToGroup(): curve448_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-curve448_XMD-SHA-512_ELL2_RO_"
-  - Serialization: The standard 56-byte representation of the public key {{!RFC7748}}
+- Group instantiation: see {{oprf-c448}}
 - H1: SHA512
 - H2: HKDF-Expand-SHA512
 
 ### VOPRF-P256\_XMD:SHA-256\_SSWU\_RO\_:
 
-- GG: P-256 {{SEC2}}
-  - HashToGroup(): P256_XMD:SHA-256_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-P256_XMD:SHA-256_SSWU_RO_"
-  - Serialization: The compressed point encoding for the curve {{SEC1}} consisting of 33 bytes.
+- Group instantiation: see {{oprf-p256}}
 - H1: SHA512
 - H2: HKDF-Expand-SHA512
 
 ### VOPRF-P384\_XMD:SHA-512\_SSWU\_RO\_:
 
-- GG: secp384r1 {{SEC2}}
-  - HashToGroup(): P384_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-P384_XMD:SHA-512_SSWU_RO_"
-  - Serialization: The compressed point encoding for the curve {{SEC1}} consisting of 49 bytes.
+- Group instantiation: see {{oprf-p384}}
 - H1: SHA512
 - H2: HKDF-Expand-SHA512
 
 ### VOPRF-P521\_XMD:SHA-512\_SSWU\_RO\_:
 
-- GG: secp521r1 {{SEC2}}
-  - HashToGroup(): P521_XMD:SHA-512_SSWU_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-VOPRF-P521_XMD:SHA-512_SSWU_RO_"
-  - Serialization: The compressed point encoding for the curve {{SEC1}} consisting of 67 bytes.
+- Group instantiation: see {{oprf-p521}}
 - H1: SHA512
 - H2: HKDF-Expand-SHA512
-
-## Group instantiations
-
-We use ciphersuites based on elliptic curves to instantiate the protocol
-from {{protocol}}. We discuss how the definition of these curves
-corresponds to the prime-order group API in {{pog}}.
-
-### NIST curves
-
-For P256, P384, and P521, the instantiation of a
-prime-order group is relatively straightforward. In particular, the
-cofactor of the curve is 1, which means that no special attention to
-small-subgroup attacks has to be taken into account.
-
-Roughly speaking, any valid point on the curve is a
-group element. Adding curve points corresponds to point addition, and
-scalar multiplication algorithms for curve points corresponds to scalar
-multiplication in the group. The `HashToGroup`, `Serialize` and
-`Deserialize` algorithms are handled as explained in the ciphersuite
-definition. The generators of each of the groups are given in {{SEC2}}.
-The identity element of the group is the point at infinity. Finally, the
-`Order` algorithm returns the order of points in the group.
-
-### curve25519 and curve448
-
-curve25519 and curve448 come with extra considerations surrounding scalar
-multiplication since the cofactor of each is `4`. This means
-that curve points can either belong to a small subgroups that are not of 
-prime order. The larger prime-order subgroup
-essentially corresponds to the prime-order group that the (V)OPRF takes
-place in. To ensure that all operations are performed in this subgroup,
-any implementer must check for all-zero outputs of the scalar
-multiplication algorithms wherever they are used. For details on how to
-perform these checks, see {{RFC7748}}. Not checking will result in
-exposing application-level vulnerabilities.
 
 # Security Considerations {#sec}
 
