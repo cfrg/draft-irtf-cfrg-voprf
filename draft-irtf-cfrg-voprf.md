@@ -610,7 +610,7 @@ Input:
 
   PrivateKey skS
   PublicKey pkS
-  SerializeElement blindedTokens[m]
+  SerializedElement blindedTokens[m]
 
 Output:
 
