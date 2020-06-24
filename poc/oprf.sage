@@ -196,7 +196,7 @@ class ServerContext(object):
 
 
 def compute_composites(suite, contextString, Gm, pkS, evaluate_input, evaluate_output):
-    seedDST = _as_bytes("RFCXXXX-seed") + contextString
+    seedDST = _as_bytes("RFCXXXX-seed-") + contextString
     hash_input = I2OSP(len(Gm), 2) + Gm \
         + I2OSP(len(pkS), 2) + pkS \
         + I2OSP(len(evaluate_input), 2) + evaluate_input \
@@ -239,7 +239,7 @@ class VerifiableClientContext(ClientContext):
         a3 = self.suite.group.serialize(Ap)
         a4 = self.suite.group.serialize(Bp)
 
-        challengeDST = _as_bytes("RFCXXXX-challenge") + self.contextString
+        challengeDST = _as_bytes("RFCXXXX-challenge-") + self.contextString
         h2s_input = I2OSP(len(Gm), 2) + Gm \
             + I2OSP(len(pkSm), 2) + pkSm \
             + I2OSP(len(a1), 2) + a1 \
@@ -279,7 +279,7 @@ class VerifiableServerContext(ServerContext):
         a3 = self.suite.group.serialize(r * G)
         a4 = self.suite.group.serialize(r * M)
 
-        challengeDST = _as_bytes("RFCXXXX-challenge") + self.contextString
+        challengeDST = _as_bytes("RFCXXXX-challenge-") + self.contextString
         h2s_input = I2OSP(len(Gm), 2) + Gm \
             + I2OSP(len(pkSm), 2) + pkSm \
             + I2OSP(len(a1), 2) + a1 \
