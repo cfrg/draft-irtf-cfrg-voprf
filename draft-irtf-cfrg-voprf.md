@@ -844,7 +844,7 @@ Input:
 
   PublicKey pkS
   SerializedElement blindedTokens[m]
-  Evaluation ev
+  Evaluation Ev
   Scalar proof[2]
 
 Output:
