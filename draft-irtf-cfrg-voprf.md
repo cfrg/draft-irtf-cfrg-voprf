@@ -485,7 +485,7 @@ before the protocol exchange. Once established, the core protocol works
 as follows:
 
 ~~~
-   Client(input, pkS, info)                 Server(skS, pkS)
+   Client(inputs, pkS, info)                 Server(skS, pkS)
   ----------------------------------------------------------
     tokens, blindTokens = Blind(inputs)
 
@@ -619,7 +619,7 @@ Input:
 
   PrivateKey skS
   PublicKey pkS
-  SerializeElement blindedTokens[m]
+  SerializedElement blindedTokens[m]
 
 Output:
 
@@ -655,13 +655,13 @@ Output:
 
   Evaluation Ev
 
-def Evaluate(skS, pkS, blindedTokens):
+def Evaluate(skS, pkS, blindedTokens, Ev):
   elements = []
   for i in 1..m:
     BT = GG.Deserialize(blindedTokens[i])
     Z = skS * BT
     elements[i] = GG.Serialize(Z)
-  proof = GenerateProof(skS, pkS, blindedTokens, ev)
+  proof = GenerateProof(skS, pkS, blindedTokens, Ev)
   Ev = Evaluation{ elements: elements, proof: proof }
   return Ev
 ~~~
@@ -796,17 +796,17 @@ Input:
   PublicKey pkS
   Token tokens[m]
   SerializedElement blindedTokens[m]
-  Evaluation ev
+  Evaluation Ev
 
 Output:
 
   SerializedElement unblindedTokens[m]
 
-def Unblind(pkS, tokens, blindedTokens, ev):
+def Unblind(pkS, tokens, blindedTokens, Ev):
   unblindedTokens = []
   for i = 0 to m:
     r = tokens[i].blind
-    Z = GG.Deserialize(Evaluation.elements[i])
+    Z = GG.Deserialize(Ev.elements[i])
     N = (r^(-1)) * Z
     unblindedTokens[i] = GG.Serialize(N)
  return unblindedTokens
@@ -852,14 +852,14 @@ Input:
 
   PublicKey pkS
   SerializedElement blindedTokens[m]
-  Evaluation ev
+  Evaluation Ev
   Scalar proof[2]
 
 Output:
 
   boolean verified
 
-def VerifyProof(pkS, blindedTokens, ev, proof):
+def VerifyProof(pkS, blindedTokens, Ev, proof):
   G = GG.Generator()
   gen = GG.Serialize(G)
   (a1, a2) = ComputeComposites(gen, pkS, blindedTokens, ev)
@@ -887,20 +887,20 @@ Input:
   PublicKey pkS
   Token tokens[m]
   SerializedElement blindedTokens[m]
-  Evaluation ev
+  Evaluation Ev
 
 Output:
 
   SerializedElement unblindedTokens[m]
 
-def Unblind(pkS, tokens, blindedTokens, ev):
-  if VerifyProof(pkS, blindedTokens, ev) == false:
+def Unblind(pkS, tokens, blindedTokens, Ev):
+  if VerifyProof(pkS, blindedTokens, Ev) == false:
     ABORT()
 
   unblindedTokens = []
   for i = 0 to m:
     r = tokens[i].blind
-    Z = GG.Deserialize(Evaluation.elements[i])
+    Z = GG.Deserialize(Ev.elements[i])
     N = (r^(-1)) * Z
     unblindedTokens[i] = GG.Serialize(N)
  return unblindedTokens
