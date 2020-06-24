@@ -794,7 +794,7 @@ Output:
 
   SerializedElement unblindedTokens[m]
 
-def Unblind(pkS, tokens, blindedTokens, ev):
+def Unblind(pkS, tokens, blindedTokens, Ev):
   unblindedTokens = []
   for i = 0 to m:
     r = tokens[i].blind
