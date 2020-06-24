@@ -892,7 +892,7 @@ def Unblind(pkS, tokens, blindedTokens, ev):
   unblindedTokens = []
   for i = 0 to m:
     r = tokens[i].blind
-    Z = GG.Deserialize(Evaluation.elements[i])
+    Z = GG.Deserialize(Ev.elements[i])
     N = (r^(-1)) * Z
     unblindedTokens[i] = GG.Serialize(N)
  return unblindedTokens
