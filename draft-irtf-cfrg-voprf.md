@@ -431,16 +431,6 @@ prime-order group.
   an array of bytes `x` to a random element in the scalar field of `GG`.
 - RandomScalar(): A member function of `GG` that generates a random, non-zero
   element in the scalar field of `GG`.
-- KeyGen(): A member function of `GG` that generates (skX, pkX), where skX is
-  a random, non-zero element in the scalar field `GG` and pkX is the product
-  of skX and the group's fixed generator.
-
-<!-- TODO(caw): do we need to define RandomScalar and KeyGen in the ciphersuites section? -->
-
-This document uses the types `Element` and `Scalar` to denote elements of
-the group `GG` and its underlying scalar field, respectively. For notational
-clarity, we use the alias `PublicKey` and `PrivateKey` to refer to items of
-type `Element` and `Scalar`, respectively.
 
 It is common in cryptographic applications to instantiate such
 prime-order groups using elliptic curves, such as those detailed in
@@ -462,6 +452,9 @@ multiplication into all elliptic curve operations.
 - For two byte arrays `x` and `y`, write `x || y` to denote their
   concatenation.
 - We assume that all byte arrays are defined in big-endian orientation.
+- All algorithm descriptions are written in a Python-like pseudocode.
+  We use the `ABORT()` function for presentation clarity to denote
+  the process of terminating the algorithm or returning an error accordingly.
 
 # OPRF Protocol {#protocol}
 
@@ -482,8 +475,8 @@ The following one-byte values distinguish between these two modes:
 
 | Mode            | Value |
 |:================|:======|
-| mode_base       | 0x00  |
-| mode_verifiable | 0x01  |
+| modeBase       | 0x00  |
+| modeVerifiable | 0x01  |
 
 ## Overview
 
@@ -504,10 +497,10 @@ as follows:
                          evaluation
                         <----------
 
-    signedTokens = Unblind(pkS, tokens, blindTokens, evaluation)
+    issuedTokens = Unblind(pkS, tokens, blindTokens, evaluation)
     outputs = []
     for i in [inputs.length]:
-     outputs[i] = Finalize(inputs[i], signedTokens[i], info)
+     outputs[i] = Finalize(inputs[i], issuedTokens[i], info)
     Output outputs
 ~~~
 
@@ -520,7 +513,7 @@ that was evaluated over.
 
 Note that in the final output, the client computes Finalize over some
 auxiliary input data `info`. This parameter SHOULD be used for domain
-separation in (V)OPRF the protocol. Specifically, any system which has
+separation in the (V)OPRF the protocol. Specifically, any system which has
 multiple (V)OPRF applications should use separate auxiliary values to to
 ensure finalized outputs are separate. Guidance for constructing info can
 be found in {{I-D.irtf-cfrg-hash-to-curve}}; Section 3.1.
@@ -531,24 +524,35 @@ Both modes of the OPRF involve an offline setup phase which establishes a contex
 used by the client or server in executing the online phase of the protocol.
 
 ~~~
-def SetupBaseServer():
-  (skS, _) = GG.KeyGen()
-  contextString = I2OSP(mode_base, 1) + I2OSP(suite.identifier, 2)
+def SetupBaseServer(suite):
+  (skS, _) = KeyGen(GG)
+  contextString = I2OSP(modeBase, 1) + I2OSP(suite.ID, 2)
   return ServerContext(contextString, skS)
 
 def SetupBaseClient(suite):
-  contextString = I2OSP(mode_base, 1) + I2OSP(suite.identifier, 2)
+  contextString = I2OSP(modeBase, 1) + I2OSP(suite.ID, 2)
   return ClientContext(contextString)
 
 def SetupVerifiableServer(suite):
-  (skS, pkS) = GG.KeyGen()
-  contextString = I2OSP(mode_verifiable, 1) + I2OSP(suite.identifier, 2)
+  (skS, pkS) = KeyGen(GG)
+  contextString = I2OSP(modeVerifiable, 1) + I2OSP(suite.ID, 2)
   return VerifiableServerContext(contextString, skS), pkS
 
 def SetupVerifiableClient(suite, pkS):
-  contextString = I2OSP(mode_verifiable, 1) + I2OSP(suite.identifier, 2)
+  contextString = I2OSP(modeVerifiable, 1) + I2OSP(suite.ID, 2)
   return VerifiableClientContext(contextString, pkS)
 ~~~
+
+The `KeyGen` function used above takes a group `GG` and generates a private and public
+key pair (skX, pkX), where skX is a random, non-zero element in the scalar field `GG`
+and pkX is the product of skX and the group's fixed generator. For verifiable
+modes, servers MUST make the resulting public key `pkS` accessible for clients.
+(Indeed, it is a required parameter when configuring a verifiable client context.)
+
+Each setup function takes a ciphersuite from the list defined in
+{{ciphersuites}}. Each ciphersuite has two-byte identifier, referred
+to as `suite.ID` in the pseudocode above, that identifies the suite.
+{{ciphersuites}} lists these ciphersuite identifiers.
 
 ## Data Structures {#structs}
 
@@ -565,7 +569,8 @@ A `ClientInput` is a byte array.
 opaque ClientInput<1..2^16-1>;
 ~~~
 
-A `SerializedElement` is also a byte array.
+A `SerializedElement` is also a byte array, representing the unique serialization
+of an `Element`.
 
 ~~~
 opaque SerializedElement<1..2^16-1>;
@@ -596,7 +601,11 @@ struct {
 ## Context APIs {#api}
 
 In this section, we detail the APIs available on the client and server
-OPRF contexts.
+OPRF contexts. This document uses the types `Element` and `Scalar` to
+denote elements of the group `GG` and its underlying scalar field,
+respectively. For notational clarity, we use the alias `PublicKey`
+and `PrivateKey` to refer to items of type `Element` and `Scalar`,
+respectively.
 
 ### Server Context
 
@@ -632,6 +641,73 @@ The VerifiableServerContext extends the base ServerContext with an augmented
 `Evaluate()` function. This function produces a proof that `skS` was used
 in computing the result. It makes use of the helper functions `ComputeComposites`
 and `GenerateProof`, described below.
+
+#### Evaluate
+
+~~~
+Input:
+
+  PrivateKey skS
+  PublicKey pkS
+  SerializedElement blindedTokens[m]
+
+Output:
+
+  Evaluation Ev
+
+def Evaluate(skS, pkS, blindedTokens):
+  elements = []
+  for i in 1..m:
+    BT = GG.Deserialize(blindedTokens[i])
+    Z = skS * BT
+    elements[i] = GG.Serialize(Z)
+  proof = GenerateProof(skS, pkS, blindedTokens, ev)
+  Ev = Evaluation{ elements: elements, proof: proof }
+  return Ev
+~~~
+
+The helper functions `GenerateProof` and `ComputeComposites`
+are defined below.
+
+#### GenerateProof
+
+~~~
+Input:
+
+  PrivateKey skS
+  PublicKey pkS
+  SerializedElement blindedTokens[m]
+  Evaluation ev
+
+Output:
+
+  Scalar proof[2]
+
+def GenerateProof(skS, pkS, blindedTokens, ev)
+  G = GG.Generator()
+  gen = GG.Serialize(G)
+  (a1, a2) = ComputeComposites(gen, pkS, blindedTokens, ev)
+  M = GG.Deserialize(a1)
+  r = GG.RandomScalar()
+  a3 = GG.Serialize(r * G)
+  a4 = GG.Serialize(r * M)
+
+  challengeDST = "RFCXXXX-challenge" + self.contextString
+  h2Input = I2OSP(len(gen), 2) || gen ||
+            I2OSP(len(pkS), 2) || pkS ||
+            I2OSP(len(a1), 2) || a1 || I2OSP(len(a2), 2) || a2 ||
+            I2OSP(len(a3), 2) || a3 || I2OSP(len(a4), 2) || a4 ||
+            I2OSP(len(challengeDST), 2) || challengeDST
+
+  c = GG.HashToScalar(h2Input)
+  s = (r - c * skS) mod p
+  return (c, s)
+~~~
+
+We note here that it is essential that a different r value is used for
+every invocation. If this is not done, then this may leak `skS` in a
+similar fashion as is possible in Schnorr or (EC)DSA scenarios where
+fresh randomness is not used.
 
 #### ComputeComposites
 
@@ -679,70 +755,6 @@ def ComputeComposites(gen, pkS, blindedTokens, ev):
  return [GG.Serialize(M), GG.Serialize(Z)]
 ~~~
 
-#### GenerateProof
-
-~~~
-Input:
-
-  PrivateKey skS
-  PublicKey pkS
-  SerializedElement blindedTokens[m]
-  Evaluation ev
-
-Output:
-
-  Scalar proof[2]
-
-def GenerateProof(skS, pkS, blindedTokens, ev)
-  G = GG.Generator()
-  gen = GG.Serialize(G)
-  (a1, a2) = ComputeComposites(gen, pkS, blindedTokens, ev)
-  M = GG.Deserialize(a1)
-  r = GG.RandomScalar()
-  a3 = GG.Serialize(r * G)
-  a4 = GG.Serialize(r * M)
-
-  challengeDST = "RFCXXXX-challenge" + self.contextString
-  h2Input = I2OSP(len(gen), 2) || gen ||
-            I2OSP(len(pkS), 2) || pkS ||
-            I2OSP(len(a1), 2) || a1 || I2OSP(len(a2), 2) || a2 ||
-            I2OSP(len(a3), 2) || a3 || I2OSP(len(a4), 2) || a4 ||
-            I2OSP(len(challengeDST), 2) || challengeDST
-
-  c = GG.HashToScalar(h2Input)
-  s = (r - c * skS) mod p
-  return (c, s)
-~~~
-
-We note here that it is essential that a different r value is used for
-every invocation. If this is not done, then this may leak `skS` in a
-similar fashion as is possible in Schnorr or (EC)DSA scenarios where
-fresh randomness is not used.
-
-#### Evaluate
-
-~~~
-Input:
-
-  PrivateKey skS
-  PublicKey pkS
-  SerializedElement blindedTokens[m]
-
-Output:
-
-  Evaluation Ev
-
-def Evaluate(skS, pkS, blindedTokens):
-  elements = []
-  for i in 1..m:
-    BT = GG.Deserialize(blindedTokens[i])
-    Z = skS * BT
-    elements[i] = GG.Serialize(Z)
-  proof = GenerateProof(skS, pkS, blindedTokens, ev)
-  Ev = Evaluation{ elements: elements, proof: proof }
-  return Ev
-~~~
-
 ### Client Context
 
 The ClientContext encapsulates the context string constructed during setup.
@@ -775,10 +787,6 @@ def Blind(inputs):
     blindedTokens[i] = GG.Serialize(r * P)
  return (tokens, blindedTokens)
 ~~~
-
-This blinding mechanism can be modified slightly with the opportunity
-for making performance gains in some scenarios. We detail these
-modifications in {{blinding}}.
 
 #### Unblind
 
@@ -929,6 +937,7 @@ curve25519. See {{cryptanalysis}} for related discussion.
   - HashToScalar(): hash\_to\_field from {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-curve25519_XMD:SHA-512_ELL2_RO_"
   - Serialize(): The standard 32-byte representation of the public key {{!RFC7748}}
 - Hash: SHA-512
+- ID: 0x0001
 
 ## OPRF(curve448, SHA-512)
 
@@ -937,6 +946,7 @@ curve25519. See {{cryptanalysis}} for related discussion.
   - HashToScalar(): hash\_to\_field from {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-curve448_XMD:SHA-512_ELL2_RO_"
   - Serialize(): The standard 56-byte representation of the public key {{!RFC7748}}
 - Hash: SHA-512
+- ID: 0x0002
 
 ## OPRF(P-256, SHA-512)
 
@@ -945,6 +955,7 @@ curve25519. See {{cryptanalysis}} for related discussion.
   - HashToScalar(): hash\_to\_field from {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-P256_XMD:SHA-256_SSWU_RO_"
   - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 33 bytes.
 - Hash: SHA-512
+- ID: 0x0003
 
 ## OPRF(P-384, SHA-512)
 
@@ -953,6 +964,7 @@ curve25519. See {{cryptanalysis}} for related discussion.
   - HashToScalar(): hash\_to\_field from {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-P384_XMD:SHA-512_SSWU_RO_"
   - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 49 bytes.
 - Hash: SHA-512
+- ID: 0x0004
 
 ## OPRF(P-521, SHA-512)
 
@@ -961,6 +973,7 @@ curve25519. See {{cryptanalysis}} for related discussion.
   - HashToScalar(): hash\_to\_field from {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-P521_XMD:SHA-512_SSWU_RO_"
   - Serialize(): The compressed point encoding for the curve {{SEC1}} consisting of 67 bytes.
 - Hash: SHA-512
+- ID: 0x0005
 
 # Security Considerations {#sec}
 
@@ -1412,10 +1425,10 @@ CAPTCHA response and, if valid, signs (at most) n blinded points, which
 are then returned to C along with a batched DLEQ proof. C stores the
 tokens if the batched proof verifies correctly. When C attempts to
 connect to E again and is prompted with a CAPTCHA, C uses one of the
-unblinded and signed points, or tokens, to derive a shared symmetric key
-sk used to MAC the CAPTCHA challenge. C sends the CAPTCHA, MAC, and
-token input x to E, who can use x to derive sk and verify the CAPTCHA
-MAC. Thus, each token is used at most once by the system.
+tokens to derive a shared symmetric key sk used to MAC the CAPTCHA
+challenge. C sends the CAPTCHA, MAC, and token input x to E, who can use
+x to derive sk and verify the CAPTCHA MAC. Thus, each token is used at
+most once by the system.
 
 The Privacy Pass implementation uses the P-256 instantiation of the
 VOPRF protocol. For more details, see {{DGSTV18}}.
