@@ -492,7 +492,7 @@ before the protocol exchange. Once established, the core protocol works
 as follows:
 
 ~~~
-   Client(input, pkS, info)                 Server(skS, pkS)
+   Client(inputs, pkS, info)                 Server(skS, pkS)
   ----------------------------------------------------------
     tokens, blindTokens = Blind(inputs)
 
