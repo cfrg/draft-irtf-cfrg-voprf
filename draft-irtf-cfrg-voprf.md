@@ -738,7 +738,7 @@ def Evaluate(skS, pkS, blindedTokens):
     BT = GG.Deserialize(blindedTokens[i])
     Z = skS * BT
     elements[i] = GG.Serialize(Z)
-  proof = GenerateProof(skS, pkS, blindedTokens, ev)
+  proof = GenerateProof(skS, pkS, blindedTokens, Ev)
   Ev = Evaluation{ elements: elements, proof: proof }
   return Ev
 ~~~
