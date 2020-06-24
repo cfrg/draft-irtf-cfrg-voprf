@@ -692,7 +692,7 @@ def GenerateProof(skS, pkS, blindedTokens, ev)
   a3 = GG.Serialize(r * G)
   a4 = GG.Serialize(r * M)
 
-  challengeDST = "RFCXXXX-challenge" + self.contextString
+  challengeDST = "RFCXXXX-challenge-" + self.contextString
   h2Input = I2OSP(len(gen), 2) || gen ||
             I2OSP(len(pkS), 2) || pkS ||
             I2OSP(len(a1), 2) || a1 || I2OSP(len(a2), 2) || a2 ||
@@ -724,8 +724,8 @@ Output:
   SerializedElement composites[2]
 
 def ComputeComposites(gen, pkS, blindedTokens, ev):
-  seedDST = "RFCXXXX-seed" + self.contextString
-  compositeDST = "RFCXXXX-composite" + self.contextString
+  seedDST = "RFCXXXX-seed-" + self.contextString
+  compositeDST = "RFCXXXX-composite-" + self.contextString
   h1Input = I2OSP(len(gen), 2) || gen ||
             I2OSP(len(pkS), 2) || pkS ||
             I2OSP(len(blindedTokens), 2) || blindedTokens ||
@@ -826,7 +826,7 @@ Output:
   opaque output<1..2^16-1>
 
 def Finalize(T, E, info):
-  finalizeDST = "RFCXXXX-Finalize" + self.contextString
+  finalizeDST = "RFCXXXX-Finalize-" + self.contextString
   hashInput = len(T.data) || T.data ||
               len(E) || E ||
               len(info) || info ||
@@ -868,7 +868,7 @@ def VerifyProof(pkS, blindedTokens, Ev, proof):
   a3 = GG.Serialize(A')
   a4 = GG.Serialize(B')
 
-  challengeDST = "RFCXXXX-challenge" + self.contextString
+  challengeDST = "RFCXXXX-challenge-" + self.contextString
   h2Input = I2OSP(len(gen), 2) || gen ||
             I2OSP(len(pkS), 2) || pkS ||
             I2OSP(len(a1), 2) || a1 || I2OSP(len(a2), 2) || a2 ||
