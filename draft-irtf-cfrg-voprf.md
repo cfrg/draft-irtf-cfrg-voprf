@@ -851,7 +851,7 @@ Output:
 
   boolean verified
 
-def VerifyProof(pkS, blindedTokens, ev, proof):
+def VerifyProof(pkS, blindedTokens, Ev, proof):
   G = GG.Generator()
   gen = GG.Serialize(G)
   (a1, a2) = ComputeComposites(gen, pkS, blindedTokens, ev)
