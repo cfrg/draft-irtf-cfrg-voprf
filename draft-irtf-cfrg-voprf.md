@@ -788,7 +788,7 @@ Input:
   PublicKey pkS
   Token tokens[m]
   SerializedElement blindedTokens[m]
-  Evaluation ev
+  Evaluation Ev
 
 Output:
 
