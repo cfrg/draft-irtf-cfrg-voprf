@@ -600,7 +600,7 @@ required.
 ~~~
 struct {
   SerializedElement elements<1..2^16-1>;
-  Scalar proof[2]; /* only for modeVerifiable */
+  Scalar proof<0...2^16-1>; /* only for modeVerifiable */
 } Evaluation;
 ~~~
 
