@@ -6,7 +6,7 @@ import json
 import hashlib
 import binascii
 
-from hash_to_field import I2OSP, OS2IP
+from hash_to_field import I2OSP, OS2IP, expand_message_xmd, hash_to_field
 
 try:
     from sagelib.suite_p256 import p256_sswu_ro, p256_order, p256_p, p256_F, p256_A, p256_B
@@ -23,12 +23,6 @@ if sys.version_info[0] == 3:
 else:
     _as_bytes = lambda x: x
     _strxor = lambda str1, str2: ''.join( chr(ord(s1) ^ ord(s2)) for (s1, s2) in zip(str1, str2) )
-
-def to_hex(octet_string):
-    if isinstance(octet_string, str):
-        return "".join("{:02x}".format(ord(c)) for c in octet_string)
-    assert isinstance(octet_string, bytes)
-    return "0x" + "".join("{:02x}".format(c) for c in octet_string)
 
 
 class Group(object):
@@ -60,7 +54,7 @@ class Group(object):
         return self.name
 
 class GroupNISTCurve(Group):
-    def __init__(self, name, suite, F, A, B, p, order, gx, gy):
+    def __init__(self, name, suite, F, A, B, p, order, gx, gy, L, H, expand, k):
         Group.__init__(self, name)
         self.F = F
         EC = EllipticCurve(F, [F(A), F(B)])
@@ -73,6 +67,11 @@ class GroupNISTCurve(Group):
         self.order = order
         self.h2c_suite = suite
         self.G = EC(F(gx), F(gy))
+        self.m = F.degree()
+        self.L = L
+        self.k = k
+        self.H = H
+        self.expand = expand
 
     def suite_name(self):
         return self.name
@@ -87,7 +86,7 @@ class GroupNISTCurve(Group):
         return self.F.random_element()
 
     def identity(self):
-        return self.curve.random_element() * self.order()
+        return self.curve.random_element() * self.order
 
     def serialize(self, element):
         x, y = element[0], element[1]
@@ -109,146 +108,227 @@ class GroupNISTCurve(Group):
         parity = 0 if pve else 1
         if sgn0(y) != parity:
             y = -y
-        return self.curve(F(x), F(y))
+        return self.curve(self.F(x), self.F(y))
 
     def hash_to_group(self, msg, dst):
         self.h2c_suite.dst = dst
         return self.h2c_suite(msg)
+
+    def hash_to_scalar(self, msg, dst=""):
+        return hash_to_field(msg, 1, dst, self.p, self.m, self.L, self.expand, self.H, self.k)[0][0]
 
 class GroupP256(GroupNISTCurve):
     def __init__(self):
         # See FIPS 186-3, section D.2.3
         gx = 0x6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296
         gy = 0x4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5
-        GroupNISTCurve.__init__(self, "P256_XMD:SHA-512_SSWU_RO_", p256_sswu_ro, p256_F, p256_A, p256_B, p256_p, p256_order, gx, gy)
+        GroupNISTCurve.__init__(self, "P256_XMD:SHA-512_SSWU_RO_", p256_sswu_ro, p256_F, p256_A, p256_B, p256_p, p256_order, gx, gy, 48, hashlib.sha256, expand_message_xmd, 128)
 
 class GroupP384(GroupNISTCurve):
     def __init__(self):
         # See FIPS 186-3, section D.2.4
         gx = 0xaa87ca22be8b05378eb1c71ef320ad746e1d3b628ba79b9859f741e082542a385502f25dbf55296c3a545e3872760ab7
         gy = 0x3617de4a96262c6f5d9e98bf9292dc29f8f41dbd289a147ce9da3113b5f0b8c00a60b1ce1d7e819d7a431d7c90ea0e5f
-        GroupNISTCurve.__init__(self, "P384_XMD:SHA-512_SSWU_RO_", p384_sswu_ro, p384_F, p384_A, p384_B, p384_p, p384_order, gx, gy)
+        GroupNISTCurve.__init__(self, "P384_XMD:SHA-512_SSWU_RO_", p384_sswu_ro, p384_F, p384_A, p384_B, p384_p, p384_order, gx, gy, 72, hashlib.sha512, expand_message_xmd, 192)
 
 class GroupP521(GroupNISTCurve):
     def __init__(self):
         # See FIPS 186-3, section D.2.5
         gx = 0xc6858e06b70404e9cd9e3ecb662395b4429c648139053fb521f828af606b4d3dbaa14b5e77efe75928fe1dc127a2ffa8de3348b3c1856a429bf97e7e31c2e5bd66
         gy = 0x11839296a789a3bc0045c8a5fb42c7d1bd998f54449579b446817afbd17273e662c97ee72995ef42640c550b9013fad0761353c7086a272c24088be94769fd16650
-        GroupNISTCurve.__init__(self, "P521_XMD:SHA-512_SSWU_RO_", p521_sswu_ro, p521_F, p521_A, p521_B, p521_p, p521_order, gx, gy)
+        GroupNISTCurve.__init__(self, "P521_XMD:SHA-512_SSWU_RO_", p521_sswu_ro, p521_F, p521_A, p521_B, p521_p, p521_order, gx, gy, 98, hashlib.sha512, expand_message_xmd, 256)
 
 
 class Ciphersuite(object):
-    def __init__(self, name, group, H1):
+    def __init__(self, name, identifier, group, H):
         self.name = name
+        self.identifier = identifier
         self.group = group
-        self.H1 = H1
+        self.H = H
 
     def __str__(self):
         return self.name
 
-class VerifiableCiphersuite(Ciphersuite):
-    def __init__(self, name, group, H1, H2, H3):
-        Ciphersuite.__init__(self, name, group, H1)
-        self.H2 = H2
-        self.H3 = H3
 
-
-class Client(object):
-    def __init__(self, suite):
+class ClientContext(object):
+    def __init__(self, suite, contextString):
         self.suite = suite
-        self.dst = _as_bytes("RFCXXXX-VOPRF-" + self.suite.group.suite_name())
+        self.contextString = contextString
+        self.dst = _as_bytes("RFCXXXX-") + self.contextString
+
+    def identifier(self):
+        return self.identifier
 
     def blind(self, x):
         r = ZZ(self.suite.group.random_scalar())
         P = self.suite.group.hash_to_group(x, self.dst)
-        X = r * P
-        return r, X, P
+        R = r * P
+        return r, R, P
 
-    def unblind(self, N, r):
+    def unblind(self, ev, r, _):
+        assert (type(ev) == type([]) and len(ev) == 1 and ev[0] != None)
+        N = ev[0]
         r_inv = inverse_mod(r, self.suite.group.G.order())
         y = r_inv * N
         return y
 
     def finalize(self, x, y, info):
-        h = self.suite.H1()
+        finalizeDST = _as_bytes("RFCXXXX-Finalize-") + self.contextString
+        encoded_element = self.suite.group.serialize(y)
+        finalize_input = I2OSP(len(x), 2) + x \
+            + I2OSP(len(encoded_element), 2) + encoded_element \
+            + I2OSP(len(info), 2) + info \
+            + I2OSP(len(finalizeDST), 2) + finalizeDST
 
-        finalize_dst = _as_bytes("RFCXXXX-Finalize")
-        encoded_point = self.suite.group.serialize(y)
-
-        h.update(I2OSP(len(x), 2))
-        h.update(x)
-        h.update(I2OSP(len(encoded_point), 2))
-        h.update(encoded_point)
-        h.update(I2OSP(len(info), 2))
-        h.update(info)
-        h.update(I2OSP(len(finalize_dst), 2))
-        h.update(finalize_dst)
-
+        h = self.suite.H()
+        h.update(finalize_input)
         return h.digest()
 
-class Server(object):
-    def __init__(self, suite):
+class ServerContext(object):
+    def __init__(self, suite, contextString, skS):
         self.suite = suite
-        self.k = ZZ(self.suite.group.random_scalar())
-
-    def set_key(self, k):
-        self.k = k
+        self.contextString = contextString
+        self.skS = skS
+        self.pkS = suite.group.G * skS
 
     def evaluate(self, element):
-        return self.k * element
+        return [self.skS * element]
 
 
-class Protocol(object):
-    def __init__(self):
-        self.inputs = map(lambda h : _as_bytes(bytearray.fromhex(h).decode()), ['00', '01', '02'])
+def compute_composites(suite, contextString, Gm, pkS, evaluate_input, evaluate_output):
+    seedDST = _as_bytes("RFCXXXX-seed-") + contextString
+    hash_input = I2OSP(len(Gm), 2) + Gm \
+        + I2OSP(len(pkS), 2) + pkS \
+        + I2OSP(len(evaluate_input), 2) + evaluate_input \
+        + I2OSP(len(evaluate_output), 2) + evaluate_output \
+        + I2OSP(len(seedDST), 2) + seedDST
+    h = suite.H()
+    h.update(hash_input)
+    seed = h.digest()
 
-    def run_vector(self, vector):
-        raise Exception("Not implemented")
+    M = suite.group.identity()
+    Z = suite.group.identity()
+    
+    Mi = suite.group.deserialize(evaluate_input)
+    Zi = suite.group.deserialize(evaluate_output)
+    di = 1
+    M = (di * Mi) + M
+    Z = (di * Zi) + Z
 
-    def run(self, client, server, info):
-        assert(client.suite.group == server.suite.group)
-        group = client.suite.group
+    Mm = suite.group.serialize(M)
+    Zm = suite.group.serialize(Z)
 
-        vectors = []
-        for x in self.inputs:
-            r, R, P = client.blind(x)
-            T = server.evaluate(R)
-            Z = client.unblind(T, r)
-            y = client.finalize(x, Z, info.encode("utf-8"))
+    return Mm, Zm
 
-            vector = {}
-            vector["x"] = to_hex(x)
-            vector["P"] = to_hex(group.serialize(P))
-            vector["R"] = to_hex(group.serialize(R))
-            vector["T"] = to_hex(group.serialize(T))
-            vector["Z"] = to_hex(group.serialize(Z))
-            vector["y"] = to_hex(y)
-            vectors.append(vector)
 
-        vector = {}
-        vector["k"] = hex(server.k)
-        vector["info"] = info
-        vector["suite"] = client.suite.name
-        vector["vectors"] = vectors
+class VerifiableClientContext(ClientContext):
+    def __init__(self, suite, contextString, pkS):
+        ClientContext.__init__(self, suite, contextString)
+        self.pkS = pkS
 
-        return vector
+    def verify_proof(self, evaluate_input, evaluate_output, pi):
+        G = self.suite.group.G
+        Gm = self.suite.group.serialize(G)
+        pkSm = self.suite.group.serialize(self.pkS)
+        (a1, a2) = compute_composites(self.suite, self.contextString, Gm, pkSm, evaluate_input, evaluate_output)
+        M = self.suite.group.deserialize(a1)
+        Z = self.suite.group.deserialize(a2)
 
-ciphersuites = {
-    Ciphersuite("OPRF-P256-HKDF-SHA512-SSWU-RO", GroupP256(), hashlib.sha512),
-    Ciphersuite("OPRF-P384-HKDF-SHA512-SSWU-RO", GroupP384(), hashlib.sha512),
-    Ciphersuite("OPRF-P521-HKDF-SHA512-SSWU-RO", GroupP521(), hashlib.sha512),
+        Ap = (pi[1] * G) + (pi[0] * self.pkS)
+        Bp = (pi[1] * M) + (pi[0] * Z)
+        a3 = self.suite.group.serialize(Ap)
+        a4 = self.suite.group.serialize(Bp)
+
+        challengeDST = _as_bytes("RFCXXXX-challenge-") + self.contextString
+        h2s_input = I2OSP(len(Gm), 2) + Gm \
+            + I2OSP(len(pkSm), 2) + pkSm \
+            + I2OSP(len(a1), 2) + a1 \
+            + I2OSP(len(a2), 2) + a2 \
+            + I2OSP(len(a3), 2) + a3 \
+            + I2OSP(len(a4), 2) + a4 \
+            + I2OSP(len(challengeDST), 2) + challengeDST
+
+        c = self.suite.group.hash_to_scalar(h2s_input)
+        assert(c == pi[0])
+
+    def unblind(self, ev, r, R):
+        assert (type(ev) == type([]) and len(ev) == 2 and ev[1] != None)
+        N = ev[0]
+        pi = ev[1]
+        evaluate_input = self.suite.group.serialize(R)
+        evaluate_output = self.suite.group.serialize(N)
+        self.verify_proof(evaluate_input, evaluate_output, pi)
+
+        r_inv = inverse_mod(r, self.suite.group.G.order())
+        y = r_inv * N
+        return y
+
+class VerifiableServerContext(ServerContext):
+    def __init__(self, suite, contextString, skS):
+        ServerContext.__init__(self, suite, contextString, skS)
+
+    def generate_proof(self, evaluate_input, evaluate_output):
+        G = self.suite.group.G
+        Gm = self.suite.group.serialize(G)
+        pkSm = self.suite.group.serialize(self.pkS)
+
+        (a1, a2) = compute_composites(self.suite, self.contextString, Gm, pkSm, evaluate_input, evaluate_output)
+        M = self.suite.group.deserialize(a1)
+
+        r = ZZ(self.suite.group.random_scalar())
+        a3 = self.suite.group.serialize(r * G)
+        a4 = self.suite.group.serialize(r * M)
+
+        challengeDST = _as_bytes("RFCXXXX-challenge-") + self.contextString
+        h2s_input = I2OSP(len(Gm), 2) + Gm \
+            + I2OSP(len(pkSm), 2) + pkSm \
+            + I2OSP(len(a1), 2) + a1 \
+            + I2OSP(len(a2), 2) + a2 \
+            + I2OSP(len(a3), 2) + a3 \
+            + I2OSP(len(a4), 2) + a4 \
+            + I2OSP(len(challengeDST), 2) + challengeDST
+
+        c = self.suite.group.hash_to_scalar(h2s_input)
+        s = r - (c * self.skS)
+
+        return [c, s]
+
+    def evaluate(self, element):
+        output = self.skS * element
+        evaluate_input = self.suite.group.serialize(element)
+        evaluate_output = self.suite.group.serialize(output)
+        proof = self.generate_proof(evaluate_input, evaluate_output)
+        return [output, proof]
+
+
+mode_base = 0x00
+mode_verifiable = 0x01
+
+def SetupBaseServer(suite):
+    skS = ZZ(suite.group.random_scalar())
+    contextString = I2OSP(mode_base, 1) + I2OSP(suite.identifier, 2)
+    return ServerContext(suite, contextString, skS)
+
+def SetupBaseClient(suite):
+    contextString = I2OSP(mode_base, 1) + I2OSP(suite.identifier, 2)
+    return ClientContext(suite, contextString)
+
+def SetupVerifiableServer(suite):
+    skS = ZZ(suite.group.random_scalar())
+    pkS = suite.group.G * skS
+    contextString = I2OSP(mode_verifiable, 1) + I2OSP(suite.identifier, 2)
+    return VerifiableServerContext(suite, contextString, skS), pkS
+
+def SetupVerifiableClient(suite, pkS):
+    contextString = I2OSP(mode_verifiable, 1) + I2OSP(suite.identifier, 2)
+    return VerifiableClientContext(suite, contextString, pkS)
+
+ciphersuite_p256_hkdf_sha512_sswu_ro = 0x0001
+ciphersuite_p384_hkdf_sha512_sswu_ro = 0x0002
+ciphersuite_p521_hkdf_sha512_sswu_ro = 0x0003
+
+oprf_ciphersuites = {
+    Ciphersuite("OPRF-P256-HKDF-SHA512-SSWU-RO", ciphersuite_p256_hkdf_sha512_sswu_ro, GroupP256(), hashlib.sha512),
+    Ciphersuite("OPRF-P384-HKDF-SHA512-SSWU-RO", ciphersuite_p384_hkdf_sha512_sswu_ro, GroupP384(), hashlib.sha512),
+    Ciphersuite("OPRF-P521-HKDF-SHA512-SSWU-RO", ciphersuite_p521_hkdf_sha512_sswu_ro, GroupP521(), hashlib.sha512),
 }
-
-def main():
-    vectors = {}
-    for suite in ciphersuites:
-        client = Client(suite)
-        server = Server(suite)
-        protocol = Protocol()
-        vectors[suite.name] = protocol.run(client, server, "test information")
-
-    print(json.dumps(vectors))
-
-if __name__ == "__main__":
-    # fixed_voprf()
-    main()
