@@ -419,28 +419,26 @@ this is denoted as `r*A = A + ... + A`. Any element `A` holds the equality
 We now detail a number of member functions that can be invoked on a
 prime-order group.
 
-- Order(): Outputs the order of the group as a scalar (i.e. `p`).
-- Generator(): Takes no inputs and outputs a fixed generator `G` for the
-  group.
-- Identity(): Takes no inputs and outputs the identity element of the
-  group.
-- Serialize(): A member function of `GG` that maps a group element `A`
+- Order(): Outputs the order of the group (i.e. `p`).
+- Generator(): Outputs a fixed generator `G` for the group.
+- Identity(): Outputs the identity element of the group (i.e. `I`).
+- Serialize(A): A member function of `GG` that maps a group element `A`
   to a unique byte arrays `buf` that corresponds uniquely to the
   element `A`.
-- Deserialize(): A member function of `GG` that maps an byte arrays
+- Deserialize(buf): A member function of `GG` that maps an byte arrays
   `buf` to a group element `A`.
-- HashToGroup(): A member function of `GG` that deterministically maps
+- HashToGroup(x): A member function of `GG` that deterministically maps
   an array of bytes `x` to an element of `GG`. The map must ensure that
   for any adversary receiving `R = HashToGroup(x)` be computationally
   difficult to reverse the mapping. Examples of hash to group functions
   satisfying this property are the ones described for prime-order
   (sub)groups of elliptic curves, see {{I-D.irtf-cfrg-hash-to-curve}}.
-- HashToScalar(): A member function of `GG` that deterministically maps
-  an array of bytes `x` to a random element in the scalar field of `GG`.
+- HashToScalar(x): A member function of `GG` that deterministically maps
+  an array of bytes `x` to a random element in GF(p).
 - RandomScalar(): A member function of `GG` that generates a random, non-zero
-  element in the scalar field of `GG`.
+  element in GF(p).
 
-It is common in cryptographic applications to instantiate such
+It is convenient in cryptographic applications to instantiate such
 prime-order groups using elliptic curves, such as those detailed in
 {{SEC2}}. For some choices of elliptic curves (e.g. those detailed in
 {{RFC7748}} require accounting for cofactors) there are some
@@ -459,7 +457,7 @@ multiplication into all elliptic curve operations.
   distribution over the set `Q`.
 - For two byte arrays `x` and `y`, write `x || y` to denote their
   concatenation.
-- We assume that all byte arrays are defined in big-endian orientation.
+- We assume that all numbers are stored in big-endian orientation.
 - All algorithm descriptions are written in a Python-like pseudocode.
   We use the `ABORT()` function for presentation clarity to denote
   the process of terminating the algorithm or returning an error accordingly.
@@ -500,14 +498,14 @@ as follows:
                         blindTokens
                         ---------->
 
-                          evaluation = Evaluate(skS, pkS, bts)
+                         evaluation = Evaluate(skS, pkS, blindTokens)
 
                          evaluation
                         <----------
 
     issuedTokens = Unblind(pkS, tokens, blindTokens, evaluation)
     outputs = []
-    for i in [inputs.length]:
+    for i in range(inputs.length):
      outputs[i] = Finalize(inputs[i], issuedTokens[i], info)
     Output outputs
 ~~~
@@ -602,7 +600,7 @@ required.
 ~~~
 struct {
   SerializedElement elements<1..2^16-1>;
-  Scalar proof<0...2^16-1>; /* optional */
+  Scalar proof[2]; /* only for modeVerifiable */
 } Evaluation;
 ~~~
 
@@ -611,9 +609,8 @@ struct {
 In this section, we detail the APIs available on the client and server
 OPRF contexts. This document uses the types `Element` and `Scalar` to
 denote elements of the group `GG` and its underlying scalar field,
-respectively. For notational clarity, we use the alias `PublicKey`
-and `PrivateKey` to refer to items of type `Element` and `Scalar`,
-respectively.
+respectively. For notational clarity, `PublicKey` and `PrivateKey` are items
+of type `Element` and `Scalar`, respectively.
 
 ### Server Context
 
@@ -844,7 +841,7 @@ defined below.
 #### VerifyProof
 
 This algorithm outputs a boolean `verified` which indicates whether the
-proof verifies correctly, or not.
+proof inside of the evaluation verifies correctly, or not.
 
 ~~~
 Input:
@@ -852,30 +849,31 @@ Input:
   PublicKey pkS
   SerializedElement blindedTokens[m]
   Evaluation Ev
-  Scalar proof[2]
 
 Output:
 
   boolean verified
 
-def VerifyProof(pkS, blindedTokens, Ev, proof):
+def VerifyProof(pkS, blindedTokens, Ev):
   G = GG.Generator()
   gen = GG.Serialize(G)
-  (a1, a2) = ComputeComposites(gen, pkS, blindedTokens, ev)
-  A' = (proof[1] * G + proof[0] * pkS)
-  B' = (proof[1] * M + proof[0] * Z)
+  (a1, a2) = ComputeComposites(gen, pkS, blindedTokens, Ev)
+  A' = (Ev.proof[1] * G + Ev.proof[0] * pkS)
+  B' = (Ev.proof[1] * M + Ev.proof[0] * Z)
   a3 = GG.Serialize(A')
   a4 = GG.Serialize(B')
 
   challengeDST = "RFCXXXX-challenge-" + self.contextString
   h2Input = I2OSP(len(gen), 2) || gen ||
             I2OSP(len(pkS), 2) || pkS ||
-            I2OSP(len(a1), 2) || a1 || I2OSP(len(a2), 2) || a2 ||
-            I2OSP(len(a3), 2) || a3 || I2OSP(len(a4), 2) || a4 ||
+            I2OSP(len(a1), 2) || a1 ||
+            I2OSP(len(a2), 2) || a2 ||
+            I2OSP(len(a3), 2) || a3 ||
+            I2OSP(len(a4), 2) || a4 ||
             I2OSP(len(challengeDST), 2) || challengeDST
 
   c  = GG.HashToScalar(h2Input)
-  return (c == proof[0] mod p)
+  return (c == Ev.proof[0] mod p)
 ~~~
 
 #### Unblind
@@ -921,7 +919,7 @@ This section specifies supported VOPRF group and hash function
 instantiations. For each group, we specify the HashToGroup and Serialize functionalities.
 The Deserialize functionality is the inverse of the corresponding Serialize functionality.
 
-We only provide ciphersuites in the EC setting as these provide the most efficient way of
+We only provide ciphersuites in the elliptic curve setting as these provide an  efficient way of
 instantiating the OPRF. Our instantiation includes considerations for providing the DLEQ
 proofs that make the instantiation a VOPRF. Supporting OPRF operations alone can be
 allowed by simply dropping the relevant components.
@@ -970,7 +968,7 @@ curve25519. See {{cryptanalysis}} for related discussion.
 ## OPRF(P-256, SHA-512)
 
 - Group:
-  - Elliptic curve: secp256r1 {{x9.62}}
+  - Elliptic curve: P-256 (secp256r1) {{x9.62}}
   - Generator(): Return the point with the following affine coordinates:
     - x = `6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296`
     - y = `4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5`
@@ -987,7 +985,7 @@ curve25519. See {{cryptanalysis}} for related discussion.
 ## OPRF(P-384, SHA-512)
 
 - Group:
-  - Elliptic curve: secp384r1 {{x9.62}}
+  - Elliptic curve: P-384 (secp384r1) {{x9.62}}
   - Generator(): Return the point with the following affine coordinates:
     - x = `AA87CA22BE8B05378EB1C71EF320AD746E1D3B628BA79B9859F741E082542A385502F25DBF55296C3A545E3872760AB7`
     - y = `3617DE4A96262C6F5D9E98BF9292DC29F8F41DBD289A147CE9DA3113B5F0B8C00A60B1CE1D7E819D7A431D7C90EA0E5F`
@@ -1004,7 +1002,7 @@ curve25519. See {{cryptanalysis}} for related discussion.
 ## OPRF(P-521, SHA-512)
 
 - Group:
-  - Elliptic curve: secp521r1 {{x9.62}}
+  - Elliptic curve: P-521 (secp521r1) {{x9.62}}
   - Generator(): Return the point with the following affine coordinates:
     - x = `00C6858E06B70404E9CD9E3ECB662395B4429C648139053FB521F828AF606B4D3DBAA14B5E77EFE75928FE1DC127A2FFA8DE3348B3C1856A429BF97E7E31C2E5BD66`
     - y = `011839296A789A3BC0045C8A5FB42C7D1BD998F54449579B446817AFBD17273E662C97EE72995EF42640C550B9013FAD0761353C7086A272C24088BE94769FD16650`
@@ -1345,7 +1343,8 @@ give it a computational efficiency advantage. Pre-processing also
 reduces the amount of computation that needs to be done in the online
 exchange. Choosing one of these values `r * G` (where `r` is the scalar
 value that is used), then computing `H(x) + (r * G)` is more efficient than
-computing `r * H(x)` (one addition against log_2(r)). Therefore, it may be
+computing `r * H(x)` (due to a fixed-point multiplication is calculated faster
+than a variable-point multiplication). Therefore, it may be
 advantageous to define the OPRF and VOPRF protocols using additive
 blinding rather than multiplicative blinding. In fact, the only
 algorithms that need to change are Blind and Unblind (and similarly for
@@ -1354,7 +1353,7 @@ the VOPRF variants).
 We define the FBB variants of the algorithms in {{api}} below, along
 with a new algorithm Preprocess. The Preprocess algorithm can take place
 offline and before the rest of the OPRF protocol. The Blind algorithm
-takes the proprocessed values as inputs, but the signature of Unblind
+takes the preprocessed values as inputs, but the signature of Unblind
 remains the same.
 
 ## Preprocess
@@ -1410,11 +1409,10 @@ def Blind(inputs, preprocs):
   blindedTokens = []
   for i = 0 to m:
     pre = preprocs[i]
-    r = pre.blind
-    r * G = GG.Deserialize(pre.blindedGenerator)
+    Q = GG.Deserialize(pre.blindedGenerator) /* Q = r * G */
     P = GG.HashToGroup(inputs[i])
     tokens[i] = Token{ data: x, blind: pre.blindedPublicKey }
-    blindedTokens[i] = GG.Serialize(P + r * G)
+    blindedTokens[i] = GG.Serialize(P + Q) /* P + r * G */
   return (tokens, blindedTokens)
 ~~~
 
@@ -1444,14 +1442,16 @@ def Unblind(tokens, ev, blindedTokens):
 Let `P = GG.HashToGroup(x)`. Notice that Unblind computes:
 
 ~~~
-Z - PKR = k(P + r * G) - (rk) * G = k * P
+Z - PKR = k * (P + r * G) - r * pkS
+        = k * P + k * (r * G) - r * (k * G)
+        = k * P
 ~~~
 
 by the commutativity of scalar multiplication in GG. This is the same
 output as in the `Unblind` algorithm for variable-based blinding.
 
 Note that the verifiable variant of `Unblind` works as above but includes
-the step to `VerifyProofs`, as specified in {{verifiable-client}}.
+the step to `VerifyProof`, as specified in {{verifiable-client}}.
 
 # Applications {#apps}
 
