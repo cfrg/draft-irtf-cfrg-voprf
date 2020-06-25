@@ -660,13 +660,13 @@ Output:
 
   Evaluation Ev
 
-def Evaluate(skS, pkS, blindedTokens, Ev):
+def Evaluate(skS, pkS, blindedTokens):
   elements = []
   for i in 1..m:
     BT = GG.Deserialize(blindedTokens[i])
     Z = skS * BT
     elements[i] = GG.Serialize(Z)
-  proof = GenerateProof(skS, pkS, blindedTokens, Ev)
+  proof = GenerateProof(skS, pkS, blindedTokens, elements)
   Ev = Evaluation{ elements: elements, proof: proof }
   return Ev
 ~~~
@@ -682,16 +682,16 @@ Input:
   PrivateKey skS
   PublicKey pkS
   SerializedElement blindedTokens[m]
-  Evaluation ev
+  SerializedElement elements
 
 Output:
 
   Scalar proof[2]
 
-def GenerateProof(skS, pkS, blindedTokens, ev)
+def GenerateProof(skS, pkS, blindedTokens, elements)
   G = GG.Generator()
   gen = GG.Serialize(G)
-  (a1, a2) = ComputeComposites(gen, pkS, blindedTokens, ev)
+  (a1, a2) = ComputeComposites(gen, pkS, blindedTokens, elements)
   M = GG.Deserialize(a1)
   r = GG.RandomScalar()
   a3 = GG.Serialize(r * G)
@@ -728,7 +728,7 @@ Output:
 
   SerializedElement composites[2]
 
-def ComputeComposites(gen, pkS, blindedTokens, ev):
+def ComputeComposites(gen, pkS, blindedTokens, elements):
   seedDST = "RFCXXXX-seed-" + self.contextString
   compositeDST = "RFCXXXX-composite-" + self.contextString
   h1Input = I2OSP(len(gen), 2) || gen ||
@@ -745,7 +745,7 @@ def ComputeComposites(gen, pkS, blindedTokens, ev):
               I2OSP(len(compositeDST), 2) || compositeDST
     di = GG.HashToScalar(h2Input)
     Mi = GG.Deserialize(blindedTokens[i])
-    Zi = GG.Deserialize(ev.elements[i])
+    Zi = GG.Deserialize(elements[i])
     M = di * Mi + M
     Z = di * Zi + Z
  return [GG.Serialize(M), GG.Serialize(Z)]
@@ -857,7 +857,7 @@ Output:
 def VerifyProof(pkS, blindedTokens, Ev):
   G = GG.Generator()
   gen = GG.Serialize(G)
-  (a1, a2) = ComputeComposites(gen, pkS, blindedTokens, Ev)
+  (a1, a2) = ComputeComposites(gen, pkS, blindedTokens, Ev.elements)
   A' = (Ev.proof[1] * G + Ev.proof[0] * pkS)
   B' = (Ev.proof[1] * M + Ev.proof[0] * Z)
   a3 = GG.Serialize(A')
