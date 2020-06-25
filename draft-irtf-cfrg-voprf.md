@@ -521,7 +521,7 @@ that was evaluated over.
 
 Note that in the final output, the client computes Finalize over some
 auxiliary input data `info`. This parameter SHOULD be used for domain
-separation in the (V)OPRF the protocol. Specifically, any system which has
+separation in the (V)OPRF protocol. Specifically, any system which has
 multiple (V)OPRF applications should use separate auxiliary values to to
 ensure finalized outputs are separate. Guidance for constructing info can
 be found in {{I-D.irtf-cfrg-hash-to-curve}}; Section 3.1.
