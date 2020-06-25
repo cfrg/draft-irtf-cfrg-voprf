@@ -741,23 +741,14 @@ def ComputeComposites(gen, pkS, blindedTokens, ev):
             I2OSP(len(seedDST), 2) || seedDST
 
   seed = Hash(h1Input)
-  i' = 0
   M = GG.Identity()
   Z = GG.Identity()
   for i = 0 to m:
-    di = 1
+    h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
+              I2OSP(len(compositeDST), 2) || compositeDST
+    di = GG.HashToScalar(h2Input)
     Mi = GG.Deserialize(blindedTokens[i])
     Zi = GG.Deserialize(ev.elements[i])
-    if m > 1:
-       h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i', 2) ||
-                 I2OSP(len(compositeDST), 2) || compositeDST
-       di = GG.HashToScalar(h2Input)
-
-       if di > GG.order():
-          i = i - 1 # decrement and try again
-
-       i = i + 1
-       i' = i' + 1
     M = di * Mi + M
     Z = di * Zi + Z
  return [GG.Serialize(M), GG.Serialize(Z)]
