@@ -741,11 +741,10 @@ def ComputeComposites(gen, pkS, blindedTokens, ev):
             I2OSP(len(seedDST), 2) || seedDST
 
   seed = Hash(h1Input)
-  i' = 0
   M = GG.Identity()
   Z = GG.Identity()
   for i = 0 to m:
-    h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i', 2) ||
+    h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
               I2OSP(len(compositeDST), 2) || compositeDST
     di = GG.HashToScalar(h2Input)
     Mi = GG.Deserialize(blindedTokens[i])
