@@ -83,10 +83,10 @@ class GroupNISTCurve(Group):
         return self.G
 
     def random_scalar(self):
-        return self.F.random_element()
+        return randint(1, self.order-1)
 
     def identity(self):
-        return self.curve.random_element() * self.order
+        return self.curve(0)
 
     def serialize(self, element):
         x, y = element[0], element[1]
@@ -115,7 +115,7 @@ class GroupNISTCurve(Group):
         return self.h2c_suite(msg)
 
     def hash_to_scalar(self, msg, dst=""):
-        return hash_to_field(msg, 1, dst, self.p, self.m, self.L, self.expand, self.H, self.k)[0][0]
+        return hash_to_field(msg, 1, dst, self.order, self.m, self.L, self.expand, self.H, self.k)[0][0]
 
 class GroupP256(GroupNISTCurve):
     def __init__(self):
@@ -208,7 +208,7 @@ def compute_composites(suite, contextString, Gm, pkS, evaluate_input, evaluate_o
 
     M = suite.group.identity()
     Z = suite.group.identity()
-    
+
     Mi = suite.group.deserialize(evaluate_input)
     Zi = suite.group.deserialize(evaluate_output)
     di = 1
@@ -289,7 +289,7 @@ class VerifiableServerContext(ServerContext):
             + I2OSP(len(challengeDST), 2) + challengeDST
 
         c = self.suite.group.hash_to_scalar(h2s_input)
-        s = r - (c * self.skS)
+        s = (r - c * self.skS) % G.order()
 
         return [c, s]
 
