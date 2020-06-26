@@ -73,7 +73,9 @@ def main():
         protocol = Protocol()
         vectors["Verifiable" + suite.name] = protocol.run(client, server, "test information")
 
-    print(json.dumps(vectors))
+    with open(path + "/allVectors.json", 'wt') as f:
+        json.dump(vectors, f, sort_keys=True, indent=2)
+        f.write("\n")
 
 if __name__ == "__main__":
     main()
