@@ -615,7 +615,12 @@ of type `Element` and `Scalar`, respectively.
 ### Server Context
 
 The ServerContext encapsulates the context string constructed during setup and
-the OPRF key pair. It has a single function, `Evaluate()`, described below.
+the OPRF key pair. It has two functions, `Evaluate` and `EvaluateInput`,
+described below. `Evaluate` takes as input serialized representations of
+blinded group elements from the client. `EvaluateInput` takes as input
+opaque byte strings, hashes them to elements, and then invokes the `Evaluate`
+function on the result. Note that `EvaluateInput` is not used in the main
+OPRF protocol. It is exposed as an API for building higher-level protocols.
 
 #### Evaluate
 
@@ -638,6 +643,27 @@ def Evaluate(skS, pkS, blindedTokens):
     elements[i] = GG.Serialize(Z)
   Ev = Evaluation{ elements: elements }
   return Ev
+~~~
+
+#### EvaluateInput
+
+~~~
+Input:
+
+  PrivateKey skS
+  PublicKey pkS
+  ClientInput inputs[m]
+
+Output:
+
+  Evaluation Ev
+
+def EvaluateInput(skS, pkS, inputs):
+  elements = []
+  for i in 1..m:
+    T = GG.HashToGroup(inputs[i])
+    elements[i] = GG.Serialize(T)
+  return Evaluate(skS, pkS, elements)
 ~~~
 
 ### Verifiable Server Context

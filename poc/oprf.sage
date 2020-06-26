@@ -194,6 +194,10 @@ class ServerContext(object):
     def evaluate(self, element):
         return [self.skS * element]
 
+    def evaluate_input(self, x):
+        element = self.suite.group.hash_to_group(x, self.dst)
+        return self.evaluate(element)
+
 
 def compute_composites(suite, contextString, Gm, pkS, evaluate_input, evaluate_output):
     seedDST = _as_bytes("RFCXXXX-seed-") + contextString
