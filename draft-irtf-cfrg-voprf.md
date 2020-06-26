@@ -779,7 +779,7 @@ def Blind(inputs):
   for i = 0 to m:
     r = GG.RandomScalar()
     P = GG.HashToGroup(inputs[i])
-    tokens[i] = Token{ data: x, blind: r }
+    tokens[i] = Token{ data: inputs[i], blind: r }
     blindedTokens[i] = GG.Serialize(r * P)
  return (tokens, blindedTokens)
 ~~~
@@ -1411,7 +1411,7 @@ def Blind(inputs, preprocs):
     pre = preprocs[i]
     Q = GG.Deserialize(pre.blindedGenerator) /* Q = r * G */
     P = GG.HashToGroup(inputs[i])
-    tokens[i] = Token{ data: x, blind: pre.blindedPublicKey }
+    tokens[i] = Token{ data: inputs[i], blind: pre.blindedPublicKey }
     blindedTokens[i] = GG.Serialize(P + Q) /* P + r * G */
   return (tokens, blindedTokens)
 ~~~
