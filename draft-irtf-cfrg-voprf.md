@@ -458,9 +458,13 @@ multiplication into all elliptic curve operations.
 - For two byte arrays `x` and `y`, write `x || y` to denote their
   concatenation.
 - We assume that all numbers are stored in big-endian orientation.
-- All algorithm descriptions are written in a Python-like pseudocode.
-  We use the `ABORT()` function for presentation clarity to denote
-  the process of terminating the algorithm or returning an error accordingly.
+
+All algorithm descriptions are written in a Python-like pseudocode.
+We use the `ABORT()` function for presentation clarity to denote
+the process of terminating the algorithm or returning an error accordingly.
+We also use the `CT_EQUAL(a, b)` function to represent constant-time
+byte-wise equality between byte arrays `a` and `b`. This function returns
+a boolean `true` if `a` and `b` are equal, and `false` otherwise.
 
 # OPRF Protocol {#protocol}
 
@@ -615,11 +619,11 @@ of type `Element` and `Scalar`, respectively.
 ### Server Context
 
 The ServerContext encapsulates the context string constructed during setup and
-the OPRF key pair. It has two functions, `Evaluate` and `EvaluateInput`,
+the OPRF key pair. It has two functions, `Evaluate` and `VerifyFinalize`,
 described below. `Evaluate` takes as input serialized representations of
-blinded group elements from the client. `EvaluateInput` takes as input
-opaque byte strings, hashes them to elements, and then invokes the `Evaluate`
-function on the result. Note that `EvaluateInput` is not used in the main
+blinded group elements from the client. `VerifyFinalize` takes ClientInput values
+and their corresponding output digests from `Verify` and returns true if the
+inputs match the outputs. Note that `VerifyFinalize` is not used in the main
 OPRF protocol. It is exposed as an API for building higher-level protocols.
 
 #### Evaluate
@@ -645,25 +649,35 @@ def Evaluate(skS, pkS, blindedTokens):
   return Ev
 ~~~
 
-#### EvaluateInput
+#### VerifyFinalize
 
 ~~~
 Input:
 
   PrivateKey skS
   PublicKey pkS
-  ClientInput inputs[m]
+  ClientInput input
+  opaque info<1..2^16-1>
+  opaque output<1..2^16-1>
 
 Output:
 
-  Evaluation Ev
+  boolean valid
 
-def EvaluateInput(skS, pkS, inputs):
-  elements = []
-  for i in 1..m:
-    T = GG.HashToGroup(inputs[i])
-    elements[i] = GG.Serialize(T)
-  return Evaluate(skS, pkS, elements)
+def VerifyFinalize(skS, pkS, input, info, output):
+  T = GG.HashToGroup(input)
+  element = GG.Serialize(T)
+  issuedElement = Evaluate(skS, pkS, [element])
+  E = GG.Serialize(issuedElement)
+
+  finalizeDST = "RFCXXXX-Finalize-" + self.contextString
+  hashInput = len(input) || input ||
+              len(E) || E ||
+              len(info) || info ||
+              len(finalizeDST) || finalizeDST
+  digest = Hash(hashInput)
+
+  return CT_EQUAL(digest, output)
 ~~~
 
 ### Verifiable Server Context
