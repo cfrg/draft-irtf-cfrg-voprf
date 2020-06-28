@@ -58,7 +58,7 @@ class Protocol(object):
 
         return vector
 
-def main():
+def main(path="vectors"):
     vectors = {}
 
     for suite in oprf_ciphersuites:
