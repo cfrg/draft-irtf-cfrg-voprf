@@ -139,6 +139,12 @@ class GroupP521(GroupNISTCurve):
         GroupNISTCurve.__init__(self, "P521_XMD:SHA-512_SSWU_RO_", p521_sswu_ro, p521_F, p521_A, p521_B, p521_p, p521_order, gx, gy, 98, hashlib.sha512, expand_message_xmd, 256)
 
 
+class Evaluation(object):
+    def __init__(self, evaluated_element, proof):
+        self.evaluated_element = evaluated_element
+        self.proof = proof
+
+
 class Ciphersuite(object):
     def __init__(self, name, identifier, group, H):
         self.name = name
@@ -148,7 +154,6 @@ class Ciphersuite(object):
 
     def __str__(self):
         return self.name
-
 
 class ClientContext(object):
     def __init__(self, suite, contextString):
@@ -166,8 +171,7 @@ class ClientContext(object):
         return r, R, P
 
     def unblind(self, ev, r, _):
-        assert (type(ev) == type([]) and len(ev) == 1 and ev[0] != None)
-        N = ev[0]
+        N = ev.evaluated_element
         r_inv = inverse_mod(r, self.suite.group.G.order())
         y = r_inv * N
         return y
@@ -190,13 +194,27 @@ class ServerContext(object):
         self.contextString = contextString
         self.skS = skS
         self.pkS = suite.group.G * skS
+        self.dst = _as_bytes("RFCXXXX-") + self.contextString
 
     def evaluate(self, element):
-        return [self.skS * element]
+        return Evaluation(self.skS * element, None)
 
-    def evaluate_input(self, x):
+    def verify_finalize(self, x, info, expected_digest):
         element = self.suite.group.hash_to_group(x, self.dst)
-        return self.evaluate(element)
+        issued_element = self.evaluate(element).evaluated_element
+        encoded_element = self.suite.group.serialize(issued_element)
+
+        finalizeDST = _as_bytes("RFCXXXX-Finalize-") + self.contextString
+        finalize_input = I2OSP(len(x), 2) + x \
+            + I2OSP(len(encoded_element), 2) + encoded_element \
+            + I2OSP(len(info), 2) + info \
+            + I2OSP(len(finalizeDST), 2) + finalizeDST
+
+        h = self.suite.H()
+        h.update(finalize_input)
+        digest = h.digest()
+
+        return (digest == expected_digest)
 
 
 def compute_composites(suite, contextString, Gm, pkS, evaluate_input, evaluate_output):
@@ -253,15 +271,17 @@ class VerifiableClientContext(ClientContext):
             + I2OSP(len(challengeDST), 2) + challengeDST
 
         c = self.suite.group.hash_to_scalar(h2s_input)
+
         assert(c == pi[0])
+        return c == pi[0]
 
     def unblind(self, ev, r, R):
-        assert (type(ev) == type([]) and len(ev) == 2 and ev[1] != None)
-        N = ev[0]
-        pi = ev[1]
+        N = ev.evaluated_element
+        pi = ev.proof
         evaluate_input = self.suite.group.serialize(R)
         evaluate_output = self.suite.group.serialize(N)
-        self.verify_proof(evaluate_input, evaluate_output, pi)
+        if not self.verify_proof(evaluate_input, evaluate_output, pi):
+            raise Exception("Proof verification failed")
 
         r_inv = inverse_mod(r, self.suite.group.G.order())
         y = r_inv * N
@@ -298,11 +318,11 @@ class VerifiableServerContext(ServerContext):
         return [c, s]
 
     def evaluate(self, element):
-        output = self.skS * element
+        evaluated_element = self.skS * element
         evaluate_input = self.suite.group.serialize(element)
-        evaluate_output = self.suite.group.serialize(output)
+        evaluate_output = self.suite.group.serialize(evaluated_element)
         proof = self.generate_proof(evaluate_input, evaluate_output)
-        return [output, proof]
+        return Evaluation(evaluated_element, proof)
 
 
 mode_base = 0x00
