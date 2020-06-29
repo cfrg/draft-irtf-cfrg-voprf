@@ -458,6 +458,9 @@ multiplication into all elliptic curve operations.
 - For two byte arrays `x` and `y`, write `x || y` to denote their
   concatenation.
 - We assume that all numbers are stored in big-endian orientation.
+- I2OSP and OS2IP: Convert a byte string to and from a non-negative integer as
+  described in {{!RFC8017}}. Note that these functions operate on byte strings
+  in big-endian byte order.
 
 All algorithm descriptions are written in a Python-like pseudocode.
 We use the `ABORT()` function for presentation clarity to denote
@@ -491,35 +494,31 @@ The following one-byte values distinguish between these two modes:
 ## Overview
 
 Both participants agree on the mode and a choice of ciphersuite that is used
-before the protocol exchange. Once established, the core protocol works
-as follows:
+before the protocol exchange. Once established, the core protocol runs to
+compute `output = F(skS, input)` as follows:
 
 ~~~
-   Client(inputs, pkS, info)                 Server(skS, pkS)
+   Client(input, pkS, info)                 Server(skS, pkS)
   ----------------------------------------------------------
-    tokens, blindTokens = Blind(inputs)
+    token, blindToken = Blind(input)
 
-                        blindTokens
+                         blindToken
                         ---------->
 
-                         evaluation = Evaluate(skS, pkS, blindTokens)
+                         evaluation = Evaluate(skS, pkS, blindToken)
 
                          evaluation
                         <----------
 
-    issuedTokens = Unblind(pkS, tokens, blindTokens, evaluation)
-    outputs = []
-    for i in range(inputs.length):
-     outputs[i] = Finalize(inputs[i], issuedTokens[i], info)
-    Output outputs
+    issuedToken = Unblind(pkS, token, blindToken, evaluation)
+    output = Finalize(input, issuedToken, info)
 ~~~
 
-In `Blind` the client generates the tokens and blinding data. The Server
+In `Blind` the client generates a token and blinding data. The Server
 computes the (V)OPRF evaluation in `Evaluation` over the client's
-blinded tokens. In `Unblind` the client unblinds the server response
+blinded token. In `Unblind` the client unblinds the server response
 (and verifies the Server's proof if verifiability is required). In
-`Finalize`, the client outputs a byte array corresponding to each token
-that was evaluated over.
+`Finalize`, the client outputs a byte array corresponding to its input.
 
 Note that in the final output, the client computes Finalize over some
 auxiliary input data `info`. This parameter SHOULD be used for domain
@@ -607,14 +606,25 @@ struct {
 ~~~
 
 An `Evaluation` is the type output by the `Evaluate` algorithm. The
-member `proof` is added only in the case where verifiability is
-required.
+member `proof` is added only in verifiable contexts.
+
+~~~
+struct {
+  SerializedElement element;
+  Scalar proof<0...2^16-1>; /* only for modeVerifiable */
+} Evaluation;
+~~~
+
+Evaluations may also be combined in batches with a constant-size proof,
+producing a `BatchedEvaluation`. These carry a list of `SerializedElement`
+values and proof. These evaluation types are only useful in verifiable
+contexts which carry proofs.
 
 ~~~
 struct {
   SerializedElement elements<1..2^16-1>;
   Scalar proof<0...2^16-1>; /* only for modeVerifiable */
-} Evaluation;
+} BatchedEvaluation;
 ~~~
 
 ## Context APIs {#api}
@@ -642,19 +652,19 @@ Input:
 
   PrivateKey skS
   PublicKey pkS
-  SerializedElement blindedTokens[m]
+  SerializedElement blindedToken
 
 Output:
 
   Evaluation Ev
 
-def Evaluate(skS, pkS, blindedTokens):
-  elements = []
-  for i in 1..m:
-    BT = GG.Deserialize(blindedTokens[i])
-    Z = skS * BT
-    elements[i] = GG.Serialize(Z)
-  Ev = Evaluation{ elements: elements }
+def Evaluate(skS, pkS, blindedToken):
+  BT = GG.Deserialize(blindedToken)
+  Z = skS * BT
+  serializedElement = GG.Serialize(Z)
+
+  Ev = Evaluation{ element: serializedElement }
+
   return Ev
 ~~~
 
@@ -703,20 +713,20 @@ Input:
 
   PrivateKey skS
   PublicKey pkS
-  SerializedElement blindedTokens[m]
+  SerializedElement blindedToken
 
 Output:
 
   Evaluation Ev
 
-def Evaluate(skS, pkS, blindedTokens):
-  elements = []
-  for i in 1..m:
-    BT = GG.Deserialize(blindedTokens[i])
-    Z = skS * BT
-    elements[i] = GG.Serialize(Z)
-  proof = GenerateProof(skS, pkS, blindedTokens, elements)
-  Ev = Evaluation{ elements: elements, proof: proof }
+def Evaluate(skS, pkS, blindedToken):
+  BT = GG.Deserialize(blindedToken)
+  Z = skS * BT
+  serializedElement = GG.Serialize(Z)
+
+  proof = GenerateProof(skS, pkS, blindedToken, element)
+  Ev = Evaluation{ element: element, proof: proof }
+
   return Ev
 ~~~
 
@@ -730,17 +740,22 @@ Input:
 
   PrivateKey skS
   PublicKey pkS
-  SerializedElement blindedTokens[m]
-  SerializedElement elements
+  SerializedElement blindedToken
+  SerializedElement element
 
 Output:
 
   Scalar proof[2]
 
-def GenerateProof(skS, pkS, blindedTokens, elements)
+def GenerateProof(skS, pkS, blindedToken, element)
   G = GG.Generator()
   gen = GG.Serialize(G)
-  (a1, a2) = ComputeComposites(gen, pkS, blindedTokens, elements)
+
+  blindTokenList = [blindedToken]
+  elementList = [element]
+
+  (a1, a2) = ComputeComposites(gen, pkS, blindTokenList, elementList)
+
   M = GG.Deserialize(a1)
   r = GG.RandomScalar()
   a3 = GG.Serialize(r * G)
@@ -755,8 +770,19 @@ def GenerateProof(skS, pkS, blindedTokens, elements)
 
   c = GG.HashToScalar(h2Input)
   s = (r - c * skS) mod p
+
   return (c, s)
 ~~~
+
+Unlike other functions, `ComputeComposites` takes lists of inputs, rather
+than a single input. It is optimized to produce a constant-size output.
+This functionality lets applications batch inputs together to produce a
+constant-size proofs from `GenerateProof`. Applications can take advantage
+of this functionality by invoking `GenerateProof` on batches of inputs.
+(Notice that in the pseudocode above, the single inputs `blindedToken`
+and `element` are translated into lists before invoking `ComputeComposites`.
+A batched `GenerateProof` variant would permit lists of inputs, and no
+list translation would be needed.)
 
 We note here that it is essential that a different r value is used for
 every invocation. If this is not done, then this may leak `skS` in a
@@ -771,7 +797,7 @@ Input:
   SerializedElement gen
   PublicKey pkS
   SerializedElement blindedTokens[m]
-  SerializedElement elements
+  SerializedElement elements[m]
 
 Output:
 
@@ -815,22 +841,21 @@ scenarios. We detail these modifications in {{blinding}}.
 ~~~
 Input:
 
-  ClientInput inputs[m]
+  ClientInput input
 
 Output:
 
-  Token tokens[m]
-  SerializedElement blindedTokens[m]
+  Token token
+  SerializedElement blindedToken
 
-def Blind(inputs):
-  tokens = []
-  blindedTokens = []
-  for i = 0 to m:
-    r = GG.RandomScalar()
-    P = GG.HashToGroup(inputs[i])
-    tokens[i] = Token{ data: inputs[i], blind: r }
-    blindedTokens[i] = GG.Serialize(r * P)
- return (tokens, blindedTokens)
+def Blind(input):
+  r = GG.RandomScalar()
+  P = GG.HashToGroup(input)
+  blindedToken = GG.Serialize(r * P)
+
+  token = Token{ data: input, blind: r }
+
+  return (token, blindedToken)
 ~~~
 
 #### Unblind
@@ -839,22 +864,22 @@ def Blind(inputs):
 Input:
 
   PublicKey pkS
-  Token tokens[m]
-  SerializedElement blindedTokens[m]
+  Token token
+  SerializedElement blindedToken
   Evaluation Ev
 
 Output:
 
-  SerializedElement unblindedTokens[m]
+  SerializedElement unblindedToken
 
-def Unblind(pkS, tokens, blindedTokens, Ev):
-  unblindedTokens = []
-  for i = 0 to m:
-    r = tokens[i].blind
-    Z = GG.Deserialize(Ev.elements[i])
-    N = (r^(-1)) * Z
-    unblindedTokens[i] = GG.Serialize(N)
- return unblindedTokens
+def Unblind(pkS, token, blindedToken, Ev):
+  r = token.blind
+  Z = GG.Deserialize(Ev.element)
+  N = (r^(-1)) * Z
+
+  unblindedToken = GG.Serialize(N)
+
+  return unblindedToken
 ~~~
 
 #### Finalize
@@ -896,17 +921,22 @@ proof inside of the evaluation verifies correctly, or not.
 Input:
 
   PublicKey pkS
-  SerializedElement blindedTokens[m]
+  SerializedElement blindedToken
   Evaluation Ev
 
 Output:
 
   boolean verified
 
-def VerifyProof(pkS, blindedTokens, Ev):
+def VerifyProof(pkS, blindedToken, Ev):
   G = GG.Generator()
   gen = GG.Serialize(G)
-  (a1, a2) = ComputeComposites(gen, pkS, blindedTokens, Ev.elements)
+
+  blindTokenList = [blindedToken]
+  elementList = [Ev.element]
+
+  (a1, a2) = ComputeComposites(gen, pkS, blindTokenList, elementList)
+
   A' = (Ev.proof[1] * G + Ev.proof[0] * pkS)
   B' = (Ev.proof[1] * M + Ev.proof[0] * Z)
   a3 = GG.Serialize(A')
@@ -922,6 +952,7 @@ def VerifyProof(pkS, blindedTokens, Ev):
             I2OSP(len(challengeDST), 2) || challengeDST
 
   c  = GG.HashToScalar(h2Input)
+
   return (c == Ev.proof[0] mod p)
 ~~~
 
@@ -931,25 +962,25 @@ def VerifyProof(pkS, blindedTokens, Ev):
 Input:
 
   PublicKey pkS
-  Token tokens[m]
-  SerializedElement blindedTokens[m]
+  Token token
+  SerializedElement blindedToken
   Evaluation Ev
 
 Output:
 
-  SerializedElement unblindedTokens[m]
+  SerializedElement unblindedToken
 
-def Unblind(pkS, tokens, blindedTokens, Ev):
-  if VerifyProof(pkS, blindedTokens, Ev) == false:
+def Unblind(pkS, token, blindedToken, Ev):
+  if VerifyProof(pkS, blindedToken, Ev) == false:
     ABORT()
 
-  unblindedTokens = []
-  for i = 0 to m:
-    r = tokens[i].blind
-    Z = GG.Deserialize(Ev.elements[i])
-    N = (r^(-1)) * Z
-    unblindedTokens[i] = GG.Serialize(N)
- return unblindedTokens
+  r = token.blind
+  Z = GG.Deserialize(Ev.element)
+  N = (r^(-1)) * Z
+
+  unblindedToken = GG.Serialize(N)
+
+  return unblindedToken
 ~~~
 
 # Ciphersuites {#ciphersuites}
@@ -975,6 +1006,8 @@ allowed by simply dropping the relevant components.
 
 Applications should take caution in using ciphersuites targeting P-256 and
 curve25519. See {{cryptanalysis}} for related discussion.
+
+[[OPEN ISSUE: Replace Curve25519 and Curve448 with Ristretto/Decaf]]
 
 ## OPRF(curve25519, SHA-512)
 
@@ -1419,25 +1452,24 @@ struct {
 Input:
 
   PublicKey pkS
-  uint16 m
 
 Output:
 
-  PrepocessedBlind preprocs[m]
+  PrepocessedBlind preproc
 
-def Preprocess(pkS, m):
-  preprocs = []
+def Preprocess(pkS):
   PK = GG.Deserialize(pkS)
-  for i = 0 to m:
-    r = GG.RandomScalar()
-    blindedGenerator = GG.Serialize(r * GG.Generator())
-    blindedPublicKey = GG.Serialize(r * PK)
-    preprocs[i] = PrepocessedBlind{
-      blind: r,
-      blindedGenerator: blindedGenerator,
-      blindedPublicKey: blindedPublicKey,
-    }
- return preprocs
+  r = GG.RandomScalar()
+  blindedGenerator = GG.Serialize(r * GG.Generator())
+  blindedPublicKey = GG.Serialize(r * PK)
+
+  preproc = PrepocessedBlind{
+    blind: r,
+    blindedGenerator: blindedGenerator,
+    blindedPublicKey: blindedPublicKey,
+  }
+
+  return preproc
 ~~~
 
 ## Blind
@@ -1445,24 +1477,25 @@ def Preprocess(pkS, m):
 ~~~
 Input:
 
-  ClientInput inputs[m]
-  PreprocessedBlinds preprocs[m]
+  ClientInput input
+  PreprocessedBlind preproc
 
 Output:
 
-  Token tokens[m]
-  SerializedElement blindedTokens[m]
+  Token token
+  SerializedElement blindedToken
 
-def Blind(inputs, preprocs):
-  tokens = []
-  blindedTokens = []
-  for i = 0 to m:
-    pre = preprocs[i]
-    Q = GG.Deserialize(pre.blindedGenerator) /* Q = r * G */
-    P = GG.HashToGroup(inputs[i])
-    tokens[i] = Token{ data: inputs[i], blind: pre.blindedPublicKey }
-    blindedTokens[i] = GG.Serialize(P + Q) /* P + r * G */
-  return (tokens, blindedTokens)
+def Blind(input, preproc):
+  Q = GG.Deserialize(preproc.blindedGenerator) /* Q = r * G */
+  P = GG.HashToGroup(input)
+
+  token = Token{
+    data: input,
+    blind: preproc.blindedPublicKey
+  }
+  blindedToken = GG.Serialize(P + Q)           /* P + r * G */
+
+  return (token, blindedToken)
 ~~~
 
 ## Unblind
@@ -1470,22 +1503,22 @@ def Blind(inputs, preprocs):
 ~~~
 Input:
 
-  Token tokens[m]
+  Token token
   Evaluation ev
-  SerializedElement blindedTokens[m]
+  SerializedElement blindedToken
 
 Output:
 
- SerializedElement unblinded[m]
+ SerializedElement unblinded
 
-def Unblind(tokens, ev, blindedTokens):
-  unblindedTokens = []
-  for i = 0 to m:
-    PKR = GG.Deserialize(tokens[i].blind)
-    Z = GG.Deserialize(ev.elements[i])
-    N := Z - PKR
-    unblindedTokens[i] = GG.Serialize(N)
-  return unblindedTokens
+def Unblind(token, ev, blindedToken):
+  PKR = GG.Deserialize(token.blind)
+  Z = GG.Deserialize(ev.element)
+  N := Z - PKR
+
+  unblindedToken = GG.Serialize(N)
+
+  return unblindedToken
 ~~~
 
 Let `P = GG.HashToGroup(x)`. Notice that Unblind computes:
