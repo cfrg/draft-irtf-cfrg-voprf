@@ -458,9 +458,13 @@ multiplication into all elliptic curve operations.
 - For two byte arrays `x` and `y`, write `x || y` to denote their
   concatenation.
 - We assume that all numbers are stored in big-endian orientation.
-- All algorithm descriptions are written in a Python-like pseudocode.
-  We use the `ABORT()` function for presentation clarity to denote
-  the process of terminating the algorithm or returning an error accordingly.
+
+All algorithm descriptions are written in a Python-like pseudocode.
+We use the `ABORT()` function for presentation clarity to denote
+the process of terminating the algorithm or returning an error accordingly.
+We also use the `CT_EQUAL(a, b)` function to represent constant-time
+byte-wise equality between byte arrays `a` and `b`. This function returns
+a boolean `true` if `a` and `b` are equal, and `false` otherwise.
 
 # OPRF Protocol {#protocol}
 
@@ -624,7 +628,12 @@ of type `Element` and `Scalar`, respectively.
 ### Server Context
 
 The ServerContext encapsulates the context string constructed during setup and
-the OPRF key pair. It has a single function, `Evaluate()`, described below.
+the OPRF key pair. It has two functions, `Evaluate` and `VerifyFinalize`,
+described below. `Evaluate` takes as input serialized representations of
+blinded group elements from the client. `VerifyFinalize` takes ClientInput values
+and their corresponding output digests from `Verify` and returns true if the
+inputs match the outputs. Note that `VerifyFinalize` is not used in the main
+OPRF protocol. It is exposed as an API for building higher-level protocols.
 
 #### Evaluate
 
@@ -647,6 +656,37 @@ def Evaluate(skS, pkS, blindedTokens):
     elements[i] = GG.Serialize(Z)
   Ev = Evaluation{ elements: elements }
   return Ev
+~~~
+
+#### VerifyFinalize
+
+~~~
+Input:
+
+  PrivateKey skS
+  PublicKey pkS
+  ClientInput input
+  opaque info<1..2^16-1>
+  opaque output<1..2^16-1>
+
+Output:
+
+  boolean valid
+
+def VerifyFinalize(skS, pkS, input, info, output):
+  T = GG.HashToGroup(input)
+  element = GG.Serialize(T)
+  issuedElement = Evaluate(skS, pkS, [element])
+  E = GG.Serialize(issuedElement)
+
+  finalizeDST = "RFCXXXX-Finalize-" + self.contextString
+  hashInput = len(input) || input ||
+              len(E) || E ||
+              len(info) || info ||
+              len(finalizeDST) || finalizeDST
+  digest = Hash(hashInput)
+
+  return CT_EQUAL(digest, output)
 ~~~
 
 ### Verifiable Server Context

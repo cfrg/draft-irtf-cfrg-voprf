@@ -33,17 +33,19 @@ class Protocol(object):
             Z = client.unblind(T, r, R)
             y = client.finalize(x, Z, info.encode("utf-8"))
 
+            assert(server.verify_finalize(x, info.encode("utf-8"), y))
+
             vector = {}
             vector["ClientInput"] = to_hex(x)
             vector["UnblindedElement"] = to_hex(group.serialize(P))
             vector["BlindedElement"] = to_hex(group.serialize(R))
             vector["Evaluation"] = {
-                "EvaluatedElement": to_hex(group.serialize(T[0])),
+                "EvaluatedElement": to_hex(group.serialize(T.evaluated_element)),
             }
-            if len(T) == 2 and T[1] != None:
+            if T.proof != None:
                 vector["Evaluation"]["proof"] = {
-                    "c": hex(T[1][0]),
-                    "s": hex(T[1][1]),
+                    "c": hex(T.proof[0]),
+                    "s": hex(T.proof[1]),
                 }
 
             vector["SignedElement"] = to_hex(group.serialize(Z))
