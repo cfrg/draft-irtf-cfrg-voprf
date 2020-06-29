@@ -530,8 +530,10 @@ be found in {{I-D.irtf-cfrg-hash-to-curve}}; Section 3.1.
 
 ## Context Setup
 
-Both modes of the OPRF involve an offline setup phase which establishes a context
-used by the client or server in executing the online phase of the protocol.
+Both modes of the OPRF involve an offline setup phase. In this phase, both
+client and server create a context used for executing the online phase of
+the protocol. The base mode setup functions for creating client and server
+contexts are below:
 
 ~~~
 def SetupBaseServer(suite):
@@ -542,7 +544,16 @@ def SetupBaseServer(suite):
 def SetupBaseClient(suite):
   contextString = I2OSP(modeBase, 1) + I2OSP(suite.ID, 2)
   return ClientContext(contextString)
+~~~
 
+The `KeyGen` function used above takes a group `GG` and generates a private and public
+key pair (skX, pkX), where skX is a random, non-zero element in the scalar field `GG`
+and pkX is the product of skX and the group's fixed generator.
+
+The verifiable mode setup functions for creating client and server contexts
+are below.
+
+~~~
 def SetupVerifiableServer(suite):
   (skS, pkS) = KeyGen(GG)
   contextString = I2OSP(modeVerifiable, 1) + I2OSP(suite.ID, 2)
@@ -553,11 +564,9 @@ def SetupVerifiableClient(suite, pkS):
   return VerifiableClientContext(contextString, pkS)
 ~~~
 
-The `KeyGen` function used above takes a group `GG` and generates a private and public
-key pair (skX, pkX), where skX is a random, non-zero element in the scalar field `GG`
-and pkX is the product of skX and the group's fixed generator. For verifiable
-modes, servers MUST make the resulting public key `pkS` accessible for clients.
-(Indeed, it is a required parameter when configuring a verifiable client context.)
+For verifiable modes, servers MUST make the resulting public key `pkS` accessible
+for clients. (Indeed, it is a required parameter when configuring a verifiable client
+context.)
 
 Each setup function takes a ciphersuite from the list defined in
 {{ciphersuites}}. Each ciphersuite has two-byte identifier, referred

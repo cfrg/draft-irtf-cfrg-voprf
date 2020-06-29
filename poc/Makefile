@@ -22,7 +22,7 @@ test: pyfiles
 	sage test.sage
 
 vectors: pyfiles
-# 	@mkdir -p vectors ascii
+	@mkdir -p vectors
 	sage test_oprf.sage
 
 .PHONY: clean
