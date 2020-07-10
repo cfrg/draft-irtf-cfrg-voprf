@@ -1018,13 +1018,13 @@ curve25519. See {{cryptanalysis}} for related discussion.
     - y = `20AE19A1B8A086B4E01EDD2C7748D14C923D4D7E6D7C61B229E9C5A27ECED3D9`
   - HashToGroup(): curve25519_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-curve25519_XMD:SHA-512_ELL2_RO_"
   - Serialization: The standard 32-byte representation of the public key {{!RFC7748}}
-  - Order(): Returns `1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFED`
+  - Order(): Returns `1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED`
   - Addition: Adding curve points directly corresponds to the group
     addition operation.
-  - Scalar multiplication: Implementers must validate all untrusted
-    input points to the scalar multiplication algorithm. Validation
-    consists of checking that input points are members of the
-    prime-order subgroup of the curve. See {{RFC7748}} for more details.
+  - Deserialization: Implementers must check for each untrusted input point
+    whether it's a member of the big prime-order subgroup of the curve.
+    This can be done by scalar multiplying the point by Order() and checking
+    whether it's zero.
 - Hash: SHA-512
 - ID: 0x0001
 
@@ -1037,13 +1037,13 @@ curve25519. See {{cryptanalysis}} for related discussion.
     - y = `7D235D1295F5B1F66C98AB6E58326FCECBAE5D34F55545D060F75DC28DF3F6EDB8027E2346430D211312C4B150677AF76FD7223D457B5B1A`
   - HashToGroup(): curve448_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-curve448_XMD:SHA-512_ELL2_RO_"
   - Serialization: The standard 56-byte representation of the public key {{!RFC7748}}
-  - Order(): Returns `FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF`
+  - Order(): Returns `3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7CCA23E9C44EDB49AED63690216CC2728DC58F552378C292AB5844F3`
   - Addition: Adding curve points directly corresponds to the group
     addition operation.
-  - Scalar multiplication: Implementers must validate all untrusted
-    input points to the scalar multiplication algorithm. Validation
-    consists of checking that input points are members of the
-    prime-order subgroup of the curve. See {{RFC7748}} for more details.
+  - Deserialization: Implementers must check for each untrusted input point
+    whether it's a member of the big prime-order subgroup of the curve.
+    This can be done by scalar multiplying the point by Order() and checking
+    whether it's zero.
 - Hash: SHA-512
 - ID: 0x0002
 
