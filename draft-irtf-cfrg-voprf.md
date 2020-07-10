@@ -1021,11 +1021,10 @@ curve25519. See {{cryptanalysis}} for related discussion.
   - Order(): Returns `1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED`
   - Addition: Adding curve points directly corresponds to the group
     addition operation.
-  - Deserialization: implementors must check for each untrusted input point
+  - Deserialization: Implementers must check for each untrusted input point
     whether it's a member of the big prime-order subgroup of the curve.
     This can be done by scalar multiplying the point by Order() and checking
     whether it's zero.
-    
 - Hash: SHA-512
 - ID: 0x0001
 
