@@ -1040,7 +1040,7 @@ curve25519. See {{cryptanalysis}} for related discussion.
   - Order(): Returns `3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7CCA23E9C44EDB49AED63690216CC2728DC58F552378C292AB5844F3`
   - Addition: Adding curve points directly corresponds to the group
     addition operation.
-  - Deserialization: implementors must check for each untrusted input point
+  - Deserialization: Implementers must check for each untrusted input point
     whether it's a member of the big prime-order subgroup of the curve.
     This can be done by scalar multiplying the point by Order() and checking
     whether it's zero.
