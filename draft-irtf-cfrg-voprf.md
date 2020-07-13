@@ -1002,16 +1002,21 @@ and curve25519. See {{cryptanalysis}} for related discussion.
   - Elliptic curve: curve25519 {{RFC7748}}
   - Generator(): Return the point with the following affine coordinates:
     - x = `09`
-    - y = `5F51E65E475F794B1FE122D388B72EB36DC2B28192839E4DD6163A5D81312C14`
-  - HashToGroup(): curve25519_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-curve25519_XMD:SHA-512_ELL2_RO_"
-  - Serialization: The standard 32-byte representation of the public key {{!RFC7748}}
-  - Order(): Returns `1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED`
+    - y =
+      `5F51E65E475F794B1FE122D388B72EB36DC2B28192839E4DD6163A5D81312C14`
+  - HashToGroup(): curve25519_XMD:SHA-512_ELL2_RO_
+    {{I-D.irtf-cfrg-hash-to-curve}} with DST
+    "RFCXXXX-curve25519_XMD:SHA-512_ELL2_RO_"
+  - Serialization: The standard 32-byte representation of the public key
+    {{!RFC7748}}
+  - Order(): Returns
+    `1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED`
   - Addition: Adding curve points directly corresponds to the group
     addition operation.
-  - Deserialization: Implementers must check for each untrusted input point
-    whether it's a member of the big prime-order subgroup of the curve.
-    This can be done by scalar multiplying the point by Order() and checking
-    whether it's zero.
+  - Deserialization: Implementers must check for each untrusted input
+    point whether it's a member of the big prime-order subgroup of the
+    curve. This can be done by scalar multiplying the point by Order()
+    and checking whether it's zero.
 - Hash: SHA-512
 - ID: 0x0001
 
@@ -1021,16 +1026,21 @@ and curve25519. See {{cryptanalysis}} for related discussion.
   - Elliptic curve: curve448 {{RFC7748}}
   - Generator(): Return the point with the following affine coordinates:
     - x = `05`
-    - y = `7D235D1295F5B1F66C98AB6E58326FCECBAE5D34F55545D060F75DC28DF3F6EDB8027E2346430D211312C4B150677AF76FD7223D457B5B1A`
-  - HashToGroup(): curve448_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-curve448_XMD:SHA-512_ELL2_RO_"
-  - Serialization: The standard 56-byte representation of the public key {{!RFC7748}}
-  - Order(): Returns `3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7CCA23E9C44EDB49AED63690216CC2728DC58F552378C292AB5844F3`
+    - y =
+      `7D235D1295F5B1F66C98AB6E58326FCECBAE5D34F55545D060F75DC28DF3F6EDB8027E2346430D211312C4B150677AF76FD7223D457B5B1A`
+  - HashToGroup(): curve448_XMD:SHA-512_ELL2_RO_
+    {{I-D.irtf-cfrg-hash-to-curve}} with DST
+    "RFCXXXX-curve448_XMD:SHA-512_ELL2_RO_"
+  - Serialization: The standard 56-byte representation of the public key
+    {{!RFC7748}}
+  - Order(): Returns
+    `3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7CCA23E9C44EDB49AED63690216CC2728DC58F552378C292AB5844F3`
   - Addition: Adding curve points directly corresponds to the group
     addition operation.
-  - Deserialization: Implementers must check for each untrusted input point
-    whether it's a member of the big prime-order subgroup of the curve.
-    This can be done by scalar multiplying the point by Order() and checking
-    whether it's zero.
+  - Deserialization: Implementers must check for each untrusted input
+    point whether it's a member of the big prime-order subgroup of the
+    curve. This can be done by scalar multiplying the point by Order()
+    and checking whether it's zero.
 - Hash: SHA-512
 - ID: 0x0002
 
