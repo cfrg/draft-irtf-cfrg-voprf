@@ -1002,7 +1002,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
   - Elliptic curve: curve25519 {{RFC7748}}
   - Generator(): Return the point with the following affine coordinates:
     - x = `09`
-    - y = `20AE19A1B8A086B4E01EDD2C7748D14C923D4D7E6D7C61B229E9C5A27ECED3D9`
+    - y = `5F51E65E475F794B1FE122D388B72EB36DC2B28192839E4DD6163A5D81312C14`
   - HashToGroup(): curve25519_XMD:SHA-512_ELL2_RO_ {{I-D.irtf-cfrg-hash-to-curve}} with DST "RFCXXXX-curve25519_XMD:SHA-512_ELL2_RO_"
   - Serialization: The standard 32-byte representation of the public key {{!RFC7748}}
   - Order(): Returns `1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED`
