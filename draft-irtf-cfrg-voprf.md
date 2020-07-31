@@ -386,11 +386,11 @@ document, we take `GF(p)` to be equal to the set of integers defined by
 
 The fundamental group operation is addition `+` with identity element
 `I`. For any elements `A` and `B` of the group `GG`, `A + B = B + A` is
-also a member of `GG`. Also, for any `A` in `GG`, it exists an element
+also a member of `GG`. Also, for any `A` in `GG`, there exists an element
 `-A` such that `A + (-A) = (-A) + A = I`. Scalar multiplication is
 equivalent to the repeated application of the group operation on an
 element A with itself `r-1` times, this is denoted as `r*A = A + ... +
-A`. Any element `A` holds the equality `p*A=I`. The set of scalars
+A`. For any element `A`, the equality `p*A=I` holds. The set of scalars
 corresponds to `GF(p)`.
 
 We now detail a number of member functions that can be invoked on a
@@ -417,7 +417,7 @@ prime-order group.
 It is convenient in cryptographic applications to instantiate such
 prime-order groups using elliptic curves, such as those detailed in
 {{SEC2}}. For some choices of elliptic curves (e.g. those detailed in
-{{RFC7748}} require accounting for cofactors) there are some
+{{RFC7748}}, which require accounting for cofactors) there are some
 implementation issues that introduce inherent discrepancies between
 standard prime-order groups and the elliptic curve instantiation. In
 this document, all algorithms that we detail assume that the group is a
@@ -514,7 +514,7 @@ online phase of the protocol. The base mode setup functions for creating
 client and server contexts are below:
 
 ~~~
-def SetupBaseserver(suite):
+def SetupBaseServer(suite):
   (skS, _) = KeyGen(GG)
   contextString = I2OSP(modeBase, 1) + I2OSP(suite.ID, 2)
   return ServerContext(contextString, skS)
@@ -533,7 +533,7 @@ The verifiable mode setup functions for creating client and server
 contexts are below.
 
 ~~~
-def SetupVerifiableserver(suite):
+def SetupVerifiableServer(suite):
   (skS, pkS) = KeyGen(GG)
   contextString = I2OSP(modeVerifiable, 1) + I2OSP(suite.ID, 2)
   return VerifiableServerContext(contextString, skS), pkS
