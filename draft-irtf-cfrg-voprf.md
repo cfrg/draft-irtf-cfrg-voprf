@@ -431,6 +431,7 @@ specific definitions of elliptic curves.
 
 - We use the notation `x <-$ Q` to denote sampling `x` from the uniform
   distribution over the set `Q`.
+- For any object `x`, we write `len(x)` to denote its length in bytes.
 - For two byte arrays `x` and `y`, write `x || y` to denote their
   concatenation.
 - We assume that all numbers are stored in big-endian orientation.
