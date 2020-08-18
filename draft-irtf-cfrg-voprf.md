@@ -517,11 +517,11 @@ client and server contexts are below:
 ~~~
 def SetupBaseServer(suite):
   (skS, _) = KeyGen(GG)
-  contextString = I2OSP(modeBase, 1) + I2OSP(suite.ID, 2)
+  contextString = I2OSP(modeBase, 1) || I2OSP(suite.ID, 2)
   return ServerContext(contextString, skS)
 
 def SetupBaseClient(suite):
-  contextString = I2OSP(modeBase, 1) + I2OSP(suite.ID, 2)
+  contextString = I2OSP(modeBase, 1) || I2OSP(suite.ID, 2)
   return ClientContext(contextString)
 ~~~
 
@@ -536,11 +536,11 @@ contexts are below.
 ~~~
 def SetupVerifiableServer(suite):
   (skS, pkS) = KeyGen(GG)
-  contextString = I2OSP(modeVerifiable, 1) + I2OSP(suite.ID, 2)
+  contextString = I2OSP(modeVerifiable, 1) || I2OSP(suite.ID, 2)
   return VerifiableServerContext(contextString, skS), pkS
 
 def SetupVerifiableClient(suite, pkS):
-  contextString = I2OSP(modeVerifiable, 1) + I2OSP(suite.ID, 2)
+  contextString = I2OSP(modeVerifiable, 1) || I2OSP(suite.ID, 2)
   return VerifiableClientContext(contextString, pkS)
 ~~~
 
@@ -671,7 +671,7 @@ def VerifyFinalize(skS, pkS, input, info, output):
   issuedElement = Evaluate(skS, pkS, [element])
   E = GG.Serialize(issuedElement)
 
-  finalizeDST = "RFCXXXX-Finalize-" + client.contextString
+  finalizeDST = "RFCXXXX-Finalize-" || client.contextString
   hashInput = len(input) || input ||
               len(E) || E ||
               len(info) || info ||
@@ -743,7 +743,7 @@ def GenerateProof(skS, pkS, blindToken, element)
   a3 = GG.Serialize(r * G)
   a4 = GG.Serialize(r * M)
 
-  challengeDST = "RFCXXXX-challenge-" + self.contextString
+  challengeDST = "RFCXXXX-challenge-" || self.contextString
   h2Input = I2OSP(len(gen), 2) || gen ||
             I2OSP(len(pkS), 2) || pkS ||
             I2OSP(len(a1), 2) || a1 || I2OSP(len(a2), 2) || a2 ||
@@ -793,8 +793,8 @@ Output:
   SerializedElement composites[2]
 
 def ComputeComposites(gen, pkS, blindTokens, elements):
-  seedDST = "RFCXXXX-seed-" + self.contextString
-  compositeDST = "RFCXXXX-composite-" + self.contextString
+  seedDST = "RFCXXXX-seed-" || self.contextString
+  compositeDST = "RFCXXXX-composite-" || self.contextString
   h1Input = I2OSP(len(gen), 2) || gen ||
             I2OSP(len(pkS), 2) || pkS ||
             I2OSP(len(blindTokens), 2) || blindTokens ||
@@ -885,7 +885,7 @@ Output:
   opaque output<1..2^16-1>
 
 def Finalize(token, issuedToken, info):
-  finalizeDST = "RFCXXXX-Finalize-" + self.contextString
+  finalizeDST = "RFCXXXX-Finalize-" || self.contextString
   hashInput = len(token.data) || token.data ||
               len(issuedToken) || issuedToken ||
               len(info) || info ||
@@ -931,7 +931,7 @@ def VerifyProof(pkS, blindToken, Ev):
   a3 = GG.Serialize(A')
   a4 = GG.Serialize(B')
 
-  challengeDST = "RFCXXXX-challenge-" + self.contextString
+  challengeDST = "RFCXXXX-challenge-" || self.contextString
   h2Input = I2OSP(len(gen), 2) || gen ||
             I2OSP(len(pkS), 2) || pkS ||
             I2OSP(len(a1), 2) || a1 ||
