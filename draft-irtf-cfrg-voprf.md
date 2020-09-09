@@ -410,7 +410,10 @@ prime-order group.
   group functions satisfying this property are described for prime-order
   (sub)groups of elliptic curves, see {{I-D.irtf-cfrg-hash-to-curve}}.
 - HashToScalar(x): A member function of `GG` that deterministically maps
-  an array of bytes `x` to a random element in GF(p).
+  an array of bytes `x` to a random element in GF(p). A recommended method
+  for its implementation is instantiating the hash to field function,
+  defined in {{I-D.irtf-cfrg-hash-to-curve}}, but setting the order of
+  the group as the modulus of a prime field.
 - RandomScalar(): A member function of `GG` that generates a random,
   non-zero element in GF(p).
 
@@ -985,9 +988,9 @@ following functionalities.
   Random Oracle.
 
 This section specifies supported VOPRF group and hash function
-instantiations. For each group, we specify the HashToGroup and Serialize
-functionalities. The Deserialize functionality is the inverse of the
-corresponding Serialize functionality.
+instantiations. For each group, we specify the HashToGroup, HashToScalar,
+and Serialize functionalities. The Deserialize functionality is the inverse
+of the corresponding Serialize functionality.
 
 We only provide ciphersuites in the elliptic curve setting as these
 provide the most efficient way of instantiating the OPRF.
@@ -1005,13 +1008,16 @@ and curve25519. See {{cryptanalysis}} for related discussion.
     - x = `09`
     - y =
       `5F51E65E475F794B1FE122D388B72EB36DC2B28192839E4DD6163A5D81312C14`
+  - Order(): Returns
+  `1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED`
   - HashToGroup(): curve25519_XMD:SHA-512_ELL2_RO_
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
     "RFCXXXX-curve25519_XMD:SHA-512_ELL2_RO_"
+  - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
+    using Order() as the prime modulus, with L=48, and expand_message_xmd with
+    SHA-512.
   - Serialization: The standard 32-byte representation of the public key
     {{!RFC7748}}
-  - Order(): Returns
-    `1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED`
   - Addition: Adding curve points directly corresponds to the group
     addition operation.
   - Deserialization: Implementers must check for each untrusted input
@@ -1029,13 +1035,15 @@ and curve25519. See {{cryptanalysis}} for related discussion.
     - x = `05`
     - y =
       `7D235D1295F5B1F66C98AB6E58326FCECBAE5D34F55545D060F75DC28DF3F6EDB8027E2346430D211312C4B150677AF76FD7223D457B5B1A`
+  - Order(): Returns `3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7CCA23E9C44EDB49AED63690216CC2728DC58F552378C292AB5844F3`
   - HashToGroup(): curve448_XMD:SHA-512_ELL2_RO_
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
     "RFCXXXX-curve448_XMD:SHA-512_ELL2_RO_"
+  - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
+    using Order() as the prime modulus, with L=84, and expand_message_xmd with
+    SHA-512.
   - Serialization: The standard 56-byte representation of the public key
     {{!RFC7748}}
-  - Order(): Returns
-    `3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7CCA23E9C44EDB49AED63690216CC2728DC58F552378C292AB5844F3`
   - Addition: Adding curve points directly corresponds to the group
     addition operation.
   - Deserialization: Implementers must check for each untrusted input
@@ -1054,13 +1062,16 @@ and curve25519. See {{cryptanalysis}} for related discussion.
       `6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296`
     - y =
       `4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5`
+  - Order(): Returns
+  `FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551`
   - HashToGroup(): P256_XMD:SHA-256_SSWU_RO_
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
     "RFCXXXX-P256_XMD:SHA-256_SSWU_RO_"
+  - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
+    using Order() as the prime modulus, with L=48, and expand_message_xmd with
+    SHA-512.
   - Serialization: The compressed point encoding for the curve {{SEC1}}
     consisting of 33 bytes.
-  - Order(): Returns
-    `FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551`
   - Addition: Adding curve points directly corresponds to the group
     addition operation.
   - Scalar multiplication: Scalar multiplication of curve points
@@ -1077,13 +1088,16 @@ and curve25519. See {{cryptanalysis}} for related discussion.
       `AA87CA22BE8B05378EB1C71EF320AD746E1D3B628BA79B9859F741E082542A385502F25DBF55296C3A545E3872760AB7`
     - y =
       `3617DE4A96262C6F5D9E98BF9292DC29F8F41DBD289A147CE9DA3113B5F0B8C00A60B1CE1D7E819D7A431D7C90EA0E5F`
+  - Order(): Returns
+  `FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC7634D81F4372DDF581A0DB248B0A77AECEC196ACCC52973`
   - HashToGroup(): P384_XMD:SHA-512_SSWU_RO_
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
     "RFCXXXX-P384_XMD:SHA-512_SSWU_RO_"
+  - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
+    using Order() as the prime modulus, with L=72, and expand_message_xmd with
+    SHA-512.
   - Serialization: The compressed point encoding for the curve {{SEC1}}
     consisting of 49 bytes.
-  - Order(): Returns
-    `FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC7634D81F4372DDF581A0DB248B0A77AECEC196ACCC52973`
   - Addition: Adding curve points directly corresponds to the group
     addition operation.
   - Scalar multiplication: Scalar multiplication of curve points
@@ -1100,13 +1114,16 @@ and curve25519. See {{cryptanalysis}} for related discussion.
       `00C6858E06B70404E9CD9E3ECB662395B4429C648139053FB521F828AF606B4D3DBAA14B5E77EFE75928FE1DC127A2FFA8DE3348B3C1856A429BF97E7E31C2E5BD66`
     - y =
       `011839296A789A3BC0045C8A5FB42C7D1BD998F54449579B446817AFBD17273E662C97EE72995EF42640C550B9013FAD0761353C7086A272C24088BE94769FD16650`
+  - Order(): Returns
+  `1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFA51868783BF2F966B7FCC0148F709A5D03BB5C9B8899C47AEBB6FB71E91386409`
   - HashToGroup(): P521_XMD:SHA-512_SSWU_RO_
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
     "RFCXXXX-P521_XMD:SHA-512_SSWU_RO_"
+  - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
+    using Order() as the prime modulus, with L=98, and expand_message_xmd with
+    SHA-512.
   - Serialization: The compressed point encoding for the curve {{SEC1}}
     consisting of 67 bytes.
-  - Order(): Returns
-    `1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFA51868783BF2F966B7FCC0148F709A5D03BB5C9B8899C47AEBB6FB71E91386409`
   - Addition: Adding curve points directly corresponds to the group
     addition operation.
   - Scalar multiplication: Scalar multiplication of curve points
