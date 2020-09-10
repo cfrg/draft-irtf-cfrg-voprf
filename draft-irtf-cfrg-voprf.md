@@ -21,6 +21,14 @@ author:
     country: United Kingdom
     email: alex.davidson92@gmail.com
  -
+    ins: A. Faz-Hernandez
+    name: Armando Faz-Hernandez
+    org: Cloudflare
+    street: 101 Townsend St
+    city: San Francisco
+    country: United States of America
+    email: armfazh@cloudflare.com
+ -
     ins: N. Sullivan
     name: Nick Sullivan
     org: Cloudflare
