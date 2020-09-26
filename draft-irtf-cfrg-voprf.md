@@ -569,7 +569,8 @@ as `suite.ID` in the pseudocode above, that identifies the suite.
 
 The following is a list of data structures that are defined for
 providing inputs and outputs for each of the context interfaces defined
-in {{api}}.
+in {{api}}. Each data structure description uses TLS notation
+(see {{?RFC8446}}, Section 3).
 
 The following types are a list of aliases that are used throughout the
 protocol.
