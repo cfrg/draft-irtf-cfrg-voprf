@@ -478,9 +478,10 @@ long-term private key to the client.
 
 The following one-byte values distinguish between these two modes:
 
-| Mode            | Value |
-|:================|:======|
-| modeBase       | 0x00  | | modeVerifiable | 0x01  |
+| Mode           | Value |
+|:===============|:======|
+| modeBase       | 0x00  |
+| modeVerifiable | 0x01  |
 
 ## Overview
 
