@@ -625,18 +625,18 @@ struct {
 
 In this section, we detail the APIs available on the client and server
 OPRF contexts. This document uses the types `Element` and `Scalar` to
-denote elements of the group `GG` and its underlying scalar field,
-respectively. For notational clarity, `PublicKey` and `PrivateKey` are
-items of type `Element` and `Scalar`, respectively.
+denote elements of the group `GG` and its underlying scalar field `GF(p)`,
+respectively. For notational clarity, `PublicKey` is an item of type
+`Element` and `PrivateKey` is an item of type `Scalar`.
 
 ### Server Context
 
 The ServerContext encapsulates the context string constructed during
 setup and the OPRF key pair. It has two functions, `Evaluate` and
-`VerifyFinalize`, described below. `Evaluate` takes as input serialized
-representations of blinded group elements from the client.
+`VerifyFinalize`, described below. `Evaluate` takes serialized
+representations of blinded group elements from the client as inputs.
 `VerifyFinalize` takes ClientInput values and their corresponding output
-digests from `Verify` and returns true if the inputs match the outputs.
+digests from `Verify` as input, and returns true if the inputs match the outputs.
 Note that `VerifyFinalize` is not used in the main OPRF protocol. It is
 exposed as an API for building higher-level protocols.
 
@@ -699,7 +699,7 @@ def VerifyFinalize(skS, pkS, input, info, output):
 The VerifiableServerContext extends the base ServerContext with an
 augmented `Evaluate()` function. This function produces a proof that
 `skS` was used in computing the result. It makes use of the helper
-functions `ComputeComposites` and `GenerateProof`, described below.
+functions `GenerateProof` and `ComputeComposites`, described below.
 
 #### Evaluate
 
@@ -1008,7 +1008,7 @@ provide the most efficient way of instantiating the OPRF.
 Applications should take caution in using ciphersuites targeting P-256
 and curve25519. See {{cryptanalysis}} for related discussion.
 
-[[OPEN ISSUE: Replace Curve25519 and Curve448 with Ristretto/Decaf]]
+[[OPEN ISSUE: Replace Curve25519 and Curve448 with Ristretto and Decaf]]
 
 ## OPRF(curve25519, SHA-512)
 
