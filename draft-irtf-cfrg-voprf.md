@@ -542,6 +542,8 @@ private and public key pair (skX, pkX), where skX is a random, non-zero
 element in the scalar field `GG` and pkX is the product of skX and the
 group's fixed generator.
 
+For base mode, servers do not need the public key `pkS` produced by KeyGen.
+
 The verifiable mode setup functions for creating client and server
 contexts are below.
 
@@ -646,14 +648,13 @@ exposed as an API for building higher-level protocols.
 Input:
 
   PrivateKey skS
-  PublicKey pkS
   SerializedElement blindToken
 
 Output:
 
   Evaluation Ev
 
-def Evaluate(skS, pkS, blindToken):
+def Evaluate(skS, blindToken):
   BT = GG.Deserialize(blindToken)
   Z = skS * BT
   serializedElement = GG.Serialize(Z)
@@ -669,7 +670,6 @@ def Evaluate(skS, pkS, blindToken):
 Input:
 
   PrivateKey skS
-  PublicKey pkS
   ClientInput input
   opaque info<1..2^16-1>
   opaque output<1..2^16-1>
@@ -678,10 +678,10 @@ Output:
 
   boolean valid
 
-def VerifyFinalize(skS, pkS, input, info, output):
+def VerifyFinalize(skS, input, info, output):
   T = GG.HashToGroup(input)
   element = GG.Serialize(T)
-  issuedElement = Evaluate(skS, pkS, [element])
+  issuedElement = Evaluate(skS, [element])
   E = GG.Serialize(issuedElement)
 
   finalizeDST = "RFCXXXX-Finalize-" || client.contextString
@@ -865,16 +865,14 @@ def Blind(input):
 ~~~
 Input:
 
-  PublicKey pkS
   Token token
-  SerializedElement blindToken
   Evaluation Ev
 
 Output:
 
   SerializedElement issuedToken
 
-def Unblind(pkS, token, blindToken, Ev):
+def Unblind(token, Ev):
   r = token.blind
   Z = GG.Deserialize(Ev.element)
   N = (r^(-1)) * Z
@@ -987,11 +985,11 @@ def Unblind(pkS, token, blindToken, Ev):
 
 # Ciphersuites {#ciphersuites}
 
-A ciphersuite for the protocol wraps the functionality required for the
-protocol to take place. This ciphersuite should be available to both the
-client and server, and agreement on the specific instantiation is
-assumed throughout. A ciphersuite contains instantiations of the
-following functionalities.
+A ciphersuite (also referred to as 'suite' in this document) for the protocol
+wraps the functionality required for the protocol to take place. This
+ciphersuite should be available to both the client and server, and agreement
+on the specific instantiation is assumed throughout. A ciphersuite contains
+instantiations of the following functionalities:
 
 - `GG`: A prime-order group exposing the API detailed in {{pog}}.
 - `Hash`: A cryptographic hash function that is indifferentiable from a
@@ -1013,7 +1011,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
 ## OPRF(curve25519, SHA-512)
 
 - Group:
-  - Elliptic curve: curve25519 {{RFC7748}}
+  - Elliptic curve name: curve25519 {{RFC7748}}
   - Generator(): Return the point with the following affine coordinates:
     - x = `09`
     - y =
@@ -1040,7 +1038,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
 ## OPRF(curve448, SHA-512)
 
 - Group:
-  - Elliptic curve: curve448 {{RFC7748}}
+  - Elliptic curve name: curve448 {{RFC7748}}
   - Generator(): Return the point with the following affine coordinates:
     - x = `05`
     - y =
@@ -1066,7 +1064,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
 ## OPRF(P-256, SHA-512)
 
 - Group:
-  - Elliptic curve: P-256 (secp256r1) {{x9.62}}
+  - Elliptic curve name: P-256 (secp256r1) {{x9.62}}
   - Generator(): Return the point with the following affine coordinates:
     - x =
       `6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296`
@@ -1092,7 +1090,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
 ## OPRF(P-384, SHA-512)
 
 - Group:
-  - Elliptic curve: P-384 (secp384r1) {{x9.62}}
+  - Elliptic curve name: P-384 (secp384r1) {{x9.62}}
   - Generator(): Return the point with the following affine coordinates:
     - x =
       `AA87CA22BE8B05378EB1C71EF320AD746E1D3B628BA79B9859F741E082542A385502F25DBF55296C3A545E3872760AB7`
@@ -1118,7 +1116,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
 ## OPRF(P-521, SHA-512)
 
 - Group:
-  - Elliptic curve: P-521 (secp521r1) {{x9.62}}
+  - Elliptic curve name: P-521 (secp521r1) {{x9.62}}
   - Generator(): Return the point with the following affine coordinates:
     - x =
       `00C6858E06B70404E9CD9E3ECB662395B4429C648139053FB521F828AF606B4D3DBAA14B5E77EFE75928FE1DC127A2FFA8DE3348B3C1856A429BF97E7E31C2E5BD66`
