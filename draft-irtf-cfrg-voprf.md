@@ -985,7 +985,7 @@ def Unblind(pkS, token, blindToken, Ev):
 
 # Ciphersuites {#ciphersuites}
 
-A ciphersuite (also referred as 'suite' in this document) for the protocol
+A ciphersuite (also referred to as 'suite' in this document) for the protocol
 wraps the functionality required for the protocol to take place. This
 ciphersuite should be available to both the client and server, and agreement
 on the specific instantiation is assumed throughout. A ciphersuite contains
