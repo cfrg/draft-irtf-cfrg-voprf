@@ -542,8 +542,7 @@ private and public key pair (skX, pkX), where skX is a random, non-zero
 element in the scalar field `GG` and pkX is the product of skX and the
 group's fixed generator.
 
-For unverifiable modes, servers don't need to make the resulting public key `pkS`
-accessible for clients.
+For base mode, servers don't need the public key `pkS` produced by KeyGen.
 
 The verifiable mode setup functions for creating client and server
 contexts are below.
