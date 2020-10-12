@@ -44,8 +44,6 @@ class Protocol(object):
                 "BlindedElement": to_hex(group.serialize(R)),
                 "Point": to_hex(group.serialize(P)),
             }
-            vector["UnblindedElement"] = to_hex(group.serialize(P))
-            vector["BlindedElement"] = to_hex(group.serialize(R))
             vector["Evaluation"] = {
                 "EvaluatedElement": to_hex(group.serialize(T.evaluated_element)),
             }
@@ -63,6 +61,7 @@ class Protocol(object):
         vector["skS"] = hex(server.skS)
         vector["info"] = info
         vector["suite"] = client.suite.name
+        vector["suite dst"] = client.suite.dst
         vector["vectors"] = vectors
 
         return vector
