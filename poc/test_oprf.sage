@@ -36,7 +36,14 @@ class Protocol(object):
             assert(server.verify_finalize(x, info.encode("utf-8"), y))
 
             vector = {}
-            vector["ClientInput"] = to_hex(x)
+            vector["Input"] = {
+                "ClientInput": to_hex(x)
+            }
+            vector["Blind"] = {
+                "Token": hex(r),
+                "BlindedElement": to_hex(group.serialize(R)),
+                "Point": to_hex(group.serialize(P)),
+            }
             vector["UnblindedElement"] = to_hex(group.serialize(P))
             vector["BlindedElement"] = to_hex(group.serialize(R))
             vector["Evaluation"] = {

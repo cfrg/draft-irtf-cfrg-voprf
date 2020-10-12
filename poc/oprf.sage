@@ -95,6 +95,7 @@ class GroupNISTCurve(Group):
         L = int(((log(self.p, 2) + 8) / 8).n())
         return I2OSP(byte, 1) + I2OSP(x, L)
 
+   # this is using point compression
     def deserialize(self, encoded):
         # 0x02 | 0x03 || x
         pve = encoded[0] == 0x02
@@ -158,10 +159,11 @@ class Evaluation(object):
 
 
 class Ciphersuite(object):
-    def __init__(self, name, identifier, group, H):
+    def __init__(self, name, identifier, group, dst, H):
         self.name = name
         self.identifier = identifier
         self.group = group
+        self.dst = dst
         self.H = H
 
     def __str__(self):
@@ -170,8 +172,8 @@ class Ciphersuite(object):
 class ClientContext(object):
     def __init__(self, suite, contextString):
         self.suite = suite
+        self.dst = _as_bytes(suite.dst)
         self.contextString = contextString
-        self.dst = _as_bytes("VOPRF05-") + self.contextString
 
     def identifier(self):
         return self.identifier
@@ -203,10 +205,10 @@ class ClientContext(object):
 class ServerContext(object):
     def __init__(self, suite, contextString, skS):
         self.suite = suite
+        self.dst = _as_bytes(suite.dst)
         self.contextString = contextString
         self.skS = skS
         self.pkS = suite.group.G * skS
-        self.dst = _as_bytes("VOPRF05-") + self.contextString
 
     def evaluate(self, element):
         return Evaluation(self.skS * element, None)
@@ -358,7 +360,7 @@ ciphersuite_p384_hkdf_sha512_sswu_ro = 0x0002
 ciphersuite_p521_hkdf_sha512_sswu_ro = 0x0003
 
 oprf_ciphersuites = {
-    Ciphersuite("OPRF-P256-HKDF-SHA512-SSWU-RO", ciphersuite_p256_hkdf_sha512_sswu_ro, GroupP256(), hashlib.sha512),
-    Ciphersuite("OPRF-P384-HKDF-SHA512-SSWU-RO", ciphersuite_p384_hkdf_sha512_sswu_ro, GroupP384(), hashlib.sha512),
-    Ciphersuite("OPRF-P521-HKDF-SHA512-SSWU-RO", ciphersuite_p521_hkdf_sha512_sswu_ro, GroupP521(), hashlib.sha512),
+    Ciphersuite("OPRF-P256-HKDF-SHA512-SSWU-RO", ciphersuite_p256_hkdf_sha512_sswu_ro, GroupP256(), "VOPRF05-P256_XMD:SHA-256_SSWU_RO_", hashlib.sha512),
+    Ciphersuite("OPRF-P384-HKDF-SHA512-SSWU-RO", ciphersuite_p384_hkdf_sha512_sswu_ro, GroupP384(), "VOPRF05-P384_XMD:SHA-512_SSWU_RO_", hashlib.sha512),
+    Ciphersuite("OPRF-P521-HKDF-SHA512-SSWU-RO", ciphersuite_p521_hkdf_sha512_sswu_ro, GroupP521(), "VOPRF05-P521_XMD:SHA-512_SSWU_RO_", hashlib.sha512),
 }
