@@ -52,8 +52,10 @@ class Protocol(object):
                     "c": hex(T.proof[0]),
                     "s": hex(T.proof[1]),
                 }
+            vector["Unblind"] = {
+                "IssuedToken": to_hex(group.serialize(Z))
+            }
 
-            vector["SignedElement"] = to_hex(group.serialize(Z))
             vector["ClientOutput"] = to_hex(y)
             vectors.append(vector)
 
