@@ -355,9 +355,9 @@ def SetupVerifiableClient(suite, pkS):
     contextString = I2OSP(mode_verifiable, 1) + I2OSP(suite.identifier, 2)
     return VerifiableClientContext(suite, contextString, pkS)
 
-ciphersuite_p256_hkdf_sha512_sswu_ro = 0x0001
-ciphersuite_p384_hkdf_sha512_sswu_ro = 0x0002
-ciphersuite_p521_hkdf_sha512_sswu_ro = 0x0003
+ciphersuite_p256_hkdf_sha512_sswu_ro = 0x0003
+ciphersuite_p384_hkdf_sha512_sswu_ro = 0x0004
+ciphersuite_p521_hkdf_sha512_sswu_ro = 0x0005
 
 oprf_ciphersuites = {
     Ciphersuite("OPRF-P256-HKDF-SHA512-SSWU-RO", ciphersuite_p256_hkdf_sha512_sswu_ro, GroupP256(), "VOPRF05-P256_XMD:SHA-256_SSWU_RO_", hashlib.sha512),
