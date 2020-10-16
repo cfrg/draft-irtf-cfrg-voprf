@@ -445,7 +445,6 @@ specific definitions of elliptic curves.
 - For any object `x`, we write `len(x)` to denote its length in bytes.
 - For two byte arrays `x` and `y`, write `x || y` to denote their
   concatenation.
-- We assume that all numbers are stored in big-endian orientation.
 - I2OSP and OS2IP: Convert a byte array to and from a non-negative
   integer as described in {{!RFC8017}}. Note that these functions
   operate on byte arrays in big-endian byte order.
