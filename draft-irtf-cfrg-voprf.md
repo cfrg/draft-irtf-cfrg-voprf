@@ -744,12 +744,11 @@ Output:
 
 def GenerateProof(skS, pkS, blindToken, element)
   G = GG.Generator()
-  gen = GG.Serialize(G)
 
   blindTokenList = [blindToken]
   elementList = [element]
 
-  (a1, a2) = ComputeComposites(gen, pkS, blindTokenList, elementList)
+  (a1, a2) = ComputeComposites(pkS, blindTokenList, elementList)
 
   M = GG.Deserialize(a1)
   r = GG.RandomScalar()
@@ -757,8 +756,7 @@ def GenerateProof(skS, pkS, blindToken, element)
   a4 = GG.Serialize(r * M)
 
   challengeDST = "RFCXXXX-challenge-" || self.contextString
-  h2Input = I2OSP(len(gen), 2) || gen ||
-            I2OSP(len(pkS), 2) || pkS ||
+  h2Input = I2OSP(len(pkS), 2) || pkS ||
             I2OSP(len(a1), 2) || a1 || I2OSP(len(a2), 2) || a2 ||
             I2OSP(len(a3), 2) || a3 || I2OSP(len(a4), 2) || a4 ||
             I2OSP(len(challengeDST), 2) || challengeDST
@@ -796,7 +794,6 @@ used.
 ~~~
 Input:
 
-  SerializedElement gen
   PublicKey pkS
   SerializedElement blindTokens[m]
   SerializedElement elements[m]
@@ -805,11 +802,10 @@ Output:
 
   SerializedElement composites[2]
 
-def ComputeComposites(gen, pkS, blindTokens, elements):
+def ComputeComposites(pkS, blindTokens, elements):
   seedDST = "RFCXXXX-seed-" || self.contextString
   compositeDST = "RFCXXXX-composite-" || self.contextString
-  h1Input = I2OSP(len(gen), 2) || gen ||
-            I2OSP(len(pkS), 2) || pkS ||
+  h1Input = I2OSP(len(pkS), 2) || pkS ||
             I2OSP(len(blindTokens), 2) || blindTokens ||
             I2OSP(len(elements), 2) || elements ||
             I2OSP(len(seedDST), 2) || seedDST
@@ -930,12 +926,11 @@ Output:
 
 def VerifyProof(pkS, blindToken, Ev):
   G = GG.Generator()
-  gen = GG.Serialize(G)
 
   blindTokenList = [blindToken]
   elementList = [Ev.element]
 
-  (a1, a2) = ComputeComposites(gen, pkS, blindTokenList, elementList)
+  (a1, a2) = ComputeComposites(pkS, blindTokenList, elementList)
 
   A' = (Ev.proof[1] * G + Ev.proof[0] * pkS)
   B' = (Ev.proof[1] * M + Ev.proof[0] * Z)
@@ -943,8 +938,7 @@ def VerifyProof(pkS, blindToken, Ev):
   a4 = GG.Serialize(B')
 
   challengeDST = "RFCXXXX-challenge-" || self.contextString
-  h2Input = I2OSP(len(gen), 2) || gen ||
-            I2OSP(len(pkS), 2) || pkS ||
+  h2Input = I2OSP(len(pkS), 2) || pkS ||
             I2OSP(len(a1), 2) || a1 ||
             I2OSP(len(a2), 2) || a2 ||
             I2OSP(len(a3), 2) || a3 ||
