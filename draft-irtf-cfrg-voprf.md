@@ -445,7 +445,6 @@ specific definitions of elliptic curves.
 - For any object `x`, we write `len(x)` to denote its length in bytes.
 - For two byte arrays `x` and `y`, write `x || y` to denote their
   concatenation.
-- We assume that all numbers are stored in big-endian orientation.
 - I2OSP and OS2IP: Convert a byte array to and from a non-negative
   integer as described in {{!RFC8017}}. Note that these functions
   operate on byte arrays in big-endian byte order.
@@ -685,10 +684,10 @@ def VerifyFinalize(skS, input, info, output):
   E = GG.Serialize(issuedElement)
 
   finalizeDST = "RFCXXXX-Finalize-" || client.contextString
-  hashInput = len(input) || input ||
-              len(E) || E ||
-              len(info) || info ||
-              len(finalizeDST) || finalizeDST
+  hashInput = I2OSP(len(input), 2) || input ||
+              I2OSP(len(E), 2) || E ||
+              I2OSP(len(info), 2) || info ||
+              I2OSP(len(finalizeDST), 2) || finalizeDST
   digest = Hash(hashInput)
 
   return CT_EQUAL(digest, output)
@@ -757,8 +756,10 @@ def GenerateProof(skS, pkS, blindToken, element)
 
   challengeDST = "RFCXXXX-challenge-" || self.contextString
   h2Input = I2OSP(len(pkS), 2) || pkS ||
-            I2OSP(len(a1), 2) || a1 || I2OSP(len(a2), 2) || a2 ||
-            I2OSP(len(a3), 2) || a3 || I2OSP(len(a4), 2) || a4 ||
+            I2OSP(len(a1), 2) || a1 ||
+            I2OSP(len(a2), 2) || a2 ||
+            I2OSP(len(a3), 2) || a3 ||
+            I2OSP(len(a4), 2) || a4 ||
             I2OSP(len(challengeDST), 2) || challengeDST
 
   c = GG.HashToScalar(h2Input)
@@ -893,10 +894,10 @@ Output:
 
 def Finalize(token, issuedToken, info):
   finalizeDST = "RFCXXXX-Finalize-" || self.contextString
-  hashInput = len(token.data) || token.data ||
-              len(issuedToken) || issuedToken ||
-              len(info) || info ||
-              len(finalizeDST) || finalizeDST
+  hashInput = I2OSP(len(token.data), 2) || token.data ||
+              I2OSP(len(issuedToken), 2) || issuedToken ||
+              I2OSP(len(info), 2) || info ||
+              I2OSP(len(finalizeDST), 2) || finalizeDST
   return Hash(hashInput)
 ~~~
 
