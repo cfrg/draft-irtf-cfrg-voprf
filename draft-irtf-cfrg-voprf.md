@@ -293,7 +293,7 @@ groups, including elliptic curves.
 
 A pseudorandom function (PRF) F(k, x) is an efficiently computable
 function taking a private key k and a value x as input. This function is
-pseudorandom if the keyed function K(_) = F(K, _) is indistinguishable
+pseudorandom if the keyed function K(\_) = F(K, \_) is indistinguishable
 from a randomly sampled function acting on the same domain and range as
 K(). An oblivious PRF (OPRF) is a two-party protocol between a server
 and a client, where the server holds a PRF key k and the client holds
@@ -306,8 +306,8 @@ F(k, x) was computed using the key k.
 The usage of OPRFs has been demonstrated in constructing a number of
 applications: password-protected secret sharing schemes {{JKKX16}};
 privacy-preserving password stores {{SJKS17}}; and
-password-authenticated key exchange or PAKE {{OPAQUE}}. The usage of a
-VOPRF is necessary in some applications, e.g., the Privacy Pass protocol
+password-authenticated key exchange or PAKE {{OPAQUE}}. A VOPRF is
+necessary in some applications, e.g., the Privacy Pass protocol
 {{draft-davidson-pp-protocol}}, wherein this VOPRF is used to generate
 one-time authentication tokens to bypass CAPTCHA challenges. VOPRFs have
 also been used for password-protected secret sharing schemes e.g.
@@ -376,9 +376,7 @@ The following terms are used throughout this document.
 
 ## Requirements
 
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
-"SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
-document are to be interpreted as described in {{RFC2119}}.
+{::boilerplate bcp14}
 
 # Preliminaries
 
@@ -683,15 +681,18 @@ def VerifyFinalize(skS, input, info, output):
   issuedElement = Evaluate(skS, [element])
   E = GG.Serialize(issuedElement)
 
-  finalizeDST = "RFCXXXX-Finalize-" || client.contextString
+  finalizeDST = "VOPRF05-Finalize-" || client.contextString
   hashInput = I2OSP(len(input), 2) || input ||
               I2OSP(len(E), 2) || E ||
               I2OSP(len(info), 2) || info ||
               I2OSP(len(finalizeDST), 2) || finalizeDST
+
   digest = Hash(hashInput)
 
   return CT_EQUAL(digest, output)
 ~~~
+
+[[RFC editor: please change "VOPRF05" to "RFCXXXX", where XXXX is the final number, here and elsewhere before publication.]]
 
 ### VerifiableServerContext
 
@@ -754,7 +755,7 @@ def GenerateProof(skS, pkS, blindToken, element)
   a3 = GG.Serialize(r * G)
   a4 = GG.Serialize(r * M)
 
-  challengeDST = "RFCXXXX-challenge-" || self.contextString
+  challengeDST = "VOPRF05-challenge-" || self.contextString
   h2Input = I2OSP(len(pkS), 2) || pkS ||
             I2OSP(len(a1), 2) || a1 ||
             I2OSP(len(a2), 2) || a2 ||
@@ -804,8 +805,8 @@ Output:
   SerializedElement composites[2]
 
 def ComputeComposites(pkS, blindTokens, elements):
-  seedDST = "RFCXXXX-seed-" || self.contextString
-  compositeDST = "RFCXXXX-composite-" || self.contextString
+  seedDST = "VOPRF05-seed-" || self.contextString
+  compositeDST = "VOPRF05-composite-" || self.contextString
   h1Input = I2OSP(len(pkS), 2) || pkS ||
             I2OSP(len(blindTokens), 2) || blindTokens ||
             I2OSP(len(elements), 2) || elements ||
@@ -893,7 +894,7 @@ Output:
   opaque output<1..2^16-1>
 
 def Finalize(token, issuedToken, info):
-  finalizeDST = "RFCXXXX-Finalize-" || self.contextString
+  finalizeDST = "VOPRF05-Finalize-" || self.contextString
   hashInput = I2OSP(len(token.data), 2) || token.data ||
               I2OSP(len(issuedToken), 2) || issuedToken ||
               I2OSP(len(info), 2) || info ||
@@ -938,7 +939,7 @@ def VerifyProof(pkS, blindToken, Ev):
   a3 = GG.Serialize(A')
   a4 = GG.Serialize(B')
 
-  challengeDST = "RFCXXXX-challenge-" || self.contextString
+  challengeDST = "VOPRF05-challenge-" || self.contextString
   h2Input = I2OSP(len(pkS), 2) || pkS ||
             I2OSP(len(a1), 2) || a1 ||
             I2OSP(len(a2), 2) || a2 ||
@@ -1015,7 +1016,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
   `1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED`
   - HashToGroup(): curve25519_XMD:SHA-512_ELL2_RO_
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
-    "RFCXXXX-curve25519_XMD:SHA-512_ELL2_RO_"
+    "VOPRF05-curve25519_XMD:SHA-512_ELL2_RO_"
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=48, and expand_message_xmd with
     SHA-512.
@@ -1041,7 +1042,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
   - Order(): Returns `3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7CCA23E9C44EDB49AED63690216CC2728DC58F552378C292AB5844F3`
   - HashToGroup(): curve448_XMD:SHA-512_ELL2_RO_
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
-    "RFCXXXX-curve448_XMD:SHA-512_ELL2_RO_"
+    "VOPRF05-curve448_XMD:SHA-512_ELL2_RO_"
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=84, and expand_message_xmd with
     SHA-512.
@@ -1069,7 +1070,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
   `FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551`
   - HashToGroup(): P256_XMD:SHA-256_SSWU_RO_
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
-    "RFCXXXX-P256_XMD:SHA-256_SSWU_RO_"
+    "VOPRF05-P256_XMD:SHA-256_SSWU_RO_"
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=48, and expand_message_xmd with
     SHA-512.
@@ -1095,7 +1096,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
   `FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC7634D81F4372DDF581A0DB248B0A77AECEC196ACCC52973`
   - HashToGroup(): P384_XMD:SHA-512_SSWU_RO_
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
-    "RFCXXXX-P384_XMD:SHA-512_SSWU_RO_"
+    "VOPRF05-P384_XMD:SHA-512_SSWU_RO_"
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=72, and expand_message_xmd with
     SHA-512.
@@ -1121,7 +1122,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
   `1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFA51868783BF2F966B7FCC0148F709A5D03BB5C9B8899C47AEBB6FB71E91386409`
   - HashToGroup(): P521_XMD:SHA-512_SSWU_RO_
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
-    "RFCXXXX-P521_XMD:SHA-512_SSWU_RO_"
+    "VOPRF05-P521_XMD:SHA-512_SSWU_RO_"
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=98, and expand_message_xmd with
     SHA-512.

@@ -159,7 +159,7 @@ class ClientContext(object):
     def __init__(self, suite, contextString):
         self.suite = suite
         self.contextString = contextString
-        self.dst = _as_bytes("RFCXXXX-") + self.contextString
+        self.dst = _as_bytes("VOPRF05-") + self.contextString
 
     def identifier(self):
         return self.identifier
@@ -177,7 +177,7 @@ class ClientContext(object):
         return y
 
     def finalize(self, x, y, info):
-        finalizeDST = _as_bytes("RFCXXXX-Finalize-") + self.contextString
+        finalizeDST = _as_bytes("VOPRF05-Finalize-") + self.contextString
         encoded_element = self.suite.group.serialize(y)
         finalize_input = I2OSP(len(x), 2) + x \
             + I2OSP(len(encoded_element), 2) + encoded_element \
@@ -194,7 +194,7 @@ class ServerContext(object):
         self.contextString = contextString
         self.skS = skS
         self.pkS = suite.group.G * skS
-        self.dst = _as_bytes("RFCXXXX-") + self.contextString
+        self.dst = _as_bytes("VOPRF05-") + self.contextString
 
     def evaluate(self, element):
         return Evaluation(self.skS * element, None)
@@ -204,7 +204,7 @@ class ServerContext(object):
         issued_element = self.evaluate(element).evaluated_element
         encoded_element = self.suite.group.serialize(issued_element)
 
-        finalizeDST = _as_bytes("RFCXXXX-Finalize-") + self.contextString
+        finalizeDST = _as_bytes("VOPRF05-Finalize-") + self.contextString
         finalize_input = I2OSP(len(x), 2) + x \
             + I2OSP(len(encoded_element), 2) + encoded_element \
             + I2OSP(len(info), 2) + info \
@@ -218,7 +218,7 @@ class ServerContext(object):
 
 
 def compute_composites(suite, contextString, pkS, evaluate_input, evaluate_output):
-    seedDST = _as_bytes("RFCXXXX-seed-") + contextString
+    seedDST = _as_bytes("VOPRF05-seed-") + contextString
     hash_input = I2OSP(len(pkS), 2) + pkS \
         + I2OSP(len(evaluate_input), 2) + evaluate_input \
         + I2OSP(len(evaluate_output), 2) + evaluate_output \
@@ -259,7 +259,7 @@ class VerifiableClientContext(ClientContext):
         a3 = self.suite.group.serialize(Ap)
         a4 = self.suite.group.serialize(Bp)
 
-        challengeDST = _as_bytes("RFCXXXX-challenge-") + self.contextString
+        challengeDST = _as_bytes("VOPRF05-challenge-") + self.contextString
         h2s_input = I2OSP(len(Gm), 2) + Gm \
             + I2OSP(len(pkSm), 2) + pkSm \
             + I2OSP(len(a1), 2) + a1 \
@@ -300,7 +300,7 @@ class VerifiableServerContext(ServerContext):
         a3 = self.suite.group.serialize(r * G)
         a4 = self.suite.group.serialize(r * M)
 
-        challengeDST = _as_bytes("RFCXXXX-challenge-") + self.contextString
+        challengeDST = _as_bytes("VOPRF05-challenge-") + self.contextString
         h2s_input = I2OSP(len(Gm), 2) + Gm \
             + I2OSP(len(pkSm), 2) + pkSm \
             + I2OSP(len(a1), 2) + a1 \
