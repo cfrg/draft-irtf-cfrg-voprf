@@ -443,7 +443,6 @@ specific definitions of elliptic curves.
 - For any object `x`, we write `len(x)` to denote its length in bytes.
 - For two byte arrays `x` and `y`, write `x || y` to denote their
   concatenation.
-- We assume that all numbers are stored in big-endian orientation.
 - I2OSP and OS2IP: Convert a byte array to and from a non-negative
   integer as described in {{!RFC8017}}. Note that these functions
   operate on byte arrays in big-endian byte order.
@@ -683,10 +682,11 @@ def VerifyFinalize(skS, input, info, output):
   E = GG.Serialize(issuedElement)
 
   finalizeDST = "VOPRF05-Finalize-" || client.contextString
-  hashInput = len(input) || input ||
-              len(E) || E ||
-              len(info) || info ||
-              len(finalizeDST) || finalizeDST
+  hashInput = I2OSP(len(input), 2) || input ||
+              I2OSP(len(E), 2) || E ||
+              I2OSP(len(info), 2) || info ||
+              I2OSP(len(finalizeDST), 2) || finalizeDST
+
   digest = Hash(hashInput)
 
   return CT_EQUAL(digest, output)
@@ -744,12 +744,11 @@ Output:
 
 def GenerateProof(skS, pkS, blindToken, element)
   G = GG.Generator()
-  gen = GG.Serialize(G)
 
   blindTokenList = [blindToken]
   elementList = [element]
 
-  (a1, a2) = ComputeComposites(gen, pkS, blindTokenList, elementList)
+  (a1, a2) = ComputeComposites(pkS, blindTokenList, elementList)
 
   M = GG.Deserialize(a1)
   r = GG.RandomScalar()
@@ -757,10 +756,11 @@ def GenerateProof(skS, pkS, blindToken, element)
   a4 = GG.Serialize(r * M)
 
   challengeDST = "VOPRF05-challenge-" || self.contextString
-  h2Input = I2OSP(len(gen), 2) || gen ||
-            I2OSP(len(pkS), 2) || pkS ||
-            I2OSP(len(a1), 2) || a1 || I2OSP(len(a2), 2) || a2 ||
-            I2OSP(len(a3), 2) || a3 || I2OSP(len(a4), 2) || a4 ||
+  h2Input = I2OSP(len(pkS), 2) || pkS ||
+            I2OSP(len(a1), 2) || a1 ||
+            I2OSP(len(a2), 2) || a2 ||
+            I2OSP(len(a3), 2) || a3 ||
+            I2OSP(len(a4), 2) || a4 ||
             I2OSP(len(challengeDST), 2) || challengeDST
 
   c = GG.HashToScalar(h2Input)
@@ -796,7 +796,6 @@ used.
 ~~~
 Input:
 
-  SerializedElement gen
   PublicKey pkS
   SerializedElement blindTokens[m]
   SerializedElement elements[m]
@@ -805,11 +804,10 @@ Output:
 
   SerializedElement composites[2]
 
-def ComputeComposites(gen, pkS, blindTokens, elements):
+def ComputeComposites(pkS, blindTokens, elements):
   seedDST = "VOPRF05-seed-" || self.contextString
   compositeDST = "VOPRF05-composite-" || self.contextString
-  h1Input = I2OSP(len(gen), 2) || gen ||
-            I2OSP(len(pkS), 2) || pkS ||
+  h1Input = I2OSP(len(pkS), 2) || pkS ||
             I2OSP(len(blindTokens), 2) || blindTokens ||
             I2OSP(len(elements), 2) || elements ||
             I2OSP(len(seedDST), 2) || seedDST
@@ -897,10 +895,10 @@ Output:
 
 def Finalize(token, issuedToken, info):
   finalizeDST = "VOPRF05-Finalize-" || self.contextString
-  hashInput = len(token.data) || token.data ||
-              len(issuedToken) || issuedToken ||
-              len(info) || info ||
-              len(finalizeDST) || finalizeDST
+  hashInput = I2OSP(len(token.data), 2) || token.data ||
+              I2OSP(len(issuedToken), 2) || issuedToken ||
+              I2OSP(len(info), 2) || info ||
+              I2OSP(len(finalizeDST), 2) || finalizeDST
   return Hash(hashInput)
 ~~~
 
@@ -930,12 +928,11 @@ Output:
 
 def VerifyProof(pkS, blindToken, Ev):
   G = GG.Generator()
-  gen = GG.Serialize(G)
 
   blindTokenList = [blindToken]
   elementList = [Ev.element]
 
-  (a1, a2) = ComputeComposites(gen, pkS, blindTokenList, elementList)
+  (a1, a2) = ComputeComposites(pkS, blindTokenList, elementList)
 
   A' = (Ev.proof[1] * G + Ev.proof[0] * pkS)
   B' = (Ev.proof[1] * M + Ev.proof[0] * Z)
@@ -943,8 +940,7 @@ def VerifyProof(pkS, blindToken, Ev):
   a4 = GG.Serialize(B')
 
   challengeDST = "VOPRF05-challenge-" || self.contextString
-  h2Input = I2OSP(len(gen), 2) || gen ||
-            I2OSP(len(pkS), 2) || pkS ||
+  h2Input = I2OSP(len(pkS), 2) || pkS ||
             I2OSP(len(a1), 2) || a1 ||
             I2OSP(len(a2), 2) || a2 ||
             I2OSP(len(a3), 2) || a3 ||
