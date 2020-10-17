@@ -217,10 +217,9 @@ class ServerContext(object):
         return (digest == expected_digest)
 
 
-def compute_composites(suite, contextString, Gm, pkS, evaluate_input, evaluate_output):
+def compute_composites(suite, contextString, pkS, evaluate_input, evaluate_output):
     seedDST = _as_bytes("RFCXXXX-seed-") + contextString
-    hash_input = I2OSP(len(Gm), 2) + Gm \
-        + I2OSP(len(pkS), 2) + pkS \
+    hash_input = I2OSP(len(pkS), 2) + pkS \
         + I2OSP(len(evaluate_input), 2) + evaluate_input \
         + I2OSP(len(evaluate_output), 2) + evaluate_output \
         + I2OSP(len(seedDST), 2) + seedDST
@@ -250,9 +249,8 @@ class VerifiableClientContext(ClientContext):
 
     def verify_proof(self, evaluate_input, evaluate_output, pi):
         G = self.suite.group.G
-        Gm = self.suite.group.serialize(G)
         pkSm = self.suite.group.serialize(self.pkS)
-        (a1, a2) = compute_composites(self.suite, self.contextString, Gm, pkSm, evaluate_input, evaluate_output)
+        (a1, a2) = compute_composites(self.suite, self.contextString, pkSm, evaluate_input, evaluate_output)
         M = self.suite.group.deserialize(a1)
         Z = self.suite.group.deserialize(a2)
 
@@ -293,10 +291,9 @@ class VerifiableServerContext(ServerContext):
 
     def generate_proof(self, evaluate_input, evaluate_output):
         G = self.suite.group.G
-        Gm = self.suite.group.serialize(G)
         pkSm = self.suite.group.serialize(self.pkS)
 
-        (a1, a2) = compute_composites(self.suite, self.contextString, Gm, pkSm, evaluate_input, evaluate_output)
+        (a1, a2) = compute_composites(self.suite, self.contextString, pkSm, evaluate_input, evaluate_output)
         M = self.suite.group.deserialize(a1)
 
         r = ZZ(self.suite.group.random_scalar())
