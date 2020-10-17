@@ -110,6 +110,13 @@ class GroupNISTCurve(Group):
             y = -y
         return self.curve(self.F(x), self.F(y))
 
+    def serialize_scalar(self, scalar):
+        s = int(scalar)
+        return s.to_bytes((s.bit_length() + 7) // 8, 'big')
+
+    def deserialize_scalar(self, encoded):
+        return int.from_bytes(encoded, 'big')
+
     def hash_to_group(self, msg, dst):
         self.h2c_suite.dst = dst
         return self.h2c_suite(msg)
@@ -120,7 +127,7 @@ class GroupNISTCurve(Group):
     def key_gen(self):
         skS = ZZ(self.random_scalar())
         pkS = self.G * skS
-        return (skS, pkS)
+        return skS, pkS
 
 class GroupP256(GroupNISTCurve):
     def __init__(self):
@@ -265,8 +272,7 @@ class VerifiableClientContext(ClientContext):
         a4 = self.suite.group.serialize(Bp)
 
         challengeDST = _as_bytes("VOPRF05-challenge-") + self.contextString
-        h2s_input = I2OSP(len(Gm), 2) + Gm \
-            + I2OSP(len(pkSm), 2) + pkSm \
+        h2s_input = I2OSP(len(pkSm), 2) + pkSm \
             + I2OSP(len(a1), 2) + a1 \
             + I2OSP(len(a2), 2) + a2 \
             + I2OSP(len(a3), 2) + a3 \
@@ -306,8 +312,7 @@ class VerifiableServerContext(ServerContext):
         a4 = self.suite.group.serialize(r * M)
 
         challengeDST = _as_bytes("VOPRF05-challenge-") + self.contextString
-        h2s_input = I2OSP(len(Gm), 2) + Gm \
-            + I2OSP(len(pkSm), 2) + pkSm \
+        h2s_input = I2OSP(len(pkSm), 2) + pkSm \
             + I2OSP(len(a1), 2) + a1 \
             + I2OSP(len(a2), 2) + a2 \
             + I2OSP(len(a3), 2) + a3 \

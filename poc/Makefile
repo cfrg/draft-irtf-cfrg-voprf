@@ -19,7 +19,7 @@ setup:
 	cp h2c/poc/*.sage .
 
 test: pyfiles
-	sage test.sage
+	sage test_oprf.sage
 
 vectors: pyfiles
 	@mkdir -p vectors
