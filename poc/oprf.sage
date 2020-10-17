@@ -117,6 +117,11 @@ class GroupNISTCurve(Group):
     def hash_to_scalar(self, msg, dst=""):
         return hash_to_field(msg, 1, dst, self.order, self.m, self.L, self.expand, self.H, self.k)[0][0]
 
+    def key_gen(self):
+        skS = ZZ(self.random_scalar())
+        pkS = self.G * skS
+        return (skS, pkS)
+
 class GroupP256(GroupNISTCurve):
     def __init__(self):
         # See FIPS 186-3, section D.2.3
@@ -326,7 +331,7 @@ mode_base = 0x00
 mode_verifiable = 0x01
 
 def SetupBaseServer(suite):
-    skS = ZZ(suite.group.random_scalar())
+    skS, _ = suite.group.key_gen()
     contextString = I2OSP(mode_base, 1) + I2OSP(suite.identifier, 2)
     return ServerContext(suite, contextString, skS)
 
@@ -335,8 +340,7 @@ def SetupBaseClient(suite):
     return ClientContext(suite, contextString)
 
 def SetupVerifiableServer(suite):
-    skS = ZZ(suite.group.random_scalar())
-    pkS = suite.group.G * skS
+    skS, pkS = suite.group.key_gen()
     contextString = I2OSP(mode_verifiable, 1) + I2OSP(suite.identifier, 2)
     return VerifiableServerContext(suite, contextString, skS), pkS
 
