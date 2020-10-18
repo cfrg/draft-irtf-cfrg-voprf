@@ -5,7 +5,7 @@ import sys
 import json
 
 try:
-    from sagelib.oprf import SetupBaseServer, SetupBaseClient, SetupVerifiableServer, SetupVerifiableClient, oprf_ciphersuites, _as_bytes
+    from sagelib.oprf import SetupBaseServer, SetupBaseClient, SetupVerifiableServer, SetupVerifiableClient, oprf_ciphersuites, voprf_ciphersuites,_as_bytes
 except ImportError as e:
     sys.exit("Error loading preprocessed sage files. Try running `make setup && make clean pyfiles`. Full error: " + e)
 
@@ -63,7 +63,7 @@ class Protocol(object):
         vector["skS"] = hex(server.skS)
         vector["info"] = info
         vector["suite"] = client.suite.name
-        vector["suite dst"] = client.suite.dst
+        vector["dst"] = client.suite.dst
         vector["vectors"] = vectors
 
         return vector
@@ -75,13 +75,13 @@ def main(path="vectors"):
         server = SetupBaseServer(suite)
         client = SetupBaseClient(suite)
         protocol = Protocol()
-        vectors["Base" + suite.name] = protocol.run(client, server, "test information")
+        vectors["Base: " + suite.name] = protocol.run(client, server, "test information")
 
-    for suite in oprf_ciphersuites:
+    for suite in voprf_ciphersuites:
         server, pkS = SetupVerifiableServer(suite)
         client = SetupVerifiableClient(suite, pkS)
         protocol = Protocol()
-        vectors["Verifiable" + suite.name] = protocol.run(client, server, "test information")
+        vectors["Verifiable: " + suite.name] = protocol.run(client, server, "test information")
 
     with open(path + "/allVectors.json", 'wt') as f:
         json.dump(vectors, f, sort_keys=True, indent=2)
