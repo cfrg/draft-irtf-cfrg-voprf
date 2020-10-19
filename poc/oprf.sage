@@ -360,13 +360,7 @@ ciphersuite_p384_sha512_sswu_ro = 0x0004
 ciphersuite_p521_sha512_sswu_ro = 0x0005
 
 oprf_ciphersuites = {
-    Ciphersuite("OPRF-P256-SHA256-SSWU-RO", ciphersuite_p256_sha256_sswu_ro, GroupP256(), "VOPRF05-P256_XMD:SHA-256_SSWU_RO_", hashlib.sha256),
-    Ciphersuite("OPRF-P384-SHA512-SSWU-RO", ciphersuite_p384_sha512_sswu_ro, GroupP384(), "VOPRF05-P384_XMD:SHA-512_SSWU_RO_", hashlib.sha512),
-    Ciphersuite("OPRF-P521-SHA512-SSWU-RO", ciphersuite_p521_sha512_sswu_ro, GroupP521(), "VOPRF05-P521_XMD:SHA-512_SSWU_RO_", hashlib.sha512),
-}
-
-voprf_ciphersuites = {
-    Ciphersuite("VOPRF-P256-SHA256-SSWU-RO", ciphersuite_p256_sha256_sswu_ro, GroupP256(), "VOPRF05-P256_XMD:SHA-256_SSWU_RO_", hashlib.sha256),
-    Ciphersuite("VOPRF-P384-SHA512-SSWU-RO", ciphersuite_p384_sha512_sswu_ro, GroupP384(), "VOPRF05-P384_XMD:SHA-512_SSWU_RO_", hashlib.sha512),
-    Ciphersuite("VOPRF-P521-SHA512-SSWU-RO", ciphersuite_p521_sha512_sswu_ro, GroupP521(), "VOPRF05-P521_XMD:SHA-512_SSWU_RO_", hashlib.sha512),
+    Ciphersuite("P256-SHA256-SSWU-RO", ciphersuite_p256_sha256_sswu_ro, GroupP256(), "VOPRF05-P256_XMD:SHA-256_SSWU_RO_", hashlib.sha256),
+    Ciphersuite("P384-SHA512-SSWU-RO", ciphersuite_p384_sha512_sswu_ro, GroupP384(), "VOPRF05-P384_XMD:SHA-512_SSWU_RO_", hashlib.sha512),
+    Ciphersuite("P521-SHA512-SSWU-RO", ciphersuite_p521_sha512_sswu_ro, GroupP521(), "VOPRF05-P521_XMD:SHA-512_SSWU_RO_", hashlib.sha512),
 }
