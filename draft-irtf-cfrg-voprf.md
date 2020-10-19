@@ -1004,7 +1004,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
 
 [[OPEN ISSUE: Replace Curve25519 and Curve448 with Ristretto and Decaf]]
 
-## OPRF(curve25519, SHA-512)
+## OPRF(curve25519, SHA-256)
 
 - Group:
   - Elliptic curve name: curve25519 {{RFC7748}}
@@ -1014,12 +1014,12 @@ and curve25519. See {{cryptanalysis}} for related discussion.
       `5F51E65E475F794B1FE122D388B72EB36DC2B28192839E4DD6163A5D81312C14`
   - Order(): Returns
   `1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED`
-  - HashToGroup(): curve25519_XMD:SHA-512_ELL2_RO_
+  - HashToGroup(): curve25519_XMD:SHA-256_ELL2_RO\_
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
-    "VOPRF05-curve25519_XMD:SHA-512_ELL2_RO_"
+    "VOPRF05-curve25519_XMD:SHA-256_ELL2_RO\_"
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=48, and expand_message_xmd with
-    SHA-512.
+    SHA-256.
   - Serialization: The standard 32-byte representation of the public key
     {{!RFC7748}}
   - Addition: Adding curve points directly corresponds to the group
@@ -1028,7 +1028,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
     point whether it's a member of the big prime-order subgroup of the
     curve. This can be done by scalar multiplying the point by Order()
     and checking whether it's zero.
-- Hash: SHA-512
+- Hash: SHA-256
 - ID: 0x0001
 
 ## OPRF(curve448, SHA-512)
@@ -1040,9 +1040,9 @@ and curve25519. See {{cryptanalysis}} for related discussion.
     - y =
       `7D235D1295F5B1F66C98AB6E58326FCECBAE5D34F55545D060F75DC28DF3F6EDB8027E2346430D211312C4B150677AF76FD7223D457B5B1A`
   - Order(): Returns `3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7CCA23E9C44EDB49AED63690216CC2728DC58F552378C292AB5844F3`
-  - HashToGroup(): curve448_XMD:SHA-512_ELL2_RO_
+  - HashToGroup(): curve448_XMD:SHA-512_ELL2_RO\_
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
-    "VOPRF05-curve448_XMD:SHA-512_ELL2_RO_"
+    "VOPRF05-curve448_XMD:SHA-512_ELL2_RO\_"
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=84, and expand_message_xmd with
     SHA-512.
@@ -1057,7 +1057,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
 - Hash: SHA-512
 - ID: 0x0002
 
-## OPRF(P-256, SHA-512)
+## OPRF(P-256, SHA-256)
 
 - Group:
   - Elliptic curve name: P-256 (secp256r1) {{x9.62}}
@@ -1068,19 +1068,19 @@ and curve25519. See {{cryptanalysis}} for related discussion.
       `4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5`
   - Order(): Returns
   `FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551`
-  - HashToGroup(): P256_XMD:SHA-256_SSWU_RO_
+  - HashToGroup(): P256_XMD:SHA-256_SSWU_RO\_
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
-    "VOPRF05-P256_XMD:SHA-256_SSWU_RO_"
+    "VOPRF05-P256_XMD:SHA-256_SSWU_RO\_"
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=48, and expand_message_xmd with
-    SHA-512.
+    SHA-256.
   - Serialization: The compressed point encoding for the curve {{SEC1}}
     consisting of 33 bytes.
   - Addition: Adding curve points directly corresponds to the group
     addition operation.
   - Scalar multiplication: Scalar multiplication of curve points
     directly corresponds with scalar multiplication in the group.
-- Hash: SHA-512
+- Hash: SHA-256
 - ID: 0x0003
 
 ## OPRF(P-384, SHA-512)
@@ -1094,9 +1094,9 @@ and curve25519. See {{cryptanalysis}} for related discussion.
       `3617DE4A96262C6F5D9E98BF9292DC29F8F41DBD289A147CE9DA3113B5F0B8C00A60B1CE1D7E819D7A431D7C90EA0E5F`
   - Order(): Returns
   `FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC7634D81F4372DDF581A0DB248B0A77AECEC196ACCC52973`
-  - HashToGroup(): P384_XMD:SHA-512_SSWU_RO_
+  - HashToGroup(): P384_XMD:SHA-512_SSWU_RO\_
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
-    "VOPRF05-P384_XMD:SHA-512_SSWU_RO_"
+    "VOPRF05-P384_XMD:SHA-512_SSWU_RO\_"
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=72, and expand_message_xmd with
     SHA-512.
@@ -1120,9 +1120,9 @@ and curve25519. See {{cryptanalysis}} for related discussion.
       `011839296A789A3BC0045C8A5FB42C7D1BD998F54449579B446817AFBD17273E662C97EE72995EF42640C550B9013FAD0761353C7086A272C24088BE94769FD16650`
   - Order(): Returns
   `1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFA51868783BF2F966B7FCC0148F709A5D03BB5C9B8899C47AEBB6FB71E91386409`
-  - HashToGroup(): P521_XMD:SHA-512_SSWU_RO_
+  - HashToGroup(): P521_XMD:SHA-512_SSWU_RO\_
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
-    "VOPRF05-P521_XMD:SHA-512_SSWU_RO_"
+    "VOPRF05-P521_XMD:SHA-512_SSWU_RO\_"
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=98, and expand_message_xmd with
     SHA-512.

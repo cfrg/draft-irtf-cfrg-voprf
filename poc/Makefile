@@ -22,6 +22,9 @@ test: pyfiles
 	sage test_oprf.sage
 
 vectors: pyfiles
+	@echo "Removing vectors folder, if present"
+	@rm -rf vectors
+	@echo "Creating vectors folder"
 	@mkdir -p vectors
 	sage test_oprf.sage
 

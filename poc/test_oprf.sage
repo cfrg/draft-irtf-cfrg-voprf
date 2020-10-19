@@ -36,9 +36,13 @@ class Protocol(object):
             assert(server.verify_finalize(x, info.encode("utf-8"), y))
 
             vector = {}
-            vector["ClientInput"] = to_hex(x)
-            vector["UnblindedElement"] = to_hex(group.serialize(P))
-            vector["BlindedElement"] = to_hex(group.serialize(R))
+            vector["Input"] = {
+                "ClientInput": to_hex(x)
+            }
+            vector["Blind"] = {
+                "Token": hex(r),
+                "BlindedElement": to_hex(group.serialize(R)),
+            }
             vector["Evaluation"] = {
                 "EvaluatedElement": to_hex(group.serialize(T.evaluated_element)),
             }
@@ -47,8 +51,10 @@ class Protocol(object):
                     "c": hex(T.proof[0]),
                     "s": hex(T.proof[1]),
                 }
+            vector["Unblind"] = {
+                "IssuedToken": to_hex(group.serialize(Z))
+            }
 
-            vector["SignedElement"] = to_hex(group.serialize(Z))
             vector["ClientOutput"] = to_hex(y)
             vectors.append(vector)
 
@@ -56,6 +62,7 @@ class Protocol(object):
         vector["skS"] = hex(server.skS)
         vector["info"] = info
         vector["suite"] = client.suite.name
+        vector["dst"] = client.suite.dst
         vector["vectors"] = vectors
 
         return vector

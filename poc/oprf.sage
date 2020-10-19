@@ -99,6 +99,7 @@ class GroupNISTCurve(Group):
         L = int(((log(self.p, 2) + 8) / 8).n())
         return I2OSP(byte, 1) + I2OSP(x, L)
 
+   # this is using point compression
     def deserialize(self, encoded):
         # 0x02 | 0x03 || x
         pve = encoded[0] == 0x02
@@ -138,7 +139,7 @@ class GroupP256(GroupNISTCurve):
         # See FIPS 186-3, section D.2.3
         gx = 0x6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296
         gy = 0x4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5
-        GroupNISTCurve.__init__(self, "P256_XMD:SHA-512_SSWU_RO_", p256_sswu_ro, p256_F, p256_A, p256_B, p256_p, p256_order, gx, gy, 48, hashlib.sha256, expand_message_xmd, 128)
+        GroupNISTCurve.__init__(self, "P256_XMD:SHA-256_SSWU_RO_", p256_sswu_ro, p256_F, p256_A, p256_B, p256_p, p256_order, gx, gy, 48, hashlib.sha256, expand_message_xmd, 128)
 
 class GroupP384(GroupNISTCurve):
     def __init__(self):
@@ -162,10 +163,11 @@ class Evaluation(object):
 
 
 class Ciphersuite(object):
-    def __init__(self, name, identifier, group, H):
+    def __init__(self, name, identifier, group, dst, H):
         self.name = name
         self.identifier = identifier
         self.group = group
+        self.dst = dst
         self.H = H
 
     def __str__(self):
@@ -174,8 +176,8 @@ class Ciphersuite(object):
 class ClientContext(object):
     def __init__(self, suite, contextString):
         self.suite = suite
+        self.dst = _as_bytes(suite.dst)
         self.contextString = contextString
-        self.dst = _as_bytes("VOPRF05-") + self.contextString
 
     def identifier(self):
         return self.identifier
@@ -207,10 +209,10 @@ class ClientContext(object):
 class ServerContext(object):
     def __init__(self, suite, contextString, skS):
         self.suite = suite
+        self.dst = _as_bytes(suite.dst)
         self.contextString = contextString
         self.skS = skS
         self.pkS = suite.group.G * skS
-        self.dst = _as_bytes("VOPRF05-") + self.contextString
 
     def evaluate(self, element):
         return Evaluation(self.skS * element, None)
@@ -357,12 +359,12 @@ def SetupVerifiableClient(suite, pkS):
     contextString = I2OSP(mode_verifiable, 1) + I2OSP(suite.identifier, 2)
     return VerifiableClientContext(suite, contextString, pkS)
 
-ciphersuite_p256_hkdf_sha512_sswu_ro = 0x0001
-ciphersuite_p384_hkdf_sha512_sswu_ro = 0x0002
-ciphersuite_p521_hkdf_sha512_sswu_ro = 0x0003
+ciphersuite_p256_sha256_sswu_ro = 0x0003
+ciphersuite_p384_sha512_sswu_ro = 0x0004
+ciphersuite_p521_sha512_sswu_ro = 0x0005
 
 oprf_ciphersuites = {
-    Ciphersuite("OPRF-P256-HKDF-SHA512-SSWU-RO", ciphersuite_p256_hkdf_sha512_sswu_ro, GroupP256(), hashlib.sha512),
-    Ciphersuite("OPRF-P384-HKDF-SHA512-SSWU-RO", ciphersuite_p384_hkdf_sha512_sswu_ro, GroupP384(), hashlib.sha512),
-    Ciphersuite("OPRF-P521-HKDF-SHA512-SSWU-RO", ciphersuite_p521_hkdf_sha512_sswu_ro, GroupP521(), hashlib.sha512),
+    Ciphersuite("P256-SHA256-SSWU-RO", ciphersuite_p256_sha256_sswu_ro, GroupP256(), "VOPRF05-P256_XMD:SHA-256_SSWU_RO_", hashlib.sha256),
+    Ciphersuite("P384-SHA512-SSWU-RO", ciphersuite_p384_sha512_sswu_ro, GroupP384(), "VOPRF05-P384_XMD:SHA-512_SSWU_RO_", hashlib.sha512),
+    Ciphersuite("P521-SHA512-SSWU-RO", ciphersuite_p521_sha512_sswu_ro, GroupP521(), "VOPRF05-P521_XMD:SHA-512_SSWU_RO_", hashlib.sha512),
 }
