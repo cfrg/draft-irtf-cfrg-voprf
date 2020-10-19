@@ -3,6 +3,7 @@
 
 import sys
 import json
+import random
 import hashlib
 import binascii
 
@@ -24,6 +25,9 @@ else:
     _as_bytes = lambda x: x
     _strxor = lambda str1, str2: ''.join( chr(ord(s1) ^ ord(s2)) for (s1, s2) in zip(str1, str2) )
 
+# Fix a seed so all test vectors are deterministic
+FIXED_SEED = "oprf".encode('utf-8')
+random.seed(int.from_bytes(hashlib.sha256(FIXED_SEED).digest(), 'big'))
 
 class Group(object):
     def __init__(self, name):
@@ -83,7 +87,7 @@ class GroupNISTCurve(Group):
         return self.G
 
     def random_scalar(self):
-        return randint(1, self.order-1)
+        return random.randint(1, self.order-1)
 
     def identity(self):
         return self.curve(0)
