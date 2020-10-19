@@ -26,8 +26,6 @@ else:
     _strxor = lambda str1, str2: ''.join( chr(ord(s1) ^ ord(s2)) for (s1, s2) in zip(str1, str2) )
 
 # Fix a seed so all test vectors are deterministic
-FIXED_SEED = "oprf".encode('utf-8')
-random.seed(int.from_bytes(hashlib.sha256(FIXED_SEED).digest(), 'big'))
 
 class Group(object):
     def __init__(self, name):
@@ -86,7 +84,8 @@ class GroupNISTCurve(Group):
     def generator(self):
         return self.G
 
-    def random_scalar(self):
+    def random_scalar(self, seed):
+        random.seed(int.from_bytes(hashlib.sha256(seed).digest(), 'big'))
         return random.randint(1, self.order-1)
 
     def identity(self):
@@ -130,7 +129,8 @@ class GroupNISTCurve(Group):
         return hash_to_field(msg, 1, dst, self.order, self.m, self.L, self.expand, self.H, self.k)[0][0]
 
     def key_gen(self):
-        skS = ZZ(self.random_scalar())
+        seed = "key".encode('utf-8')
+        skS = ZZ(self.random_scalar(seed))
         pkS = self.G * skS
         return skS, pkS
 
@@ -183,7 +183,8 @@ class ClientContext(object):
         return self.identifier
 
     def blind(self, x):
-        r = ZZ(self.suite.group.random_scalar())
+        seed = "blind".encode('utf-8')
+        r = ZZ(self.suite.group.random_scalar(seed))
         P = self.suite.group.hash_to_group(x, self.dst)
         R = r * P
         return r, R, P
@@ -313,7 +314,8 @@ class VerifiableServerContext(ServerContext):
         (a1, a2) = compute_composites(self.suite, self.contextString, pkSm, evaluate_input, evaluate_output)
         M = self.suite.group.deserialize(a1)
 
-        r = ZZ(self.suite.group.random_scalar())
+        seed = "proof".encode('utf-8')
+        r = ZZ(self.suite.group.random_scalar(seed))
         a3 = self.suite.group.serialize(r * G)
         a4 = self.suite.group.serialize(r * M)
 
