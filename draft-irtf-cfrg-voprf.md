@@ -1022,8 +1022,6 @@ and curve25519. See {{cryptanalysis}} for related discussion.
     SHA-256.
   - Serialization: The standard 32-byte representation of the public key
     {{!RFC7748}}
-  - Addition: Adding curve points directly corresponds to the group
-    addition operation.
   - Deserialization: Implementers must check for each untrusted input
     point whether it's a member of the big prime-order subgroup of the
     curve. This can be done by scalar multiplying the point by Order()
@@ -1048,8 +1046,6 @@ and curve25519. See {{cryptanalysis}} for related discussion.
     SHA-512.
   - Serialization: The standard 56-byte representation of the public key
     {{!RFC7748}}
-  - Addition: Adding curve points directly corresponds to the group
-    addition operation.
   - Deserialization: Implementers must check for each untrusted input
     point whether it's a member of the big prime-order subgroup of the
     curve. This can be done by scalar multiplying the point by Order()
@@ -1076,8 +1072,6 @@ and curve25519. See {{cryptanalysis}} for related discussion.
     SHA-256.
   - Serialization: The compressed point encoding for the curve {{SEC1}}
     consisting of 33 bytes.
-  - Addition: Adding curve points directly corresponds to the group
-    addition operation.
   - Scalar multiplication: Scalar multiplication of curve points
     directly corresponds with scalar multiplication in the group.
 - Hash: SHA-256
@@ -1102,8 +1096,6 @@ and curve25519. See {{cryptanalysis}} for related discussion.
     SHA-512.
   - Serialization: The compressed point encoding for the curve {{SEC1}}
     consisting of 49 bytes.
-  - Addition: Adding curve points directly corresponds to the group
-    addition operation.
   - Scalar multiplication: Scalar multiplication of curve points
     directly corresponds with scalar multiplication in the group.
 - Hash: SHA-512
@@ -1128,8 +1120,6 @@ and curve25519. See {{cryptanalysis}} for related discussion.
     SHA-512.
   - Serialization: The compressed point encoding for the curve {{SEC1}}
     consisting of 67 bytes.
-  - Addition: Adding curve points directly corresponds to the group
-    addition operation.
   - Scalar multiplication: Scalar multiplication of curve points
     directly corresponds with scalar multiplication in the group.
 - Hash: SHA-512
