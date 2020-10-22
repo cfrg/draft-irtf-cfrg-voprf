@@ -1004,11 +1004,8 @@ and curve25519. See {{cryptanalysis}} for related discussion.
 
 ## OPRF(ristretto255, SHA-256)
 
-Ristretto255 is technique to safely construct and implement ed25519 with a thin
-abstraction level.
-
 - Group:
-  - Elliptic curve name: ristretto255 {{RISTRETTO}}
+  - Name: ristretto255 {{RISTRETTO}}
   - Generator(): Return the point with the following affine coordinates:
     - x =
       `15112221349535400772501151409588531511454012693041857206046113283949847762202`
@@ -1041,9 +1038,6 @@ abstraction level.
 - ID: 0x0001
 
 ## OPRF(curve448, SHA-512)
-
-Decaf448 is technique to safely construct and implement ed448 with a thin
-abstraction level.
 
 - Group:
   - Elliptic curve name: curve448 {{RFC7748}}
