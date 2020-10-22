@@ -1002,34 +1002,48 @@ provide the most efficient way of instantiating the OPRF.
 Applications should take caution in using ciphersuites targeting P-256
 and curve25519. See {{cryptanalysis}} for related discussion.
 
-[[OPEN ISSUE: Replace Curve25519 and Curve448 with Ristretto and Decaf]]
+## OPRF(ristretto255, SHA-256)
 
-## OPRF(curve25519, SHA-256)
+Ristretto255 is technique to safely construct and implement ed25519 with a thin
+abstraction level.
 
 - Group:
-  - Elliptic curve name: curve25519 {{RFC7748}}
+  - Elliptic curve name: ristretto255 {{RISTRETTO}}
   - Generator(): Return the point with the following affine coordinates:
-    - x = `09`
+    - x =
+      `15112221349535400772501151409588531511454012693041857206046113283949847762202`
     - y =
-      `5F51E65E475F794B1FE122D388B72EB36DC2B28192839E4DD6163A5D81312C14`
+      `46316835694926478169428394003475163141307993866256225615783033603165251855960`
+    Using Ristretto encoding, it looks like:
+    `e2f2ae0a 6abc4e71 a884a961 c500515f 58e30b6a a582dd8d b6a65945 e08d2d76`
   - Order(): Returns
   `1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED`
-  - HashToGroup(): curve25519_XMD:SHA-256_ELL2_RO\_
+  - HashToGroup(): ristretto255_XMD:SHA-256_ELL2_RO\_
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
-    "VOPRF05-curve25519_XMD:SHA-256_ELL2_RO\_"
+    "VOPRF05-ristretto255_XMD:SHA-256_ELL2_RO\_"
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=48, and expand_message_xmd with
     SHA-256.
-  - Serialization: The standard 32-byte representation of the public key
-    {{!RFC7748}}
-  - Deserialization: Implementers must check for each untrusted input
-    point whether it's a member of the big prime-order subgroup of the
-    curve. This can be done by scalar multiplying the point by Order()
-    and checking whether it's zero.
+  - Serialization: The 32-byte little-endian encoding of a group element
+    using the 'Encode' function from {{!RISTRETTO}}. Note that for 'scalars'
+    (field elements), they are encoded as 32-byte strings in little-endian order.
+    Implementations SHOULD check that any scalar `s` falls in the
+    range `0 <= s < Order()` and reject non-canonical scalar encodings.
+    Implementations SHOULD reduce scalars modulo `Order()` when encoding them as
+    byte strings.
+  - Deserialization: Takes a 32-byte little endian encoding and represents
+    it as a group element by using the 'Decode' function from {{!RISTRETTO}}.
+    No further check is needed. Note that for 'scalars' (field elements),
+    they are represented as 32-byte strings in little-endian order.
+    Implementations can obtain a scalar by interpreting the 32-byte string as
+    a 256-bit integer in little-endian order and reducing the integer modulo `Order()`.
 - Hash: SHA-256
 - ID: 0x0001
 
 ## OPRF(curve448, SHA-512)
+
+Decaf448 is technique to safely construct and implement ed448 with a thin
+abstraction level.
 
 - Group:
   - Elliptic curve name: curve448 {{RFC7748}}
