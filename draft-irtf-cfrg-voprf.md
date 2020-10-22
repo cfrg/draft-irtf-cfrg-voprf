@@ -1048,22 +1048,32 @@ abstraction level.
 - Group:
   - Elliptic curve name: curve448 {{RFC7748}}
   - Generator(): Return the point with the following affine coordinates:
-    - x = `05`
-    - y =
-      `7D235D1295F5B1F66C98AB6E58326FCECBAE5D34F55545D060F75DC28DF3F6EDB8027E2346430D211312C4B150677AF76FD7223D457B5B1A`
+    - x = `224580040295924300187604334099896036246789641632564134246125461
+      686950415467406032909029192869357953282578032075146446173674602635
+      247710`
+    - y = `298819210078481492676017930443930673437544040154080242095928241
+      372331506189835876003536878655418784733982303233503462500531545062
+      832660`
   - Order(): Returns `3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7CCA23E9C44EDB49AED63690216CC2728DC58F552378C292AB5844F3`
-  - HashToGroup(): curve448_XMD:SHA-512_ELL2_RO\_
+  - HashToGroup(): decaf448_XMD:SHA-512_ELL2_RO\_
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
-    "VOPRF05-curve448_XMD:SHA-512_ELL2_RO\_"
+    "VOPRF05-decaf448_XMD:SHA-512_ELL2_RO\_"
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=84, and expand_message_xmd with
     SHA-512.
-  - Serialization: The standard 56-byte representation of the public key
-    {{!RFC7748}}
-  - Deserialization: Implementers must check for each untrusted input
-    point whether it's a member of the big prime-order subgroup of the
-    curve. This can be done by scalar multiplying the point by Order()
-    and checking whether it's zero.
+  - Serialization: The 56-byte little-endian encoding of a group element
+    using the 'Encode' function from {{!RISTRETTO}}. Note that for 'scalars'
+    (field elements), they are encoded as 56-byte strings in little-endian order.
+    Implementations SHOULD check that any scalar `s` falls in the
+    range `0 <= s < Order()` and reject non-canonical scalar encodings.
+    Implementations SHOULD reduce scalars modulo `Order()` when encoding them as
+    byte strings.
+  - Deserialization: Takes a 56-byte little endian encoding and represents
+    it as a group element by using the 'Decode' function from {{!RISTRETTO}}.
+    No further check is needed. Note that for 'scalars' (field elements),
+    they are represented as 56-byte strings in little-endian order.
+    Implementations can obtain a scalar by interpreting the 56-byte string as
+    a 448-bit integer in little-endian order and reducing the integer modulo `Order()`.
 - Hash: SHA-512
 - ID: 0x0002
 
