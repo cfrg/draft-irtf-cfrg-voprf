@@ -623,7 +623,7 @@ struct {
 ## Context APIs {#api}
 
 In this section, we detail the APIs available on the client and server
-OPRF contexts. This document uses the types `Element` and `Scalar` to
+(V)OPRF contexts. This document uses the types `Element` and `Scalar` to
 denote elements of the group `GG` and its underlying scalar field `GF(p)`,
 respectively. For notational clarity, `PublicKey` is an item of type
 `Element` and `PrivateKey` is an item of type `Scalar`.
@@ -631,7 +631,7 @@ respectively. For notational clarity, `PublicKey` is an item of type
 ### Server Context
 
 The ServerContext encapsulates the context string constructed during
-setup and the OPRF key pair. It has two functions, `Evaluate` and
+setup and the (V)OPRF key pair. It has two functions, `Evaluate` and
 `VerifyFinalize`, described below. `Evaluate` takes serialized
 representations of blinded group elements from the client as inputs.
 `VerifyFinalize` takes ClientInput values and their corresponding output
@@ -1034,13 +1034,15 @@ and curve25519. See {{cryptanalysis}} for related discussion.
     they are represented as 32-byte strings in little-endian order.
     Implementations can obtain a scalar by interpreting the 32-byte string as
     a 256-bit integer in little-endian order and reducing the integer modulo `Order()`.
+  - Scalar multiplication: Scalar multiplication of curve points
+    directly corresponds with scalar multiplication in the edwards group.
 - Hash: SHA-256
 - ID: 0x0001
 
-## OPRF(curve448, SHA-512)
+## OPRF(decaf448, SHA-512)
 
 - Group:
-  - Elliptic curve name: curve448 {{RFC7748}}
+  - Name: ristretto255 {{RISTRETTO}}
   - Generator(): Return the point with the following affine coordinates:
     - x = `224580040295924300187604334099896036246789641632564134246125461
       686950415467406032909029192869357953282578032075146446173674602635
@@ -1068,6 +1070,8 @@ and curve25519. See {{cryptanalysis}} for related discussion.
     they are represented as 56-byte strings in little-endian order.
     Implementations can obtain a scalar by interpreting the 56-byte string as
     a 448-bit integer in little-endian order and reducing the integer modulo `Order()`.
+  - Scalar multiplication: Scalar multiplication of curve points
+    directly corresponds with scalar multiplication in the edwards group.
 - Hash: SHA-512
 - ID: 0x0002
 
