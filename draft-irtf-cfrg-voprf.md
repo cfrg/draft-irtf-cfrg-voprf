@@ -1018,7 +1018,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
   `1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED`
   - HashToGroup(): ristretto255_XMD:SHA-256_ELL2_RO\_
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
-    "VOPRF05-ristretto255_XMD:SHA-256_ELL2_RO\_"
+    "VOPRF05-edwards25519_XMD:SHA-256_ELL2_RO\_"
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=48, and expand_message_xmd with
     SHA-256.
@@ -1054,7 +1054,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
   - Order(): Returns `3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7CCA23E9C44EDB49AED63690216CC2728DC58F552378C292AB5844F3`
   - HashToGroup(): decaf448_XMD:SHA-512_ELL2_RO\_
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
-    "VOPRF05-decaf448_XMD:SHA-512_ELL2_RO\_"
+    "VOPRF05-edwards448_XMD:SHA-512_ELL2_RO\_"
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=84, and expand_message_xmd with
     SHA-512.
