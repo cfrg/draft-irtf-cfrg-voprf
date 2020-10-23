@@ -402,7 +402,7 @@ corresponds to `GF(p)`.
 We now detail a number of member functions that can be invoked on a
 prime-order group.
 
-- Order(): Outputs the order of the group (i.e. order of `p`).
+- Order(): Outputs the order of GG (i.e. `p`).
 - Generator(): Outputs a fixed generator `G` for the group.
 - Identity(): Outputs the identity element of the group (i.e. `I`).
 - Serialize(A): A member function of `GG` that maps a group element `A`
@@ -418,8 +418,7 @@ prime-order group.
 - HashToScalar(x): A member function of `GG` that deterministically maps
   an array of bytes `x` to a random element in GF(p). A recommended method
   for its implementation is instantiating the hash to field function,
-  defined in {{I-D.irtf-cfrg-hash-to-curve}} with the order of the prime-order
-  subgroupi (the output of `Order()`).
+  defined in {{I-D.irtf-cfrg-hash-to-curve}} setting the target field to GF(p).
 - RandomScalar(): A member function of `GG` that generates a random,
   non-zero element in GF(p).
 
@@ -1045,7 +1044,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
       `15112221349535400772501151409588531511454012693041857206046113283949847762202`
     - y =
       `46316835694926478169428394003475163141307993866256225615783033603165251855960`
-    Using Ristretto encoding, it looks like:
+    The byte encoding of the generator is:
     `e2f2ae0a 6abc4e71 a884a961 c500515f 58e30b6a a582dd8d b6a65945 e08d2d76`
   - Order(): Returns
   `1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED`
@@ -1055,10 +1054,10 @@ and curve25519. See {{cryptanalysis}} for related discussion.
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=48, and expand_message_xmd with
     SHA-256.
-  - Serialization: The 32-byte little-endian encoding of a group element
+  - Serialization: Converts a group element to a 32-byte string
     using the 'Encode' function from {{!RISTRETTO}}.
-  - Deserialization: Takes a 32-byte little endian encoding and represents
-    it as a group element by using the 'Decode' function from {{!RISTRETTO}}.
+  - Deserialization: Converts a valid 32-byte string to
+    a group element by using the 'Decode' function from {{!RISTRETTO}}.
   - Scalar multiplication: Scalar multiplication of curve points
     directly corresponds with scalar multiplication in the edwards group.
 - Hash: SHA-256
@@ -1075,7 +1074,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
     - y = `298819210078481492676017930443930673437544040154080242095928241
       372331506189835876003536878655418784733982303233503462500531545062
       832660`
-    Using Decaf encoding, it looks like:
+    The byte encoding of the generator is:
     `66666666 66666666 66666666 66666666 66666666 66666666 66666666
      33333333 33333333 33333333 33333333 33333333 33333333 33333333`
   - Order(): Returns `3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7CCA23E9C44EDB49AED63690216CC2728DC58F552378C292AB5844F3`
@@ -1085,10 +1084,10 @@ and curve25519. See {{cryptanalysis}} for related discussion.
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=84, and expand_message_xmd with
     SHA-512.
-  - Serialization: The 56-byte little-endian encoding of a group element
+  - Serialization: Converts a group element to a 56-byte string
     using the 'Encode' function from {{!RISTRETTO}}.
-  - Deserialization: Takes a 56-byte little endian encoding and represents
-    it as a group element by using the 'Decode' function from {{!RISTRETTO}}.
+  - Deserialization: Converts a valid 56-byte string to
+    a group element by using the 'Decode' function from {{!RISTRETTO}}.
   - Scalar multiplication: Scalar multiplication of curve points
     directly corresponds with scalar multiplication in the edwards group.
 - Hash: SHA-512
