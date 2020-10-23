@@ -524,8 +524,8 @@ online phase of the protocol. The base mode setup functions for creating
 client and server contexts are below:
 
 ~~~
-def SetupBaseServer(suite):
-  (skS, _) = KeyGen(GG)
+def SetupBaseServer(suite, skS):
+  if !skS: (skS, _) = KeyGen(GG)
   contextString = I2OSP(modeBase, 1) || I2OSP(suite.ID, 2)
   return ServerContext(contextString, skS)
 
@@ -537,7 +537,8 @@ def SetupBaseClient(suite):
 The `KeyGen` function used above takes a group `GG` and generates a
 private and public key pair (skX, pkX), where skX is a random, non-zero
 element in the scalar field `GG` and pkX is the product of skX and the
-group's fixed generator.
+group's fixed generator. Note that to set up a context, a pre-existing key pair
+can be used.
 
 For base mode, servers do not need the public key `pkS` produced by KeyGen.
 
@@ -545,8 +546,8 @@ The verifiable mode setup functions for creating client and server
 contexts are below.
 
 ~~~
-def SetupVerifiableServer(suite):
-  (skS, pkS) = KeyGen(GG)
+def SetupVerifiableServer(suite, skS, pkS):
+  if !skS || !pkS: (skS, _) = KeyGen(GG)
   contextString = I2OSP(modeVerifiable, 1) || I2OSP(suite.ID, 2)
   return VerifiableServerContext(contextString, skS), pkS
 
