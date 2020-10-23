@@ -632,11 +632,17 @@ respectively. For notational clarity, `PublicKey` is an item of type
 ### Server Context
 
 The ServerContext encapsulates the context string constructed during
-setup and the (V)OPRF key pair. It has two functions, `Evaluate` and
-`VerifyFinalize`, described below. `Evaluate` takes serialized
-representations of blinded group elements from the client as inputs.
+setup and the (V)OPRF key pair. It has three functions, `Evaluate`,
+`FullEvaluate` and `VerifyFinalize` described below. `Evaluate` takes
+serialized representations of blinded group elements from the client as inputs.
+
+`FullEvaluate` takes ClientInput values, and it is useful for applications
+that need to compute the whole OPRF protocol on the server side only.
+Note that `VerifyFinalize` is not used in the main OPRF protocol. It is
+exposed as an API for applications that might need it.
+
 `VerifyFinalize` takes ClientInput values and their corresponding output
-digests from `Verify` as input, and returns true if the inputs match the outputs.
+digests from `Finalize` as input, and returns true if the inputs match the outputs.
 Note that `VerifyFinalize` is not used in the main OPRF protocol. It is
 exposed as an API for building higher-level protocols.
 
@@ -660,6 +666,33 @@ def Evaluate(skS, blindToken):
   Ev = Evaluation{ element: serializedElement }
 
   return Ev
+~~~
+
+#### FullEvaluate
+
+~~~
+Input:
+
+  PrivateKey skS
+  ClientInput input
+  opaque info<1..2^16-1>
+
+Output:
+
+  opaque output<1..2^16-1>
+
+def VerifyFinalize(skS, input, info):
+  P = GG.HashToGroup(input)
+  T = skS * P
+  issuedToken = GG.serialize(T)
+
+  finalizeDST = "VOPRF05-Finalize-" || client.contextString
+  hashInput = I2OSP(len(input), 2) || input ||
+              I2OSP(len(issuedToken), 2) || issuedToken ||
+              I2OSP(len(info), 2) || info ||
+              I2OSP(len(finalizeDST), 2) || finalizeDST
+
+  return Hash(hashInput)
 ~~~
 
 #### VerifyFinalize
