@@ -1016,7 +1016,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
     `e2f2ae0a 6abc4e71 a884a961 c500515f 58e30b6a a582dd8d b6a65945 e08d2d76`
   - Order(): Returns
   `1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED`
-  - HashToGroup(): ristretto255_XMD:SHA-256_ELL2_RO\_
+  - HashToGroup(): hash_to_ristretto255
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
     "VOPRF05-edwards25519_XMD:SHA-256_ELL2_RO\_"
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
@@ -1043,7 +1043,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
       372331506189835876003536878655418784733982303233503462500531545062
       832660`
   - Order(): Returns `3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7CCA23E9C44EDB49AED63690216CC2728DC58F552378C292AB5844F3`
-  - HashToGroup(): decaf448_XMD:SHA-512_ELL2_RO\_
+  - HashToGroup(): hash_to_decaf448
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
     "VOPRF05-edwards448_XMD:SHA-512_ELL2_RO\_"
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
