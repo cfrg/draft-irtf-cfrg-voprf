@@ -774,7 +774,7 @@ def GenerateProof(skS, pkS, blindToken, element)
 
 Unlike other functions, `ComputeComposites` takes lists of inputs,
 rather than a single input. It is optimized to produce a constant-size
-output. This functionality lets applications batch inputs together to
+output. This functionality allows applications batch inputs together to
 produce a constant-size proofs from `GenerateProof`. Applications can
 take advantage of this functionality by invoking `GenerateProof` on
 batches of inputs. (Notice that in the pseudocode above, the single
@@ -787,7 +787,7 @@ the output of `Evaluate`.
 
 ##### Fresh randomness
 
-We note here that it is essential that a different r value is used for
+We note here that it is essential that a different `r` value is used for
 every invocation. If this is not done, then this may leak `skS` as is
 possible in Schnorr or (EC)DSA scenarios where fresh randomness is not
 used.
@@ -1023,18 +1023,9 @@ and curve25519. See {{cryptanalysis}} for related discussion.
     using Order() as the prime modulus, with L=48, and expand_message_xmd with
     SHA-256.
   - Serialization: The 32-byte little-endian encoding of a group element
-    using the 'Encode' function from {{!RISTRETTO}}. Note that for 'scalars'
-    (field elements), they are encoded as 32-byte strings in little-endian order.
-    Implementations SHOULD check that any scalar `s` falls in the
-    range `0 <= s < Order()` and reject non-canonical scalar encodings.
-    Implementations SHOULD reduce scalars modulo `Order()` when encoding them as
-    byte strings.
+    using the 'Encode' function from {{!RISTRETTO}}.
   - Deserialization: Takes a 32-byte little endian encoding and represents
     it as a group element by using the 'Decode' function from {{!RISTRETTO}}.
-    No further check is needed. Note that for 'scalars' (field elements),
-    they are represented as 32-byte strings in little-endian order.
-    Implementations can obtain a scalar by interpreting the 32-byte string as
-    a 256-bit integer in little-endian order and reducing the integer modulo `Order()`.
   - Scalar multiplication: Scalar multiplication of curve points
     directly corresponds with scalar multiplication in the edwards group.
 - Hash: SHA-256
@@ -1059,18 +1050,9 @@ and curve25519. See {{cryptanalysis}} for related discussion.
     using Order() as the prime modulus, with L=84, and expand_message_xmd with
     SHA-512.
   - Serialization: The 56-byte little-endian encoding of a group element
-    using the 'Encode' function from {{!RISTRETTO}}. Note that for 'scalars'
-    (field elements), they are encoded as 56-byte strings in little-endian order.
-    Implementations SHOULD check that any scalar `s` falls in the
-    range `0 <= s < Order()` and reject non-canonical scalar encodings.
-    Implementations SHOULD reduce scalars modulo `Order()` when encoding them as
-    byte strings.
+    using the 'Encode' function from {{!RISTRETTO}}.
   - Deserialization: Takes a 56-byte little endian encoding and represents
     it as a group element by using the 'Decode' function from {{!RISTRETTO}}.
-    No further check is needed. Note that for 'scalars' (field elements),
-    they are represented as 56-byte strings in little-endian order.
-    Implementations can obtain a scalar by interpreting the 56-byte string as
-    a 448-bit integer in little-endian order and reducing the integer modulo `Order()`.
   - Scalar multiplication: Scalar multiplication of curve points
     directly corresponds with scalar multiplication in the edwards group.
 - Hash: SHA-512
