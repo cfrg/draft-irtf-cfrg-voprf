@@ -402,7 +402,7 @@ corresponds to `GF(p)`.
 We now detail a number of member functions that can be invoked on a
 prime-order group.
 
-- Order(): Outputs the order of the group (i.e. `p`).
+- Order(): Outputs the order of the group (i.e. order of `p`).
 - Generator(): Outputs a fixed generator `G` for the group.
 - Identity(): Outputs the identity element of the group (i.e. `I`).
 - Serialize(A): A member function of `GG` that maps a group element `A`
@@ -418,8 +418,8 @@ prime-order group.
 - HashToScalar(x): A member function of `GG` that deterministically maps
   an array of bytes `x` to a random element in GF(p). A recommended method
   for its implementation is instantiating the hash to field function,
-  defined in {{I-D.irtf-cfrg-hash-to-curve}}, but setting the order of
-  the group as the modulus of a prime field.
+  defined in {{I-D.irtf-cfrg-hash-to-curve}} with the order of the prime-order
+  subgroupi (the output of `Order()`).
 - RandomScalar(): A member function of `GG` that generates a random,
   non-zero element in GF(p).
 
@@ -1034,7 +1034,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
 ## OPRF(decaf448, SHA-512)
 
 - Group:
-  - Name: ristretto255 {{RISTRETTO}}
+  - Name: decaf448 {{RISTRETTO}}
   - Generator(): Return the point with the following affine coordinates:
     - x = `224580040295924300187604334099896036246789641632564134246125461
       686950415467406032909029192869357953282578032075146446173674602635
