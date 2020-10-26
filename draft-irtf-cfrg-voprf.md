@@ -201,8 +201,8 @@ normative:
         ins: F. Valsorda
         org: Independent
   RISTRETTO:
-    title: The ristretto255 Group
-    target: https://tools.ietf.org/html/draft-hdevalence-cfrg-ristretto-01
+    title: The ristretto255 and decaf448 Groups
+    target: https://tools.ietf.org/html/draft-irtf-cfrg-ristretto255-decaf448-00
     date: false
     authors:
       -
@@ -215,6 +215,8 @@ normative:
         ins: F. Valsorda
       -
         ins: I. Lovecruft
+      -
+        ins: M. Hamburg
   DECAF:
     title: Decaf, Eliminating cofactors through point compression
     target: https://www.shiftleft.org/papers/decaf/decaf.pdf
@@ -1022,7 +1024,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
 ## OPRF(ristretto255, SHA-256)
 
 - Group:
-  - Name: ristretto255 {{!RISTRETTO}}
+  - Name: ristretto255 {{RISTRETTO}}
   - Order(): Returns
   `1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED`
   - HashToGroup(): hash_to_ristretto255
@@ -1032,18 +1034,18 @@ and curve25519. See {{cryptanalysis}} for related discussion.
     using Order() as the prime modulus, with L=48, and expand_message_xmd with
     SHA-256.
   - Serialization: Converts a group element to a 32-byte string
-    using the 'Encode' function from {{!RISTRETTO}}.
+    using the 'Encode' function from {{RISTRETTO}}.
   - Deserialization: Converts a valid 32-byte string to
-    a group element by using the 'Decode' function from {{!RISTRETTO}}.
+    a group element by using the 'Decode' function from {{RISTRETTO}}.
   - Scalar multiplication: Scalar multiplication of curve points
-    directly corresponds with scalar multiplication according to {{!RISTRETTO}}.
+    directly corresponds with scalar multiplication according to {{RISTRETTO}}.
 - Hash: SHA-256
 - ID: 0x0001
 
 ## OPRF(decaf448, SHA-512)
 
 - Group:
-  - Name: decaf448 {{!RISTRETTO}}
+  - Name: decaf448 {{RISTRETTO}}
   - Order(): Returns `3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7CCA23E9C44EDB49AED63690216CC2728DC58F552378C292AB5844F3`
   - HashToGroup(): hash_to_decaf448
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
@@ -1052,11 +1054,11 @@ and curve25519. See {{cryptanalysis}} for related discussion.
     using Order() as the prime modulus, with L=84, and expand_message_xmd with
     SHA-512.
   - Serialization: Converts a group element to a 56-byte string
-    using the 'Encode' function from {{!RISTRETTO}}.
+    using the 'Encode' function from {{RISTRETTO}}.
   - Deserialization: Converts a valid 56-byte string to
-    a group element by using the 'Decode' function from {{!RISTRETTO}}.
+    a group element by using the 'Decode' function from {{RISTRETTO}}.
   - Scalar multiplication: Scalar multiplication of curve points
-    directly corresponds with scalar multiplication according to {{!RISTRETTO}}.
+    directly corresponds with scalar multiplication according to {{RISTRETTO}}.
 - Hash: SHA-512
 - ID: 0x0002
 
