@@ -524,7 +524,7 @@ client and server contexts are below:
 
 ~~~
 def SetupBaseServer(suite, skS):
-  if !skS: (skS, _) = KeyGen(GG)
+  (skS, _) = KeyGen(GG)
   contextString = I2OSP(modeBase, 1) || I2OSP(suite.ID, 2)
   return ServerContext(contextString, skS)
 
@@ -537,7 +537,9 @@ The `KeyGen` function used above takes a group `GG` and generates a
 private and public key pair (skX, pkX), where skX is a random, non-zero
 element in the scalar field `GG` and pkX is the product of skX and the
 group's fixed generator. Note that to set up a context, a pre-existing key pair
-can be used.
+can be used, and passed as a parameter (in the case of the base mode, `skS`
+can be passed as a parameter, and, in the case of the verifiable mode, both
+`skS` and `pkS` can be passed as parameters.
 
 For base mode, servers do not need the public key `pkS` produced by KeyGen.
 
@@ -546,7 +548,7 @@ contexts are below.
 
 ~~~
 def SetupVerifiableServer(suite, skS, pkS):
-  if !skS || !pkS: (skS, _) = KeyGen(GG)
+  (skS, pkS) = KeyGen(GG)
   contextString = I2OSP(modeVerifiable, 1) || I2OSP(suite.ID, 2)
   return VerifiableServerContext(contextString, skS), pkS
 
