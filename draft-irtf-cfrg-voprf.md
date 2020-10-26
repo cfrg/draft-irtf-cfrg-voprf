@@ -1022,7 +1022,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
 ## OPRF(ristretto255, SHA-256)
 
 - Group:
-  - Name: ristretto255 {{RISTRETTO}}
+  - Name: ristretto255 {{!RISTRETTO}}
   - Order(): Returns
   `1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED`
   - HashToGroup(): hash_to_ristretto255
@@ -1043,7 +1043,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
 ## OPRF(decaf448, SHA-512)
 
 - Group:
-  - Name: decaf448 {{RISTRETTO}}
+  - Name: decaf448 {{!RISTRETTO}}
   - Order(): Returns `3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7CCA23E9C44EDB49AED63690216CC2728DC58F552378C292AB5844F3`
   - HashToGroup(): hash_to_decaf448
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
