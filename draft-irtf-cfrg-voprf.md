@@ -396,14 +396,15 @@ also a member of `GG`. Also, for any `A` in `GG`, there exists an element
 `-A` such that `A + (-A) = (-A) + A = I`. Scalar multiplication is
 equivalent to the repeated application of the group operation on an
 element A with itself `r-1` times, this is denoted as `r*A = A + ... +
-A`. For any element `A`, the equality `p*A=I` holds. The set of scalars
-corresponds to `GF(p)`.
+A`. For any element `A`, the equality `p*A=I` holds. Scalar base multiplication
+is equivalent to the repeated application of the group operation on the
+base point with itself `r-1` times, this is denoted as `ScalarBaseMult(r)`.
+The set of scalars corresponds to `GF(p)`.
 
 We now detail a number of member functions that can be invoked on a
 prime-order group.
 
 - Order(): Outputs the order of GG (i.e. `p`).
-- Generator(): Outputs a fixed generator `G` for the group.
 - Identity(): Outputs the identity element of the group (i.e. `I`).
 - Serialize(A): A member function of `GG` that maps a group element `A`
   to a unique byte array `buf`.
@@ -763,8 +764,6 @@ Output:
   Scalar proof[2]
 
 def GenerateProof(skS, pkS, blindToken, element)
-  G = GG.Generator()
-
   blindTokenList = [blindToken]
   elementList = [element]
 
@@ -772,7 +771,7 @@ def GenerateProof(skS, pkS, blindToken, element)
 
   M = GG.Deserialize(a1)
   r = GG.RandomScalar()
-  a3 = GG.Serialize(r * G)
+  a3 = GG.Serialize(ScalarBaseMult(r))
   a4 = GG.Serialize(r * M)
 
   challengeDST = "VOPRF05-challenge-" || self.contextString
@@ -947,14 +946,12 @@ Output:
   boolean verified
 
 def VerifyProof(pkS, blindToken, Ev):
-  G = GG.Generator()
-
   blindTokenList = [blindToken]
   elementList = [Ev.element]
 
   (a1, a2) = ComputeComposites(pkS, blindTokenList, elementList)
 
-  A' = (Ev.proof[1] * G + Ev.proof[0] * pkS)
+  A' = (ScalarBaseMult(Ev.proof[1]) + Ev.proof[0] * pkS)
   B' = (Ev.proof[1] * M + Ev.proof[0] * Z)
   a3 = GG.Serialize(A')
   a4 = GG.Serialize(B')
@@ -1026,13 +1023,6 @@ and curve25519. See {{cryptanalysis}} for related discussion.
 
 - Group:
   - Name: ristretto255 {{RISTRETTO}}
-  - Generator(): Return the point with the following affine coordinates:
-    - x =
-      `0x216936D3CD6E53FEC0A4E231FDD6DC5C692CC7609525A7B2C9562D608F25D51A`
-    - y =
-      `0x6666666666666666666666666666666666666666666666666666666666666658`
-    The byte encoding of the generator is:
-    `0xe2f2ae0a6abc4e71a884a961c500515f58e30b6aa582dd8db6a65945e08d2d76`
   - Order(): Returns
   `1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED`
   - HashToGroup(): hash_to_ristretto255
@@ -1054,11 +1044,6 @@ and curve25519. See {{cryptanalysis}} for related discussion.
 
 - Group:
   - Name: decaf448 {{RISTRETTO}}
-  - Generator(): Return the point with the following affine coordinates:
-    - x = `0x4F1970C66BED0DED221D15A622BF36DA9E146570470F1767EA6DE324A3D3A46412AE1AF72AB66511433B80E18B00938E2626A82BC70CC05E`
-    - y = `0x298819210078481492676017930443930673437544040154080242095928241372331506189835876003536878655418784733982303233503462500531545062832660`
-    The byte encoding of the generator is:
-    `0x6666666666666666666666666666666666666666666666666666666633333333333333333333333333333333333333333333333333333333`
   - Order(): Returns `3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7CCA23E9C44EDB49AED63690216CC2728DC58F552378C292AB5844F3`
   - HashToGroup(): hash_to_decaf448
     {{I-D.irtf-cfrg-hash-to-curve}} with DST
@@ -1079,11 +1064,6 @@ and curve25519. See {{cryptanalysis}} for related discussion.
 
 - Group:
   - Elliptic curve name: P-256 (secp256r1) {{x9.62}}
-  - Generator(): Return the point with the following affine coordinates:
-    - x =
-      `6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296`
-    - y =
-      `4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5`
   - Order(): Returns
   `FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551`
   - HashToGroup(): P256_XMD:SHA-256_SSWU_RO\_
@@ -1103,11 +1083,6 @@ and curve25519. See {{cryptanalysis}} for related discussion.
 
 - Group:
   - Elliptic curve name: P-384 (secp384r1) {{x9.62}}
-  - Generator(): Return the point with the following affine coordinates:
-    - x =
-      `AA87CA22BE8B05378EB1C71EF320AD746E1D3B628BA79B9859F741E082542A385502F25DBF55296C3A545E3872760AB7`
-    - y =
-      `3617DE4A96262C6F5D9E98BF9292DC29F8F41DBD289A147CE9DA3113B5F0B8C00A60B1CE1D7E819D7A431D7C90EA0E5F`
   - Order(): Returns
   `FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC7634D81F4372DDF581A0DB248B0A77AECEC196ACCC52973`
   - HashToGroup(): P384_XMD:SHA-512_SSWU_RO\_
@@ -1127,11 +1102,6 @@ and curve25519. See {{cryptanalysis}} for related discussion.
 
 - Group:
   - Elliptic curve name: P-521 (secp521r1) {{x9.62}}
-  - Generator(): Return the point with the following affine coordinates:
-    - x =
-      `00C6858E06B70404E9CD9E3ECB662395B4429C648139053FB521F828AF606B4D3DBAA14B5E77EFE75928FE1DC127A2FFA8DE3348B3C1856A429BF97E7E31C2E5BD66`
-    - y =
-      `011839296A789A3BC0045C8A5FB42C7D1BD998F54449579B446817AFBD17273E662C97EE72995EF42640C550B9013FAD0761353C7086A272C24088BE94769FD16650`
   - Order(): Returns
   `1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFA51868783BF2F966B7FCC0148F709A5D03BB5C9B8899C47AEBB6FB71E91386409`
   - HashToGroup(): P521_XMD:SHA-512_SSWU_RO\_
@@ -1406,7 +1376,7 @@ Output:
 def Preprocess(pkS):
   PK = GG.Deserialize(pkS)
   r = GG.RandomScalar()
-  blindedGenerator = GG.Serialize(r * GG.Generator())
+  blindedGenerator = GG.Serialize(ScalarBaseMult(r))
   blindedPublicKey = GG.Serialize(r * PK)
 
   preproc = PrepocessedBlind{
@@ -1432,14 +1402,14 @@ Output:
   SerializedElement blindToken
 
 def Blind(input, preproc):
-  Q = GG.Deserialize(preproc.blindedGenerator) /* Q = r * G */
+  Q = GG.Deserialize(preproc.blindedGenerator) /* Q = ScalarBaseMult(r) */
   P = GG.HashToGroup(input)
 
   token = Token{
     data: input,
     blind: preproc.blindedPublicKey
   }
-  blindToken = GG.Serialize(P + Q)           /* P + r * G */
+  blindToken = GG.Serialize(P + Q)           /* P + ScalarBaseMult(r) */
 
   return (token, blindToken)
 ~~~
