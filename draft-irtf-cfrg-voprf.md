@@ -1059,7 +1059,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
   - Deserialization: Converts a valid 32-byte string to
     a group element by using the 'Decode' function from {{!RISTRETTO}}.
   - Scalar multiplication: Scalar multiplication of curve points
-    directly corresponds with scalar multiplication in the edwards group.
+    directly corresponds with scalar multiplication in the Edwards group.
 - Hash: SHA-256
 - ID: 0x0001
 
@@ -1084,7 +1084,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
   - Deserialization: Converts a valid 56-byte string to
     a group element by using the 'Decode' function from {{!RISTRETTO}}.
   - Scalar multiplication: Scalar multiplication of curve points
-    directly corresponds with scalar multiplication in the edwards group.
+    directly corresponds with scalar multiplication in the Edwards group.
 - Hash: SHA-512
 - ID: 0x0002
 
