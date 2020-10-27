@@ -1028,8 +1028,8 @@ and curve25519. See {{cryptanalysis}} for related discussion.
   - Order(): Returns
   `1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED`
   - HashToGroup(): hash_to_ristretto255
-    {{I-D.irtf-cfrg-hash-to-curve}} with DST
-    "VOPRF05-ristretto255_XMD:SHA-256_ELL2_RO\_"
+    {{I-D.irtf-cfrg-hash-to-curve}} with DST:
+    "VOPRF05" || self.contextString
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=48, and expand_message_xmd with
     SHA-256.
@@ -1048,8 +1048,8 @@ and curve25519. See {{cryptanalysis}} for related discussion.
   - Name: decaf448 {{RISTRETTO}}
   - Order(): Returns `3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7CCA23E9C44EDB49AED63690216CC2728DC58F552378C292AB5844F3`
   - HashToGroup(): hash_to_decaf448
-    {{I-D.irtf-cfrg-hash-to-curve}} with DST
-    "VOPRF05-decaf448_XMD:SHA-512_ELL2_RO\_"
+    {{I-D.irtf-cfrg-hash-to-curve}} with DST:
+    "VOPRF05" || self.contextString
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=84, and expand_message_xmd with
     SHA-512.
@@ -1069,8 +1069,8 @@ and curve25519. See {{cryptanalysis}} for related discussion.
   - Order(): Returns
   `FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551`
   - HashToGroup(): P256_XMD:SHA-256_SSWU_RO\_
-    {{I-D.irtf-cfrg-hash-to-curve}} with DST
-    "VOPRF05-P256_XMD:SHA-256_SSWU_RO\_"
+    {{I-D.irtf-cfrg-hash-to-curve}} with DST:
+    "VOPRF05" || self.contextString
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=48, and expand_message_xmd with
     SHA-256.
@@ -1088,8 +1088,8 @@ and curve25519. See {{cryptanalysis}} for related discussion.
   - Order(): Returns
   `FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC7634D81F4372DDF581A0DB248B0A77AECEC196ACCC52973`
   - HashToGroup(): P384_XMD:SHA-512_SSWU_RO\_
-    {{I-D.irtf-cfrg-hash-to-curve}} with DST
-    "VOPRF05-P384_XMD:SHA-512_SSWU_RO\_"
+    {{I-D.irtf-cfrg-hash-to-curve}} with DST:
+    "VOPRF05" || self.contextString
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=72, and expand_message_xmd with
     SHA-512.
@@ -1107,8 +1107,8 @@ and curve25519. See {{cryptanalysis}} for related discussion.
   - Order(): Returns
   `1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFA51868783BF2F966B7FCC0148F709A5D03BB5C9B8899C47AEBB6FB71E91386409`
   - HashToGroup(): P521_XMD:SHA-512_SSWU_RO\_
-    {{I-D.irtf-cfrg-hash-to-curve}} with DST
-    "VOPRF05-P521_XMD:SHA-512_SSWU_RO\_"
+    {{I-D.irtf-cfrg-hash-to-curve}} with DST:
+    "VOPRF05" || self.contextString
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=98, and expand_message_xmd with
     SHA-512.
