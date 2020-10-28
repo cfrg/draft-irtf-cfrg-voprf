@@ -1050,7 +1050,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
   - Order(): Returns `3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7CCA23E9C44EDB49AED63690216CC2728DC58F552378C292AB5844F3`
   - HashToGroup(): hash_to_decaf448
     {{I-D.irtf-cfrg-hash-to-curve}} with DST:
-    "VOPRF05" || contextString, , where `contextString` is that which is
+    "VOPRF05" || contextString, where `contextString` is that which is
     computed in the Setup functions.
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=84, and expand_message_xmd with
