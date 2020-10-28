@@ -46,44 +46,12 @@ author:
     email: caw@heapingbits.net
 
 normative:
-  RFC2104:
   RFC2119:
-  RFC5869:
   RFC7748:
-  I-D.irtf-cfrg-hash-to-curve:
-  draft-davidson-pp-protocol:
-    title: "Privacy Pass: The Protocol"
-    target: https://tools.ietf.org/html/draft-davidson-pp-protocol-00
-    author:
-      ins: A. Davidson
-      org: Cloudflare Portugal
-  NIST:
-    title: Keylength - NIST Report on Cryptographic Key Length and Cryptoperiod (2016)
-    target: https://www.keylength.com/en/4/
-    date: false
   PrivacyPass:
     title: Privacy Pass
     target: https://github.com/privacypass/challenge-bypass-server
     date: false
-  ChaumPedersen:
-    title: Wallet Databases with Observers
-    target: https://chaum.com/publications/Wallet_Databases.pdf
-    date: false
-    authors:
-        -
-          ins: D. Chaum
-          org: CWI, The Netherlands
-        -
-          ins: T. P. Pedersen
-          org: Aarhus University, Denmark
-  ChaumBlindSignature:
-    title: Blind Signatures for Untraceable Payments
-    target: http://sceweb.sce.uhcl.edu/yang/teaching/csci5234WebSecurityFall2011/Chaum-blind-signatures.PDF
-    date: false
-    authors:
-      -
-        ins: D. Chaum
-        org: University of California, Santa Barbara, USA
   BB04:
     title: Short Signatures Without Random Oracles
     target: http://ai.stanford.edu/~xb/eurocrypt04a/bbsigs.pdf
@@ -145,24 +113,6 @@ normative:
       -
         ins: H. Krawczyk
         org: IBM Research, NY, USA
-  JKKX17:
-    title: >
-      TOPPSS: Cost-minimal Password-Protected Secret Sharing based on Threshold OPRF
-    target: https://eprint.iacr.org/2017/363
-    date: false
-    authors:
-      -
-        ins: S. Jarecki
-        org: UC Irvine, CA, USA
-      -
-        ins: A. Kiayias
-        org: University of Athens, Greece
-      -
-        ins: H. Krawczyk
-        org: IBM Research, NY, USA
-      -
-        ins: Jiayu Xu
-        org: UC Irvine, CA, USA
   SJKS17:
     title:  SPHINX, A Password Store that Perfectly Hides from Itself
     target: https://eprint.iacr.org/2018/695
@@ -200,47 +150,6 @@ normative:
       -
         ins: F. Valsorda
         org: Independent
-  RISTRETTO:
-    title: The ristretto255 and decaf448 Groups
-    target: https://tools.ietf.org/html/draft-irtf-cfrg-ristretto255-decaf448-00
-    date: false
-    authors:
-      -
-        ins: H. de Valence
-      -
-        ins: J. Grigg
-      -
-        ins: G. Tankersley
-      -
-        ins: F. Valsorda
-      -
-        ins: I. Lovecruft
-      -
-        ins: M. Hamburg
-  DECAF:
-    title: Decaf, Eliminating cofactors through point compression
-    target: https://www.shiftleft.org/papers/decaf/decaf.pdf
-    date: false
-    authors:
-      -
-        ins: M. Hamburg
-        org: Rambus Cryptography Research
-  OPAQUE:
-    title: The OPAQUE Asymmetric PAKE Protocol
-    target: https://tools.ietf.org/html/draft-krawczyk-cfrg-opaque-02
-    date: false
-    authors:
-      -
-        ins: H. Krawczyk
-        org: IBM Research
-  SHAKE:
-    title: SHA-3 Standard, Permutation-Based Hash and Extendable-Output Functions
-    target: https://www.nist.gov/publications/sha-3-standard-permutation-based-hash-and-extendable-output-functions?pub_id=919061
-    date: false
-    authors:
-      -
-        ins: Morris J. Dworkin
-        org: Federal Inf. Process. Stds. (NIST FIPS)
   SEC1:
     title: "SEC 1: Elliptic Curve Cryptography"
     target: https://www.secg.org/sec1-v2.pdff
@@ -255,17 +164,6 @@ normative:
     author:
       -
         ins: Standards for Efficient Cryptography Group (SECG)
-  keytrans:
-    title: "Security Through Transparency"
-    target: https://security.googleblog.com/2017/01/security-through-transparency.html
-    date: false
-    authors:
-      -
-        ins: Ryan Hurst
-        org: Google
-      -
-        ins: Gary Belvin
-        org: Google
   x9.62:
     title: "Public Key Cryptography for the Financial Services Industry: the Elliptic Curve Digital Signature Algorithm (ECDSA)"
     date: Sep, 1998
@@ -308,9 +206,9 @@ F(k, x) was computed using the key k.
 The usage of OPRFs has been demonstrated in constructing a number of
 applications: password-protected secret sharing schemes {{JKKX16}};
 privacy-preserving password stores {{SJKS17}}; and
-password-authenticated key exchange or PAKE {{OPAQUE}}. A VOPRF is
+password-authenticated key exchange or PAKE {{!I-D.irtf-cfrg-opaque}}. A VOPRF is
 necessary in some applications, e.g., the Privacy Pass protocol
-{{draft-davidson-pp-protocol}}, wherein this VOPRF is used to generate
+{{!I-D.davidson-pp-protocol}}, wherein this VOPRF is used to generate
 one-time authentication tokens to bypass CAPTCHA challenges. VOPRFs have
 also been used for password-protected secret sharing schemes e.g.
 {{JKK14}}.
@@ -417,11 +315,11 @@ prime-order group.
   for any adversary receiving `R = HashToGroup(x)`, it is
   computationally difficult to reverse the mapping. Examples of hash to
   group functions satisfying this property are described for prime-order
-  (sub)groups of elliptic curves, see {{I-D.irtf-cfrg-hash-to-curve}}.
+  (sub)groups of elliptic curves, see {{!I-D.irtf-cfrg-hash-to-curve}}.
 - HashToScalar(x): A member function of `GG` that deterministically maps
   an array of bytes `x` to a random element in GF(p). A recommended method
   for its implementation is instantiating the hash to field function,
-  defined in {{I-D.irtf-cfrg-hash-to-curve}} setting the target field to GF(p).
+  defined in {{!I-D.irtf-cfrg-hash-to-curve}} setting the target field to GF(p).
 - RandomScalar(): A member function of `GG` that generates a random,
   non-zero element in GF(p).
 
@@ -516,7 +414,7 @@ auxiliary input data `info`. This parameter SHOULD be used for domain
 separation in the (V)OPRF protocol. Specifically, any system which has
 multiple (V)OPRF applications should use separate auxiliary values to to
 ensure finalized outputs are separate. Guidance for constructing info
-can be found in {{I-D.irtf-cfrg-hash-to-curve}}; Section 3.1.
+can be found in {{!I-D.irtf-cfrg-hash-to-curve}}; Section 3.1.
 
 ## Context Setup
 
@@ -1023,104 +921,78 @@ and curve25519. See {{cryptanalysis}} for related discussion.
 
 ## OPRF(ristretto255, SHA-256)
 
-- Group:
-  - Name: ristretto255 {{RISTRETTO}}
-  - Order(): Returns
-  `1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED`
+- Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
   - HashToGroup(): hash_to_ristretto255
-    {{I-D.irtf-cfrg-hash-to-curve}} with DST:
+    {{!I-D.irtf-cfrg-hash-to-curve}} with DST:
     "VOPRF05" || contextString, where `contextString` is that which is
     computed in the Setup functions.
-  - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
+  - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=48, and expand_message_xmd with
     SHA-256.
-  - Serialization: Converts a group element to a 32-byte string
-    using the 'Encode' function from {{RISTRETTO}}.
-  - Deserialization: Converts a valid 32-byte string to
-    a group element by using the 'Decode' function from {{RISTRETTO}}.
-  - Scalar multiplication: Scalar multiplication of curve points
-    directly corresponds with scalar multiplication according to {{RISTRETTO}}.
+    - Serialization: Serialization converts group elements to 32-byte strings
+    using the 'Encode' function from {{!RISTRETTO}}. Deserialization converts
+    32-byte strings to group elements using the 'Decode' function from {{!RISTRETTO}}.
 - Hash: SHA-256
 - ID: 0x0001
 
 ## OPRF(decaf448, SHA-512)
 
-- Group:
-  - Name: decaf448 {{RISTRETTO}}
-  - Order(): Returns `3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7CCA23E9C44EDB49AED63690216CC2728DC58F552378C292AB5844F3`
+- Group: decaf448 {{!RISTRETTO}}
   - HashToGroup(): hash_to_decaf448
-    {{I-D.irtf-cfrg-hash-to-curve}} with DST:
+    {{!I-D.irtf-cfrg-hash-to-curve}} with DST:
     "VOPRF05" || contextString, where `contextString` is that which is
     computed in the Setup functions.
-  - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
+  - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=84, and expand_message_xmd with
     SHA-512.
-  - Serialization: Converts a group element to a 56-byte string
-    using the 'Encode' function from {{RISTRETTO}}.
-  - Deserialization: Converts a valid 56-byte string to
-    a group element by using the 'Decode' function from {{RISTRETTO}}.
-  - Scalar multiplication: Scalar multiplication of curve points
-    directly corresponds with scalar multiplication according to {{RISTRETTO}}.
+  - Serialization: Serialization converts group elements to 56-byte strings
+    using the 'Encode' function from {{!RISTRETTO}}. Deserialization converts
+    56-byte strings to group elements using the 'Decode' function from {{!RISTRETTO}}.
 - Hash: SHA-512
 - ID: 0x0002
 
 ## OPRF(P-256, SHA-256)
 
-- Group:
-  - Elliptic curve name: P-256 (secp256r1) {{x9.62}}
-  - Order(): Returns
-  `FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551`
+- Group: P-256 (secp256r1) {{x9.62}}
   - HashToGroup(): P256_XMD:SHA-256_SSWU_RO\_
-    {{I-D.irtf-cfrg-hash-to-curve}} with DST:
+    {{!I-D.irtf-cfrg-hash-to-curve}} with DST:
     "VOPRF05" || contextString, where `contextString` is that which is
     computed in the Setup functions.
-  - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
+  - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=48, and expand_message_xmd with
     SHA-256.
   - Serialization: The compressed point encoding for the curve {{SEC1}}
     consisting of 33 bytes.
-  - Scalar multiplication: Scalar multiplication of curve points
-    directly corresponds with scalar multiplication in the group.
 - Hash: SHA-256
 - ID: 0x0003
 
 ## OPRF(P-384, SHA-512)
 
-- Group:
-  - Elliptic curve name: P-384 (secp384r1) {{x9.62}}
-  - Order(): Returns
-  `FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC7634D81F4372DDF581A0DB248B0A77AECEC196ACCC52973`
+- Group: P-384 (secp384r1) {{x9.62}}
   - HashToGroup(): P384_XMD:SHA-512_SSWU_RO\_
-    {{I-D.irtf-cfrg-hash-to-curve}} with DST:
+    {{!I-D.irtf-cfrg-hash-to-curve}} with DST:
     "VOPRF05" || contextString, where `contextString` is that which is
     computed in the Setup functions.
-  - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
+  - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=72, and expand_message_xmd with
     SHA-512.
   - Serialization: The compressed point encoding for the curve {{SEC1}}
     consisting of 49 bytes.
-  - Scalar multiplication: Scalar multiplication of curve points
-    directly corresponds with scalar multiplication in the group.
 - Hash: SHA-512
 - ID: 0x0004
 
 ## OPRF(P-521, SHA-512)
 
-- Group:
-  - Elliptic curve name: P-521 (secp521r1) {{x9.62}}
-  - Order(): Returns
-  `1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFA51868783BF2F966B7FCC0148F709A5D03BB5C9B8899C47AEBB6FB71E91386409`
+- Group: P-521 (secp521r1) {{x9.62}}
   - HashToGroup(): P521_XMD:SHA-512_SSWU_RO\_
-    {{I-D.irtf-cfrg-hash-to-curve}} with DST:
+    {{!I-D.irtf-cfrg-hash-to-curve}} with DST:
     "VOPRF05" || contextString, where `contextString` is that which is
     computed in the Setup functions.
-  - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
+  - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=98, and expand_message_xmd with
     SHA-512.
   - Serialization: The compressed point encoding for the curve {{SEC1}}
     consisting of 67 bytes.
-  - Scalar multiplication: Scalar multiplication of curve points
-    directly corresponds with scalar multiplication in the group.
 - Hash: SHA-512
 - ID: 0x0005
 
@@ -1307,9 +1179,9 @@ In the security proof of the construction Hash is modeled as a random
 oracle. This implies that any instantiation of `GG.HashToGroup` must be
 pre-image and collision resistant. In {{ciphersuites}} we give
 instantiations of this functionality based on the functions described in
-{{I-D.irtf-cfrg-hash-to-curve}}. Consequently, any OPRF implementation
+{{!I-D.irtf-cfrg-hash-to-curve}}. Consequently, any OPRF implementation
 must adhere to the implementation and security considerations discussed
-in {{I-D.irtf-cfrg-hash-to-curve}} when instantiating the function.
+in {{!I-D.irtf-cfrg-hash-to-curve}} when instantiating the function.
 
 ## Timing Leaks
 
@@ -1336,7 +1208,7 @@ compute (V)OPRF evaluations would be between one week and six months.
 Let `H` refer to the function `GG.HashToGroup`, in {{pog}} we assume
 that the client-side blinding is carried out directly on the output of
 `H(x)`, i.e. computing `r * H(x)` for some `r <-$ GF(p)`. In the
-{{OPAQUE}} document, it is noted that it may be more efficient to use
+{{!I-D.irtf-cfrg-opaque}} document, it is noted that it may be more efficient to use
 additive blinding (rather than multiplicative) if the client can
 preprocess some values. For example, a valid way of computing additive
 blinding would be to instead compute `H(x) + (r * G)`, where `G` is the
