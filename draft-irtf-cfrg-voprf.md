@@ -1029,7 +1029,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
   `1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED`
   - HashToGroup(): hash_to_ristretto255
     {{I-D.irtf-cfrg-hash-to-curve}} with DST:
-    "VOPRF05" || contextString, , where `contextString` is that which is
+    "VOPRF05" || contextString, where `contextString` is that which is
     computed in the Setup functions.
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=48, and expand_message_xmd with
