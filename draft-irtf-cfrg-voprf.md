@@ -1092,7 +1092,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
   `FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC7634D81F4372DDF581A0DB248B0A77AECEC196ACCC52973`
   - HashToGroup(): P384_XMD:SHA-512_SSWU_RO\_
     {{I-D.irtf-cfrg-hash-to-curve}} with DST:
-    "VOPRF05" || contextString, , where `contextString` is that which is
+    "VOPRF05" || contextString, where `contextString` is that which is
     computed in the Setup functions.
   - HashToScalar(): Use hash_to_field from {{I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=72, and expand_message_xmd with
