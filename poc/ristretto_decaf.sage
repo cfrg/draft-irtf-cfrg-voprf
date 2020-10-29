@@ -1,6 +1,13 @@
 #!/usr/bin/sage
 # vim: syntax=python
 
+import binascii
+class InvalidEncodingException(Exception): pass
+
+def lobit(x): return int(x) & 1
+def negative(x): return lobit(x)
+def enc_le(x,n): return bytearray([int(x)>>(8*i) & 0xFF for i in range(n)])
+
 def optimized_version_of(spec):
     """Decorator: This function is an optimized version of some specification"""
     def decorator(f):
@@ -342,10 +349,21 @@ class Ed448GoldilocksPoint(Decaf_1_1_Point):
     qnr = -1
     cofactor = 4
     encLen = 56
-    isoMagic = IsoEd448Point.magic
+    isoD = F(39082/39081)
+    isoMagic = isqrt(a*isoD-1)
 
     @classmethod
     def base(cls):
         return 2*cls(
  224580040295924300187604334099896036246789641632564134246125461686950415467406032909029192869357953282578032075146446173674602635247710, 298819210078481492676017930443930673437544040154080242095928241372331506189835876003536878655418784733982303233503462500531545062832660
         )
+
+def testVectors(cls,n):
+    print( "Testing with test Vectors on %s" % cls.__name__)
+    P = cls.base()
+    Q = cls(0)
+    assert Q.encode() == Q.encode()
+    Q += P
+
+testVectors(Ed25519Point,100)
+#testVectors(Ed25519Point,100)
