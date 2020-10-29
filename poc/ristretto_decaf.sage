@@ -362,8 +362,11 @@ def testVectors(cls,n):
     print( "Testing with test Vectors on %s" % cls.__name__)
     P = cls.base()
     Q = cls(0)
-    assert Q.encode() == Q.encode()
-    Q += P
+    R = bytearray(32)
+    for i in range(16):
+        assert Q.encode() == R
+        Q += P
+        R = bytearray(Q.encode())
 
 testVectors(Ed25519Point,100)
 #testVectors(Ed25519Point,100)
