@@ -232,8 +232,8 @@ class DecafPoint(QuotientEdwardsPoint):
 
     def hash_to_group(self, msg, dst):
         u = expand_message_xmd(msg, dst, 112, hashlib.shake_256, 224)
-        P1 = map(u[0:56])
-        P2 = map(u[56:112])
+        P1 = self.map(u[0:56])
+        P2 = self.map(u[56:112])
         P = P1 + P2
         return P
 
@@ -370,7 +370,6 @@ class Ed25519Point(RistrettoPoint):
     magic = isqrt(a*d-1)
     cofactor = 8
     encLen = 32
-    dst = "TEST"
 
     @classmethod
     def base(cls):
@@ -393,7 +392,6 @@ class Ed448GoldilocksPoint(DecafPoint):
     encLen = 56
     isoD = F(39082/39081)
     isoMagic = isqrt(a*isoD-1)
-    dst = "TEST"
 
     @classmethod
     def base(cls):
