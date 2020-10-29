@@ -22,7 +22,6 @@ def isqrt(x,exn=InvalidEncodingException("Not on curve")):
     if x==0: return 0
     if not is_square(x): raise exn
     s = sqrt(x)
-    #if negative(s): s=-s
     return 1/s
 
 class QuotientEdwardsPoint(object):
@@ -227,6 +226,8 @@ class RistrettoPoint(QuotientEdwardsPoint):
 
 class Ed25519Point(RistrettoPoint):
     F = GF(2^255-19)
+    P = F.order()
+    order = GF(2^252 + 27742317777372353535851937790883648493)
     d = F(-121665/121666)
     a = F(-1)
     i = sqrt(F(-1))
@@ -243,6 +244,8 @@ class Ed25519Point(RistrettoPoint):
 
 class Ed448GoldilocksPoint(DecafPoint):
     F = GF(2^448-2^224-1)
+    P = F.order()
+    order = GF(2^446-13818066809895115352007386748515426880336692474882178609894547503885)
     d = F(-39081)
     a = F(1)
     qnr = -1
