@@ -14,7 +14,7 @@ try:
     from sagelib.suite_p384 import p384_sswu_ro, p384_order, p384_p, p384_F, p384_A, p384_B
     from sagelib.suite_p521 import p521_sswu_ro, p521_order, p521_p, p521_F, p521_A, p521_B
     from sagelib.common import sgn0
-    from sagelib.ristretto_decaf import Ed25519Point
+    from sagelib.ristretto_decaf import Ed25519Point, Ed448GoldilocksPoint
 except ImportError as e:
     sys.exit("Error loading preprocessed sage files. Try running `make setup && make clean pyfiles`. Full error: " + e)
 
@@ -170,7 +170,7 @@ class ClientContext(object):
 
     def unblind(self, ev, r, _):
         N = ev.evaluated_element
-        if (self.suite.group.name == "ristretto255"):
+        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
            r_inv = inverse_mod(r, self.suite.group.order)
         else:
            r_inv = inverse_mod(r, self.suite.group.G.order())
@@ -179,7 +179,7 @@ class ClientContext(object):
 
     def finalize(self, x, y, info):
         finalizeDST = _as_bytes("VOPRF05-Finalize-") + self.contextString
-        if (self.suite.group.name == "ristretto255"):
+        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
            encoded_element = y.encode()
         else:
            encoded_element = self.suite.group.serialize(y)
@@ -206,7 +206,7 @@ class ServerContext(object):
         dst = _as_bytes("VOPRF05-") + self.contextString
         element = self.suite.group.hash_to_group(x, dst)
         issued_element = self.evaluate(element).evaluated_element
-        if (self.suite.group.name == "ristretto255"):
+        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
            encoded_element = issued_element.encode()
         else:
            encoded_element = self.suite.group.serialize(y)
@@ -234,14 +234,14 @@ def compute_composites(suite, contextString, pkS, evaluate_input, evaluate_outpu
     h.update(hash_input)
     seed = h.digest()
 
-    if (suite.group.name == "ristretto255"):
+    if (suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
        M = suite.group.identity()
        Z = suite.group.identity()
     else:
        M = suite.group.identity()
        Z = suite.group.identity()
 
-    if (suite.group.name == "ristretto255"):
+    if (suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
        Mi = suite.group.decode(evaluate_input)
        Zi = suite.group.decode(evaluate_output)
     else:
@@ -252,7 +252,7 @@ def compute_composites(suite, contextString, pkS, evaluate_input, evaluate_outpu
     M = (di * Mi) + M
     Z = (di * Zi) + Z
 
-    if (suite.group.name == "ristretto255"):
+    if (suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
        Mm = M.encode()
        Zm = Z.encode()
     else:
@@ -268,7 +268,7 @@ class VerifiableClientContext(ClientContext):
         self.pkS = pkS
 
     def verify_proof(self, evaluate_input, evaluate_output, pi):
-        if (self.suite.group.name == "ristretto255"):
+        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
            G = self.suite.group.base()
            pkSm = self.pkS.encode()
         else:
@@ -276,7 +276,7 @@ class VerifiableClientContext(ClientContext):
            pkSm = self.suite.group.serialize(self.pkS)
 
         (a1, a2) = compute_composites(self.suite, self.contextString, pkSm, evaluate_input, evaluate_output)
-        if (self.suite.group.name == "ristretto255"):
+        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
            M = self.suite.group.decode(a1)
            Z = self.suite.group.decode(a2)
         else:
@@ -286,7 +286,7 @@ class VerifiableClientContext(ClientContext):
         Ap = (pi[1] * G) + (pi[0] * self.pkS)
         Bp = (pi[1] * M) + (pi[0] * Z)
 
-        if (self.suite.group.name == "ristretto255"):
+        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
            a3 = Ap.encode()
            a4 = Bp.encode()
         else:
@@ -310,7 +310,7 @@ class VerifiableClientContext(ClientContext):
         N = ev.evaluated_element
         pi = ev.proof
 
-        if (self.suite.group.name == "ristretto255"):
+        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
            evaluate_input = R.encode()
            evaluate_output = N.encode()
         else:
@@ -320,7 +320,7 @@ class VerifiableClientContext(ClientContext):
         if not self.verify_proof(evaluate_input, evaluate_output, pi):
             raise Exception("Proof verification failed")
 
-        if (self.suite.group.name == "ristretto255"):
+        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
            r_inv = inverse_mod(r, self.suite.group.order)
         else:
            r_inv = inverse_mod(r, self.suite.group.G.order())
@@ -333,7 +333,7 @@ class VerifiableServerContext(ServerContext):
         ServerContext.__init__(self, suite, contextString, skS, pkS)
 
     def generate_proof(self, evaluate_input, evaluate_output):
-        if (self.suite.group.name == "ristretto255"):
+        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
            G = self.suite.group.base()
            pkSm = self.pkS.encode()
         else:
@@ -341,13 +341,13 @@ class VerifiableServerContext(ServerContext):
            pkSm = self.suite.group.serialize(self.pkS)
 
         (a1, a2) = compute_composites(self.suite, self.contextString, pkSm, evaluate_input, evaluate_output)
-        if (self.suite.group.name == "ristretto255"):
+        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
            M = self.suite.group.decode(a1)
         else:
            M = self.suite.group.deserialize(a1)
 
         r = ZZ(self.suite.group.random_scalar())
-        if (self.suite.group.name == "ristretto255"):
+        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
            ta3 = r * G
            ta4 = r * M
            a3 = ta3.encode()
@@ -365,7 +365,7 @@ class VerifiableServerContext(ServerContext):
             + I2OSP(len(challengeDST), 2) + challengeDST
 
         c = self.suite.group.hash_to_scalar(h2s_input)
-        if (self.suite.group.name == "ristretto255"):
+        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
            s = (r - c * self.skS) % self.suite.group.order
         else:
            s = (r - c * self.skS) % G.order()
@@ -374,12 +374,12 @@ class VerifiableServerContext(ServerContext):
 
     def evaluate(self, element):
         evaluated_element = self.skS * element
-        if (self.suite.group.name == "ristretto255"):
+        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
            evaluate_input = element.encode()
         else:
            evaluate_input = self.suite.group.serialize(element)
 
-        if (self.suite.group.name == "ristretto255"):
+        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
            evaluate_output = evaluated_element.encode()
         else:
            evaluate_output = self.suite.group.serialize(evaluated_element)

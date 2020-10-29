@@ -17,8 +17,10 @@ def randombytes(n): return bytearray([randint(0,255) for _ in range(n)])
 if sys.version_info[0] == 3:
     xrange = range
     _as_bytes = lambda x: x if isinstance(x, bytes) else bytes(x, "utf-8")
+    _strxor = lambda str1, str2: bytes( s1 ^ s2 for (s1, s2) in zip(str1, str2) )
 else:
     _as_bytes = lambda x: x
+    _strxor = lambda str1, str2: ''.join( chr(ord(s1) ^ ord(s2)) for (s1, s2) in zip(str1, str2) )
 
 def xsqrt(x,exn=InvalidEncodingException("Not on curve")):
     """Return sqrt(x)"""
@@ -44,6 +46,7 @@ def isqrt_i(x):
 
 # from draft-irtf-cfrg-hash-to-curve-07
 # hash_fn should be, e.g., hashlib.sha256
+# TODO: fix for shake. It is currently not supporting it
 def expand_message_xmd(msg, dst, len_in_bytes, hash_fn, sec_level):
     # sanity checks and basic parameters
     b_in_bytes = hash_fn().digest_size
