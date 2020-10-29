@@ -122,6 +122,108 @@ class QuotientEdwardsPoint(object):
         if negative(x) and mustBePositive: x = -x
         return enc_le(x,cls.encLen)
 
+class Decaf_1_1_Point(QuotientEdwardsPoint):
+    """Tweaked for compatibility with Ristretto, as in draft"""
+    def encodeSpec(self):
+        """Unoptimized specification for encoding"""
+        a,d = self.a,self.d
+        x,y = self
+        if x==0 or y==0: return(self.gfToBytes(0))
+
+        if self.cofactor==8 and negative(x*y*self.isoMagic):
+            x,y = self.torque()
+
+        sr = xsqrt(1-a*x^2)
+        altx = x*y*self.isoMagic / sr
+        if negative(altx): s = (1+sr)/x
+        else:              s = (1-sr)/x
+
+        return self.gfToBytes(s,mustBePositive=True)
+
+    @classmethod
+    def decodeSpec(cls,s):
+        """Unoptimized specification for decoding"""
+        a,d = cls.a,cls.d
+        s = cls.bytesToGf(s,mustBePositive=True)
+
+        if s==0: return cls()
+        t = xsqrt(s^4 + 2*(a-2*d)*s^2 + 1)
+        altx = 2*s*cls.isoMagic/t
+        if negative(altx): t = -t
+        x = 2*s / (1+a*s^2)
+        y = (1-a*s^2) / t
+
+        if cls.cofactor==8 and (negative(x*y*cls.isoMagic) or y==0):
+            raise InvalidEncodingException("x*y is invalid: %d, %d" % (x,y))
+
+        return cls(x,y)
+
+    def toJacobiQuartic(self,toggle_rotation=False,toggle_altx=False,toggle_s=False):
+        "Return s,t on jacobi curve"
+        a,d = self.a,self.d
+        x,y,z,t = self.xyzt()
+
+        if self.cofactor == 8:
+            # Cofactor 8 version
+            # Simulate IMAGINE_TWIST because that's how libdecaf does it
+            x = self.i*x
+            t = self.i*t
+            a = -a
+            d = -d
+
+            # OK, the actual libdecaf code should be here
+            num = (z+y)*(z-y)
+            den = x*y
+            isr = isqrt(num*(a-d)*den^2)
+
+            iden = isr * den * self.isoMagic # 1/sqrt((z+y)(z-y)) = 1/sqrt(1-Y^2) / z
+            inum = isr * num # sqrt(1-Y^2) * z / xysqrt(a-d) ~ 1/sqrt(1-ax^2)/z
+
+            if negative(iden*inum*self.i*t^2*(d-a)) != toggle_rotation:
+                iden,inum = inum,iden
+                fac = x*sqrt(a)
+                toggle=(a==-1)
+            else:
+                fac = y
+                toggle=False
+
+            imi = self.isoMagic * self.i
+            altx = inum*t*imi
+            neg_altx = negative(altx) != toggle_altx
+            if neg_altx != toggle: inum =- inum
+
+            tmp = fac*(inum*z + 1)
+            s = iden*tmp*imi
+
+            negm1 = (negative(s) != toggle_s) != neg_altx
+            if negm1: m1 = a*fac + z
+            else:     m1 = a*fac - z
+
+            swap = toggle_s
+
+        else:
+            # Much simpler cofactor 4 version
+            num = (x+t)*(x-t)
+            isr = isqrt(num*(a-d)*x^2)
+            ratio = isr*num
+            altx = ratio*self.isoMagic
+
+            neg_altx = negative(altx) != toggle_altx
+            if neg_altx: ratio =- ratio
+
+            tmp = ratio*z - t
+            s = (a-d)*isr*x*tmp
+
+            negx = (negative(s) != toggle_s) != neg_altx
+            if negx: m1 = -a*t + x
+            else:    m1 = -a*t - x
+
+            swap = toggle_s
+
+        if negative(s): s = -s
+
+        return s,m1,a*tmp,swap
+
 class RistrettoPoint(QuotientEdwardsPoint):
     def encodeSpec(self):
         """Unoptimized specification for encoding"""
@@ -231,4 +333,19 @@ class Ed25519Point(RistrettoPoint):
     @classmethod
     def base(cls):
         return cls( 15112221349535400772501151409588531511454012693041857206046113283949847762202, 46316835694926478169428394003475163141307993866256225615783033603165251855960
+        )
+
+class Ed448GoldilocksPoint(Decaf_1_1_Point):
+    F = GF(2^448-2^224-1)
+    d = F(-39081)
+    a = F(1)
+    qnr = -1
+    cofactor = 4
+    encLen = 56
+    isoMagic = IsoEd448Point.magic
+
+    @classmethod
+    def base(cls):
+        return 2*cls(
+ 224580040295924300187604334099896036246789641632564134246125461686950415467406032909029192869357953282578032075146446173674602635247710, 298819210078481492676017930443930673437544040154080242095928241372331506189835876003536878655418784733982303233503462500531545062832660
         )
