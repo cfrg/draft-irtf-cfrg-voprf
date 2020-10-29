@@ -7,6 +7,7 @@ class InvalidEncodingException(Exception): pass
 def lobit(x): return int(x) & 1
 def negative(x): return lobit(x)
 def enc_le(x,n): return bytearray([int(x)>>(8*i) & 0xFF for i in range(n)])
+def dec_le(x): return sum(b<<(8*i) for i,b in enumerate(x))
 
 def optimized_version_of(spec):
     """Decorator: This function is an optimized version of some specification"""
@@ -342,7 +343,7 @@ class Ed25519Point(RistrettoPoint):
         return cls( 15112221349535400772501151409588531511454012693041857206046113283949847762202, 46316835694926478169428394003475163141307993866256225615783033603165251855960
         )
 
-class Ed448GoldilocksPoint(Decaf_1_1_Point):
+class Ed448GoldilocksPoin(Decaf_1_1_Point):
     F = GF(2^448-2^224-1)
     d = F(-39081)
     a = F(1)
@@ -358,8 +359,8 @@ class Ed448GoldilocksPoint(Decaf_1_1_Point):
  224580040295924300187604334099896036246789641632564134246125461686950415467406032909029192869357953282578032075146446173674602635247710, 298819210078481492676017930443930673437544040154080242095928241372331506189835876003536878655418784733982303233503462500531545062832660
         )
 
-def testVectors(cls,n):
-    print( "Testing with test Vectors on %s" % cls.__name__)
+def testVectorsRistretto(cls):
+    print("Testing with test Vectors on %s" % cls.__name__)
     P = cls.base()
     Q = cls(0)
     R = bytearray(32)
@@ -368,5 +369,15 @@ def testVectors(cls,n):
         Q += P
         R = bytearray(Q.encode())
 
-testVectors(Ed25519Point,100)
-#testVectors(Ed25519Point,100)
+def testVectorsDecaf(cls):
+    print("Testing with test Vectors on %s" % cls.__name__)
+    P = cls.base()
+    Q = cls(0)
+    R = bytearray(56)
+    for i in range(16):
+        assert Q.encodeSpec() == R
+        Q += P
+        R = bytearray(Q.encodeSpec())
+
+testVectorsRistretto(Ed25519Point)
+testVectorsDecaf(Ed448GoldilocksPoint)
