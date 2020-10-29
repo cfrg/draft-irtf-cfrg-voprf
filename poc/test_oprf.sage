@@ -13,7 +13,7 @@ except ImportError as e:
 def to_hex(octet_string):
     if isinstance(octet_string, str):
         return "".join("{:02x}".format(ord(c)) for c in octet_string)
-    assert isinstance(octet_string, bytes)
+    assert isinstance(octet_string, (bytes, bytearray))
     return "0x" + "".join("{:02x}".format(c) for c in octet_string)
 
 class Protocol(object):
@@ -43,7 +43,7 @@ class Protocol(object):
             if (group.name == "ristretto255"):
                 vector["Blind"] = {
                     "Token": hex(r),
-                    "BlindedElement": binascii.hexlify(R.encode()),
+                    "BlindedElement": to_hex(R.encode()),
                 }
             else:
                 vector["Blind"] = {
@@ -52,7 +52,7 @@ class Protocol(object):
                 }
             if (group.name == "ristretto255"):
                vector["Evaluation"] = {
-                   "EvaluatedElement": binascii.hexlify(T.evaluated_element.encode()),
+                   "EvaluatedElement": to_hex(T.evaluated_element.encode()),
                }
             else:
                vector["Evaluation"] = {
@@ -65,7 +65,7 @@ class Protocol(object):
                 }
             if (group.name == "ristretto255"):
                vector["Unblind"] = {
-                   "IssuedToken": binascii.hexlify(Z.encode())
+                   "IssuedToken": to_hex(Z.encode())
                }
             else:
                vector["Unblind"] = {
