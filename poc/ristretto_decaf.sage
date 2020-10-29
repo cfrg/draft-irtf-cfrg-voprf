@@ -33,6 +33,44 @@ def isqrt_i(x):
     if is_square(x): return True,1/sqrt(x)
     else: return False,1/sqrt(x*gen)
 
+# from draft-irtf-cfrg-hash-to-curve-07
+# hash_fn should be, e.g., hashlib.sha256
+def expand_message_xmd(msg, dst, len_in_bytes, hash_fn, sec_level):
+    # sanity checks and basic parameters
+    b_in_bytes = hash_fn().digest_size
+    r_in_bytes = hash_fn().block_size
+    assert 8 * b_in_bytes >= 2 * sec_level
+    dst = _as_bytes(dst)
+    if len(dst) > 255:
+        raise ValueError("dst len should be at most 255 bytes")
+
+    # compute ell and check that sizes are as we expect
+    ell = (len_in_bytes + b_in_bytes - 1) // b_in_bytes
+    if ell > 255:
+        raise ValueError("bad expand_message_xmd call: ell was %d" % ell)
+
+    # compute prefix-free encoding of DST
+    dst_prime = dst + I2OSP(len(dst), 1)
+    assert len(dst_prime) == len(dst) + 1
+
+    # padding and length strings
+    Z_pad = I2OSP(0, r_in_bytes)
+    l_i_b_str = I2OSP(len_in_bytes, 2)
+
+    # compute blocks
+    b_vals = [None] * ell
+    msg_prime = Z_pad + _as_bytes(msg) + l_i_b_str + I2OSP(0, 1) + dst_prime
+    b_0 = hash_fn(msg_prime).digest()
+    b_vals[0] = hash_fn(b_0 + I2OSP(1, 1) + dst_prime).digest()
+    for i in xrange(1, ell):
+        b_vals[i] = hash_fn(_strxor(b_0, b_vals[i - 1]) + I2OSP(i + 1, 1) + dst_prime).digest()
+
+    # assemble output
+    uniform_bytes = (b'').join(b_vals)
+    output = uniform_bytes[0 : len_in_bytes]
+
+    return output
+
 class QuotientEdwardsPoint(object):
     """Abstract class for point an a quotiented Edwards curve; needs F,a,d,cofactor to work"""
     def __init__(self,x=0,y=1):
@@ -157,6 +195,39 @@ class DecafPoint(QuotientEdwardsPoint):
 
         return cls(x,y)
 
+    @classmethod
+    def fromJacobiQuartic(cls,s,t,sgn=1):
+        """Convert point from its Jacobi Quartic representation"""
+        a,d = cls.a,cls.d
+        if s==0: return cls()
+        x = 2*s / (1+a*s^2)
+        y = (1-a*s^2) / t
+        return cls(x,sgn*y)
+
+    @classmethod
+    def map(cls,r0):
+        a,d = cls.a,cls.d
+        r0 = cls.bytesToGf(r0,mustBeProper=False,maskHiBits=True)
+        r = cls.qnr * r0^2
+        den = (d*r-(d-a))*((d-a)*r-d)
+        num = (r+1)*(a-2*d)
+
+        iss,isri = isqrt_i(num*den)
+        if iss: sgn,twiddle =  1,1
+        else:   sgn,twiddle = -1,r0*cls.qnr
+        isri *= twiddle
+        s = isri*num
+        t = -sgn*isri*s*(r-1)*(a-2*d)^2 - 1
+        if negative(s) == iss: s = -s
+        return cls.fromJacobiQuartic(s,t)
+
+    def hash_to_curve(msg):
+        uniform_bytes = expand_message_xmd(msg, self.dst, 112, hashlib.shake_256, 224)
+        P1 = map(uniformbytes[0:56])
+        P2 = map(uniformbytes[56:112])
+        P = P1 + P2
+        return P
+
 class RistrettoPoint(QuotientEdwardsPoint):
     def encodeSpec(self):
         """Unoptimized specification for encoding"""
@@ -267,6 +338,13 @@ class RistrettoPoint(QuotientEdwardsPoint):
         if negative(s) == iss: s = -s
         return cls.fromJacobiQuartic(s,t)
 
+    def hash_to_curve(msg):
+        uniform_bytes = expand_message_xmd(msg, self.dst, 64, hashlib.sha3_512, 128)
+        P1 = map(uniformbytes[0:32])
+        P2 = map(uniformbytes[32:64])
+        P = P1 + P2
+        return P
+
 class Ed25519Point(RistrettoPoint):
     F = GF(2^255-19)
     P = F.order()
@@ -279,6 +357,7 @@ class Ed25519Point(RistrettoPoint):
     magic = isqrt(a*d-1)
     cofactor = 8
     encLen = 32
+    dst = "TEST"
 
     @classmethod
     def base(cls):
@@ -296,6 +375,7 @@ class Ed448GoldilocksPoint(DecafPoint):
     encLen = 56
     isoD = F(39082/39081)
     isoMagic = isqrt(a*isoD-1)
+    dst = "TEST"
 
     @classmethod
     def base(cls):
@@ -323,12 +403,37 @@ def testVectorsDecaf(cls):
         Q += P
         R = bytearray(Q.encode())
 
-def testMapRistretto(cls,n):
-    print ("Testing map on %s" % cls.__name__)
-    for i in range(n):
-        r = randombytes(cls.encLen)
-        P = cls.map(r)
+def testMapRistretto(cls):
+    print ("Testing one way map on %s" % cls.__name__)
+    r = bytearray.fromhex("5d1be09e3d0c82fc538112490e35701979d99e06ca3e2b5b54bffe8b4dc772c14d98b696a1bbfb5ca32c436cc61c16563790306c79eaca7705668b47dffe5bb6")
+    P1 = cls.map(r[0:32])
+    P2 = cls.map(r[32:64])
+    P = P1 + P2
+    exp = bytearray.fromhex("3066f82a1a747d45120d1740f14358531a8f04bbffe6a819f86dfe50f44a0a46")
+    assert P.encode() == exp
+    r = bytearray.fromhex("165d697a1ef3d5cf3c38565beefcf88c0f282b8e7dbd28544c483432f1cec7675debea8ebb4e5fe7d6f6e5db15f15587ac4d4d4a1de7191e0c1ca6664abcc413")
+    P1 = cls.map(r[0:32])
+    P2 = cls.map(r[32:64])
+    P = P1 + P2
+    exp = bytearray.fromhex("ae81e7dedf20a497e10c304a765c1767a42d6e06029758d2d7e8ef7cc4c41179")
+    assert P.encode() == exp
+
+def testMapDecaf(cls):
+    print ("Testing one way map on %s" % cls.__name__)
+    r = bytearray.fromhex("cbb8c991fd2f0b7e1913462d6463e4fd2ce4ccdd28274dc2ca1f4165d5ee6cdccea57be3416e166fd06718a31af45a2f8e987e301be59ae6673e963001dbbda80df47014a21a26d6c7eb4ebe0312aa6fffb8d1b26bc62ca40ed51f8057a635a02c2b8c83f48fa6a2d70f58a1185902c0")
+    P1 = cls.map(r[0:56])
+    P2 = cls.map(r[56:112])
+    P = P1 + P2
+    exp = bytearray.fromhex("0c709c9607dbb01c94513358745b7c23953d03b33e39c7234e268d1d6e24f34014ccbc2216b965dd231d5327e591dc3c0e8844ccfd568848")
+    assert P.encode() == exp
+    r = bytearray.fromhex("4dec58199a35f531a5f0a9f71a53376d7b4bdd6bbd2904234a8ea65bbacbce2a542291378157a8f4be7b6a092672a34d85e473b26ccfbd4cdc6739783dc3f4f6ee3537b7aed81df898c7ea0ae89a15b5559596c2a5eeacf8b2b362f3db2940e3798b63203cae77c4683ebaed71533e51")
+    P1 = cls.map(r[0:56])
+    P2 = cls.map(r[56:112])
+    P = P1 + P2
+    exp = bytearray.fromhex("f4ccb31d263731ab88bed634304956d2603174c66da38742053fa37dd902346c3862155d68db63be87439e3d68758ad7268e239d39c4fd3b")
+    assert P.encode() == exp
 
 testVectorsRistretto(Ed25519Point)
 testVectorsDecaf(Ed448GoldilocksPoint)
-testMapRistretto(Ed25519Point, 15)
+testMapRistretto(Ed25519Point)
+testMapDecaf(Ed448GoldilocksPoint)
