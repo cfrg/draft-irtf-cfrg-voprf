@@ -4,36 +4,11 @@
 import binascii
 class InvalidEncodingException(Exception): pass
 
+# Inspired by Mike Hamburg's library. Thanks, Mike
 def lobit(x): return int(x) & 1
 def negative(x): return lobit(x)
 def enc_le(x,n): return bytearray([int(x)>>(8*i) & 0xFF for i in range(n)])
 def dec_le(x): return sum(b<<(8*i) for i,b in enumerate(x))
-
-def optimized_version_of(spec):
-    """Decorator: This function is an optimized version of some specification"""
-    def decorator(f):
-        def wrapper(self,*args,**kwargs):
-            def pr(x):
-                if isinstance(x,bytearray): return binascii.hexlify(x)
-                else: return str(x)
-            try: spec_ans = getattr(self,spec,spec)(*args,**kwargs),None
-            except Exception as e: spec_ans = None,e
-            try: opt_ans = f(self,*args,**kwargs),None
-            except Exception as e: opt_ans = None,e
-            if spec_ans[1] is None and opt_ans[1] is not None:
-                raise SpecException("Mismatch in %s: spec returned %s but opt threw %s"
-                   % (f.__name__,str(spec_ans[0]),str(opt_ans[1])))
-            if spec_ans[1] is not None and opt_ans[1] is None:
-                raise SpecException("Mismatch in %s: spec threw %s but opt returned %s"
-                   % (f.__name__,str(spec_ans[1]),str(opt_ans[0])))
-            if spec_ans[0] != opt_ans[0]:
-                raise SpecException("Mismatch in %s: %s != %s"
-                    % (f.__name__,pr(spec_ans[0]),pr(opt_ans[0])))
-            if opt_ans[1] is not None: raise opt_ans[1]
-            else: return opt_ans[0]
-        wrapper.__name__ = f.__name__
-        return wrapper
-    return decorator
 
 def xsqrt(x,exn=InvalidEncodingException("Not on curve")):
     """Return sqrt(x)"""
@@ -130,9 +105,9 @@ class QuotientEdwardsPoint(object):
         if negative(x) and mustBePositive: x = -x
         return enc_le(x,cls.encLen)
 
-class Decaf_1_1_Point(QuotientEdwardsPoint):
+class DecafPoint(QuotientEdwardsPoint):
     """Tweaked for compatibility with Ristretto, as in draft"""
-    def encodeSpec(self):
+    def encode(self):
         """Unoptimized specification for encoding"""
         a,d = self.a,self.d
         x,y = self
@@ -149,7 +124,7 @@ class Decaf_1_1_Point(QuotientEdwardsPoint):
         return self.gfToBytes(s,mustBePositive=True)
 
     @classmethod
-    def decodeSpec(cls,s):
+    def decode(cls,s):
         """Unoptimized specification for decoding"""
         a,d = cls.a,cls.d
         s = cls.bytesToGf(s,mustBePositive=True)
@@ -165,72 +140,6 @@ class Decaf_1_1_Point(QuotientEdwardsPoint):
             raise InvalidEncodingException("x*y is invalid: %d, %d" % (x,y))
 
         return cls(x,y)
-
-    def toJacobiQuartic(self,toggle_rotation=False,toggle_altx=False,toggle_s=False):
-        "Return s,t on jacobi curve"
-        a,d = self.a,self.d
-        x,y,z,t = self.xyzt()
-
-        if self.cofactor == 8:
-            # Cofactor 8 version
-            # Simulate IMAGINE_TWIST because that's how libdecaf does it
-            x = self.i*x
-            t = self.i*t
-            a = -a
-            d = -d
-
-            # OK, the actual libdecaf code should be here
-            num = (z+y)*(z-y)
-            den = x*y
-            isr = isqrt(num*(a-d)*den^2)
-
-            iden = isr * den * self.isoMagic # 1/sqrt((z+y)(z-y)) = 1/sqrt(1-Y^2) / z
-            inum = isr * num # sqrt(1-Y^2) * z / xysqrt(a-d) ~ 1/sqrt(1-ax^2)/z
-
-            if negative(iden*inum*self.i*t^2*(d-a)) != toggle_rotation:
-                iden,inum = inum,iden
-                fac = x*sqrt(a)
-                toggle=(a==-1)
-            else:
-                fac = y
-                toggle=False
-
-            imi = self.isoMagic * self.i
-            altx = inum*t*imi
-            neg_altx = negative(altx) != toggle_altx
-            if neg_altx != toggle: inum =- inum
-
-            tmp = fac*(inum*z + 1)
-            s = iden*tmp*imi
-
-            negm1 = (negative(s) != toggle_s) != neg_altx
-            if negm1: m1 = a*fac + z
-            else:     m1 = a*fac - z
-
-            swap = toggle_s
-
-        else:
-            # Much simpler cofactor 4 version
-            num = (x+t)*(x-t)
-            isr = isqrt(num*(a-d)*x^2)
-            ratio = isr*num
-            altx = ratio*self.isoMagic
-
-            neg_altx = negative(altx) != toggle_altx
-            if neg_altx: ratio =- ratio
-
-            tmp = ratio*z - t
-            s = (a-d)*isr*x*tmp
-
-            negx = (negative(s) != toggle_s) != neg_altx
-            if negx: m1 = -a*t + x
-            else:    m1 = -a*t - x
-
-            swap = toggle_s
-
-        if negative(s): s = -s
-
-        return s,m1,a*tmp,swap
 
 class RistrettoPoint(QuotientEdwardsPoint):
     def encodeSpec(self):
@@ -257,7 +166,6 @@ class RistrettoPoint(QuotientEdwardsPoint):
 
         return cls(x,y)
 
-    @optimized_version_of("encodeSpec")
     def encode(self):
         """Encode, optimized version"""
         a,d,mneg = self.a,self.d,self.mneg
@@ -293,7 +201,6 @@ class RistrettoPoint(QuotientEdwardsPoint):
         return self.gfToBytes(s,mustBePositive=True)
 
     @classmethod
-    @optimized_version_of("decodeSpec")
     def decode(cls,s):
         """Decode, optimized version"""
         s = cls.bytesToGf(s,mustBePositive=True)
@@ -318,15 +225,6 @@ class RistrettoPoint(QuotientEdwardsPoint):
 
         return cls(x,y)
 
-    @classmethod
-    def fromJacobiQuartic(cls,s,t,sgn=1):
-        """Convert point from its Jacobi Quartic representation"""
-        a,d = cls.a,cls.d
-        assert s^4 - 2*cls.a*(1-2*d/(d-a))*s^2 + 1 == t^2
-        x = 2*s*cls.magic / t
-        y = (1+a*s^2) / (1-a*s^2)
-        return cls(sgn*x,y)
-
 class Ed25519Point(RistrettoPoint):
     F = GF(2^255-19)
     d = F(-121665/121666)
@@ -343,7 +241,7 @@ class Ed25519Point(RistrettoPoint):
         return cls( 15112221349535400772501151409588531511454012693041857206046113283949847762202, 46316835694926478169428394003475163141307993866256225615783033603165251855960
         )
 
-class Ed448GoldilocksPoin(Decaf_1_1_Point):
+class Ed448GoldilocksPoint(DecafPoint):
     F = GF(2^448-2^224-1)
     d = F(-39081)
     a = F(1)
@@ -375,9 +273,9 @@ def testVectorsDecaf(cls):
     Q = cls(0)
     R = bytearray(56)
     for i in range(16):
-        assert Q.encodeSpec() == R
+        assert Q.encode() == R
         Q += P
-        R = bytearray(Q.encodeSpec())
+        R = bytearray(Q.encode())
 
 testVectorsRistretto(Ed25519Point)
 testVectorsDecaf(Ed448GoldilocksPoint)
