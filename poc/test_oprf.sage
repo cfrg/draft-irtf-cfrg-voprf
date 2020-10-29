@@ -3,6 +3,7 @@
 
 import sys
 import json
+import binascii
 
 try:
     from sagelib.oprf import KeyGen, SetupBaseServer, SetupBaseClient, SetupVerifiableServer, SetupVerifiableClient, oprf_ciphersuites, _as_bytes
@@ -39,21 +40,37 @@ class Protocol(object):
             vector["Input"] = {
                 "ClientInput": to_hex(x)
             }
-            vector["Blind"] = {
-                "Token": hex(r),
-                "BlindedElement": to_hex(group.serialize(R)),
-            }
-            vector["Evaluation"] = {
-                "EvaluatedElement": to_hex(group.serialize(T.evaluated_element)),
-            }
+            if (group.name == "ristretto255"):
+                vector["Blind"] = {
+                    "Token": hex(r),
+                    "BlindedElement": binascii.hexlify(R.encode()),
+                }
+            else:
+                vector["Blind"] = {
+                    "Token": hex(r),
+                    "BlindedElement": to_hex(group.serialize(R)),
+                }
+            if (group.name == "ristretto255"):
+               vector["Evaluation"] = {
+                   "EvaluatedElement": binascii.hexlify(T.evaluated_element.encode()),
+               }
+            else:
+               vector["Evaluation"] = {
+                   "EvaluatedElement": to_hex(group.serialize(T.evaluated_element)),
+               }
             if T.proof != None:
                 vector["Evaluation"]["proof"] = {
                     "c": hex(T.proof[0]),
                     "s": hex(T.proof[1]),
                 }
-            vector["Unblind"] = {
-                "IssuedToken": to_hex(group.serialize(Z))
-            }
+            if (group.name == "ristretto255"):
+               vector["Unblind"] = {
+                   "IssuedToken": binascii.hexlify(Z.encode())
+               }
+            else:
+               vector["Unblind"] = {
+                   "IssuedToken": to_hex(group.serialize(Z))
+               }
 
             vector["ClientOutput"] = to_hex(y)
             vectors.append(vector)

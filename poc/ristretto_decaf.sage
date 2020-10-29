@@ -2,6 +2,9 @@
 # vim: syntax=python
 
 import binascii
+import random
+import hashlib
+from hash_to_field import I2OSP, hash_to_field
 class InvalidEncodingException(Exception): pass
 
 # Inspired by Mike Hamburg's library. Thanks, Mike
@@ -10,6 +13,12 @@ def negative(x): return lobit(x)
 def enc_le(x,n): return bytearray([int(x)>>(8*i) & 0xFF for i in range(n)])
 def dec_le(x): return sum(b<<(8*i) for i,b in enumerate(x))
 def randombytes(n): return bytearray([randint(0,255) for _ in range(n)])
+
+if sys.version_info[0] == 3:
+    xrange = range
+    _as_bytes = lambda x: x if isinstance(x, bytes) else bytes(x, "utf-8")
+else:
+    _as_bytes = lambda x: x
 
 def xsqrt(x,exn=InvalidEncodingException("Not on curve")):
     """Return sqrt(x)"""
@@ -221,10 +230,10 @@ class DecafPoint(QuotientEdwardsPoint):
         if negative(s) == iss: s = -s
         return cls.fromJacobiQuartic(s,t)
 
-    def hash_to_curve(msg):
-        uniform_bytes = expand_message_xmd(msg, self.dst, 112, hashlib.shake_256, 224)
-        P1 = map(uniformbytes[0:56])
-        P2 = map(uniformbytes[56:112])
+    def hash_to_group(self, msg, dst):
+        u = expand_message_xmd(msg, dst, 112, hashlib.shake_256, 224)
+        P1 = map(u[0:56])
+        P2 = map(u[56:112])
         P = P1 + P2
         return P
 
@@ -338,14 +347,18 @@ class RistrettoPoint(QuotientEdwardsPoint):
         if negative(s) == iss: s = -s
         return cls.fromJacobiQuartic(s,t)
 
-    def hash_to_curve(msg):
-        uniform_bytes = expand_message_xmd(msg, self.dst, 64, hashlib.sha3_512, 128)
-        P1 = map(uniformbytes[0:32])
-        P2 = map(uniformbytes[32:64])
+    def hash_to_group(self, msg, dst):
+        u = expand_message_xmd(msg, dst, 64, hashlib.sha3_512, 128)
+        P1 = self.map(u[0:32])
+        P2 = self.map(u[32:64])
         P = P1 + P2
         return P
 
+    def hash_to_scalar(self, msg, dst=""):
+        return hash_to_field(msg, 1, dst, self.order, 1, 48, expand_message_xmd, hashlib.sha512, 128)[0][0]
+
 class Ed25519Point(RistrettoPoint):
+    name = "ristretto255"
     F = GF(2^255-19)
     P = F.order()
     order = 2^252 + 27742317777372353535851937790883648493
@@ -363,13 +376,18 @@ class Ed25519Point(RistrettoPoint):
     def base(cls):
         return cls( 15112221349535400772501151409588531511454012693041857206046113283949847762202, 46316835694926478169428394003475163141307993866256225615783033603165251855960
         )
+    @classmethod
+    def identity(cls):
+        return cls( 0, 1)
 
 class Ed448GoldilocksPoint(DecafPoint):
+    name = "decaf448"
     F = GF(2^448-2^224-1)
     P = F.order()
     order = 2^446-13818066809895115352007386748515426880336692474882178609894547503885
     d = F(-39081)
     a = F(1)
+    identity = F(0)
     qnr = -1
     cofactor = 4
     encLen = 56
