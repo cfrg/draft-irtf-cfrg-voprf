@@ -103,13 +103,6 @@ class GroupNISTCurve(Group):
             y = -y
         return self.curve(self.F(x), self.F(y))
 
-    def serialize_scalar(self, scalar):
-        s = int(scalar)
-        return s.to_bytes((s.bit_length() + 7) // 8, 'big')
-
-    def deserialize_scalar(self, encoded):
-        return int.from_bytes(encoded, 'big')
-
     def hash_to_group(self, msg, dst):
         self.h2c_suite.dst = dst
         return self.h2c_suite(msg)

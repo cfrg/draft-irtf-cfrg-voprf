@@ -9,6 +9,7 @@ def lobit(x): return int(x) & 1
 def negative(x): return lobit(x)
 def enc_le(x,n): return bytearray([int(x)>>(8*i) & 0xFF for i in range(n)])
 def dec_le(x): return sum(b<<(8*i) for i,b in enumerate(x))
+def randombytes(n): return bytearray([randint(0,255) for _ in range(n)])
 
 def xsqrt(x,exn=InvalidEncodingException("Not on curve")):
     """Return sqrt(x)"""
@@ -23,6 +24,14 @@ def isqrt(x,exn=InvalidEncodingException("Not on curve")):
     if not is_square(x): raise exn
     s = sqrt(x)
     return 1/s
+
+def isqrt_i(x):
+    """Return 1/sqrt(x) or 1/sqrt(zeta * x)"""
+    if x==0: return True,0
+    gen = x.parent(-1)
+    while is_square(gen): gen = sqrt(gen)
+    if is_square(x): return True,1/sqrt(x)
+    else: return False,1/sqrt(x*gen)
 
 class QuotientEdwardsPoint(object):
     """Abstract class for point an a quotiented Edwards curve; needs F,a,d,cofactor to work"""
@@ -81,6 +90,14 @@ class QuotientEdwardsPoint(object):
             if self.a ==  1: return self.__class__(-self.y, self.x)
         else:
             return self.__class__(-self.x, -self.y)
+
+    def random_scalar(self):
+        return random.randint(1, self.order-1)
+
+    def key_gen(self):
+        skS = ZZ(self.random_scalar())
+        pkS = self.base() * skS
+        return skS, pkS
 
     # Utility functions
     @classmethod
@@ -224,10 +241,36 @@ class RistrettoPoint(QuotientEdwardsPoint):
 
         return cls(x,y)
 
+    @classmethod
+    def fromJacobiQuartic(cls,s,t,sgn=1):
+        """Convert point from its Jacobi Quartic representation"""
+        a,d = cls.a,cls.d
+        assert s^4 - 2*cls.a*(1-2*d/(d-a))*s^2 + 1 == t^2
+        x = 2*s*cls.magic / t
+        y = (1+a*s^2) / (1-a*s^2)
+        return cls(sgn*x,y)
+
+    @classmethod
+    def map(cls, r0):
+        a,d = cls.a,cls.d
+        r0 = cls.bytesToGf(r0,mustBeProper=False,maskHiBits=True)
+        r = cls.qnr * r0^2
+        den = (d*r-a)*(a*r-d)
+        num = cls.a*(r+1)*(a+d)*(d-a)
+
+        iss,isri = isqrt_i(num*den)
+        if iss: sgn,twiddle =  1,1
+        else:   sgn,twiddle = -1,r0*cls.qnr
+        isri *= twiddle
+        s = isri*num
+        t = -sgn*isri*s*(r-1)*(d+a)^2 - 1
+        if negative(s) == iss: s = -s
+        return cls.fromJacobiQuartic(s,t)
+
 class Ed25519Point(RistrettoPoint):
     F = GF(2^255-19)
     P = F.order()
-    order = GF(2^252 + 27742317777372353535851937790883648493)
+    order = 2^252 + 27742317777372353535851937790883648493
     d = F(-121665/121666)
     a = F(-1)
     i = sqrt(F(-1))
@@ -245,7 +288,7 @@ class Ed25519Point(RistrettoPoint):
 class Ed448GoldilocksPoint(DecafPoint):
     F = GF(2^448-2^224-1)
     P = F.order()
-    order = GF(2^446-13818066809895115352007386748515426880336692474882178609894547503885)
+    order = 2^446-13818066809895115352007386748515426880336692474882178609894547503885
     d = F(-39081)
     a = F(1)
     qnr = -1
@@ -280,5 +323,12 @@ def testVectorsDecaf(cls):
         Q += P
         R = bytearray(Q.encode())
 
+def testMapRistretto(cls,n):
+    print ("Testing map on %s" % cls.__name__)
+    for i in range(n):
+        r = randombytes(cls.encLen)
+        P = cls.map(r)
+
 testVectorsRistretto(Ed25519Point)
 testVectorsDecaf(Ed448GoldilocksPoint)
+testMapRistretto(Ed25519Point, 15)
