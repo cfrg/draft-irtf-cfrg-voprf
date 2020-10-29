@@ -34,6 +34,14 @@ def xsqrt(x,exn=InvalidEncodingException("Not on curve")):
     if negative(s): s=-s
     return s
 
+def isqrt(x,exn=InvalidEncodingException("Not on curve")):
+    """Return 1/sqrt(x)"""
+    if x==0: return 0
+    if not is_square(x): raise exn
+    s = sqrt(x)
+    #if negative(s): s=-s
+    return 1/s
+
 class QuotientEdwardsPoint(object):
     """Abstract class for point an a quotiented Edwards curve; needs F,a,d,cofactor to work"""
     def __init__(self,x=0,y=1):
