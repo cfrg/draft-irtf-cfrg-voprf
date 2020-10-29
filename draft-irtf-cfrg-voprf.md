@@ -573,7 +573,7 @@ def VerifyFinalize(skS, input, info):
   T = skS * P
   issuedToken = GG.serialize(T)
 
-  finalizeDST = "VOPRF05-Finalize-" || client.contextString
+  finalizeDST = "VOPRF05-Finalize-" || self.contextString
   hashInput = I2OSP(len(input), 2) || input ||
               I2OSP(len(issuedToken), 2) || issuedToken ||
               I2OSP(len(info), 2) || info ||
@@ -602,7 +602,7 @@ def VerifyFinalize(skS, input, info, output):
   issuedElement = Evaluate(skS, [element])
   E = GG.Serialize(issuedElement)
 
-  finalizeDST = "VOPRF05-Finalize-" || client.contextString
+  finalizeDST = "VOPRF05-Finalize-" || self.contextString
   hashInput = I2OSP(len(input), 2) || input ||
               I2OSP(len(E), 2) || E ||
               I2OSP(len(info), 2) || info ||
@@ -929,7 +929,7 @@ and curve25519. See {{cryptanalysis}} for related discussion.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=48, and expand_message_xmd with
     SHA-256.
-    - Serialization: Serialization converts group elements to 32-byte strings
+  - Serialization: Serialization converts group elements to 32-byte strings
     using the 'Encode' function from {{!RISTRETTO}}. Deserialization converts
     32-byte strings to group elements using the 'Decode' function from {{!RISTRETTO}}.
 - Hash: SHA-256
