@@ -33,12 +33,6 @@ class Group(object):
     def __init__(self, name):
         self.name = name
 
-    def order(self):
-        return 0
-
-    def generator(self):
-        return 0
-
     def random_scalar(self):
         return None
 
@@ -79,12 +73,6 @@ class GroupNISTCurve(Group):
 
     def suite_name(self):
         return self.name
-
-    def order(self):
-        return self.order
-
-    def generator(self):
-        return self.G
 
     def random_scalar(self):
         return random.randint(1, self.order-1)
@@ -163,11 +151,10 @@ class Evaluation(object):
 
 
 class Ciphersuite(object):
-    def __init__(self, name, identifier, group, dst, H):
+    def __init__(self, name, identifier, group, H):
         self.name = name
         self.identifier = identifier
         self.group = group
-        self.dst = dst
         self.H = H
 
     def __str__(self):
@@ -176,7 +163,6 @@ class Ciphersuite(object):
 class ClientContext(object):
     def __init__(self, suite, contextString):
         self.suite = suite
-        self.dst = _as_bytes(suite.dst)
         self.contextString = contextString
 
     def identifier(self):
@@ -184,7 +170,8 @@ class ClientContext(object):
 
     def blind(self, x):
         r = ZZ(self.suite.group.random_scalar())
-        P = self.suite.group.hash_to_group(x, self.dst)
+        dst = _as_bytes("VOPRF05-") + self.contextString
+        P = self.suite.group.hash_to_group(x, dst)
         R = r * P
         return r, R, P
 
@@ -209,7 +196,6 @@ class ClientContext(object):
 class ServerContext(object):
     def __init__(self, suite, contextString, skS):
         self.suite = suite
-        self.dst = _as_bytes(suite.dst)
         self.contextString = contextString
         self.skS = skS
         self.pkS = suite.group.G * skS
@@ -218,7 +204,8 @@ class ServerContext(object):
         return Evaluation(self.skS * element, None)
 
     def verify_finalize(self, x, info, expected_digest):
-        element = self.suite.group.hash_to_group(x, self.dst)
+        dst = _as_bytes("VOPRF05-") + self.contextString
+        element = self.suite.group.hash_to_group(x, dst)
         issued_element = self.evaluate(element).evaluated_element
         encoded_element = self.suite.group.serialize(issued_element)
 
@@ -341,8 +328,11 @@ class VerifiableServerContext(ServerContext):
 mode_base = 0x00
 mode_verifiable = 0x01
 
-def SetupBaseServer(suite):
-    skS, _ = suite.group.key_gen()
+def KeyGen(suite):
+    skS, pkS = suite.group.key_gen()
+    return skS, pkS
+
+def SetupBaseServer(suite, skS):
     contextString = I2OSP(mode_base, 1) + I2OSP(suite.identifier, 2)
     return ServerContext(suite, contextString, skS)
 
@@ -350,8 +340,7 @@ def SetupBaseClient(suite):
     contextString = I2OSP(mode_base, 1) + I2OSP(suite.identifier, 2)
     return ClientContext(suite, contextString)
 
-def SetupVerifiableServer(suite):
-    skS, pkS = suite.group.key_gen()
+def SetupVerifiableServer(suite, skS, pkS):
     contextString = I2OSP(mode_verifiable, 1) + I2OSP(suite.identifier, 2)
     return VerifiableServerContext(suite, contextString, skS), pkS
 
@@ -364,7 +353,7 @@ ciphersuite_p384_sha512_sswu_ro = 0x0004
 ciphersuite_p521_sha512_sswu_ro = 0x0005
 
 oprf_ciphersuites = {
-    Ciphersuite("P256-SHA256-SSWU-RO", ciphersuite_p256_sha256_sswu_ro, GroupP256(), "VOPRF05-P256_XMD:SHA-256_SSWU_RO_", hashlib.sha256),
-    Ciphersuite("P384-SHA512-SSWU-RO", ciphersuite_p384_sha512_sswu_ro, GroupP384(), "VOPRF05-P384_XMD:SHA-512_SSWU_RO_", hashlib.sha512),
-    Ciphersuite("P521-SHA512-SSWU-RO", ciphersuite_p521_sha512_sswu_ro, GroupP521(), "VOPRF05-P521_XMD:SHA-512_SSWU_RO_", hashlib.sha512),
+    Ciphersuite("P256-SHA256-SSWU-RO", ciphersuite_p256_sha256_sswu_ro, GroupP256(), hashlib.sha256),
+    Ciphersuite("P384-SHA512-SSWU-RO", ciphersuite_p384_sha512_sswu_ro, GroupP384(), hashlib.sha512),
+    Ciphersuite("P521-SHA512-SSWU-RO", ciphersuite_p521_sha512_sswu_ro, GroupP521(), hashlib.sha512),
 }

@@ -5,7 +5,7 @@ import sys
 import json
 
 try:
-    from sagelib.oprf import SetupBaseServer, SetupBaseClient, SetupVerifiableServer, SetupVerifiableClient, oprf_ciphersuites, _as_bytes
+    from sagelib.oprf import KeyGen, SetupBaseServer, SetupBaseClient, SetupVerifiableServer, SetupVerifiableClient, oprf_ciphersuites, _as_bytes
 except ImportError as e:
     sys.exit("Error loading preprocessed sage files. Try running `make setup && make clean pyfiles`. Full error: " + e)
 
@@ -62,7 +62,6 @@ class Protocol(object):
         vector["skS"] = hex(server.skS)
         vector["info"] = info
         vector["suite"] = client.suite.name
-        vector["dst"] = client.suite.dst
         vector["vectors"] = vectors
 
         return vector
@@ -71,13 +70,15 @@ def main(path="vectors"):
     vectors = {}
 
     for suite in oprf_ciphersuites:
-        server = SetupBaseServer(suite)
+        skS, _ = KeyGen(suite)
+        server = SetupBaseServer(suite, skS)
         client = SetupBaseClient(suite)
         protocol = Protocol()
         vectors["Base" + suite.name] = protocol.run(client, server, "test information")
 
     for suite in oprf_ciphersuites:
-        server, pkS = SetupVerifiableServer(suite)
+        skS, pkS = KeyGen(suite)
+        server, pkS = SetupVerifiableServer(suite, skS, pkS)
         client = SetupVerifiableClient(suite, pkS)
         protocol = Protocol()
         vectors["Verifiable" + suite.name] = protocol.run(client, server, "test information")
