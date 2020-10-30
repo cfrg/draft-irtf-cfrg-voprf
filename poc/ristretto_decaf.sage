@@ -197,8 +197,8 @@ class DecafPoint(QuotientEdwardsPoint):
 
     def hash_to_group(self, msg, dst):
         u = expand_message_xof(msg, dst, int(112), hashlib.shake_256, 224)
-        P1 = self.map(u[0:32])
-        P2 = self.map(u[32:64])
+        P1 = self.map(u[0:56])
+        P2 = self.map(u[56:112])
         P = P1 + P2
         return P
 
