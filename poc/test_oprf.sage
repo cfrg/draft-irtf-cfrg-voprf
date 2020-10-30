@@ -40,7 +40,7 @@ class Protocol(object):
             vector["Input"] = {
                 "ClientInput": to_hex(x)
             }
-            if (group.name == "ristretto255"):
+            if (group.name == "ristretto255") or (group.name == "decaf448"):
                 vector["Blind"] = {
                     "Token": hex(r),
                     "BlindedElement": to_hex(R.encode()),
@@ -50,7 +50,7 @@ class Protocol(object):
                     "Token": hex(r),
                     "BlindedElement": to_hex(group.serialize(R)),
                 }
-            if (group.name == "ristretto255"):
+            if (group.name == "ristretto255") or (group.name == "decaf448"):
                vector["Evaluation"] = {
                    "EvaluatedElement": to_hex(T.evaluated_element.encode()),
                }
@@ -63,7 +63,7 @@ class Protocol(object):
                     "c": hex(T.proof[0]),
                     "s": hex(T.proof[1]),
                 }
-            if (group.name == "ristretto255"):
+            if (group.name == "ristretto255") or (group.name == "decaf448"):
                vector["Unblind"] = {
                    "IssuedToken": to_hex(Z.encode())
                }

@@ -234,14 +234,14 @@ def compute_composites(suite, contextString, pkS, evaluate_input, evaluate_outpu
     h.update(hash_input)
     seed = h.digest()
 
-    if (suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
+    if (suite.group.name == "ristretto255") or (suite.group.name == "decaf448"):
        M = suite.group.identity()
        Z = suite.group.identity()
     else:
        M = suite.group.identity()
        Z = suite.group.identity()
 
-    if (suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
+    if (suite.group.name == "ristretto255") or (suite.group.name == "decaf448"):
        Mi = suite.group.decode(evaluate_input)
        Zi = suite.group.decode(evaluate_output)
     else:
@@ -252,7 +252,7 @@ def compute_composites(suite, contextString, pkS, evaluate_input, evaluate_outpu
     M = (di * Mi) + M
     Z = (di * Zi) + Z
 
-    if (suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
+    if (suite.group.name == "ristretto255") or (suite.group.name == "decaf448"):
        Mm = M.encode()
        Zm = Z.encode()
     else:
@@ -421,5 +421,5 @@ oprf_ciphersuites = {
     Ciphersuite("P384-SHA512-SSWU-RO", ciphersuite_p384_sha512_sswu_ro, GroupP384(), hashlib.sha512),
     Ciphersuite("P521-SHA512-SSWU-RO", ciphersuite_p521_sha512_sswu_ro, GroupP521(), hashlib.sha512),
     Ciphersuite("ristretto255-SHA512-R255MAP-RO", ciphersuite_ristretto255_sha512_r255map_ro, Ed25519Point(), hashlib.sha512),
-    #Ciphersuite("decaf448-SHA512-R255MAP-RO", ciphersuite_decaf448_sha512_d448map_ro, Ed448GoldilocksPoint(), hashlib.sha512),
+    Ciphersuite("decaf448-SHA512-R255MAP-RO", ciphersuite_decaf448_sha512_d448map_ro, Ed448GoldilocksPoint(), hashlib.sha512),
 }
