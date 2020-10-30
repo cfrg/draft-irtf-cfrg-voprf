@@ -34,10 +34,16 @@ class Group(object):
     def __init__(self, name):
         self.name = name
 
+    def generator(self):
+        return None
+
     def random_scalar(self):
         return None
 
     def identity(self):
+        return 0
+
+    def order(self):
         return 0
 
     def serialize(self, element):
@@ -46,8 +52,19 @@ class Group(object):
     def deserialize(self, encoded):
         return None
 
-    def hash_to_group(self, encoded):
+    def hash_to_group(self, x):
         return None
+
+    def hash_to_scalar(self, x):
+        return None
+
+    def random_scalar(self):
+        return random.randint(1, self.order() - 1)
+
+    def key_gen(self):
+        skS = ZZ(self.random_scalar())
+        pkS = self.generator() * skS
+        return skS, pkS
 
     def __str__(self):
         return self.name
@@ -63,7 +80,7 @@ class GroupNISTCurve(Group):
         self.p = p
         self.a = A
         self.b = B
-        self.order = order
+        self.group_order = order
         self.h2c_suite = suite
         self.G = EC(F(gx), F(gy))
         self.m = F.degree()
@@ -72,11 +89,11 @@ class GroupNISTCurve(Group):
         self.H = H
         self.expand = expand
 
-    def suite_name(self):
-        return self.name
+    def generator(self):
+        return self.G
 
-    def random_scalar(self):
-        return random.randint(1, self.order-1)
+    def order(self):
+        return self.group_order
 
     def identity(self):
         return self.curve(0)
@@ -109,12 +126,7 @@ class GroupNISTCurve(Group):
         return self.h2c_suite(msg)
 
     def hash_to_scalar(self, msg, dst=""):
-        return hash_to_field(msg, 1, dst, self.order, self.m, self.L, self.expand, self.H, self.k)[0][0]
-
-    def key_gen(self):
-        skS = ZZ(self.random_scalar())
-        pkS = self.G * skS
-        return skS, pkS
+        return hash_to_field(msg, 1, dst, self.order(), self.m, self.L, self.expand, self.H, self.k)[0][0]
 
 class GroupP256(GroupNISTCurve):
     def __init__(self):
@@ -136,6 +148,60 @@ class GroupP521(GroupNISTCurve):
         gx = 0xc6858e06b70404e9cd9e3ecb662395b4429c648139053fb521f828af606b4d3dbaa14b5e77efe75928fe1dc127a2ffa8de3348b3c1856a429bf97e7e31c2e5bd66
         gy = 0x11839296a789a3bc0045c8a5fb42c7d1bd998f54449579b446817afbd17273e662c97ee72995ef42640c550b9013fad0761353c7086a272c24088be94769fd16650
         GroupNISTCurve.__init__(self, "P521_XMD:SHA-512_SSWU_RO_", p521_sswu_ro, p521_F, p521_A, p521_B, p521_p, p521_order, gx, gy, 98, hashlib.sha512, expand_message_xmd, 256)
+
+class GroupRistretto255(Group):
+    def __init__(self):
+        Group.__init__(self, "ristretto255")
+        self.k = 128
+        self.L = 48
+
+    def generator(self):
+        return Ed25519Point().base()
+
+    def order(self):
+        return Ed25519Point().order
+
+    def identity(self):
+        return Ed25519Point().identity()
+
+    def serialize(self, element):
+        return element.encode()
+
+    def deserialize(self, encoded):
+        return Ed25519Point().decode(encoded)
+
+    def hash_to_group(self, msg, dst):
+        return Ed25519Point().hash_to_group(msg, dst)
+
+    def hash_to_scalar(self, msg, dst=""):
+        return hash_to_field(msg, 1, dst, self.order(), 1, self.L, expand_message_xmd, hashlib.sha256, self.k)[0][0]
+
+class GroupDecaf448(Group):
+    def __init__(self):
+        Group.__init__(self, "decaf448")
+        self.k = 224
+        self.L = 84
+
+    def generator(self):
+        return Ed448GoldilocksPoint().base()
+
+    def order(self):
+        return Ed448GoldilocksPoint().order
+
+    def identity(self):
+        return Ed448GoldilocksPoint().identity()
+
+    def serialize(self, element):
+        return element.encode()
+
+    def deserialize(self, encoded):
+        return Ed448GoldilocksPoint().decode(encoded)
+
+    def hash_to_group(self, msg, dst):
+        return Ed448GoldilocksPoint().hash_to_group(msg, dst)
+
+    def hash_to_scalar(self, msg, dst=""):
+        return hash_to_field(msg, 1, dst, self.order(), 1, self.L, expand_message_xmd, hashlib.sha512, self.k)[0][0]
 
 class Evaluation(object):
     def __init__(self, evaluated_element, proof):
@@ -170,19 +236,13 @@ class ClientContext(object):
 
     def unblind(self, ev, r, _):
         N = ev.evaluated_element
-        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
-           r_inv = inverse_mod(r, self.suite.group.order)
-        else:
-           r_inv = inverse_mod(r, self.suite.group.G.order())
+        r_inv = inverse_mod(r, self.suite.group.order())
         y = r_inv * N
         return y
 
     def finalize(self, x, y, info):
         finalizeDST = _as_bytes("VOPRF05-Finalize-") + self.contextString
-        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
-           encoded_element = y.encode()
-        else:
-           encoded_element = self.suite.group.serialize(y)
+        encoded_element = self.suite.group.serialize(y)
         finalize_input = I2OSP(len(x), 2) + x \
             + I2OSP(len(encoded_element), 2) + encoded_element \
             + I2OSP(len(info), 2) + info \
@@ -206,10 +266,7 @@ class ServerContext(object):
         dst = _as_bytes("VOPRF05-") + self.contextString
         element = self.suite.group.hash_to_group(x, dst)
         issued_element = self.evaluate(element).evaluated_element
-        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
-           encoded_element = issued_element.encode()
-        else:
-           encoded_element = self.suite.group.serialize(issued_element)
+        encoded_element = self.suite.group.serialize(issued_element)
 
         finalizeDST = _as_bytes("VOPRF05-Finalize-") + self.contextString
         finalize_input = I2OSP(len(x), 2) + x \
@@ -234,27 +291,17 @@ def compute_composites(suite, contextString, pkS, evaluate_input, evaluate_outpu
     h.update(hash_input)
     seed = h.digest()
 
-    if (suite.group.name == "ristretto255") or (suite.group.name == "decaf448"):
-       M = suite.group.identity()
-       Z = suite.group.identity()
-       Mi = suite.group.decode(evaluate_input)
-       Zi = suite.group.decode(evaluate_output)
-    else:
-       M = suite.group.identity()
-       Z = suite.group.identity()
-       Mi = suite.group.deserialize(evaluate_input)
-       Zi = suite.group.deserialize(evaluate_output)
+    M = suite.group.identity()
+    Z = suite.group.identity()
+    Mi = suite.group.deserialize(evaluate_input)
+    Zi = suite.group.deserialize(evaluate_output)
 
     di = 1
     M = (di * Mi) + M
     Z = (di * Zi) + Z
 
-    if (suite.group.name == "ristretto255") or (suite.group.name == "decaf448"):
-       Mm = M.encode()
-       Zm = Z.encode()
-    else:
-       Mm = suite.group.serialize(M)
-       Zm = suite.group.serialize(Z)
+    Mm = suite.group.serialize(M)
+    Zm = suite.group.serialize(Z)
 
     return Mm, Zm
 
@@ -265,30 +312,18 @@ class VerifiableClientContext(ClientContext):
         self.pkS = pkS
 
     def verify_proof(self, evaluate_input, evaluate_output, pi):
-        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
-           G = self.suite.group.base()
-           pkSm = self.pkS.encode()
-        else:
-           G = self.suite.group.G
-           pkSm = self.suite.group.serialize(self.pkS)
+        G = self.suite.group.generator()
+        pkSm = self.suite.group.serialize(self.pkS)
 
         (a1, a2) = compute_composites(self.suite, self.contextString, pkSm, evaluate_input, evaluate_output)
-        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
-           M = self.suite.group.decode(a1)
-           Z = self.suite.group.decode(a2)
-        else:
-           M = self.suite.group.deserialize(a1)
-           Z = self.suite.group.deserialize(a2)
+        M = self.suite.group.deserialize(a1)
+        Z = self.suite.group.deserialize(a2)
 
         Ap = (pi[1] * G) + (pi[0] * self.pkS)
         Bp = (pi[1] * M) + (pi[0] * Z)
 
-        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
-           a3 = Ap.encode()
-           a4 = Bp.encode()
-        else:
-           a3 = self.suite.group.serialize(Ap)
-           a4 = self.suite.group.serialize(Bp)
+        a3 = self.suite.group.serialize(Ap)
+        a4 = self.suite.group.serialize(Bp)
 
         challengeDST = _as_bytes("VOPRF05-challenge-") + self.contextString
         h2s_input = I2OSP(len(pkSm), 2) + pkSm \
@@ -307,21 +342,13 @@ class VerifiableClientContext(ClientContext):
         N = ev.evaluated_element
         pi = ev.proof
 
-        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
-           evaluate_input = R.encode()
-           evaluate_output = N.encode()
-        else:
-           evaluate_input = self.suite.group.serialize(R)
-           evaluate_output = self.suite.group.serialize(N)
+        evaluate_input = self.suite.group.serialize(R)
+        evaluate_output = self.suite.group.serialize(N)
 
         if not self.verify_proof(evaluate_input, evaluate_output, pi):
             raise Exception("Proof verification failed")
 
-        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
-           r_inv = inverse_mod(r, self.suite.group.order)
-        else:
-           r_inv = inverse_mod(r, self.suite.group.G.order())
-
+        r_inv = inverse_mod(r, self.suite.group.order())
         y = r_inv * N
         return y
 
@@ -330,28 +357,15 @@ class VerifiableServerContext(ServerContext):
         ServerContext.__init__(self, suite, contextString, skS, pkS)
 
     def generate_proof(self, evaluate_input, evaluate_output):
-        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
-           G = self.suite.group.base()
-           pkSm = self.pkS.encode()
-        else:
-           G = self.suite.group.G
-           pkSm = self.suite.group.serialize(self.pkS)
+        G = self.suite.group.generator()
+        pkSm = self.suite.group.serialize(self.pkS)
 
         (a1, a2) = compute_composites(self.suite, self.contextString, pkSm, evaluate_input, evaluate_output)
-        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
-           M = self.suite.group.decode(a1)
-        else:
-           M = self.suite.group.deserialize(a1)
+        M = self.suite.group.deserialize(a1)
 
         r = ZZ(self.suite.group.random_scalar())
-        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
-           ta3 = r * G
-           ta4 = r * M
-           a3 = ta3.encode()
-           a4 = ta4.encode()
-        else:
-           a3 = self.suite.group.serialize(r * G)
-           a4 = self.suite.group.serialize(r * M)
+        a3 = self.suite.group.serialize(r * G)
+        a4 = self.suite.group.serialize(r * M)
 
         challengeDST = _as_bytes("VOPRF05-challenge-") + self.contextString
         h2s_input = I2OSP(len(pkSm), 2) + pkSm \
@@ -362,22 +376,14 @@ class VerifiableServerContext(ServerContext):
             + I2OSP(len(challengeDST), 2) + challengeDST
 
         c = self.suite.group.hash_to_scalar(h2s_input)
-        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
-           s = (r - c * self.skS) % self.suite.group.order
-        else:
-           s = (r - c * self.skS) % G.order()
+        s = (r - c * self.skS) % self.suite.group.order()
 
         return [c, s]
 
     def evaluate(self, element):
         evaluated_element = self.skS * element
-        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
-           evaluate_input = element.encode()
-           evaluate_output = evaluated_element.encode()
-        else:
-           evaluate_input = self.suite.group.serialize(element)
-           evaluate_output = self.suite.group.serialize(evaluated_element)
-
+        evaluate_input = self.suite.group.serialize(element)
+        evaluate_output = self.suite.group.serialize(evaluated_element)
         proof = self.generate_proof(evaluate_input, evaluate_output)
         return Evaluation(evaluated_element, proof)
 
@@ -415,6 +421,6 @@ oprf_ciphersuites = {
     Ciphersuite("P256-SHA256-SSWU-RO", ciphersuite_p256_sha256_sswu_ro, GroupP256(), hashlib.sha256),
     Ciphersuite("P384-SHA512-SSWU-RO", ciphersuite_p384_sha512_sswu_ro, GroupP384(), hashlib.sha512),
     Ciphersuite("P521-SHA512-SSWU-RO", ciphersuite_p521_sha512_sswu_ro, GroupP521(), hashlib.sha512),
-    Ciphersuite("ristretto255-SHA512-R255MAP-RO", ciphersuite_ristretto255_sha512_r255map_ro, Ed25519Point(), hashlib.sha256),
-    Ciphersuite("decaf448-SHA512-R255MAP-RO", ciphersuite_decaf448_sha512_d448map_ro, Ed448GoldilocksPoint(), hashlib.sha512),
+    Ciphersuite("ristretto255-SHA512-R255MAP-RO", ciphersuite_ristretto255_sha512_r255map_ro, GroupRistretto255(), hashlib.sha256),
+    Ciphersuite("decaf448-SHA512-R255MAP-RO", ciphersuite_decaf448_sha512_d448map_ro, GroupDecaf448(), hashlib.sha512),
 }
