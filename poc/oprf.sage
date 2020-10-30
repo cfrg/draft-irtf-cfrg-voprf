@@ -415,6 +415,6 @@ oprf_ciphersuites = {
     Ciphersuite("P256-SHA256-SSWU-RO", ciphersuite_p256_sha256_sswu_ro, GroupP256(), hashlib.sha256),
     Ciphersuite("P384-SHA512-SSWU-RO", ciphersuite_p384_sha512_sswu_ro, GroupP384(), hashlib.sha512),
     Ciphersuite("P521-SHA512-SSWU-RO", ciphersuite_p521_sha512_sswu_ro, GroupP521(), hashlib.sha512),
-    Ciphersuite("ristretto255-SHA512-R255MAP-RO", ciphersuite_ristretto255_sha512_r255map_ro, Ed25519Point(), hashlib.sha512),
+    Ciphersuite("ristretto255-SHA512-R255MAP-RO", ciphersuite_ristretto255_sha512_r255map_ro, Ed25519Point(), hashlib.sha256),
     Ciphersuite("decaf448-SHA512-R255MAP-RO", ciphersuite_decaf448_sha512_d448map_ro, Ed448GoldilocksPoint(), hashlib.sha512),
 }
