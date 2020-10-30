@@ -237,14 +237,11 @@ def compute_composites(suite, contextString, pkS, evaluate_input, evaluate_outpu
     if (suite.group.name == "ristretto255") or (suite.group.name == "decaf448"):
        M = suite.group.identity()
        Z = suite.group.identity()
-    else:
-       M = suite.group.identity()
-       Z = suite.group.identity()
-
-    if (suite.group.name == "ristretto255") or (suite.group.name == "decaf448"):
        Mi = suite.group.decode(evaluate_input)
        Zi = suite.group.decode(evaluate_output)
     else:
+       M = suite.group.identity()
+       Z = suite.group.identity()
        Mi = suite.group.deserialize(evaluate_input)
        Zi = suite.group.deserialize(evaluate_output)
 
@@ -376,13 +373,11 @@ class VerifiableServerContext(ServerContext):
         evaluated_element = self.skS * element
         if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
            evaluate_input = element.encode()
-        else:
-           evaluate_input = self.suite.group.serialize(element)
-
-        if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
            evaluate_output = evaluated_element.encode()
         else:
+           evaluate_input = self.suite.group.serialize(element)
            evaluate_output = self.suite.group.serialize(evaluated_element)
+
         proof = self.generate_proof(evaluate_input, evaluate_output)
         return Evaluation(evaluated_element, proof)
 

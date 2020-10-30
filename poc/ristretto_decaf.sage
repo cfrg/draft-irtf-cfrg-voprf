@@ -4,7 +4,7 @@
 import binascii
 import random
 import hashlib
-from hash_to_field import I2OSP, hash_to_field, expand_message_xof
+from hash_to_field import I2OSP, hash_to_field, expand_message_xof, expand_message_xmd
 
 class InvalidEncodingException(Exception): pass
 
@@ -44,44 +44,6 @@ def isqrt_i(x):
     while is_square(gen): gen = sqrt(gen)
     if is_square(x): return True,1/sqrt(x)
     else: return False,1/sqrt(x*gen)
-
-# from draft-irtf-cfrg-hash-to-curve-07
-# hash_fn should be, e.g., hashlib.sha256
-def expand_message_xmd(msg, dst, len_in_bytes, hash_fn, sec_level):
-    # sanity checks and basic parameters
-    b_in_bytes = hash_fn().digest_size
-    r_in_bytes = hash_fn().block_size
-    assert 8 * b_in_bytes >= 2 * sec_level
-    dst = _as_bytes(dst)
-    if len(dst) > 255:
-        raise ValueError("dst len should be at most 255 bytes")
-
-    # compute ell and check that sizes are as we expect
-    ell = (len_in_bytes + b_in_bytes - 1) // b_in_bytes
-    if ell > 255:
-        raise ValueError("bad expand_message_xmd call: ell was %d" % ell)
-
-    # compute prefix-free encoding of DST
-    dst_prime = dst + I2OSP(len(dst), 1)
-    assert len(dst_prime) == len(dst) + 1
-
-    # padding and length strings
-    Z_pad = I2OSP(0, r_in_bytes)
-    l_i_b_str = I2OSP(len_in_bytes, 2)
-
-    # compute blocks
-    b_vals = [None] * ell
-    msg_prime = Z_pad + _as_bytes(msg) + l_i_b_str + I2OSP(0, 1) + dst_prime
-    b_0 = hash_fn(msg_prime).digest()
-    b_vals[0] = hash_fn(b_0 + I2OSP(1, 1) + dst_prime).digest()
-    for i in xrange(1, ell):
-        b_vals[i] = hash_fn(_strxor(b_0, b_vals[i - 1]) + I2OSP(i + 1, 1) + dst_prime).digest()
-
-    # assemble output
-    uniform_bytes = (b'').join(b_vals)
-    output = uniform_bytes[0 : len_in_bytes]
-
-    return output
 
 class QuotientEdwardsPoint(object):
     """Abstract class for point an a quotiented Edwards curve; needs F,a,d,cofactor to work"""
@@ -240,9 +202,10 @@ class DecafPoint(QuotientEdwardsPoint):
         P = P1 + P2
         return P
 
-    #TODO: check if correct
     def hash_to_scalar(self, msg, dst=""):
-        return hash_to_field(msg, 1, dst, self.order, 1, 48, expand_message_xmd, hashlib.sha512, 128)[0][0]
+        # this is taking the edwards parameters defined in draft-irtf-cfrg-hash-to-curve
+        # hash_to_field(msg, count, dst, modulus, degree (m), blen (l), expand_fn, hash_fn, security_param):
+        return hash_to_field(msg, 1, dst, self.order, 1, 84, expand_message_xmd, hashlib.sha512, 224)[0][0]
 
 class RistrettoPoint(QuotientEdwardsPoint):
     def encodeSpec(self):
@@ -355,13 +318,15 @@ class RistrettoPoint(QuotientEdwardsPoint):
         return cls.fromJacobiQuartic(s,t)
 
     def hash_to_group(self, msg, dst):
-        u = expand_message_xmd(msg, dst, 64, hashlib.sha3_512, 128)
+        u = expand_message_xmd(msg, dst, int(64), hashlib.sha3_512, 128)
         P1 = self.map(u[0:32])
         P2 = self.map(u[32:64])
         P = P1 + P2
         return P
 
     def hash_to_scalar(self, msg, dst=""):
+        # this is taking the edwards parameters defined in draft-irtf-cfrg-hash-to-curve
+        # hash_to_field(msg, count, dst, modulus, degree (m), blen (l), expand_fn, hash_fn, security_param):
         return hash_to_field(msg, 1, dst, self.order, 1, 48, expand_message_xmd, hashlib.sha512, 128)[0][0]
 
 class Ed25519Point(RistrettoPoint):
