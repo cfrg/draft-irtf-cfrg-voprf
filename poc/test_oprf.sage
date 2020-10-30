@@ -3,16 +3,17 @@
 
 import sys
 import json
+import binascii
 
 try:
-    from sagelib.oprf import SetupBaseServer, SetupBaseClient, SetupVerifiableServer, SetupVerifiableClient, oprf_ciphersuites, _as_bytes
+    from sagelib.oprf import KeyGen, SetupBaseServer, SetupBaseClient, SetupVerifiableServer, SetupVerifiableClient, oprf_ciphersuites, _as_bytes
 except ImportError as e:
     sys.exit("Error loading preprocessed sage files. Try running `make setup && make clean pyfiles`. Full error: " + e)
 
 def to_hex(octet_string):
     if isinstance(octet_string, str):
         return "".join("{:02x}".format(ord(c)) for c in octet_string)
-    assert isinstance(octet_string, bytes)
+    assert isinstance(octet_string, (bytes, bytearray))
     return "0x" + "".join("{:02x}".format(c) for c in octet_string)
 
 class Protocol(object):
@@ -39,21 +40,37 @@ class Protocol(object):
             vector["Input"] = {
                 "ClientInput": to_hex(x)
             }
-            vector["Blind"] = {
-                "Token": hex(r),
-                "BlindedElement": to_hex(group.serialize(R)),
-            }
-            vector["Evaluation"] = {
-                "EvaluatedElement": to_hex(group.serialize(T.evaluated_element)),
-            }
+            if (group.name == "ristretto255") or (group.name == "decaf448"):
+                vector["Blind"] = {
+                    "Token": hex(r),
+                    "BlindedElement": to_hex(R.encode()),
+                }
+            else:
+                vector["Blind"] = {
+                    "Token": hex(r),
+                    "BlindedElement": to_hex(group.serialize(R)),
+                }
+            if (group.name == "ristretto255") or (group.name == "decaf448"):
+               vector["Evaluation"] = {
+                   "EvaluatedElement": to_hex(T.evaluated_element.encode()),
+               }
+            else:
+               vector["Evaluation"] = {
+                   "EvaluatedElement": to_hex(group.serialize(T.evaluated_element)),
+               }
             if T.proof != None:
                 vector["Evaluation"]["proof"] = {
                     "c": hex(T.proof[0]),
                     "s": hex(T.proof[1]),
                 }
-            vector["Unblind"] = {
-                "IssuedToken": to_hex(group.serialize(Z))
-            }
+            if (group.name == "ristretto255") or (group.name == "decaf448"):
+               vector["Unblind"] = {
+                   "IssuedToken": to_hex(Z.encode())
+               }
+            else:
+               vector["Unblind"] = {
+                   "IssuedToken": to_hex(group.serialize(Z))
+               }
 
             vector["ClientOutput"] = to_hex(y)
             vectors.append(vector)
@@ -62,7 +79,6 @@ class Protocol(object):
         vector["skS"] = hex(server.skS)
         vector["info"] = info
         vector["suite"] = client.suite.name
-        vector["dst"] = client.suite.dst
         vector["vectors"] = vectors
 
         return vector
@@ -71,13 +87,15 @@ def main(path="vectors"):
     vectors = {}
 
     for suite in oprf_ciphersuites:
-        server = SetupBaseServer(suite)
+        skS, _ = KeyGen(suite)
+        server = SetupBaseServer(suite, skS)
         client = SetupBaseClient(suite)
         protocol = Protocol()
         vectors["Base" + suite.name] = protocol.run(client, server, "test information")
 
     for suite in oprf_ciphersuites:
-        server, pkS = SetupVerifiableServer(suite)
+        skS, pkS = KeyGen(suite)
+        server, pkS = SetupVerifiableServer(suite, skS, pkS)
         client = SetupVerifiableClient(suite, pkS)
         protocol = Protocol()
         vectors["Verifiable" + suite.name] = protocol.run(client, server, "test information")
