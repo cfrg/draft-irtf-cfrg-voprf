@@ -209,7 +209,7 @@ class ServerContext(object):
         if (self.suite.group.name == "ristretto255") or (self.suite.group.name == "decaf448"):
            encoded_element = issued_element.encode()
         else:
-           encoded_element = self.suite.group.serialize(y)
+           encoded_element = self.suite.group.serialize(issued_element)
 
         finalizeDST = _as_bytes("VOPRF05-Finalize-") + self.contextString
         finalize_input = I2OSP(len(x), 2) + x \

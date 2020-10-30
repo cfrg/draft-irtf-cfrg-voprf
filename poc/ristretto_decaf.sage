@@ -3,7 +3,7 @@
 
 import binascii
 import random
-from hashlib import shake_256, sha3_512, sha512
+import hashlib
 from hash_to_field import I2OSP, hash_to_field, expand_message_xof
 
 class InvalidEncodingException(Exception): pass
@@ -234,8 +234,7 @@ class DecafPoint(QuotientEdwardsPoint):
         return cls.fromJacobiQuartic(s,t)
 
     def hash_to_group(self, msg, dst):
-        # for some reason, this is failing..
-        u = expand_message_xof(msg, dst, 112, shake_256, 224)
+        u = expand_message_xof(msg, dst, int(112), hashlib.shake_256, 224)
         P1 = self.map(u[0:32])
         P2 = self.map(u[32:64])
         P = P1 + P2
@@ -243,7 +242,7 @@ class DecafPoint(QuotientEdwardsPoint):
 
     #TODO: check if correct
     def hash_to_scalar(self, msg, dst=""):
-        return hash_to_field(msg, 1, dst, self.order, 1, 48, expand_message_xmd, sha512, 128)[0][0]
+        return hash_to_field(msg, 1, dst, self.order, 1, 48, expand_message_xmd, hashlib.sha512, 128)[0][0]
 
 class RistrettoPoint(QuotientEdwardsPoint):
     def encodeSpec(self):
@@ -356,14 +355,14 @@ class RistrettoPoint(QuotientEdwardsPoint):
         return cls.fromJacobiQuartic(s,t)
 
     def hash_to_group(self, msg, dst):
-        u = expand_message_xmd(msg, dst, 64, sha3_512, 128)
+        u = expand_message_xmd(msg, dst, 64, hashlib.sha3_512, 128)
         P1 = self.map(u[0:32])
         P2 = self.map(u[32:64])
         P = P1 + P2
         return P
 
     def hash_to_scalar(self, msg, dst=""):
-        return hash_to_field(msg, 1, dst, self.order, 1, 48, expand_message_xmd, sha512, 128)[0][0]
+        return hash_to_field(msg, 1, dst, self.order, 1, 48, expand_message_xmd, hashlib.sha512, 128)[0][0]
 
 class Ed25519Point(RistrettoPoint):
     name = "ristretto255"
@@ -383,7 +382,6 @@ class Ed25519Point(RistrettoPoint):
     def base(cls):
         return cls( 15112221349535400772501151409588531511454012693041857206046113283949847762202, 46316835694926478169428394003475163141307993866256225615783033603165251855960
         )
-    #TODO: check if correct
     @classmethod
     def identity(cls):
         return cls( 0, 1)
@@ -406,7 +404,6 @@ class Ed448GoldilocksPoint(DecafPoint):
         return 2*cls(
  224580040295924300187604334099896036246789641632564134246125461686950415467406032909029192869357953282578032075146446173674602635247710, 298819210078481492676017930443930673437544040154080242095928241372331506189835876003536878655418784733982303233503462500531545062832660
         )
-    #TODO: check if correct
     @classmethod
     def identity(cls):
         return cls( 0, 1)
