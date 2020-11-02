@@ -308,8 +308,9 @@ prime-order group.
 - Identity(): Outputs the identity element of the group (i.e. `I`).
 - Serialize(A): A member function of `GG` that maps a group element `A`
   to a unique byte array `buf`.
-- Deserialize(buf): A member function of `GG` that maps a valid byte array
-  `buf` to a group element `A`, or fails if input is not valid.
+- Deserialize(buf): A member function of `GG` that maps a byte array
+  `buf` to a group element `A`, or fails if the input is not a valid
+  byte representation of an element.
 - HashToGroup(x): A member function of `GG` that deterministically maps
   an array of bytes `x` to an element of `GG`. The map must ensure that,
   for any adversary receiving `R = HashToGroup(x)`, it is
