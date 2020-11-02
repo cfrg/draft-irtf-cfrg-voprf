@@ -224,6 +224,14 @@ security properties.
 
 ## Change log
 
+[draft-05](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-05):
+
+- Move to ristretto255 and decaf448 ciphersuites.
+- Clean up ciphersuite definitions.
+- Pin domain separation tag construction to draft version.
+- Move key generation outside of context construction functions.
+- Editorial changes.
+
 [draft-04](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-04):
 
 - Introduce Client and Server contexts for controlling verifiability and
