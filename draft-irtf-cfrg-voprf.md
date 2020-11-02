@@ -199,9 +199,9 @@ K(). An oblivious PRF (OPRF) is a two-party protocol between a server
 and a client, where the server holds a PRF key k and the client holds
 some input x. The protocol allows both parties to cooperate in computing
 F(k, x) such that: the client learns F(k, x) without learning anything
-about k; and the server does not learn anything about x. A Verifiable
-OPRF (VOPRF) is an OPRF wherein the server can prove to the client that
-F(k, x) was computed using the key k.
+about k; and the server does not learn anything about x or F(k, x).
+A Verifiable OPRF (VOPRF) is an OPRF wherein the server can prove to the
+client that F(k, x) was computed using the key k.
 
 The usage of OPRFs has been demonstrated in constructing a number of
 applications: password-protected secret sharing schemes {{JKKX16}};
@@ -904,20 +904,17 @@ ciphersuite should be available to both the client and server, and agreement
 on the specific instantiation is assumed throughout. A ciphersuite contains
 instantiations of the following functionalities:
 
-- `GG`: A prime-order group exposing the API detailed in {{pog}}.
+- `GG`: A prime-order group exposing the API detailed in {{pog}}, with base
+  point defined in the corresponding reference for each group.
 - `Hash`: A cryptographic hash function that is indifferentiable from a
   Random Oracle.
 
 This section specifies supported VOPRF group and hash function
 instantiations. For each group, we specify the HashToGroup, HashToScalar,
-and Serialize functionalities. The Deserialize functionality is the inverse
-of the corresponding Serialize functionality.
-
-We only provide ciphersuites in the elliptic curve setting as these
-provide the most efficient way of instantiating the OPRF.
+and serialization functionalities.
 
 Applications should take caution in using ciphersuites targeting P-256
-and curve25519. See {{cryptanalysis}} for related discussion.
+and ristretto255. See {{cryptanalysis}} for related discussion.
 
 ## OPRF(ristretto255, SHA-256)
 
