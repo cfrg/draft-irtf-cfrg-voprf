@@ -1342,11 +1342,12 @@ corresponding parameters.
 
 # Contributors
 
+- Sofía Celi            (cherenkov@riseup.net)
 - Alex Davidson         (alex.davidson92@gmail.com)
-- Nick Sullivan         (nick@cloudflare.com)
-- Chris Wood            (caw@heapingbits.net)
-- Eli-Shaoul Khedouri   (eli@intuitionmachines.com)
 - Armando Faz Hernandez (armfazh@cloudflare.com)
+- Eli-Shaoul Khedouri   (eli@intuitionmachines.com)
+- Nick Sullivan         (nick@cloudflare.com)
+- Christopher A. Wood   (caw@heapingbits.net)
 
 # Acknowledgements
 
