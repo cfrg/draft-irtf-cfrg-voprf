@@ -4,7 +4,7 @@
 import binascii
 import random
 import hashlib
-from hash_to_field import I2OSP, hash_to_field, expand_message_xof, expand_message_xmd
+from hash_to_field import hash_to_field, expand_message_xof, expand_message_xmd
 
 class InvalidEncodingException(Exception): pass
 
@@ -13,7 +13,6 @@ def lobit(x): return int(x) & 1
 def negative(x): return lobit(x)
 def enc_le(x,n): return bytearray([int(x)>>(8*i) & 0xFF for i in range(n)])
 def dec_le(x): return sum(b<<(8*i) for i,b in enumerate(x))
-def randombytes(n): return bytearray([randint(0,255) for _ in range(n)])
 
 if sys.version_info[0] == 3:
     xrange = range
@@ -102,14 +101,6 @@ class QuotientEdwardsPoint(object):
             if self.a ==  1: return self.__class__(-self.y, self.x)
         else:
             return self.__class__(-self.x, -self.y)
-
-    def random_scalar(self):
-        return random.randint(1, self.order-1)
-
-    def key_gen(self):
-        skS = ZZ(self.random_scalar())
-        pkS = self.base() * skS
-        return skS, pkS
 
     # Utility functions
     @classmethod

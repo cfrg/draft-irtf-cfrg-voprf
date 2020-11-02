@@ -37,9 +37,6 @@ class Group(object):
     def generator(self):
         return None
 
-    def random_scalar(self):
-        return None
-
     def identity(self):
         return 0
 
