@@ -954,7 +954,7 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 
 - Group: P-256 (secp256r1) {{x9.62}}
   - HashToGroup(): P256_XMD:SHA-256_SSWU_RO\_
-    {{!I-D.irtf-cfrg-hash-to-curve}} with DST
+    {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
     "VOPRF05-" || `contextString`, where `contextString` is that which is
     computed in the Setup functions.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
