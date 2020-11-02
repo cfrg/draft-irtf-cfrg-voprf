@@ -1,220 +1,220 @@
 {
   "BaseP256-SHA256-SSWU-RO": {
     "info": "test information",
-    "skS": "0x1c767891e5465e4f1362d237521104338cde6717e26a25a5770da7ad85c704c6",
+    "skS": "0x40d0c9b6d03ec2b88a359bd81a60509bbbbb68e65c633c6711c1c75c215f7277",
     "suite": "P256-SHA256-SSWU-RO",
     "vectors": [
       {
         "Blind": {
-          "BlindedElement": "0x031355a0e0f1f455bb1151e7849ecd14d859263adadf580d4eec8d58da3d95b6a1",
-          "Token": "0xa83790351ccba927343e624eb17989aea751f3f6adf0328fddd53b7529c7bfc2"
+          "BlindedElement": "0x02be6ec49d1419d565f2fa6afaaa084b23bb2d9dc0e0ce31cd636afa039cb366a5",
+          "Token": "0xbfaba18e6da8cc89f57dcfa306363716edf0d84fa4ffd1ad521e1982d0c95e37"
         },
-        "ClientOutput": "0xfcf6f28877754e0030783756b6e7a3e35dca7a87ff643c4fdef24819d42872e5",
+        "ClientOutput": "0x2820283d161267f22ff6faafde865973ed6f60fc25c2a194bb8e03ff1a96a096",
         "Evaluation": {
-          "EvaluatedElement": "0x03d006d5bf325cf246808df7a28b5b53cd202fa6c7c98753a4e945ee3812d525b0"
+          "EvaluatedElement": "0x0237fdb9105aaebe0d0c502bcd37e6fd29b33489de892a1971cd87f41cdff50181"
         },
         "Input": {
           "ClientInput": "0x00"
         },
         "Unblind": {
-          "IssuedToken": "0x0273176b1e78e8146f9afd593fceb1f62af4a66537ac7c38991f278452393d3f7c"
+          "IssuedToken": "0x03bc44ee69f4e459c322c2423e48b40cada036541e3c9077916e42c7ebfd2a5fa7"
         }
       },
       {
         "Blind": {
-          "BlindedElement": "0x031d9aab413cf030f379dd400eaf7e6d7df02e12052a73b662b198990097f1c3ba",
-          "Token": "0x5f29bf062b0116a48941a76d08b3af2366cc6ee4237b306d3153fc6b2095d85e"
+          "BlindedElement": "0x03d0f7840f296ccc19f80ad7bcbf36d13723a6d8ced71fa9cfcb9d8d3dbc06ce80",
+          "Token": "0x631f0582cea43441a161b28e01e4e165958be2a15be54ac701d4f3be1d776858"
         },
-        "ClientOutput": "0x18c1d6751c185bf992fd7c4b99d5215f8b7470c552cc2ba0c0ade813096510ed",
+        "ClientOutput": "0xe620d2d3b1c749acc6f239e5af9e694e398fd062b481176f6294f8e6a730d797",
         "Evaluation": {
-          "EvaluatedElement": "0x03f975e4807e5d97418be817457bc042ceb7e8dfaff1b0ec550513510b9c31a968"
+          "EvaluatedElement": "0x02285dd51bcc15467c98c328ca8b67de64e938adb61e5d3c44e512d6745656e29b"
         },
         "Input": {
           "ClientInput": "0x01"
         },
         "Unblind": {
-          "IssuedToken": "0x033a708cf2d55a7ceea87b3257a4548e54f2af3334036afbc9228163f9dae0c38a"
+          "IssuedToken": "0x036fd3cc662c850390c0b076d3c08a7e014e38e233bb0932bd3d51bb3e00af3884"
         }
       },
       {
         "Blind": {
-          "BlindedElement": "0x03b0c466e0e8abef607640b0e2d20c54394e50f9b134f85efd595bfd7d1b1b5bf8",
-          "Token": "0xd2ef9e2054b9704fc88b0487bb2a63b4f8ba4e8436387474b9236415399c24ac"
+          "BlindedElement": "0x024425dc4de0cebdc447b9fa1ea3e0a8e9ec97f1a3565bf65d8b259f9f78f298a6",
+          "Token": "0x4481fea792e8d1df369f9213b7593a70d51f11c35a47716c1b629a77b16d934c"
         },
-        "ClientOutput": "0x6a3f98b0416a7775e243140e14d48990601bc84fc8a3c0eddd7afdb61fcbc5c4",
+        "ClientOutput": "0xdedc45e558637ba3d7bfe5f881d3807a0df24d8c7660fbc5e31f827e6a95f2fc",
         "Evaluation": {
-          "EvaluatedElement": "0x032323ce200802cbdc07b4c9fd62adeb72bdc67350b5f45eeece262812dbeea033"
+          "EvaluatedElement": "0x03937994ae9c80cb928fff8a2e6ccb6daa88c4614f709242e056894786f974ac7f"
         },
         "Input": {
           "ClientInput": "0x02"
         },
         "Unblind": {
-          "IssuedToken": "0x0243ca1d036fa024fbe494bc3985a236b4edf22ba872e4e604949f5c3f427fbdd5"
+          "IssuedToken": "0x02c5064fbd78ce2b9a5a9aa38eadc4e4e8be0844ec6d97628bfd03f5c0903c5e0d"
         }
       }
     ]
   },
   "BaseP384-SHA512-SSWU-RO": {
     "info": "test information",
-    "skS": "0x4e4b8316a1b0a0229b0775217c99815e2036aff826a4044cb752ade92250668c87a2b78b3c9d5035ba8122e3e2bb11e0",
+    "skS": "0x46736c42376170a98651af33ac718e4c44f8220586a8e4ee92157925c3aef5396174f54bbdafdd3bcfd4a06041237b0e",
     "suite": "P384-SHA512-SSWU-RO",
     "vectors": [
       {
         "Blind": {
-          "BlindedElement": "0x0246abeeef2aeedcd473ad5ec5088990bc1cff8286a08071d87cbd9725e0f3ca6ab55b32c2013cc29dd9253e5d67577fbb",
-          "Token": "0xba55be738921ac19f934c9916d2e3c527eaf00310a7fd2a0cb9f3a195cbdfe78b1e1b08905452c6decee5f79773e5180"
+          "BlindedElement": "0x02f82c97fdb8f74a7b432deae9c90835a2e1a3a52161a12ff2ac2bb6be23b9190a16c0d00c696369b599a3d8345a9fd6f5",
+          "Token": "0x7099ee55b43d6b3d9473f5183433b3eaed8bc3e0f19f3828ac0dda46ffefed869b3573a28845a1cdc8156dda1cb42c82"
         },
-        "ClientOutput": "0xb61f42a322bd87856bdb1793b0b2eef3c994f9c186fdb493227d0496240aa3cded885aa76c71f349988f4303a33f2ee9faed335472f9d360aeaf109d0588ac3b",
+        "ClientOutput": "0x43f9e16f3f60a21f9456ab93d4d333d93185d821304790381e270409cf077e3faecc922655a636a48e6f95e641fdfba2b8867f92beb1652ad36db3a0f4ee13d4",
         "Evaluation": {
-          "EvaluatedElement": "0x0212b5d9c04a478cd592e6f6c9af14d02f31e9b6fc42c05b7acd5e8cb463fa7df6a4f2b892ee923cacaf08002121d7d227"
+          "EvaluatedElement": "0x0210fdb40ad322eb2adbcc2798fdc97f45633125b97b4a8ab1602d55d20ce9cfdc8194ba2884d0795f76dac3b750c70ec4"
         },
         "Input": {
           "ClientInput": "0x00"
         },
         "Unblind": {
-          "IssuedToken": "0x03a903cd1b504b5c8f3121b8b5258df0e8009de8438f778b6e468453a2fb910913b14b5604e6e432ec61b191e5b3e158f9"
+          "IssuedToken": "0x02b5aec877ff77408a8eb2668cefd28b39c8fa0b08e4ddd0e5f396eab726ab6bad6f8ea776036089ee1040cae446a88f70"
         }
       },
       {
         "Blind": {
-          "BlindedElement": "0x032fe5cba61b2ff417666be0fcd486dfe2a65139af9f314bd6520e93d0917a7fe0df92d9c17224c7bdacd5c377dffb9ada",
-          "Token": "0x46736c42376170a98651af33ac718e4c44f8220586a8e4ee92157925c3aef5396174f54bbdafdd3bcfd4a06041237b0e"
+          "BlindedElement": "0x021572d376721b8f8e23e0be4cf3ac09534ac9b5a138184a1667e467d25123eec7f93c0f142f148c3c4b17a3a7af3f56a7",
+          "Token": "0x257f7ae8250bf7f992b0e07477e3d32487b2d637e712ef4ee28dc1da700bcb8aa24e01948190264065c6060ee1ed7968"
         },
-        "ClientOutput": "0xc8dc8e9d6e26ffa5b500cbe62d70de6b5ee86eb63083ff92f4822ef9f1c5ba6b9b0eeccb68d22f2dcadef582223cbb2d8ed04534ea6fc2b45614b4c370155587",
+        "ClientOutput": "0x1f907aeaf70f89ef5d4eda4cb268e4e1354fe79efb6faf0b75c0b4c71c8f93554f3c705846b3fc5fa3ce698596862b7524fe638cc5e82e5514777fc000dd2593",
         "Evaluation": {
-          "EvaluatedElement": "0x035023ae7b51ab4c5aac80a5a38b60d95d0359b170c67fa61663d57f10075adc7483121079448b2b460c811dd2f96ff381"
+          "EvaluatedElement": "0x02e304a5295a6f0f0ea28ee50490830df21d4eb7cc9bc4b33baafb6b2537d60b0021f1ea1a14005ff18eeb94261e6e7e02"
         },
         "Input": {
           "ClientInput": "0x01"
         },
         "Unblind": {
-          "IssuedToken": "0x0272d80176f67a43d293fad7b166ce535a0f1daa81d37931e039c7b26e0748a0729f4436610647a4324ce5851f3edc4679"
+          "IssuedToken": "0x032fe5cba61b2ff417666be0fcd486dfe2a65139af9f314bd6520e93d0917a7fe0df92d9c17224c7bdacd5c377dffb9ada"
         }
       },
       {
         "Blind": {
-          "BlindedElement": "0x025d1d10080a4691fe341568361b504f1dead4d55a9af35f0a40d9e894193a9091e1b769ef41db3bed1fc4a73b75d14a7d",
-          "Token": "0x7099ee55b43d6b3d9473f5183433b3eaed8bc3e0f19f3828ac0dda46ffefed869b3573a28845a1cdc8156dda1cb42c82"
+          "BlindedElement": "0x020aa21a78a711c5a15381fe81260fba5064f7676107e5d717a1a204466fa7baf607b846501c9e9c7f0b0b9e861be05ffe",
+          "Token": "0xf527714e9150ceeac5f8fcf0720308d07cdac06b8ed12948946f1eba55b2349a448bec98cc9ce2dc3992a8989882a0f3"
         },
-        "ClientOutput": "0x0fff774d2e72271211e72742b8d42074e4d6908500531b64f5f97847840ee8795e8333aabe85aed99a96342d8f3c5404ddf949848478e55bef0632e373a60f44",
+        "ClientOutput": "0x7744003eae88e755fc6ffe2fb39b3b5ce4b1f892f6e0ce28c9a729ea3f60436c3ebe528de3a9c7882fc1c98368aeda3091db1cc1d239549fee3148b02359b44c",
         "Evaluation": {
-          "EvaluatedElement": "0x037e9a897730dced88f7b979bad99e4e97b168a122301ef554838d844742532f039e85585fdbfd5ea7d37e66491cc739fd"
+          "EvaluatedElement": "0x02b602fb7bb95f50fd3aceb01c462257180bacefc6d7c03f7644e8d5379dc2c655730b218ef3bb9814532781ad924a0673"
         },
         "Input": {
           "ClientInput": "0x02"
         },
         "Unblind": {
-          "IssuedToken": "0x02b19decbcbe2934b44bf86359dea6e99d6a6f6aa9b250ab8e7ab15d4f27cc38fcee5a32ea4efe96b2c0585230f1dad6a7"
+          "IssuedToken": "0x02bcdb12998ca919df7086da1cbfee11277dff23069f5a4b4afdbcb7b451c46fdc4d953ceaf635b3d5b9de6bec74edf229"
         }
       }
     ]
   },
   "BaseP521-SHA512-SSWU-RO": {
     "info": "test information",
-    "skS": "0x1219a93718638d51e7645a0ec1e9afdfaa431e0627b7ac461f5dd0b1b6fe6683ec98923eb7cc6e3e825c12530a483e467d11e9ee8bc62924d892d5cc9da8e1ef20",
+    "skS": "0x12c3f3d86c3e0e019c1c5e47d3b1743cf3b333d8459e92f1fa45c1a19c8421ac68848d344651b83ecbc9dac5da9042f60bbda9f332fd6cdf828252920741dbd9c01",
     "suite": "P521-SHA512-SSWU-RO",
     "vectors": [
       {
         "Blind": {
-          "BlindedElement": "0x03012343fde6c3cc6d87b16e4867894154137ec381ecf24701ff10126403d68c347c466d95116f2492795717653ef72305060e4b0368c661c32a72930a769360ac8c6f",
-          "Token": "0xb8421ac68848d344651b83ecbc9dac5da9042f60bbda9f332fd6cdf828252920741dbd9c00b84e6937ff265223b6ff704742b2007c90d43e8410b904992288fcaa"
+          "BlindedElement": "0x0200c61a9adb3bf79ec1a7bfcaec9b19260d3812712ee574f46b6d51635ff62ad43286ca34bf2c34dae12f6cbedf93e335d6f179552da37b3bb466061850af665f97d1",
+          "Token": "0xd9fd06ae7317538a0fbdafe78930da224d276e7d03c38c59e8f4c6d683e352d59ad8f1d0e583bcf6b5fa1b088c15dc297ae2353f198dac2e3e2fefd7ef7a5f3a94"
         },
-        "ClientOutput": "0x8c79e4f59a39508022008f6a06b7794a93ac968bdd3ad7619051f6863adfbd75492c4b37d7505e8ecdd9de5bd76b513e174959fd0bb362af4f42f758231931c6",
+        "ClientOutput": "0x59e0ac48e33b366a803acb5cbf0b7973821e688485cb22a19bb2fa6b36112da5c1211a0099edad3979602a6a32ec5408a354ab92b176917cc50df045e1a6da69",
         "Evaluation": {
-          "EvaluatedElement": "0x030197d5906084d2746ede63024f18caa511cafa3e0a7fcd3a235451c9fc570f721ea11a10cf22ed51b20cbd56e8b075b22b25a640e1c84dc800ebb00a769961b9bfa0"
+          "EvaluatedElement": "0x020190b22d3749f20f6c5e4a31df94490a9f7ec091711dac87586308853703b6a50f5537cc79551fd18ead6fcae55a997f915c9b33764b548aed6d4f2ede1a5c3577da"
         },
         "Input": {
           "ClientInput": "0x00"
         },
         "Unblind": {
-          "IssuedToken": "0x020012c0f6402eb63f91fbf177c34136e60124f2a9944a8f2d280aa588e0e04c1eaf98356a97023aec4f073ebefd8d2b988b739cd7796fecf542474b8b9adeb3e31da5"
+          "IssuedToken": "0x0301d38b54a3675fad4373c3b437850a697128d6561ebbb592ce77492fdbce93d0ee2394684d92b8f0d9fbf05bc11e582be37d397b36148da7232662ad5a0c4d747465"
         }
       },
       {
         "Blind": {
-          "BlindedElement": "0x0200c0a8fbcf7e37258ba5ae0ce761f13470233e9002827ce6c1b4eee2c9b5415282bef8b71ecd26c6946cfdfab8f4c7f8509742a3acf0724d99e1700b6edf42c53b95",
-          "Token": "0x1e9e352d59ad8f1d0e583bcf6b5fa1b088c15dc297ae2353f198dac2e3e2fefd7ef7a5f3a93965602703f3d86c3e0e019c1c5e47d3b1743cf3b333d8459e92f1fa5"
+          "BlindedElement": "0x0300533adad802fceca780afc368ab62d6d0416201966c25b9bd0650dd45e874e23afe2ba499f36ab0a67da48326df21aeb64cf2f1d3c030fb98c94d59da0be37e4fd9",
+          "Token": "0x4db752ade92250668c87a2b78b3c9d5035ba8122e3e2bb11dfc2576c462f407ab5cf6e2ce5946f594b59518b657d3f019ddf427d1950cbf23edd454f187bbd1926"
         },
-        "ClientOutput": "0x6da3c82dc2d820e60d67d10a93b0581bcf866390a5f51063bb5d0229012805c1c612f63b202552bbc36ef6ddd285a9463a49f7315b091a16652c998a2c2e13b2",
+        "ClientOutput": "0xa018ff6138656464a09538795be6d6bd9c0983576d1efb9903c4f1cc33c2b87783455587014a5aa7e93f043854938a8f843afcb3773fd5a11d84caf177989f38",
         "Evaluation": {
-          "EvaluatedElement": "0x020029e28428fca9efc05e018aff40ff16e4a2782b0b6fee2e8c738dd0a00c22de8a0b32676754ed3e86cdef1c18e608b3924998759646d2c4c377b669071b830591b9"
+          "EvaluatedElement": "0x02012bdeca374adc6f759831a0a0ee53fc3709a744f03b7b17aecd42ce5cf3ef304050126dae54dff7d369ef891bec30a0b6c85d74a6935b19c3ac6d54aa6deca35ceb"
         },
         "Input": {
           "ClientInput": "0x01"
         },
         "Unblind": {
-          "IssuedToken": "0x02006310d43167ebd31689d0f77a43d267962768856ecfad643c5c6ea980a900e3cf9c99dff59e37f6a693989c53e05d93df0b55beb4fe8cd02b3468e8879df7ee7925"
+          "IssuedToken": "0x0300c161fe985748363dd660bd2747ddf479bcb73107d1358934183151f8aeb02acec8b8f6de0a91a6ca391a0063072b476f297a04c0bfdec80326f587a15663e9b690"
         }
       },
       {
         "Blind": {
-          "BlindedElement": "0x03019fefb877dfed4121ca9dab9e428d2fa4766c52fd9ba7aa20aa73ffc0b60320de24a1b8c4aa71c0a777697dba882ce2e50168f0bd2ba3ee79b72186a242475b92a4",
-          "Token": "0x1842f407ab5cf6e2ce5946f594b59518b657d3f019ddf427d1950cbf23edd454f187bbd19256cf2d550fd06ae7317538a0fbdafe78930da224d276e7d03c38c59e9"
+          "BlindedElement": "0x0300c66b29b3287f13762d340afe22281b9a65d1764dd289aa92127aead46c931e107dddb784c2bd24e7dbbf8a05d69c5fc5b68ca5c5d1fa3572b0fac0e5af3fcb8539",
+          "Token": "0x1748921ac19f934c9916d2e3c527eaf00310a7fd2a0cb9f3a195cbdfe78b1e1b08905452c6decee5f79773e517f4e4b8316a1b0a0229b0775217c99815e2036aff9"
         },
-        "ClientOutput": "0x2d9e6f2ac422f157e1431b3abfe5547e6b62d0f846ffb3cb5a9cf425f8086c11d191b7743721345f9212f0c3273a4b966f089b62c604ce8b2f48bb98bf9fbb63",
+        "ClientOutput": "0x18b4d160d78a198d0d67922d0c64c2450f84fcbf37367d68e23c6bf66311530b4b8e1d4828260c0646a439ae1d357ff220cb4696fa6e97c6264e4704e55de45b",
         "Evaluation": {
-          "EvaluatedElement": "0x02006c3bae674d63f3819ad3b17501b549d19dea80c8dc79ffde1e8698403780ee1be0e8724f768a9eb645f37084f5a90c1d2008e5330e05ec620d78d2aad3b9248888"
+          "EvaluatedElement": "0x0200061b4d549b08300f0c5f70b59de99ba42f61fd32c72c877bed798eb8c086a30e867fb9d1b2e3989bb614ced06dc57ebd56b0590919e6507dff8cc9561c5255f5a9"
         },
         "Input": {
           "ClientInput": "0x02"
         },
         "Unblind": {
-          "IssuedToken": "0x02006390d100e0b48360928e28746bc4a215a292756b07a14ca6ea7d80c21b69aad2199e2211d03ad560e746781322029f9ad3b419820ce1e673780a9dc580ac091554"
+          "IssuedToken": "0x0200f9ab60a201047f0d179982e11d2ac56eca3b73f3ae1e82f4e21f950da20097ebc1bef143c4552c90885f324a86a8e49696aaa89c604d1292e5bc3ac162d8124b74"
         }
       }
     ]
   },
   "Basedecaf448-SHA512-R255MAP-RO": {
     "info": "test information",
-    "skS": "0xe64aa269882a0f2257f7ae8250bf7f992b0e07477e3d32487b2d637e712ef4ee28dc1da700bcb8aa24e01948190264065c6060ee1ed7968",
+    "skS": "0xd0f9893b17989aea751f3f6adf0328fddd53b7529c7bfc11c767891e5465e4f1362d237521104338cde6717e26a25a5770da7ad85c704c6",
     "suite": "decaf448-SHA512-R255MAP-RO",
     "vectors": [
       {
         "Blind": {
-          "BlindedElement": "0x24b9f7e03170a52f017273a708e637cc7de5034a0b6f39f0e2b94642dc53a4520eb84924f72bb2f1635c98974ce2ea82daad33b19c3cd3fa",
-          "Token": "0x2eeeda395c633c6711c1c75c215f7276f527714e9150ceeac5f8fcf0720308d07cdac06b8ed12948946f1eba55b2349a448bec98cc9ce2dd"
+          "BlindedElement": "0x581b0ff662f7ed7c99670e45b61e9319e9df4b8405efd48c5c218f00275802f39aac7b1d96ca995fcd3b1ce1c0c05352217d579197e71fcb",
+          "Token": "0x3e2e93a136387474b9236415399c24ab5f29bf062b0116a48941a76d08b3af2366cc6ee4237b306d3153fc6b2095d85da83790351ccba928"
         },
-        "ClientOutput": "0xaf05a70510c804cf8ac43bf91aba717061bb79c35a8813a13158390d8a6a5fc4faf97efb899c10d9107fde7c33c94ab969c74d757a3810bf2f69ce4c344e773e",
+        "ClientOutput": "0xbafbfacab7d00d6cf8a6950978a2b34af8b628057ef2beea3259ed84f3992ddff5e9d3fc0e8c4e6ffdbdd5648766ad9728f0e89a435c56a52c75af4a66cbc4dd",
         "Evaluation": {
-          "EvaluatedElement": "0x12f43a706b408fcd6b8e5158fcf8b4fb434c35442fb014c81a72a27fdca3c22c725ce6731129c19f0357d62a9562ba52360a552ac78cadab"
+          "EvaluatedElement": "0x56e3773693cee018f277a93f9de692a050524d32270b9fa17877c8e55295814fe35e1c3d0741503158415e729f8fe336fd8c397afe4f2c68"
         },
         "Input": {
           "ClientInput": "0x00"
         },
         "Unblind": {
-          "IssuedToken": "0x005d38c3ee6044a4df3882eb6418010bc892029e5d78bc350faea6acdc2cfc99e224d84cc662f84e167bfacc25e308d316e3288fb71193df"
+          "IssuedToken": "0x5668d4a2aafc968677bb936a084b8434a31385a585d688735618b0cb6e3dfc4a349e4f8f7425f25f3e0d2964a2bc843594cee712b6426257"
         }
       },
       {
         "Blind": {
-          "BlindedElement": "0x76ed35b8a3372a54c63b04434531ee68e6ddaae7eb3d6cdbc2851aec44db85ab49066133d716de75e93ec8607aefb762ef208679aee20fc5",
-          "Token": "0x753cef1d776857bfaba18e6da8cc89f57dcfa306363716edf0d84fa4ffd1ad521e1982d0c95e3640d0c9b6d03ec2b88a359bd81a60509c"
+          "BlindedElement": "0xb6d51957b6aded4c8b241fe55a36eedd1adeb40c1d2d9c8c34d7ffbac488263a361b422c94506c9d1d5bcdc51dfba0f3f4691a053fff77ee",
+          "Token": "0x17742c6dfe6683ec98923eb7cc6e3e825c12530a483e467d11e9ee8bc62924d892d5cc9da8e1ef1fd2ef9e2054b9704fc88b0487bb2a63b5"
         },
-        "ClientOutput": "0x92ec421143cd2d226fe2cb7c325dccc1b64aa648b6decd9a5f32f19046fc7149859649c96599aea4e3e5c1739d4a24813d1a8cdf70a7271631dd1135132af4f7",
+        "ClientOutput": "0x217ae68e30945669cedfbe3abeb84691315cb5ca885fb20f404c3b4226cd8076f133e7ff0122acb11cf46653e8ce1a9dc407dfec3ca78141969b74506adddfad",
         "Evaluation": {
-          "EvaluatedElement": "0x68d5c3f82ffaa3c9e3dff2f416366bdce57da38ed349ee07988b1bf80fc92ba62d4dcbdd6aee12e853f090f59bc749523df90629f9965bd4"
+          "EvaluatedElement": "0xb0da6b6ac9de6b02c291b62e841190f75707b799477689751059979280c31cfff190c521c9902d18d5c962def1372e97cf252df157f611a8"
         },
         "Input": {
           "ClientInput": "0x01"
         },
         "Unblind": {
-          "IssuedToken": "0xfe4c04e9a71c4df0550206c0d6028eb9debdb7225ce45598e21667f5509fe5773525517a051f31f4a3faefb6ef0010dbf5ea2d3f97316ef2"
+          "IssuedToken": "0x3e5e19ddcdfcc5f8ed4a249b377605dede9c3d667cef20368e6b842162a6d8866a4dd6b5692ed52eebe046a4194878452fb33ac8c33ceda9"
         }
       },
       {
         "Blind": {
-          "BlindedElement": "0x5e5fb2f6edf3af313aa1fb7d08a7530e3bbc0178316e0d7115b76b9130682223a6d7387bcaff9edff4a4c1189c998f55875589d5e990fbab",
-          "Token": "0x11207fa992e8d1df369f9213b7593a70d51f11c35a47716c1b629a77b16d934b631f0582cea43441a161b28e01e4e165958be2a15be54ac8"
+          "BlindedElement": "0x7ca67e23887f17adce6926eb46c82f1dc126d0b94ea80474f85439a893f450dae943ddb98d33f001bf187a9a95de7322a17d40b8424e46bc",
+          "Token": "0x2e139a4dff265223b6ff704742b2007c90d43e8410b904992288fca909482e8f19a93718638d51e7645a0ec1e9afdfaa431e0627b7ac4620"
         },
-        "ClientOutput": "0xfa7834820cc5543439abdf48fda45826f5bf466d73893003ea08e9def0898f95dfde4c32d0db5fe12c9ba2fa6ea1418ba4ae3d2b4a46af5ae593c30127928c7b",
+        "ClientOutput": "0x750b6d108f4a980369aa7dafe1709bdc3385b602f160fdf95dcc6250a64e0c15752b7735339a17e90a669fa20c258b587f97072be64813cff8fe9d3311e00c04",
         "Evaluation": {
-          "EvaluatedElement": "0xc27d7461525bc3ceda360b1e5b9d60535d5a3b8237dde5cb0ad96cc62132b356213d54a16c76b90297df4aba4e931e7a6c3e7ab72cb2e411"
+          "EvaluatedElement": "0x48880f08eb09e54b080e04e7dd654c61e875f2bd8ff4b046e1f47dec95683fe42cf3311766cb04a06ff870da8e61f5f0b9efaf6c49ab4ed6"
         },
         "Input": {
           "ClientInput": "0x02"
         },
         "Unblind": {
-          "IssuedToken": "0x30be84128215ced59a22d0fa0250d2790d77164b109be89795064f520b2c2a8c2b9e0bb132808ab213586d3810594876197b895ebc4225ae"
+          "IssuedToken": "0x249476f11e6cb392d2aedd3033492ff17da48a80df45a6f00425b49ee1042fd434a85eefe67833349b3672999178a28d8f6cc58b3581d872"
         }
       }
     ]
@@ -226,318 +226,318 @@
     "vectors": [
       {
         "Blind": {
-          "BlindedElement": "0x222f89cd8d5698639b250161e50d0b15e80983c58fea1d2e04667fb14b5a905d",
+          "BlindedElement": "0x2838bb8ee67577a64cb73a0589beb3782e798cc23988415dbf143e10396f877d",
           "Token": "0xc178c5c6ff37c6581f2fc4caa02d0c319008799af0a9a144063ec25a2359d5a"
         },
-        "ClientOutput": "0x075330832d67e6d937915c3a2d686e6cda91bd26d1b09853c8f2e46554ba906e",
+        "ClientOutput": "0xe4bf05e79523e94fab5e43910060063d05781c3c94b79a4776714b76cec3f844",
         "Evaluation": {
-          "EvaluatedElement": "0x2cc2eb9f1fa114ed5a95bf6f3f3a52925b99597d3b0d3651047b539503b2d45e"
+          "EvaluatedElement": "0x96c31b0f861066f37b1033aa034c87fdee6719236e72bd576412c54b881c255f"
         },
         "Input": {
           "ClientInput": "0x00"
         },
         "Unblind": {
-          "IssuedToken": "0x2e00effd2ddb60c6a00d7e2a991e2ad59fb8b0e11c10f7f4fce9753aae475468"
+          "IssuedToken": "0x0cbb31fe5545a42043f0bbc738e410cce24bd8b57d81157ad44e17bb8a04b646"
         }
       },
       {
         "Blind": {
-          "BlindedElement": "0xd4b2ff5bb36919993bd698ae7067793a0b2cce64523143e850abe19426de1809",
+          "BlindedElement": "0x44b6d8b888ea34accfd5d38539aeebe472145f312b28ff3cc2e98ecf7374d674",
           "Token": "0x8272907ea7a9eea77c69cf278b54b606155a520b6b285f63244a7720e3e13da"
         },
-        "ClientOutput": "0xb3cd60214893c8b54e9f42d6ef15d7210cbae8770f94893468bd3971ead7b7e4",
+        "ClientOutput": "0x5e38abb65425d446c0897099ca620c340972b2ae40a6ea8a077bbd9796d537ae",
         "Evaluation": {
-          "EvaluatedElement": "0x022eebe56dc0bcd9ba7434da23530801db73f172aad4598d59373403610c8b33"
+          "EvaluatedElement": "0xb8cd8148f89025121995d83b04ac719ce7c905d7e5b86e2071c35c780fc8ec0c"
         },
         "Input": {
           "ClientInput": "0x01"
         },
         "Unblind": {
-          "IssuedToken": "0x36ab8f2cd6a5eaae0c31e9b9ecb0272364fb2352b1508cb12f95f9cceee0eb35"
+          "IssuedToken": "0x280603875fb6c3a2246f770a4c7a2ca074dc95e9d4b1da5426757b888b155148"
         }
       },
       {
         "Blind": {
-          "BlindedElement": "0xcc60bdf585d98ad2570fadf7e28ea95e398adaa79d7fd8de00bbba284baa8275",
+          "BlindedElement": "0xa842d68bbb325a38326c79b06cdd00a9b03d638fbab117a55cbd7e3c240e1215",
           "Token": "0xa012b641b227acb849f55b8cb003ed7b77da8bc6050114b35e95e4a658ed5e2"
         },
-        "ClientOutput": "0x14db4bc0488cc55212ce1242570772115c8258e959f80576360e138df895cfa6",
+        "ClientOutput": "0x9d6aeea865e07c3dbfe8e496091494093c4e554c1714e7168b37b2b1fcb8194b",
         "Evaluation": {
-          "EvaluatedElement": "0xbe44b9c570be665081cf73fedc1416e7534fe751190b82008363015b06613375"
+          "EvaluatedElement": "0x7037e34d9a27e605238b055ce86aa6593dafc7732278b920e3c8fa6ec23a1917"
         },
         "Input": {
           "ClientInput": "0x02"
         },
         "Unblind": {
-          "IssuedToken": "0x0800d72b59af635b08392370b0ddc81c5ab9ed86b68e4cf9bbe09097a14a3b70"
+          "IssuedToken": "0x84bb8f1282c14343f05fb26fc3217627b1567fb59bfe0fc075ac104b4455340a"
         }
       }
     ]
   },
   "VerifiableP256-SHA256-SSWU-RO": {
     "info": "test information",
-    "skS": "0x5fd6bca1cc98ead4b590ef189459b62ba67d1b0154e9ab86130ef1033f55aba1",
+    "skS": "0x998a539380ed73cafefa2709f67bd38be70f0ffdc309b401029d3c6016057a8f",
     "suite": "P256-SHA256-SSWU-RO",
     "vectors": [
       {
         "Blind": {
-          "BlindedElement": "0x03fe631851a9c3fdef341800ce60673ec18717ff0b1c0909c059af904809be2f30",
-          "Token": "0x47316a6bafffeb8f11c9f4202b649ae6e64f799b9033ef7c1c6acf4b89f114a6"
+          "BlindedElement": "0x039e2dd804fcab02a60b33a21dd2a1b722fdcde627913f8323ad3962a23bc5f864",
+          "Token": "0x39dd2c7a98309b06dfe89ac0cdd6b74684580de0f95f8e06aa6f6663d48b1a4c"
         },
-        "ClientOutput": "0x0b9c8c44b3e5e4b3fe46958c0408d644ca642a83de2bf5465ffb998791e79054",
+        "ClientOutput": "0xaed9bff4cab3b59b2ace61668f69b52d47bd6fdeeca803a66cdc8ff98881e470",
         "Evaluation": {
-          "EvaluatedElement": "0x03df9f31adee17d62847290eb2d715bf32b339cb36bc5ab126b5fb2d3bd413a335",
+          "EvaluatedElement": "0x03163004d10a600548453e30a2ce380893c3a691ebe6c2f25d5c7b2dadf66eff8c",
           "proof": {
-            "c": "0x794c438dfff948bc6d4905ca9f76dc7a5038c8e1dca389ea707cbd793ca33d4a",
-            "s": "0xf51e43fef7b3dfade06969d6716a62bae1cc5b06cfc03e977e340eeb0b23b269"
+            "c": "0xa37848094f491dd8f4415ddc04cc18ac14dad6b947333bf144504357eddea317",
+            "s": "0x2562e639f566f5d59c2a8a3db359b19c76274a88c926007046e9e2e94c8827f0"
           }
         },
         "Input": {
           "ClientInput": "0x00"
         },
         "Unblind": {
-          "IssuedToken": "0x02a988eae89889e14b108b79bf7bfd66e0b37d6618d9426d2fe436cea2a392ccf0"
+          "IssuedToken": "0x0363d2ccba7dab4050f97bdce1bc8ebef249da2413ee324e64b206b5f97637c6cc"
         }
       },
       {
         "Blind": {
-          "BlindedElement": "0x037248e03cc5662e8568132556060feae18323b44eebbafd2de2dbecfa9a96650c",
-          "Token": "0x26da289237c586eb5b730752ab3a8b65e5ec765ddfe0842b1e767d094676796d"
+          "BlindedElement": "0x03ca0b95e00503a17a510f1a128c4681354df7aa8e7fbe31a6c4e0bc16cc629cac",
+          "Token": "0x855cfa2434ed98db9e68a597db2c14728fade716a6a82d600444b26de335ba39"
         },
-        "ClientOutput": "0xa635694edbb5922447deeebff7df754d942c6dec0fe495e38425f861b5da2b5a",
+        "ClientOutput": "0x2122eb244e17884840b786585cef3831a86d92eeea38126f53eeac4effa0b62c",
         "Evaluation": {
-          "EvaluatedElement": "0x02b9134ea21abb8bfe295180a6ecc9ff6094c59a8449d1f70bac24874fa1fa181e",
+          "EvaluatedElement": "0x02f0bd2b5f52aa46536d45555c9f5f4fee5b10ff303d85eef23294e25ca6f98066",
           "proof": {
-            "c": "0x6556bdf3d361d9c7770671921d56eeaa4c2da37ba64eb7e63100649d4fd7686d",
-            "s": "0x759de846c55a23b5dd4acda680d256a658354a0d8f4fffd8b149043f655bbc2c"
+            "c": "0xf992c95c4d2d9af2aa576c5b18ce824a0fc30861b78c2116fca04c6beef22013",
+            "s": "0x3d8b70675bc3ee2297b9d8eddb198a8259d2bb9043f1dd377f8d81041d41dc1a"
           }
         },
         "Input": {
           "ClientInput": "0x01"
         },
         "Unblind": {
-          "IssuedToken": "0x02474aa73141d8af73caba70b45287391106c7670ddc08f52344a0c694e2fb68b4"
+          "IssuedToken": "0x02296bfd40c747ea5fb0a9973b263d99ccdceb9f5b912cf6c34b76c09b96702a3a"
         }
       },
       {
         "Blind": {
-          "BlindedElement": "0x027c94816e9ae7c3410fc4a34d66378aa824d11f7dcb4d796a08c6f7f9c79f9dab",
-          "Token": "0xaf2ae2e935c78d857c9407bcd45128d57d338f1671b5fcbd5d9e7f6efd3093c4"
+          "BlindedElement": "0x03b3c38bbad8bae8f5d0d65ec6f34bfdbe3239dc214be4aadafd3cfea17fe461c2",
+          "Token": "0x85de242042b84d9ebe3b2e9de07678ff96713dfe16f40f2c662a56ed2db95e2"
         },
-        "ClientOutput": "0x5b44b94005634ae7c77ea83bdfaaad2bdcfe595756a8ce0168c3c750270f4930",
+        "ClientOutput": "0x5877b708bdf8f26d25036f62f932c067e1f9cdf629894a9099aebf96e6deff2d",
         "Evaluation": {
-          "EvaluatedElement": "0x03f6418a8dc76337d297e02953aef40c4d9fec5e0ff34a39af5f611cc54793b63a",
+          "EvaluatedElement": "0x0296c19518a354daf716183cc7fe7885a6da020f11ee01398b6086a0cc1a7de61a",
           "proof": {
-            "c": "0x569db6e17f835a540acbe6b6d652b81267743b2f52213fdd67467d976a136673",
-            "s": "0xebd33bce2dbf3b8d166ac98e1b34a485e02479ee49c3cbbba875809885f4afe"
+            "c": "0x8988d80e21c4e34388f684581c5a69ec7c6eea3590b06a8756f77c076b1960c2",
+            "s": "0xbdb9189c6696e750b9f893913093be8ed7a0c6da29e4280b5dea319f677ecbcb"
           }
         },
         "Input": {
           "ClientInput": "0x02"
         },
         "Unblind": {
-          "IssuedToken": "0x02900e054206ecc0aebed794989bd791ccd3d6e5798b46ba32dc06821267d9f583"
+          "IssuedToken": "0x0212ecc034d22d1e27bd76c6d2196a6856a229d039a138297277d3191d7a373b51"
         }
       }
     ]
   },
   "VerifiableP384-SHA512-SSWU-RO": {
     "info": "test information",
-    "skS": "0x41fabd4722d92472d858051ce9ad1a533176a862c697b2c392aff2aeb77eb20c2ae6ba52fe31e13e03bf1d9f39878b23",
+    "skS": "0xc4b2e848823ac9ae16b3a3b5816be03432370deb7c3c17d9fc7cb4e0ce646e04e42d638e0fa7a434ed340772a8b5d626",
     "suite": "P384-SHA512-SSWU-RO",
     "vectors": [
       {
         "Blind": {
-          "BlindedElement": "0x0248af352a1cdb48d6098de308cb2c693323d868c3c1b7514a2f5a07a91f76f968054b14b0b6627af62ec298dc7ba6ffc2",
-          "Token": "0x51171628f1d28bb7402ca4aea6465e267b7f977a1fb71593281099ef2625644aee0b6c5f5e6e01a2b052b3bd4caf539b"
+          "BlindedElement": "0x020b5826a92328f4438db81bc9c91731a3ea27552b8ef079d9fd2a9d16966d10338ea5426ffa0951009808d250b98c6cab",
+          "Token": "0x644c8539857abe3a2022e9c9fd6a1695bbabe8add48bcd149ff3b840dc8a5d2483705fcc9a39607288b935b0797ac6b4"
         },
-        "ClientOutput": "0x4d80e771fa0b5bd8932c747868102f468b4701cb06fa250d20df5e26ebe6a8a6d7a7e8df0ac25919b0e251ede70b3c26e660067f118904bfea07be29262fa28e",
+        "ClientOutput": "0x9c9b639cb15292c7bed267b7874b087ab7c3c515cefe94d96d8c9c6803e71e5273fd2aa52200132d0d58182b1aed48cf98406568e1c93dce2fa26d59231f7a5a",
         "Evaluation": {
-          "EvaluatedElement": "0x03e68d80f8e6d068361460eb616856eb411cc6604be7a3a059e2044741fab74c3c8f0c82e9e0a9d3627ac86626b741afbc",
+          "EvaluatedElement": "0x03e18cf47dc404b92e13caf42de67a69bfc8f10458b76bd5028f0bd291ad1a9648aefcd0d78b1bfaa9fdec896c5cbfe6a1",
           "proof": {
-            "c": "0x32defa03023497cfd655a587aa82c928ac14a06cdd7c8be58104289c4cccd1d02fb91b6ee6d26bb203762bbcc257e783",
-            "s": "0x43e32122e832106d44e9be97e71d9a41747e4d1b3c5329b543a7da7a9e0b3a5fceba833cac8451117f4a914a3d2a77fd"
+            "c": "0x8d078e21edc88451eca9ffc2b450a5b9ff5dcdad5b1207bb6627c3e0a62f9bd67da9f2f68952716ea3574f82e0c29f6a",
+            "s": "0x5cc050d11dcaa95dc2e300f113367cc3390a61387fa207489f87415d3f6ce1595e218be077c5ae8530c7cbedb1f1c451"
           }
         },
         "Input": {
           "ClientInput": "0x00"
         },
         "Unblind": {
-          "IssuedToken": "0x03beb4d59f85988f078990bdaea654cde6e3c1fee14b9a3199b52960a02884bbb1427893b9edf9c4cef8f5b9c03070715a"
+          "IssuedToken": "0x031dc7a89654461e9d76a4c354b0540a514c38d8a7f1efa78a5044d6332957024c640246eb6f9e57cbb942de71b6cfe35e"
         }
       },
       {
         "Blind": {
-          "BlindedElement": "0x03fd1c90fd824410a24931062c32ca6ecd6668b841f7b004e7b6894a11a28a62c3f4511a9353e2768f1999e29ff4a941e3",
-          "Token": "0x3d35895f4cff282d86b2358d89a82ee6523eff8db014d9b8b53ad7b0e149b0938b45f65717a40c38f671d326e196e8a3"
+          "BlindedElement": "0x02b8d0e9cdeb1a0378d0227b3f2af4dc87537eca8a83b53a6e7ee54bddd26a3a61f5a53838d1656b1444446db76644d624",
+          "Token": "0x3f1d8f2f6b92a02a32d5eb06f81de7960470f06169bee12cf47965b72a59946ca387966f5d8331eab82117c88bbd91b9"
         },
-        "ClientOutput": "0xf22c9d8874ebfeefe6d6d3fb976ba604679c547b4e2045bf3dba3215bc855b35a7324eb24fb43b55ec6179eb50c6a967138763bf4baae67fc7bb467cf2ff3c07",
+        "ClientOutput": "0x73f2c3e79816854312d47f878e44fc0b3a8ae5c984083942fcf75190d73a037b6cdbcfe095c6ed48f5a37d69a1c97b6d612f9b21ee97472129434b7991411536",
         "Evaluation": {
-          "EvaluatedElement": "0x024618f5d6d8a743b0cb6d974a7d6a113faf90d1cc66837a6a08fd20f5405b4616103564494aecbc73eadda9838c24ca81",
+          "EvaluatedElement": "0x03db0a6eaec96b7c1084149761d73e2e657d9ccf75daf3ed885c2a49636afb204eb5402319f5b163adaa56ef83ac89f5ae",
           "proof": {
-            "c": "0xa5a71c85b721605de9b5ea4b5c4641400d216f711bd4ed5ca352dda498921ae95fb4169ce8bedb38a73dadca5d750dca",
-            "s": "0x7d3f65c5d84e8180e0b911a40dce21860bf979872797250c2f1ab889913a82967f1b8b506041b6d2db3fe16ead080dd2"
+            "c": "0xc5aace2672f6d44d6af2e6caf7f043360d5c0fa3eca1174a2539f7949a254fb6dc0f9c353e53804237195512c60dae",
+            "s": "0x7719192b62e5408f7ddd5fbfa75c07524a6afab2f346aa181c49c82bc1c5abd6ebc966e4ef36b1bf222acbc0cba65b0d"
           }
         },
         "Input": {
           "ClientInput": "0x01"
         },
         "Unblind": {
-          "IssuedToken": "0x03e628e0619f0f047d15570b52c8a8380ff007364716245b3a53c60cd109e81b662300d426b44a4439ea0ce4edfc241a5f"
+          "IssuedToken": "0x02a90f2be5ae225eba71b1921d7a177515b360748b5420a5662425c06be49ba9ad69a77d1228dc68dcfef361eeb4b5b940"
         }
       },
       {
         "Blind": {
-          "BlindedElement": "0x03f553bbd5c6d575374893fd48e09b34682700e111ca7a23f6eafb6a83ecc6142190e47dcf6d5e642db9a7fc6d4858c6de",
-          "Token": "0x9b379952e96bd6f4d0262d7e3b1096b0316bc8567c89bd70267d35c8ddcb2be2cdc867089a2eb5cf471b1e6eb4b043ba"
+          "BlindedElement": "0x0288f6e2827175719d5de8f2209d9026318370d5e174a620dd1f4b07a6f24dde8a47212861c863d422260be3337b600db5",
+          "Token": "0x9a38546f74b6d688f70cf205f782fa11a0d61b2f5a8a2a1143368327f3077c68a1545e9aafbba6a90dc0d4094ba42833"
         },
-        "ClientOutput": "0x65c23a87d996c7084e03cdbe4c740f224353cb87975bbee87990f4405e64caae7f3eb955b1d97caf248b8b316128834846ec8876b14d2cf6ea39129995a284ea",
+        "ClientOutput": "0x01da658c2c8c6d67474e0d8e29a43374106f93cbf4160a9edabd4cf882308a2ed737859aa44a69cacf3755630868900ca796843f26d6fc447d9df3d17b7788a0",
         "Evaluation": {
-          "EvaluatedElement": "0x022063b49f77afe713fb20ffbb29b1953a83ea6a6da5f6575ec27573f7aeef650bdba77564142913fdbf81ea70b2a3493d",
+          "EvaluatedElement": "0x022d29e1e75e8747f5f1b2c9cf7f8612ac908099a888623798edb8770e6541baf368895ddcb64d9ae9255e48e0ce8e5633",
           "proof": {
-            "c": "0xbb472cea1abb6124df007608142ec8d5409f3271f184af5ef9628c9be4dbbf762e69f384645eb77782d78c6e1af5e5ef",
-            "s": "0x84026dd783b07005ae49850e58ff7d17d8a83839059f75e5b6828c00fe03ca14e29163ec94a10df37b11b5edae64b309"
+            "c": "0x9b91b6029e1c849c45badbc2123157b44a613e0afb24d16cd7b213db159814df0dad94bf41edcfd25a64b63ff43630d2",
+            "s": "0x906a43e3e838fda1f2e94739bbd8d00a4660a6778ae22c2a5ae42c6940eb0a4e1b72bfb798e6c7bfdab8ead300824184"
           }
         },
         "Input": {
           "ClientInput": "0x02"
         },
         "Unblind": {
-          "IssuedToken": "0x031409c389f7781cf7d1e430a00535aaed79f9f2404d68316ee74debb0137ea5a3f97270727b70c8b0c633059ae392a01b"
+          "IssuedToken": "0x028c3e0c980899e8fa27439d9953b8ab5a82c28603729f757dfa97eb55b4486b7d6fb343d373a19f6bce37c43121d96cf1"
         }
       }
     ]
   },
   "VerifiableP521-SHA512-SSWU-RO": {
     "info": "test information",
-    "skS": "0xc7242b4cd534a79bacfc2e715b2db1e7a3ad4ff8af1b24daa1922d13757ac9df4adc7e4e0b6b39943267b5bcebad6393e2d0b7db3d2b4597a670a5204b2b606f5b",
+    "skS": "0x1b9717bda68fc080b9802ae4effd5dc972d9f9fb3bbbf106add174393effaf0a175fa8e85f89856861ff3cfa0420080cbff2e3431bcc25f80b409c533dd21924d78",
     "suite": "P521-SHA512-SSWU-RO",
     "vectors": [
       {
         "Blind": {
-          "BlindedElement": "0x0300de703201271c671489063c95e331ae1fba34d433f1dc238650614aa1511c2250965bc3f3c2ace75e2c6b865dda906cc4c1dbbbe731f7f71b0e91f058826f5651c4",
-          "Token": "0xdf6c0bd369f8e926ffe4854a58f6b3e908bdb38e3c626a939e19daca653b9217801b5d51cef66d9fdbd94a53533e7c5057e09e220065ea8c257c0dd6055c4b4011"
+          "BlindedElement": "0x0201771abcceef2cdd3c9a3be999699d2e4efdb494f8bca6320250d97b93b02efd130e12ac508b12f061a9d9e6ada432638a27bbef58dccaa6e2ba36302735e34f278c",
+          "Token": "0x16b3b86ae88d9ce0530b01cb1c23382c7ec9bdd6e75898e4877d8e2bc16359073c015b92d15450f7fb395bf52c6ea98384c491fe4e4d423b59de7b0df382902c13c"
         },
-        "ClientOutput": "0xe43d6b7cb1aab1254d82334cdd74a39d0854014b558cb03d5b46042bee736c6142d24a93db2cdee7238e61547f6f742d5a767b923466a47860e105fe6c5b2fc3",
+        "ClientOutput": "0xad2bc2435a74d1e8f642b3d5e86fbed6fbeddc4be96fac8b9be4be7d279263a747af5bf476970697be663785395885270056cc12a965329940a5fd67f92cafe1",
         "Evaluation": {
-          "EvaluatedElement": "0x020078af29073b909a1503c3e740fcf58bdcbae5924af27951546afd5f7f1920bb51ae23d45bae42c9771b8ed8bf5fc0c29f1bd9bd1e0136d80b6c6ddcac8b4b5c426c",
+          "EvaluatedElement": "0x0301cce3e8cde13b829bfb4111114eea3df7fc70154fc5a2ca36c58f10f26e29c8821a6c5e86856c2386aed678b97660c42431009f5b403ded69681818feb20632bbc7",
           "proof": {
-            "c": "0x1082c766cea0ac52263d6348abf1192b9fa08d7009f819aae460db1af783d189dc10ae988a904bbd1650c4c46150c72238331b2bd3e819fca1bf9e793d58828903f",
-            "s": "0xd8916c4d9fff3c390834c5f9fff19b35cf2083940f0fde980ccc01a21fbf6b755267e35459aea9603eded1587e6764c801b4e27caa2649c36b58daaa50fa316e8f"
+            "c": "0x1f57dc7e6e166d929bb75395a4ead4f06c1249af9207cfddc5b0b3215f4cc138318d53c5f4efa4b55ab160ac06b9379af4ae0d35196949b863f156db562e28a270f",
+            "s": "0x61d37c95b9909ceb42eafe21a9233161a9d6344811f1e3623dd3b24a2d4d0790de87c2eea0227783f8de075c58c675ca7614304838218c96e7a84810952b116d14"
           }
         },
         "Input": {
           "ClientInput": "0x00"
         },
         "Unblind": {
-          "IssuedToken": "0x02003d051d7cad32bf94abd28dae3cca304774e768e6569913841d6d21d0e362097ec6c911fb68922149cbcc980a8bd54d37bb5949a667b4d85a6940526db5238d94c8"
+          "IssuedToken": "0x0200fc45d3295f72b481845a3deb48938c32fbacfec974d45faf68a067976cc3eca8c140b0e00560750596f4824c1b6c157316402833c3d4c53d966f995563104c548f"
         }
       },
       {
         "Blind": {
-          "BlindedElement": "0x0301b0996d67d3ebca65b1b4f0d7a3869b59f4de66b1d913d6e8abacb9759324a6930312f3517b8beac928ccb5628835e9fa731f5e34a875ab454b275e6d87b982697e",
-          "Token": "0x2b450f7fb395bf52c6ea98384c491fe4e4d423b59de7b0df382902c13bdc9993d3717bda68fc080b9802ae4effd5dc972d9f9fb3bbbf106add174393effaf0a176"
+          "BlindedElement": "0x03010090fb03427ce3f26ad89943f0e1d46692a33eced69956f542a8e603861d197b2f4cb8a81afc2b7c16c3563e93fe6ab9da72d3ef8186ca494d31ae389d6ac6bcaa",
+          "Token": "0x7a32da7ba961449a56cec6fb918e932b06d5778ac7f67becfb3e3869237f74106241777f230582e849076f08753056c186437ded8ee22f96e44bd5b6ec07cb131e"
         },
-        "ClientOutput": "0x1573d24d85a4f8de5cec2c6eac1d98491835920fbbb304222fbc4ed2c91101de7835cefe9d5b64652972b4ddb60de3637c114f35bead746165dfc329474bd1d4",
+        "ClientOutput": "0xafb80aa519431ea6d47d70a6a30af8ee11f2a0f1f97b5fd6b5915a84641afd9ab1c2de1c89f04d8bea4f427a50d61ada992365b9be12cf90515fd9d4cdd8a095",
         "Evaluation": {
-          "EvaluatedElement": "0x03007227d9822e8652094618ae57f0e6f9bbce04e03893273695b09e1bc5912b2b4ac56cc099533be959441907aa10e95db6cd2ddd9989c2dce3addeb46d639e74b618",
+          "EvaluatedElement": "0x020140e1b695cbe8aef2fe3dbbbfa5dfd9faf9affb81149b1bc004bfff6f81242e54cc8e784749df893d194568a31f56e7a332d6d5d7efad93cdadc4293c40cdf773d3",
           "proof": {
-            "c": "0x442efb89da88ef1fa45ece65bb99684972bafaf79934c39394b2b4839e1dece9fb188e92d9b63d48f34c3abd3993ad43d76d97f464a2db113e32eaf9f1bf0715a1",
-            "s": "0x10772326a3ebb1c3a59903ecf942f8f60e1d88c9902b2d9ac70429be8cf572c42cde01daff2400782fe595bbdb85870d26bd1e6b3965b01191398113446db5f217c"
+            "c": "0x1cff797a875e007c83dc26bdd9d85f156cbd6b39d296fc22fffac39f6d304c0763eec4e5931861e9a1bd86c214180e0c8cc2d367b491c520923b12578ddabccc172",
+            "s": "0x21834f32a1d33f7e8a0fd6564bf00a3684b9f63519bc740ca87c4785f769025304d84895f31ba854d659462d1ac73bcdc6a1ba50c0e5ccdd79bc5e2814f69ea93d"
           }
         },
         "Input": {
           "ClientInput": "0x01"
         },
         "Unblind": {
-          "IssuedToken": "0x030112fb8ceff0fc975adddecf4b8a5fe2d235f38ea22f0c825ef0919f05e1b58224d65623705e91c1e5d29ffe75e72ee1309331c39fd37d2eb9b0d8d831350bf7d121"
+          "IssuedToken": "0x0301e0a7a0f3eda3f7172013da41544b154323889e91af4271852bd5125dbaa1b4f4bb104e48f2d6a5eda79b4ff4cc8dd665c86964d5cd8370eb0f7b47c3d6ed5111f7"
         }
       },
       {
         "Blind": {
-          "BlindedElement": "0x030020fa3c39a9ce47dd7b894a894d3d2f35aa0e02dd72621dc6598d3429293b59a4594568826823602d64f0ff2e9199337f3df3b75d55b97af1054ba668b1f6eac836",
-          "Token": "0x820582e849076f08753056c186437ded8ee22f96e44bd5b6ec07cb131d51cf1324c123869859b596174a682828f3934d510217ce7890f67cafc0ffaa7a1e1d1cee"
+          "BlindedElement": "0x02012c1ce39e7d94da24e60599d08f1d3696c5212acd2eb27f746a488dde172cfd12d2367056796c1f9b4184a3be1e923c40268429425759ce94ec5ba1a120d1db64b7",
+          "Token": "0x1d40c793f9f51171628f1d28bb7402ca4aea6465e267b7f977a1fb71593281099ef2625644aee0b6c5f5e6e01a2b052b3bd4caf539a41fabd4722d92472d858051d"
         },
-        "ClientOutput": "0xc9f4aca92dca8764a7eccfec783d7f66753a3be7e869845258a05b552e9a04499614aee1ba5950f86261aa4a8e78155c944c578122f28d8e0f7ed3550c5ef511",
+        "ClientOutput": "0x89da1958007d50a791bf4b22cabe8d6bfbf67b4910256297fe5b326594bc0bf5f1ad3b33a1b390b36062935ae514244821c5bd93feee3984171e73631530e2b9",
         "Evaluation": {
-          "EvaluatedElement": "0x030062a2d076b1e80a72464a6a5516d6d687c85775478d1f07ed5cc88a8b8f5d1403a40d943ea18de4d76e2972a1413410054760d9e81cb38fa8b20cedce1f6ba028a7",
+          "EvaluatedElement": "0x0200bd8984baa102ac5499525c943d9de0897f9eb87be757af693c8d13f0a54803126e8e48ecf2f7c98024a8ac60a0c93f0ba4efc24a73926b052020cec908d48a64ff",
           "proof": {
-            "c": "0xee815b3e1f9718dc335ab7a2fabc3b8f09ffc47b1cfa166515fc4909f2bd23aafbd870129a3d8de965105469e6f7459ac9d978f9c1beff2ea62c31749ff8a47cf4",
-            "s": "0xbda4be0328feafbb8ac5611efda0d8180a5d0294749506009f7cfb61fe522e0fce807f1342a08e0290398174873309fb67002b62e953c999ccdf8f827251d69391"
+            "c": "0x4e6084d78136778a312171a6f60e2a581f3c5521e85f3a31af0224a64f4150c21ca2449932cda416f366c03100cf54983e3164f3a0f322eea5bd038ff921601120",
+            "s": "0x79336fbef65d39a4ead95a1941d09823c7486229c16594bc8064934d6114b5648d1f4759b7b3b071bb6e1b0eecee00a2d4465c6ece7beeed8ca7bd5b9e21482074"
           }
         },
         "Input": {
           "ClientInput": "0x02"
         },
         "Unblind": {
-          "IssuedToken": "0x020120089a334124b3968ab95e2477a1d048ac320551f3821c61fdf9232cf1db53a4360b8285748957471ba31b064c8c85eb73880e06b130128cfe92f3ea657b734b59"
+          "IssuedToken": "0x03010c34bced52a3ea86e7c88b6e8e16e75b88a66179e733c85442e0337ff89861c70ec30f3867c9642d599bef7c41570dd00e320012c178a18b8a73ab3a684c254585"
         }
       }
     ]
   },
   "Verifiabledecaf448-SHA512-R255MAP-RO": {
     "info": "test information",
-    "skS": "0x22ef63e2541be4bde230ae1b04ea433834711b319cb60caa676912b64f0d824939827888f4c28773466f3c0a05741260040bc9f302a4fea2",
+    "skS": "0x4727d082b649ae6e64f799b9033ef7c1c6acf4b89f114a55fd6bca1cc98ead4b590ef189459b62ba67d1b0154e9ab86130ef1033f55aba1",
     "suite": "decaf448-SHA512-R255MAP-RO",
     "vectors": [
       {
         "Blind": {
-          "BlindedElement": "0x5c84289c4be649b5a294fe680295c6db9086c94b7cbe3d995162cc89101391068237e79106ece53a4effd6830b9c31abd9d5dd624cea1125",
-          "Token": "0x285517a6afbba6a90dc0d4094ba4283237211e139f306fc904c2d4fe4cc69c0a15c1b9ee1e66339439e3925cf8ce21ce8659f22523b6ce78"
+          "BlindedElement": "0xcefd283b646821731f8a045fcb073305f77ccd6e0848ef86e7dfe7785d15ea682462571fda51e7b5ce509bb823eaecac5872779eda7f237f",
+          "Token": "0x530a29efa6ace8c0eb8821ebc93e0e2e4ef901e052ddd929ec7aae1c006b10a0be67dc26ce5073f12ed7ca74a79e71f47316a6bafffeb90"
         },
-        "ClientOutput": "0x7b39216a5bb7387d29543bdd8969fdc5bb3c3f5919e086e6d567e6104e192c504ebecf6f9097091037f406c3975c03990f5fb6429d1f3a1b35a0acd79c9bdada",
+        "ClientOutput": "0xe3a774b8121bd9e2904dea8848d9126f037cafad11f07734a90362a947ed792e53664011a7dd3c322d5dbb9a3ed73cfd653f2471affb9ad3c5ce6990068dd4ed",
         "Evaluation": {
-          "EvaluatedElement": "0x2a57306bc01338258391763ed2afcb511b24010d409d200268e1c89aeb7111bca95a924196ab28a3ea441b65114a89df4e34a6a4bf343180",
+          "EvaluatedElement": "0x26e38c60775d8358a0a6c601c92ffbe527cd1132b105ecfa5c310dfe0ba01a15dee4985d9e983f771052cdcccfc8562a870f3192e0d0f8eb",
           "proof": {
-            "c": "0x336d4a76d74ff4d125ea90a4be67aff3883db412081228eb17ffa1a98a537d216e7c7f117f790a27b2c269ed62d928f7a03b852194c05ed0",
-            "s": "0x376e20a999dc3ec2f546e5a43561320ddfadbaf59fe29dec4ed32121cb1bfbfc513b122f2c871cc157b8a9c6f3b9a3d8fb0631f937cf74b5"
+            "c": "0x22f53821343b0b175be806fc114bf54e6593aa2b9740bebfabc1c7a910c404cba73aea0925f3133bf18220a229a281e213b6dda7b3fe92d9",
+            "s": "0x3f290de2695a96c9ff8c7e2f3c2ef60755148b5f8d9485fcf054b78e49b33798b68f55d2f613ce114abc06cd889f720d61424c0b5d845b79"
           }
         },
         "Input": {
           "ClientInput": "0x00"
         },
         "Unblind": {
-          "IssuedToken": "0x8631b6e348befcb2230daf959ad1b7c1dd0ff08eb14dd65d0e0294dcbfd8d91a85aa5d27bb1ee983147bd3d7321e00cfd83e41f31a73e244"
+          "IssuedToken": "0xe862518fb7f02df53f2922b750de9cc0f3f4b5fec32e94143b940834bbc342d82c40e7f9e88302903ef29cf66f230a5720d1cbe1cd9182ec"
         }
       },
       {
         "Blind": {
-          "BlindedElement": "0x16cea47694d708680e3488486e8f159d9d9bfe747100ba57a69a8b22bda846b7710f249e03e4592a94dde463333333441923e473f9d45e95",
-          "Token": "0x2a9bd998d48b1a4b998a539380ed73cafefa2709f67bd38be70f0ffdc309b401029d3c6016057a8e55f951785ae22374dfc19eb96faba639"
+          "BlindedElement": "0xea7a420a51c2cb93f5933ea26f8df08e905ca12566dbf4046bd98d11488b046f1d4a508713bdfe135c28a550449ff7b9fcd3eb436d66b738",
+          "Token": "0x2ddcecc53ba76f9588c9b14779bd8d90825155ab61f17605af2ae2e935c78d857c9407bcd45128d57d338f1671b5fcbd5d9e7f6efd3093c4"
         },
-        "ClientOutput": "0x8a2d3c692d0001ae94b7738a956ada1b41725e10a6188b688a8e9061caeeb5728bc9f73f8c5b29013f49626bc36f9f9cf2542d4927b9fef2abf4bf29b40dbfc2",
+        "ClientOutput": "0x66571d26885843fca5b591750a1f761d69e576d809e5a3bb80feb78ca07b414b40edc6efaad9bc107bbcdea30a8476282d8c7340c756efa6131b070b5037330f",
         "Evaluation": {
-          "EvaluatedElement": "0x164519363d5d5f7ed73aaa2bb23050a9f4c75e9f697cf21179de27c4c19b7e9b45ec0f179f8ca318e6535249c38fdefa5c30e5d69d0d3efd",
+          "EvaluatedElement": "0xac62d52d582028c3e0a55fedf179d23d0f7ec73489a3b505cabc3ab5b66916fe4712aa9c7a3b30b1e84ea415c8da07c5464a36b6af2607dc",
           "proof": {
-            "c": "0x3d231da7d9169c1ff87e58d94fdd25eee144a53aef24b31c802eca52cd40e4b840c3a776c8b215a519790a714ffc80040f110c5bfe417268",
-            "s": "0x324ae2bc6a7a953a4cff6172e08954256c9d7b31395342479748d3d0e03c70700632c1791ae0a73f88f2a1c92eaf53a73fa90dff2cd25693"
+            "c": "0x24aa14422cc3bd912f8e83e2c30cfdd9789f060494bb8d7d07496b8de35461c20b0d19c39f688569cfde9fa406f7bd0ccc8bba31e6230b2b",
+            "s": "0x18eee98ce1c53c89da3e74440cec6103297a22bcc72284418f67c9047707414321b64e1fc5b2ab5af2ab2548fd0aa351776614d00d1cedd2"
           }
         },
         "Input": {
           "ClientInput": "0x01"
         },
         "Unblind": {
-          "IssuedToken": "0x387a95ad7d202619037008843282c63dc9ffd3f4d1e8e88eabadfb910ed4765a1920c3e9b76d6366e5843244e2f008e5419ccfdc7b23c8c6"
+          "IssuedToken": "0xcedcd6b3129729655293d2ee316cb0d5731be0791c61397a64c397ab3f46e41032a488a21d3fa9b07f94a817da887b59ee7c05d48f925732"
         }
       },
       {
         "Blind": {
-          "BlindedElement": "0x0245cf25df10b5184e7fec130af54b5469058025e2cc890b0fb0025e9ee3f27b137e237f852986229f45877558422ae7351ad92199ed3ce3",
-          "Token": "0x14eeab7a962d164565d8c0e3a1ba1a337759061965a423d9d3d6e1e1006dc8984ad28a4c93ecfc36fc2171046b3c4284855cfa2434ed98dc"
+          "BlindedElement": "0xc0109a62f666d7a66441e56e27a7339baaf0db11532d8cac260795c1541a4857d14d6d8b968d9cd575d786807d50cab341c2d28200006fb9",
+          "Token": "0x3e3a49bfe4854a58f6b3e908bdb38e3c626a939e19daca653b9217801b5d51cef66d9fdbd94a53533e7c5057e09e220065ea8c257c0dd606"
         },
-        "ClientOutput": "0xf871187c9774134256e5f66595164980f51970e7af9a98f7caeaa3a4997cb92ae2109b84bd35f3e39de384b120f972c314cefa310874596b3a83ec782ce04b2f",
+        "ClientOutput": "0x65c44b5d2ba33d3e3b03cc7c76371a73613c41b67f55003a8c2c619768e639563536ce855e1b7eb71255bfc5b433c465812bda3a368246d7a90ce730572eb087",
         "Evaluation": {
-          "EvaluatedElement": "0xbae6ce46cda087df514021d1e9bdb1d7aa48ff6eb80b4c93aa4942eb3ae80bea50599d0841a5392b2e5f4cd3fc47c1aedbbd37e5e7e19f29",
+          "EvaluatedElement": "0x20a5e2091670f80a053c9850b5f14ae83ae9c058264861b1fca8b546a84eac77e392ed7e35446748e1f34a653a0f9082a469afc83b40b9d7",
           "proof": {
-            "c": "0x20f4ac8d425dcaff51ad9995b20ecddebcf58018b1292260414433743e6087b18e117d34578617ceeb3189c1f67110149467104dd56779f6",
-            "s": "0x694fdadc06f9bffac10ee364e441d34ec06b7f931167ef29121bc8e1151880a88a74fea34a048bfdaf83abbe4a2939d62daeccee3f9b43d"
+            "c": "0x16379b7f8622d5956c2e563a2bfa0cfb2cb45184f9c054bc0455493e609492a015512314c508294f9293a5ea15cd7ff43740de78293d38c4",
+            "s": "0x20aca96cc0187f51925ecdc0a3f86d412fce7c824595896d3e852f72fb82057c68e77c44830256a3f6301d113969185ca2b64215ca42c7f9"
           }
         },
         "Input": {
           "ClientInput": "0x02"
         },
         "Unblind": {
-          "IssuedToken": "0x1696d8f086306e2f035d8408ff4007d4bf6bbc4ba0bc1ef961c5c447b858efea8775d5265a75b39a95981c8e5773e08a85efd8e4f6189106"
+          "IssuedToken": "0x389be8b1a679489e2fcb4ef197ae8923784a2bfc9d0a501cd70f889bc18c5a5e19a82b3dc6684ae44a6168e6813a03df958b8936a2ee850b"
         }
       }
     ]
@@ -549,62 +549,62 @@
     "vectors": [
       {
         "Blind": {
-          "BlindedElement": "0x283e001a53d75a21fd706713cc2d54bc43f9cd265c581b48e128ef9ebf744573",
+          "BlindedElement": "0x242ed5027b746202c51463a42190f68a6adbd37398df5f2fda2f29b6d812ba49",
           "Token": "0xfdaef7e6e0ab7d86c6990f0fcd9a655f77ff0b2ebcfe21e1a1ca4a84361e9f2"
         },
-        "ClientOutput": "0xba984ff5f8704927f14a8518e2e80f47e83dc28eab8a04b3c9b61d13d41f3095",
+        "ClientOutput": "0xc014925094b965c857748eb390a8e7eb85c03970d5d0acfd15bcee88ef12daf1",
         "Evaluation": {
-          "EvaluatedElement": "0x94ed98fc46004c83a75072dbeaefb9e1b10270cc9780d64af6bcfb3f5a4cf028",
+          "EvaluatedElement": "0xbaf914cfddd29cbadc1dc0ffc88420d5e60ebe987c226582b2d14ddd61e4e670",
           "proof": {
-            "c": "0x642bb3369a87497aad499fdb94bd3e7fcd26a9f3a3111077e77dab8f30adba4",
-            "s": "0x9be7eca1b18755a7212c864c3881c8e26aec754890e3a52f859ce2364184c9a"
+            "c": "0x2b41c588478470da25e35d51332edc9800b3e54f7953cebe5c705ed6dc5675b",
+            "s": "0x4b6a59b90b0361436de778e3979935575bfb553adae6a8a354d05825eff4aaa"
           }
         },
         "Input": {
           "ClientInput": "0x00"
         },
         "Unblind": {
-          "IssuedToken": "0x90d4f91649fc4324bf37ca957daccbf4e0ad23c3253eb35a861b4e8088c4407f"
+          "IssuedToken": "0x9a7a6d9b0cb2724ed6e9b16149ef656fab87956a7dfa40a52f74facad9a42e46"
         }
       },
       {
         "Blind": {
-          "BlindedElement": "0x5cd9f5473fe677b0dcc3022f58ae2e254800c53e275c8923e58cc16ab396117e",
+          "BlindedElement": "0xbc4c5f7f428322a999728eecaa51e3f7ddca5fdace5ae0813b870ee0beef9f33",
           "Token": "0xe8fd83a7852fce42d79fc710159f349e7da18455479e27473269d2926fec54e"
         },
-        "ClientOutput": "0xb1a478d18d0c2f6dc9facfc83c40c88c60988d80381a8d3b1f5a0f04b8d13b94",
+        "ClientOutput": "0x9e778dd4b9f986f5929458814e85c17e1975a30a931a226ae1ab8e4a9201aece",
         "Evaluation": {
-          "EvaluatedElement": "0x4a2f42af47c6ac84e0bed8151e5a70de32b9596aaa7dd69c527aac3c134eab42",
+          "EvaluatedElement": "0xaa1073e5c37dc7c619ef1061ad1c4accc02f5920e9a465cf0164e1dc95c3fb4e",
           "proof": {
-            "c": "0xa5ac275b5f6f620d104102d7920c12b9939d13bdc18295168dd6dac152fd527",
-            "s": "0xa8cb7dcfbb37b846d4265260a1f83c1018816d25abb33356af146ce5d9a39dd"
+            "c": "0xb1ab6d6efeab3cd2ca173a8c12438c9941feed49f7e1f9f9eb016fb0e61e746",
+            "s": "0x55e64dfa867d3a210d493fd8bf21a1ff53e847c895e0ea048510fd3cd66a675"
           }
         },
         "Input": {
           "ClientInput": "0x01"
         },
         "Unblind": {
-          "IssuedToken": "0xe06232a5d9a378eb06463734a63154304f9429a58d3258301049861d25b88172"
+          "IssuedToken": "0xa6d15eab9fe85097b467d9321455cb401e55801f340668b0c39bebd27e8e8b38"
         }
       },
       {
         "Blind": {
-          "BlindedElement": "0x0623fa083e5a29bbe547586770ffd0e3c67bb230addb786d43f4c1a0e284de3a",
+          "BlindedElement": "0x18327715f12aa46606e6fc58092116478dcf6bfe4fc2c1c3d8eebb94fb6feb38",
           "Token": "0xb942dbc6540574e2bc92534ac475d6a3649f3e9cdf20a7e882066be571714f6"
         },
-        "ClientOutput": "0xaed4e41dd216e4231ff4bf7c08ba09ef6748d6845a10d61fc19ce5a3ed584ade",
+        "ClientOutput": "0x36a85f1c7cb3890db27342e2ce473799609cde87f0841271cbb5bc4d4c7fe3b8",
         "Evaluation": {
-          "EvaluatedElement": "0xa27180440b09e1fa36245987413c642ac1ce08e297bb43fcf9d6029294c4961b",
+          "EvaluatedElement": "0xbaf000cdf2412430def760ca6a92088b9a792a8631637d3de8fa23b0cb98c506",
           "proof": {
-            "c": "0x7eb824cbc6a952399d84a068e98baab5c908612a831715a695191821750938c",
-            "s": "0x2f3c8f811ba4acf7bac78867edda2affe26c89cb6a4e1760bd25730afe46879"
+            "c": "0x9a6c93779dda05e841c22f740ca780c3f7c9cd90e983045a5e57e476e44a8bf",
+            "s": "0x2232478c42a47fe059613b06f06821a5cb644f4aca20b6574942f12a4fec5c9"
           }
         },
         "Input": {
           "ClientInput": "0x02"
         },
         "Unblind": {
-          "IssuedToken": "0x4cf1ea2f3be537648351752ca154509b79e0de467a85afd94ab03d4e6dd14719"
+          "IssuedToken": "0x6a618721abf71e6d739e06d03c058f741bdaf58091e80293ca3991d5c22e4668"
         }
       }
     ]
