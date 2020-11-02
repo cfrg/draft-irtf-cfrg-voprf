@@ -321,7 +321,7 @@ prime-order group.
   an array of bytes `x` to an element in GF(p). A recommended method
   for its implementation is instantiating the hash to field function,
   defined in {{!I-D.irtf-cfrg-hash-to-curve}} setting the target field to GF(p).
-- RandomScalar(): A member function of `GG` that choses at random a
+- RandomScalar(): A member function of `GG` that chooses at random a
   non-zero element in GF(p).
 
 It is convenient in cryptographic applications to instantiate such
