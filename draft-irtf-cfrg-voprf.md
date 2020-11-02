@@ -937,7 +937,7 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 
 - Group: decaf448 {{!RISTRETTO}}
   - HashToGroup(): hash_to_decaf448
-    {{!I-D.irtf-cfrg-hash-to-curve}} with DST
+    {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
     "VOPRF05-" || `contextString`, where `contextString` is that which is
     computed in the Setup functions, and `expand_message` set to `expand_message_xmd`
     using SHA-512.
