@@ -920,7 +920,7 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
   - HashToGroup(): hash_to_ristretto255
-    {{!I-D.irtf-cfrg-hash-to-curve}} with DST
+    {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
     "VOPRF05-" || `contextString`, where `contextString` is that which is
     computed in the Setup functions, and `expand_message` set to `expand_message_xmd`
     using SHA-256.
