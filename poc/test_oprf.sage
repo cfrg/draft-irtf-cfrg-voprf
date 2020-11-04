@@ -14,7 +14,7 @@ def to_hex(octet_string):
     if isinstance(octet_string, str):
         return "".join("{:02x}".format(ord(c)) for c in octet_string)
     assert isinstance(octet_string, (bytes, bytearray))
-    return "0x" + "".join("{:02x}".format(c) for c in octet_string)
+    return "".join("{:02x}".format(c) for c in octet_string)
 
 class Protocol(object):
     def __init__(self):
@@ -40,43 +40,27 @@ class Protocol(object):
             vector["Input"] = {
                 "ClientInput": to_hex(x)
             }
-            if (group.name == "ristretto255") or (group.name == "decaf448"):
-                vector["Blind"] = {
-                    "Token": hex(r),
-                    "BlindedElement": to_hex(R.encode()),
-                }
-            else:
-                vector["Blind"] = {
-                    "Token": hex(r),
-                    "BlindedElement": to_hex(group.serialize(R)),
-                }
-            if (group.name == "ristretto255") or (group.name == "decaf448"):
-               vector["Evaluation"] = {
-                   "EvaluatedElement": to_hex(T.evaluated_element.encode()),
-               }
-            else:
-               vector["Evaluation"] = {
-                   "EvaluatedElement": to_hex(group.serialize(T.evaluated_element)),
-               }
+            vector["Blind"] = {
+                "Token": format(r, 'x'),
+                "BlindedElement": to_hex(group.serialize(R)),
+            }
+            vector["Evaluation"] = {
+                "EvaluatedElement": to_hex(group.serialize(T.evaluated_element)),
+            }
             if T.proof != None:
                 vector["Evaluation"]["proof"] = {
-                    "c": hex(T.proof[0]),
-                    "s": hex(T.proof[1]),
+                    "c": format(T.proof[0], 'x'),
+                    "s": format(T.proof[1], 'x'),
                 }
-            if (group.name == "ristretto255") or (group.name == "decaf448"):
-               vector["Unblind"] = {
-                   "IssuedToken": to_hex(Z.encode())
-               }
-            else:
-               vector["Unblind"] = {
-                   "IssuedToken": to_hex(group.serialize(Z))
-               }
+            vector["Unblind"] = {
+                "IssuedToken": to_hex(group.serialize(Z))
+            }
 
             vector["ClientOutput"] = to_hex(y)
             vectors.append(vector)
 
         vector = {}
-        vector["skS"] = hex(server.skS)
+        vector["skS"] = format(server.skS, 'x')
         vector["info"] = info
         vector["suite"] = client.suite.name
         vector["vectors"] = vectors
