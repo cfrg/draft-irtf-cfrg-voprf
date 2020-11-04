@@ -41,7 +41,7 @@ class Protocol(object):
                 "ClientInput": to_hex(x)
             }
             vector["Blind"] = {
-                "Token": format(r, 'x'),
+                "Token": "{:02x}".format(r),
                 "BlindedElement": to_hex(group.serialize(R)),
             }
             vector["Evaluation"] = {
@@ -49,8 +49,8 @@ class Protocol(object):
             }
             if T.proof != None:
                 vector["Evaluation"]["proof"] = {
-                    "c": format(T.proof[0], 'x'),
-                    "s": format(T.proof[1], 'x'),
+                    "c": "{:02x}".format(T.proof[0]),
+                    "s": "{:02x}".format(T.proof[1]),
                 }
             vector["Unblind"] = {
                 "IssuedToken": to_hex(group.serialize(Z))
@@ -60,7 +60,7 @@ class Protocol(object):
             vectors.append(vector)
 
         vector = {}
-        vector["skS"] = format(server.skS, 'x')
+        vector["skS"] = "{:02x}".format(server.skS)
         vector["info"] = info
         vector["suite"] = client.suite.name
         vector["vectors"] = vectors
