@@ -862,6 +862,8 @@ def VerifyProof(pkS, blindToken, Ev):
 
   a = ComputeComposites(pkS, blindTokenList, elementList)
 
+  M = GG.Deserialize(a[0])
+  Z = GG.Deserialize(a[1])
   A' = (ScalarBaseMult(Ev.proof[1]) + Ev.proof[0] * pkS)
   B' = (Ev.proof[1] * M + Ev.proof[0] * Z)
   a2 = GG.Serialize(A')
@@ -1071,20 +1073,20 @@ Each assumption states that the problems specified below are
 computationally difficult to solve in relation to a particular choice of
 security parameter `sp`.
 
-Let GG = GG(sp) be a group with prime-order p, and let FFp be the finite
+Let GG = GG(sp) be a group with prime-order p, and let GF(p) be a finite
 field of order p.
 
 #### Discrete-log (DL) problem {#dl}
 
-Given G, a generator of GG, and H = hG for some h in FFp; output h.
+Given G, a generator of GG, and H = hG for some h in GF(p); output h.
 
 #### Decisional Diffie-Hellman (DDH) problem {#ddh}
 
-Sample a uniformly random bit d in {0,1}. Given (G, aG, bG, C), where:
+Sample uniformly at random d in {0,1}. Given (G, aG, bG, C), where
 
 - G is a generator of GG;
-- a,b are elements of FFp;
-- if d == 0: C = abG; else: C is sampled uniformly GG(sp).
+- a,b are elements of GF(p);
+- if d == 0: C = abG; else: C is sampled uniformly at random from GG.
 
 Output d' == d.
 
@@ -1106,7 +1108,7 @@ The (N,Q)-One-More Gap DH (OMDH) problem asks the following.
 
 ~~~
     Given:
-    - G, k * G, G_1, ... , G_N where G, G_1, ... G_N are elements of GG;
+    - G, k * G, and (G_1, ... , G_N), all elements of GG;
     - oracle access to an OPRF functionality using the key k;
     - oracle access to DDH solvers.
 
@@ -1135,7 +1137,7 @@ problem asks the following.
     Given G1, G2, h*G2, (h^2)*G2, ..., (h^Q)*G2; for G1 and G2
     generators of GG.
 
-    Output ( (1/(k+c))*G1, c ) where c is an element of FFp
+    Output ( (1/(k+c))*G1, c ) where c is an element of GF(p)
 ~~~
 
 The assumption that this problem is hard was first introduced in
@@ -1195,7 +1197,7 @@ in {{!I-D.irtf-cfrg-hash-to-curve}} when instantiating the function.
 
 ## Timing Leaks
 
-To ensure no information is leaked during protocol execution, all
+To prevent no information is leaked during protocol execution, all
 operations that use secret data MUST run in constant time. Operations that
 SHOULD run in constant time include all prime-order group operations and
 proof-specific operations (`GenerateProof()` and `VerifyProof()`).
@@ -1204,7 +1206,7 @@ proof-specific operations (`GenerateProof()` and `VerifyProof()`).
 
 Since the server's key is critical to security, the longer it is exposed
 by performing (V)OPRF operations on client inputs, the longer it is
-possible that the key can be compromised. For example,if the key is kept
+possible that the key can be compromised. For example, if the key is kept
 in circulation for a long period of time, then it also allows the
 clients to make enough queries to launch more powerful variants of the
 Q-sDH attacks from {{qsdh}}.
@@ -1233,7 +1235,7 @@ that needs to be done in the online exchange. Choosing one of these
 values `r * G` (where `r` is the scalar value that is used), then
 computing `H(x) + (r * G)` is more efficient than computing `r * H(x)`.
 Therefore, it may be advantageous to define the OPRF and VOPRF protocols
-using additive blinding (rather than multiplicative) blinding. In fact,
+using additive (rather than multiplicative) blinding. In fact,
 the only algorithms that need to change are Blind and Unblind (and
 similarly for the VOPRF variants).
 
@@ -1260,7 +1262,7 @@ Input:
 
 Output:
 
-  PrepocessedBlind preproc
+  PreprocessedBlind preproc
 
 def Preprocess(pkS):
   PK = GG.Deserialize(pkS)
@@ -1268,7 +1270,7 @@ def Preprocess(pkS):
   blindedGenerator = GG.Serialize(ScalarBaseMult(r))
   blindedPublicKey = GG.Serialize(r * PK)
 
-  preproc = PrepocessedBlind{
+  preproc = PreprocessedBlind{
     blind: r,
     blindedGenerator: blindedGenerator,
     blindedPublicKey: blindedPublicKey,
@@ -1291,14 +1293,14 @@ Output:
   SerializedElement blindToken
 
 def Blind(input, preproc):
-  Q = GG.Deserialize(preproc.blindedGenerator) /* Q = ScalarBaseMult(r) */
+  Q = GG.Deserialize(preproc.blindedGenerator)
   P = GG.HashToGroup(input)
 
   token = Token{
     data: input,
     blind: preproc.blindedPublicKey
   }
-  blindToken = GG.Serialize(P + Q)           /* P + ScalarBaseMult(r) */
+  blindToken = GG.Serialize(P + Q)        /* P + ScalarBaseMult(r) */
 
   return (token, blindToken)
 ~~~
@@ -1326,7 +1328,7 @@ def Unblind(token, ev, blindToken):
   return issuedToken
 ~~~
 
-Let `P = GG.HashToGroup(x)`. Notice that Unblind computes:
+Let `P = GG.HashToGroup(input)`. Notice that Unblind computes:
 
 ~~~
 Z - PKR = k * (P + r * G) - r * pkS
@@ -1334,7 +1336,7 @@ Z - PKR = k * (P + r * G) - r * pkS
         = k * P
 ~~~
 
-by the commutativity of scalar multiplication in GG. This is the same
+by the commutativity of the scalar field. This is the same
 output as in the `Unblind` algorithm for multiplicative blinding.
 
 Note that the verifiable variant of `Unblind` works as above but
