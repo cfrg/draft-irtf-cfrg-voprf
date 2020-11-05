@@ -453,7 +453,7 @@ contexts are below:
 ~~~
 def SetupVerifiableServer(suite, skS, pkS):
   contextString = I2OSP(modeVerifiable, 1) || I2OSP(suite.ID, 2)
-  return VerifiableServerContext(contextString, skS), pkS
+  return VerifiableServerContext(contextString, skS)
 
 def SetupVerifiableClient(suite, pkS):
   contextString = I2OSP(modeVerifiable, 1) || I2OSP(suite.ID, 2)
