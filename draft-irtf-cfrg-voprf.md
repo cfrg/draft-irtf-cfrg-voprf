@@ -1197,7 +1197,7 @@ in {{!I-D.irtf-cfrg-hash-to-curve}} when instantiating the function.
 
 ## Timing Leaks
 
-To prevent no information is leaked during protocol execution, all
+To ensure no information is leaked during protocol execution, all
 operations that use secret data MUST run in constant time. Operations that
 SHOULD run in constant time include all prime-order group operations and
 proof-specific operations (`GenerateProof()` and `VerifyProof()`).
