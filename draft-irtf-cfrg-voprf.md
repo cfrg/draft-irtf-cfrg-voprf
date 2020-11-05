@@ -702,13 +702,11 @@ def GenerateProof(skS, pkS, blindToken, element)
 ##### Batching inputs
 
 Unlike other functions, `ComputeComposites` takes lists of inputs,
-rather than a single input. This allows to produce a combined proof
-in `GenerateProof` for a batch of elements.
-(In the pseudocode above, the single inputs `blindToken`
-and `element` passed as one-item lists to `ComputeComposites`).
-Applications can take advantage of this functionality by invoking
-`GenerateProof` on batches of inputs and producing a `BatchedEvaluation`
-structure as the output of `Evaluate`.
+rather than a single input. Applications can take advantage of this
+functionality by invoking `GenerateProof` on batches of inputs to
+produce a combined, constant-size proof. (In the pseudocode above,
+the single inputs `blindToken` and `element` are passed as one-item
+lists to `ComputeComposites`.)
 
 ##### Fresh randomness
 
