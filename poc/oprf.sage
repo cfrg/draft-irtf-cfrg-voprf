@@ -205,7 +205,6 @@ class Evaluation(object):
         self.evaluated_element = evaluated_element
         self.proof = proof
 
-
 class Ciphersuite(object):
     def __init__(self, name, identifier, group, H):
         self.name = name
@@ -277,33 +276,38 @@ class ServerContext(object):
 
         return (digest == expected_digest)
 
+class Verifiable(object):
+    def compute_composites(self, pkSm, evaluate_input, evaluate_output):
+        seedDST = _as_bytes("VOPRF05-seed-") + self.contextString
+        hash_input = I2OSP(len(pkSm), 2) + pkSm \
+            + I2OSP(len(evaluate_input), 2) + evaluate_input \
+            + I2OSP(len(evaluate_output), 2) + evaluate_output \
+            + I2OSP(len(seedDST), 2) + seedDST
+        h = self.suite.H()
+        h.update(hash_input)
+        seed = h.digest()
 
-def compute_composites(suite, contextString, pkS, evaluate_input, evaluate_output):
-    seedDST = _as_bytes("VOPRF05-seed-") + contextString
-    hash_input = I2OSP(len(pkS), 2) + pkS \
-        + I2OSP(len(evaluate_input), 2) + evaluate_input \
-        + I2OSP(len(evaluate_output), 2) + evaluate_output \
-        + I2OSP(len(seedDST), 2) + seedDST
-    h = suite.H()
-    h.update(hash_input)
-    seed = h.digest()
+        M = self.suite.group.identity()
+        Z = self.suite.group.identity()
 
-    M = suite.group.identity()
-    Z = suite.group.identity()
-    Mi = suite.group.deserialize(evaluate_input)
-    Zi = suite.group.deserialize(evaluate_output)
+        di = 1
+        Mi = self.suite.group.deserialize(evaluate_input)
+        M = (di * Mi) + M
 
-    di = 1
-    M = (di * Mi) + M
-    Z = (di * Zi) + Z
+        if isinstance(self, VerifiableClientContext):
+            Zi = self.suite.group.deserialize(evaluate_output)
+            Z = (di * Zi) + Z
+        elif isinstance(self, VerifiableServerContext):
+            Z = self.skS * M
+        else:
+            raise "not a client nor a server"
 
-    Mm = suite.group.serialize(M)
-    Zm = suite.group.serialize(Z)
+        Mm = self.suite.group.serialize(M)
+        Zm = self.suite.group.serialize(Z)
 
-    return Mm, Zm
+        return [Mm, Zm]
 
-
-class VerifiableClientContext(ClientContext):
+class VerifiableClientContext(ClientContext,Verifiable):
     def __init__(self, suite, contextString, pkS):
         ClientContext.__init__(self, suite, contextString)
         self.pkS = pkS
@@ -312,22 +316,22 @@ class VerifiableClientContext(ClientContext):
         G = self.suite.group.generator()
         pkSm = self.suite.group.serialize(self.pkS)
 
-        (a1, a2) = compute_composites(self.suite, self.contextString, pkSm, evaluate_input, evaluate_output)
-        M = self.suite.group.deserialize(a1)
-        Z = self.suite.group.deserialize(a2)
+        a = self.compute_composites(pkSm, evaluate_input, evaluate_output)
+        M = self.suite.group.deserialize(a[0])
+        Z = self.suite.group.deserialize(a[1])
 
         Ap = (pi[1] * G) + (pi[0] * self.pkS)
         Bp = (pi[1] * M) + (pi[0] * Z)
 
-        a3 = self.suite.group.serialize(Ap)
-        a4 = self.suite.group.serialize(Bp)
+        a2 = self.suite.group.serialize(Ap)
+        a3 = self.suite.group.serialize(Bp)
 
         challengeDST = _as_bytes("VOPRF05-challenge-") + self.contextString
         h2s_input = I2OSP(len(pkSm), 2) + pkSm \
-            + I2OSP(len(a1), 2) + a1 \
+            + I2OSP(len(a[0]), 2) + a[0] \
+            + I2OSP(len(a[1]), 2) + a[1] \
             + I2OSP(len(a2), 2) + a2 \
             + I2OSP(len(a3), 2) + a3 \
-            + I2OSP(len(a4), 2) + a4 \
             + I2OSP(len(challengeDST), 2) + challengeDST
 
         c = self.suite.group.hash_to_scalar(h2s_input)
@@ -349,7 +353,7 @@ class VerifiableClientContext(ClientContext):
         y = r_inv * N
         return y
 
-class VerifiableServerContext(ServerContext):
+class VerifiableServerContext(ServerContext,Verifiable):
     def __init__(self, suite, contextString, skS, pkS):
         ServerContext.__init__(self, suite, contextString, skS, pkS)
 
@@ -357,19 +361,19 @@ class VerifiableServerContext(ServerContext):
         G = self.suite.group.generator()
         pkSm = self.suite.group.serialize(self.pkS)
 
-        (a1, a2) = compute_composites(self.suite, self.contextString, pkSm, evaluate_input, evaluate_output)
-        M = self.suite.group.deserialize(a1)
+        a = self.compute_composites(pkSm, evaluate_input, evaluate_output)
+        M = self.suite.group.deserialize(a[0])
 
         r = ZZ(self.suite.group.random_scalar())
-        a3 = self.suite.group.serialize(r * G)
-        a4 = self.suite.group.serialize(r * M)
+        a2 = self.suite.group.serialize(r * G)
+        a3 = self.suite.group.serialize(r * M)
 
         challengeDST = _as_bytes("VOPRF05-challenge-") + self.contextString
         h2s_input = I2OSP(len(pkSm), 2) + pkSm \
-            + I2OSP(len(a1), 2) + a1 \
+            + I2OSP(len(a[0]), 2) + a[0] \
+            + I2OSP(len(a[1]), 2) + a[1] \
             + I2OSP(len(a2), 2) + a2 \
             + I2OSP(len(a3), 2) + a3 \
-            + I2OSP(len(a4), 2) + a4 \
             + I2OSP(len(challengeDST), 2) + challengeDST
 
         c = self.suite.group.hash_to_scalar(h2s_input)

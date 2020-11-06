@@ -702,17 +702,11 @@ def GenerateProof(skS, pkS, blindToken, element)
 ##### Batching inputs
 
 Unlike other functions, `ComputeComposites` takes lists of inputs,
-rather than a single input. It is optimized to produce a constant-size
-output. This functionality lets applications batch inputs together to
-produce a constant-size proofs from `GenerateProof`. Applications can
-take advantage of this functionality by invoking `GenerateProof` on
-batches of inputs. (Notice that in the pseudocode above, the single
-inputs `blindToken` and `element` are translated into lists before
-invoking `ComputeComposites`. A batched `GenerateProof` variant would
-permit lists of inputs, and no list translation would be needed.)
-
-Note that using batched inputs creates a `BatchedEvaluation` object as
-the output of `Evaluate`.
+rather than a single input. Applications can take advantage of this
+functionality by invoking `GenerateProof` on batches of inputs to
+produce a combined, constant-size proof. (In the pseudocode above,
+the single inputs `blindToken` and `element` are passed as one-item
+lists to `ComputeComposites`.)
 
 ##### Fresh randomness
 
@@ -722,6 +716,11 @@ possible in Schnorr or (EC)DSA scenarios where fresh randomness is not
 used.
 
 #### ComputeComposites
+
+The definition of `ComputeComposites` is given below. This function is
+used both on generation and verification of the proof. In the former
+phase, the secret key is known, which allows performing the function
+faster than on verification.
 
 ~~~
 Input:
@@ -749,10 +748,15 @@ def ComputeComposites(pkS, blindTokens, elements):
     h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
               I2OSP(len(compositeDST), 2) || compositeDST
     di = GG.HashToScalar(h2Input)
+    if self == Client:
+      Zi = GG.Deserialize(elements[i])
+      Z = di * Zi + Z
     Mi = GG.Deserialize(blindTokens[i])
-    Zi = GG.Deserialize(elements[i])
     M = di * Mi + M
-    Z = di * Zi + Z
+
+  if self == Server:
+    Z = skS * M
+
  return [GG.Serialize(M), GG.Serialize(Z)]
 ~~~
 
