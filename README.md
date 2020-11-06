@@ -17,6 +17,15 @@ $ make
 This requires that you have the necessary software installed.  See
 [the instructions](https://github.com/martinthomson/i-d-template/blob/master/doc/SETUP.md).
 
+# Existing implementations
+
+| Implementation                                                            | Language | Version  | Modes  |
+| ------------------------------------------------------------------------- |:---------|:---------|:-------|
+| [CIRCL](https://github.com/cloudflare/circl/)                             | Go       | draft-05 | All    |
+| [voprf-poc](https://github.com/alxdavids/voprf-poc/tree/master/go)        | Go       | draft-03 | All    |
+| [voprf-poc](https://github.com/alxdavids/voprf-poc/tree/master/rust)      | Rust     | draft-03 | All    |
+
+Submit a PR if you would like your implementation to be added!
 
 ## Contributing
 
