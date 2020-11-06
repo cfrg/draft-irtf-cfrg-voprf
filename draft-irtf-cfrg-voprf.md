@@ -678,7 +678,7 @@ def GenerateProof(skS, pkS, blindToken, element)
   blindTokenList = [blindToken]
   elementList = [element]
 
-  a = ComputeComposites(pkS, blindTokenList, elementList)
+  a = ComputeCompositesFast(skS, pkS, blindTokenList, elementList)
 
   M = GG.Deserialize(a[0])
   r = GG.RandomScalar()
@@ -718,9 +718,7 @@ used.
 #### ComputeComposites
 
 The definition of `ComputeComposites` is given below. This function is
-used both on generation and verification of the proof. In the former
-phase, the secret key is known, which allows performing the function
-faster than on verification.
+used both on generation and verification of the proof.
 
 ~~~
 Input:
@@ -734,9 +732,10 @@ Output:
   SerializedElement composites[2]
 
 def ComputeComposites(pkS, blindTokens, elements):
+  pkSm = GG.Serialize(pkS)
   seedDST = "VOPRF05-seed-" || self.contextString
   compositeDST = "VOPRF05-composite-" || self.contextString
-  h1Input = I2OSP(len(pkS), 2) || pkS ||
+  h1Input = I2OSP(len(pkSm), 2) || pkSm ||
             I2OSP(len(blindTokens), 2) || blindTokens ||
             I2OSP(len(elements), 2) || elements ||
             I2OSP(len(seedDST), 2) || seedDST
@@ -748,14 +747,48 @@ def ComputeComposites(pkS, blindTokens, elements):
     h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
               I2OSP(len(compositeDST), 2) || compositeDST
     di = GG.HashToScalar(h2Input)
-    if self == Client:
-      Zi = GG.Deserialize(elements[i])
-      Z = di * Zi + Z
+    Mi = GG.Deserialize(blindTokens[i])
+    M = di * Mi + M
+    Zi = GG.Deserialize(elements[i])
+    Z = di * Zi + Z
+
+ return [GG.Serialize(M), GG.Serialize(Z)]
+~~~
+
+If the private key is known, as is the case for the server, this function
+can be optimized as shown in `ComputeCompositesFast` below.
+
+~~~
+Input:
+
+  PrivateKey skS
+  PublicKey pkS
+  SerializedElement blindTokens[m]
+  SerializedElement elements[m]
+
+Output:
+
+  SerializedElement composites[2]
+
+def ComputeCompositesFast(skS, pkS, blindTokens, elements):
+  pkSm = GG.Serialize(pkS)
+  seedDST = "VOPRF05-seed-" || self.contextString
+  compositeDST = "VOPRF05-composite-" || self.contextString
+  h1Input = I2OSP(len(pkSm), 2) || pkSm ||
+            I2OSP(len(blindTokens), 2) || blindTokens ||
+            I2OSP(len(elements), 2) || elements ||
+            I2OSP(len(seedDST), 2) || seedDST
+
+  seed = Hash(h1Input)
+  M = GG.Identity()
+  for i = 0 to m-1:
+    h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
+              I2OSP(len(compositeDST), 2) || compositeDST
+    di = GG.HashToScalar(h2Input)
     Mi = GG.Deserialize(blindTokens[i])
     M = di * Mi + M
 
-  if self == Server:
-    Z = skS * M
+  Z = skS * M
 
  return [GG.Serialize(M), GG.Serialize(Z)]
 ~~~
