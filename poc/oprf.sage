@@ -406,7 +406,7 @@ def SetupBaseClient(suite):
 
 def SetupVerifiableServer(suite, skS, pkS):
     contextString = I2OSP(mode_verifiable, 1) + I2OSP(suite.identifier, 2)
-    return VerifiableServerContext(suite, contextString, skS, pkS), pkS
+    return VerifiableServerContext(suite, contextString, skS, pkS)
 
 def SetupVerifiableClient(suite, pkS):
     contextString = I2OSP(mode_verifiable, 1) + I2OSP(suite.identifier, 2)
@@ -418,10 +418,10 @@ ciphersuite_p256_sha256_sswu_ro = 0x0003
 ciphersuite_p384_sha512_sswu_ro = 0x0004
 ciphersuite_p521_sha512_sswu_ro = 0x0005
 
-oprf_ciphersuites = {
+oprf_ciphersuites = [
     Ciphersuite("P256-SHA256-SSWU-RO", ciphersuite_p256_sha256_sswu_ro, GroupP256(), hashlib.sha256),
     Ciphersuite("P384-SHA512-SSWU-RO", ciphersuite_p384_sha512_sswu_ro, GroupP384(), hashlib.sha512),
     Ciphersuite("P521-SHA512-SSWU-RO", ciphersuite_p521_sha512_sswu_ro, GroupP521(), hashlib.sha512),
     Ciphersuite("ristretto255-SHA512-R255MAP-RO", ciphersuite_ristretto255_sha512_r255map_ro, GroupRistretto255(), hashlib.sha256),
     Ciphersuite("decaf448-SHA512-R255MAP-RO", ciphersuite_decaf448_sha512_d448map_ro, GroupDecaf448(), hashlib.sha512),
-}
+]
