@@ -957,7 +957,7 @@ instantiations of the following functionalities:
 - `GG`: A prime-order group exposing the API detailed in {{pog}}, with base
   point defined in the corresponding reference for each group.
 - `Hash`: A cryptographic hash function that is indifferentiable from a
-  Random Oracle.
+  Random Oracle, whose output length is Nh bytes long.
 
 This section specifies supported VOPRF group and hash function
 instantiations. For each group, we specify the HashToGroup, HashToScalar,
