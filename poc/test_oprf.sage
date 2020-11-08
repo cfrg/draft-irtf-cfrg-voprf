@@ -143,11 +143,11 @@ def main(path="vectors"):
             f.write("\n")
             for mode in allVectors[suite]:
                 if mode == str(mode_base):
-                    f.write("### Base\n")
+                    f.write("### Base Mode\n")
                     f.write("\n")
                     write_base_vector(f, allVectors[suite][mode])
                 else:
-                    f.write("### Verifiable\n")
+                    f.write("### Verifiable Mode\n")
                     f.write("\n")
                     write_verifiable_vector(f, allVectors[suite][mode])
 
