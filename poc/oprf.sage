@@ -95,7 +95,7 @@ class ServerContext(object):
         return (digest == expected_digest)
 
 class Verifiable(object):
-    def compute_composites(self, pkSm, evaluate_input, evaluate_output):
+    def compute_composites_inner(self, skS, pkSm, evaluate_input, evaluate_output):
         seedDST = _as_bytes("VOPRF05-seed-") + self.contextString
         hash_input = I2OSP(len(pkSm), 2) + pkSm \
             + I2OSP(len(evaluate_input), 2) + evaluate_input \
@@ -112,18 +112,22 @@ class Verifiable(object):
         Mi = self.suite.group.deserialize(evaluate_input)
         M = (di * Mi) + M
 
-        if isinstance(self, VerifiableClientContext):
+        if skS == None:
             Zi = self.suite.group.deserialize(evaluate_output)
             Z = (di * Zi) + Z
-        elif isinstance(self, VerifiableServerContext):
-            Z = self.skS * M
         else:
-            raise "not a client nor a server"
+            Z = self.skS * M
 
         Mm = self.suite.group.serialize(M)
         Zm = self.suite.group.serialize(Z)
 
         return [Mm, Zm]
+
+    def compute_composites_fast(self, skS, pkSm, evaluate_input, evaluate_output):
+        return self.compute_composites_inner(self.skS, pkSm, evaluate_input, evaluate_output)
+
+    def compute_composites(self, pkSm, evaluate_input, evaluate_output):
+        return self.compute_composites_inner(None, pkSm, evaluate_input, evaluate_output)
 
 class VerifiableClientContext(ClientContext,Verifiable):
     def __init__(self, suite, contextString, pkS):
@@ -179,7 +183,7 @@ class VerifiableServerContext(ServerContext,Verifiable):
         G = self.suite.group.generator()
         pkSm = self.suite.group.serialize(self.pkS)
 
-        a = self.compute_composites(pkSm, evaluate_input, evaluate_output)
+        a = self.compute_composites_fast(self.skS, pkSm, evaluate_input, evaluate_output)
         M = self.suite.group.deserialize(a[0])
 
         r = ZZ(self.suite.group.random_scalar())
