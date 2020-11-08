@@ -397,18 +397,18 @@ runs to compute `output = F(skS, input)` as follows:
 ~~~
    Client(pkS, input, info)                 Server(skS, pkS)
   ----------------------------------------------------------
-    token, blindToken = Blind(input)
+    token, blindedElement = Blind(input)
 
-                         blindToken
+                       blindedElement
                         ---------->
 
-                         evaluation = Evaluate(skS, pkS, blindToken)
+                           eval = Evaluate(skS, pkS, blindedElement)
 
-                         evaluation
+                           eval
                         <----------
 
-    issuedToken = Unblind(pkS, token, blindToken, evaluation)
-    output = Finalize(input, issuedToken, info)
+    unblindedElement = Unblind(pkS, token, blindedElement, eval)
+    output = Finalize(input, unblindedElement, info)
 ~~~
 
 In `Blind` the client generates a token and blinding data. The server
