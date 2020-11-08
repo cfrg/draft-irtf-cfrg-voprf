@@ -52,7 +52,7 @@ class Protocol(object):
             vector = {}
             vector["Blind"] = hex(r)
             vector["BlindedElement"] = to_hex(group.serialize(R))
-            vector["EvaluatedElement"] = to_hex(group.serialize(T.evaluated_element))
+            vector["EvaluationElement"] = to_hex(group.serialize(T.evaluated_element))
             vector["UnblindedElement"] = to_hex(group.serialize(Z))
 
             if self.mode == mode_verifiable:
@@ -100,7 +100,7 @@ def write_base_vector(fh, vector):
         write_value(fh, "Input", v["Input"])
         write_value(fh, "Blind", v["Blind"])
         write_value(fh, "BlindedElement", v["BlindedElement"])
-        write_value(fh, "EvaluatedElement", v["EvaluatedElement"])
+        write_value(fh, "EvaluationElement", v["EvaluationElement"])
         write_value(fh, "UnblindedElement", v["UnblindedElement"])
         write_value(fh, "Info", v["Info"])
         write_value(fh, "Output", v["Output"])
@@ -116,7 +116,7 @@ def write_verifiable_vector(fh, vector):
         write_value(fh, "Input", v["Input"])
         write_value(fh, "Blind", v["Blind"])
         write_value(fh, "BlindedElement", v["BlindedElement"])
-        write_value(fh, "EvaluatedElement", v["EvaluatedElement"])
+        write_value(fh, "EvaluationElement", v["EvaluationElement"])
         write_value(fh, "UnblindedElement", v["UnblindedElement"])
         write_value(fh, "EvaluationProofC", v["EvaluationProof"]["c"])
         write_value(fh, "EvaluationProofS", v["EvaluationProof"]["s"])
