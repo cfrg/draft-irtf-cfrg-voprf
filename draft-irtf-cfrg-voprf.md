@@ -1271,7 +1271,6 @@ Input:
 
 Output:
 
-  Scalar blind
   Element blindedGenerator
   Element blindedPublicKey
 
@@ -1280,7 +1279,7 @@ def Preprocess(pkS):
   blindedGenerator = ScalarBaseMult(blind)
   blindedPublicKey = blind * pkS
 
-  return blind, blindedGenerator, blindedPublicKey
+  return blindedGenerator, blindedPublicKey
 ~~~
 
 ## AdditiveBlind
