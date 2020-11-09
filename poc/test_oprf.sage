@@ -21,7 +21,7 @@ def to_hex(octet_string):
 
 class Protocol(object):
     def __init__(self, suite, mode):
-        self.inputs = [b'\x00', b'\x5A'*17, b'\xFF'*23]
+        self.inputs = [b'\x00', b'\x5A'*17]
         self.suite = suite
         self.mode = mode
         skS, pkS = KeyGen(suite)
@@ -41,29 +41,29 @@ class Protocol(object):
 
         vectors = []
         for x in self.inputs:
-            info = "some_info".encode("utf-8") + x
-            r, R, P = client.blind(x)
-            T = server.evaluate(R)
-            Z = client.unblind(T, r, R)
-            y = client.finalize(x, Z, info)
+            info = "some_info".encode("utf-8")
+            blind, blinded_element = client.blind(x)
+            evaluated_element, proof = server.evaluate(blinded_element)
+            unblinded_element = client.unblind(blind, evaluated_element, blinded_element, proof)
+            output = client.finalize(x, unblinded_element, info)
 
-            assert(server.verify_finalize(x, info, y))
+            assert(server.verify_finalize(x, info, output))
 
             vector = {}
-            vector["Blind"] = hex(r)
-            vector["BlindedElement"] = to_hex(group.serialize(R))
-            vector["EvaluationElement"] = to_hex(group.serialize(T.evaluated_element))
-            vector["UnblindedElement"] = to_hex(group.serialize(Z))
+            vector["Blind"] = hex(blind)
+            vector["BlindedElement"] = to_hex(blinded_element)
+            vector["EvaluationElement"] = to_hex(evaluated_element)
+            vector["UnblindedElement"] = to_hex(unblinded_element)
 
             if self.mode == mode_verifiable:
                 vector["EvaluationProof"] = {
-                    "c": hex(T.proof[0]),
-                    "s": hex(T.proof[1]),
+                    "c": hex(proof[0]),
+                    "s": hex(proof[1]),
                 }
 
             vector["Input"] = to_hex(x)
             vector["Info"] = to_hex(info)
-            vector["Output"] = to_hex(y)
+            vector["Output"] = to_hex(output)
 
             vectors.append(vector)
 

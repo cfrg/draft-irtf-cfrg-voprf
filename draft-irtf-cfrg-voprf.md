@@ -288,6 +288,16 @@ The following terms are used throughout this document.
 
 # Preliminaries
 
+The (V)OPRF protocol in this document has two primary dependencies:
+
+- `GG`: A prime-order group implementing the API described below in {{pog}},
+  with base point defined in the corresponding reference for each group.
+  (See {{ciphersuites}} for these base base points.)
+- `Hash`: A cryptographic hash function that is indifferentiable from a
+  Random Oracle, whose output length is Nh bytes long.
+
+{{ciphersuites}} specifies ciphersuites as combinations of `GG` and `Hash`.
+
 ## Prime-order group API {#pog}
 
 In this document, we assume the construction of an additive, prime-order
@@ -314,11 +324,16 @@ prime-order group.
 
 - Order(): Outputs the order of GG (i.e. `p`).
 - Identity(): Outputs the identity element of the group (i.e. `I`).
-- Serialize(A): A member function of `GG` that maps a group element `A`
-  to a unique byte array `buf`.
-- Deserialize(buf): A member function of `GG` that maps a byte array
+- SerializeElement(A): A member function of `GG` that maps a group element `A`
+  to a unique byte array `buf` of fixed length `Ne`.
+- DeserializeElement(buf): A member function of `GG` that maps a byte array
   `buf` to a group element `A`, or fails if the input is not a valid
   byte representation of an element.
+- SerializeScalar(s): A member function of `GG` that maps a scalar element `s`
+  to a unique byte array `buf` of fixed length `Ns`.
+- DeserializeScalar(buf): A member function of `GG` that maps a byte array
+  `buf` to a scalar `s`, or fails if the input is not a valid byte
+  representation of a scalar.
 - HashToGroup(x): A member function of `GG` that deterministically maps
   an array of bytes `x` to an element of `GG`. The map must ensure that,
   for any adversary receiving `R = HashToGroup(x)`, it is
@@ -397,17 +412,17 @@ runs to compute `output = F(skS, input)` as follows:
 ~~~
    Client(pkS, input, info)                 Server(skS, pkS)
   ----------------------------------------------------------
-    token, blindedElement = Blind(input)
+    blind, blindedElement = Blind(input)
 
                        blindedElement
                         ---------->
 
-                           eval = Evaluate(skS, pkS, blindedElement)
+                  evaluatedElement, proof = Evaluate(skS, pkS, blindedElement)
 
-                           eval
+                  evaluatedElement, proof
                         <----------
 
-    unblindedElement = Unblind(pkS, token, blindedElement, eval)
+    unblindedElement = Unblind(blind, evaluatedElement, blindedElement, pkS, proof)
     output = Finalize(input, unblindedElement, info)
 ~~~
 
@@ -464,69 +479,29 @@ Each setup function takes a ciphersuite from the list defined in
 {{ciphersuites}}. Each ciphersuite has a two-byte field ID used to
 identify the suite.
 
-## Data Structures {#structs}
+## Protocol Types {#structs}
 
 The following is a list of data structures that are defined for
 providing inputs and outputs for each of the context interfaces defined
-in {{api}}. Each data structure description uses TLS notation
-(see {{?RFC8446}}, Section 3).
+in {{api}}. Data structure description uses TLS notation (see {{?RFC8446}},
+Section 3).
 
-The following types are a list of aliases that are used throughout the
-protocol.
-
-A `ClientInput` is a byte array.
-
-~~~
-opaque ClientInput<1..2^16-1>;
-~~~
-
-A `SerializedElement` is also a byte array, representing the unique
-serialization of an `Element`.
+This document uses the types `Element` and `Scalar` to denote elements of the
+group `GG` and its underlying scalar field `GF(p)`, respectively. For notational
+clarity, `PublicKey` is an item of type `Element` and `PrivateKey` is an item
+of type `Scalar`. `SerializedElement` and `SerializedScalar` are serialized
+representations of `Element` and `Scalar` types of length `Ne` and `Ns`,
+respectively; see {{pog}}. `ClientInput` is an opaque byte string of arbitrary
+length. `Proof` is a sequence of two `SerializedScalar` elements, as shown below.
 
 ~~~
-opaque SerializedElement<1..2^16-1>;
-~~~
-
-A `Token` is an object created by a client when constructing a (V)OPRF
-protocol input. It is stored so that it can be used after receiving the
-server response.
-
-~~~
-struct {
-  opaque data<1..2^16-1>;
-  Scalar blind<1..2^16-1>;
-} Token;
-~~~
-
-An `Evaluation` is the type output by the `Evaluate` algorithm. The
-member `proof` is added only in verifiable contexts.
-
-~~~
-struct {
-  SerializedElement element;
-  Scalar proof<0...2^16-1>; /* only for modeVerifiable */
-} Evaluation;
-~~~
-
-Evaluations may also be combined in batches with a constant-size proof,
-producing a `BatchedEvaluation`. These carry a list of
-`SerializedElement` values and proof. These evaluation types are only
-useful in verifiable contexts which carry proofs.
-
-~~~
-struct {
-  SerializedElement elements<1..2^16-1>;
-  Scalar proof<0...2^16-1>; /* only for modeVerifiable */
-} BatchedEvaluation;
+SerializedScalar Proof[2];
 ~~~
 
 ## Context APIs {#api}
 
 In this section, we detail the APIs available on the client and server
-(V)OPRF contexts. This document uses the types `Element` and `Scalar` to
-denote elements of the group `GG` and its underlying scalar field `GF(p)`,
-respectively. For notational clarity, `PublicKey` is an item of type
-`Element` and `PrivateKey` is an item of type `Scalar`.
+(V)OPRF contexts.
 
 ### Server Context
 
@@ -554,16 +529,14 @@ Input:
 
 Output:
 
-  Evaluation eval
+  SerializedElement evaluatedElement
 
 def Evaluate(skS, blindedElement):
-  BT = GG.Deserialize(blindedElement)
-  Z = skS * BT
-  serializedElement = GG.Serialize(Z)
+  R = GG.DeserializeElement(blindedElement)
+  Z = skS * R
+  evaluatedElement = GG.SerializeElement(Z)
 
-  eval = Evaluation{ element: serializedElement }
-
-  return eval
+  return evaluatedElement
 ~~~
 
 #### FullEvaluate
@@ -582,7 +555,7 @@ Output:
 def FullEvaluate(skS, input, info):
   P = GG.HashToGroup(input)
   T = skS * P
-  issuedToken = GG.serialize(T)
+  issuedToken = GG.SerializeElement(T)
 
   finalizeDST = "VOPRF05-Finalize-" || self.contextString
   hashInput = I2OSP(len(input), 2) || input ||
@@ -592,6 +565,8 @@ def FullEvaluate(skS, input, info):
 
   return Hash(hashInput)
 ~~~
+
+[[RFC editor: please change "VOPRF05" to "RFCXXXX", where XXXX is the final number, here and elsewhere before publication.]]
 
 #### VerifyFinalize
 
@@ -609,9 +584,9 @@ Output:
 
 def VerifyFinalize(skS, input, info, output):
   T = GG.HashToGroup(input)
-  element = GG.Serialize(T)
+  element = GG.SerializeElement(T)
   issuedElement = Evaluate(skS, [element])
-  E = GG.Serialize(issuedElement)
+  E = GG.SerializeElement(issuedElement)
 
   finalizeDST = "VOPRF05-Finalize-" || self.contextString
   hashInput = I2OSP(len(input), 2) || input ||
@@ -644,17 +619,17 @@ Input:
 
 Output:
 
-  Evaluation eval
+  SerializedElement evaluatedElement
+  Proof proof
 
 def Evaluate(skS, pkS, blindedElement):
-  BT = GG.Deserialize(blindedElement)
+  BT = GG.DeserializeElement(blindedElement)
   Z = skS * BT
-  evaluatedElement = GG.Serialize(Z)
+  evaluatedElement = GG.SerializeElement(Z)
 
   proof = GenerateProof(skS, pkS, blindedElement, evaluatedElement)
-  eval = Evaluation{ element: evaluatedElement, proof: proof }
 
-  return eval
+  return evaluatedElement, proof
 ~~~
 
 The helper functions `GenerateProof` and `ComputeComposites` are defined
@@ -672,7 +647,7 @@ Input:
 
 Output:
 
-  Scalar proof[2]
+  Proof proof
 
 def GenerateProof(skS, pkS, blindedElement, evaluatedElement)
   blindedElementList = [blindedElement]
@@ -680,13 +655,14 @@ def GenerateProof(skS, pkS, blindedElement, evaluatedElement)
 
   a = ComputeCompositesFast(skS, pkS, blindedElementList, evaluatedElementList)
 
-  M = GG.Deserialize(a[0])
+  M = GG.DeserializeElement(a[0])
   r = GG.RandomScalar()
-  a2 = GG.Serialize(ScalarBaseMult(r))
-  a3 = GG.Serialize(r * M)
+  a2 = GG.SerializeElement(ScalarBaseMult(r))
+  a3 = GG.SerializeElement(r * M)
 
+  pkSm = GG.SerializeElement(pkS)
   challengeDST = "VOPRF05-challenge-" || self.contextString
-  h2Input = I2OSP(len(pkS), 2) || pkS ||
+  h2Input = I2OSP(len(pkSm), 2) || pkSm ||
             I2OSP(len(a[0]), 2) || a[0] ||
             I2OSP(len(a[1]), 2) || a[1] ||
             I2OSP(len(a2), 2) || a2 ||
@@ -695,8 +671,9 @@ def GenerateProof(skS, pkS, blindedElement, evaluatedElement)
 
   c = GG.HashToScalar(h2Input)
   s = (r - c * skS) mod p
+  proof = [GG.SerializeScalar(c), GG.SerializeScalar(s)]
 
-  return [c, s]
+  return proof
 ~~~
 
 ##### Batching inputs
@@ -732,7 +709,7 @@ Output:
   SerializedElement composites[2]
 
 def ComputeComposites(pkS, blindedElements, evaluatedElements):
-  pkSm = GG.Serialize(pkS)
+  pkSm = GG.SerializeElement(pkS)
   seedDST = "VOPRF05-seed-" || self.contextString
   compositeDST = "VOPRF05-composite-" || self.contextString
   h1Input = I2OSP(len(pkSm), 2) || pkSm ||
@@ -747,12 +724,12 @@ def ComputeComposites(pkS, blindedElements, evaluatedElements):
     h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
               I2OSP(len(compositeDST), 2) || compositeDST
     di = GG.HashToScalar(h2Input)
-    Mi = GG.Deserialize(blindedElements[i])
+    Mi = GG.DeserializeElement(blindedElements[i])
     M = di * Mi + M
-    Zi = GG.Deserialize(evaluatedElements[i])
+    Zi = GG.DeserializeElement(evaluatedElements[i])
     Z = di * Zi + Z
 
- return [GG.Serialize(M), GG.Serialize(Z)]
+ return [GG.SerializeElement(M), GG.SerializeElement(Z)]
 ~~~
 
 If the private key is known, as is the case for the server, this function
@@ -771,7 +748,7 @@ Output:
   SerializedElement composites[2]
 
 def ComputeCompositesFast(skS, pkS, blindedElements, evaluatedElements):
-  pkSm = GG.Serialize(pkS)
+  pkSm = GG.SerializeElement(pkS)
   seedDST = "VOPRF05-seed-" || self.contextString
   compositeDST = "VOPRF05-composite-" || self.contextString
   h1Input = I2OSP(len(pkSm), 2) || pkSm ||
@@ -785,12 +762,12 @@ def ComputeCompositesFast(skS, pkS, blindedElements, evaluatedElements):
     h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
               I2OSP(len(compositeDST), 2) || compositeDST
     di = GG.HashToScalar(h2Input)
-    Mi = GG.Deserialize(blindedElements[i])
+    Mi = GG.DeserializeElement(blindedElements[i])
     M = di * Mi + M
 
   Z = skS * M
 
- return [GG.Serialize(M), GG.Serialize(Z)]
+ return [GG.SerializeElement(M), GG.SerializeElement(Z)]
 ~~~
 
 ### Client Context
@@ -812,17 +789,15 @@ Input:
 
 Output:
 
-  Token token
+  Scalar blind
   SerializedElement blindedElement
 
 def Blind(input):
-  r = GG.RandomScalar()
+  blind = GG.RandomScalar()
   P = GG.HashToGroup(input)
-  blindedElement = GG.Serialize(r * P)
+  blindedElement = GG.SerializeElement(blind * P)
 
-  token = Token{ data: input, blind: r }
-
-  return (token, blindedElement)
+  return blind, blindedElement
 ~~~
 
 #### Unblind
@@ -830,19 +805,17 @@ def Blind(input):
 ~~~
 Input:
 
-  Token token
-  Evaluation eval
+  Scalar blind
+  SerializedElement evaluatedElement
 
 Output:
 
   SerializedElement unblindedElement
 
-def Unblind(token, eval):
-  r = token.blind
-  Z = GG.Deserialize(eval.element)
-  N = (r^(-1)) * Z
-
-  unblindedElement = GG.Serialize(N)
+def Unblind(blind, evaluatedElement, ...):
+  Z = GG.DeserializeElement(evaluatedElement)
+  N = (blind^(-1)) * Z
+  unblindedElement = GG.SerializeElement(N)
 
   return unblindedElement
 ~~~
@@ -852,7 +825,7 @@ def Unblind(token, eval):
 ~~~
 Input:
 
-  Token token
+  ClientInput input
   SerializedElement unblindedElement
   opaque info<1..2^16-1>
 
@@ -860,9 +833,9 @@ Output:
 
   opaque output[Nh]
 
-def Finalize(token, unblindedElement, info):
+def Finalize(input, unblindedElement, info):
   finalizeDST = "VOPRF05-Finalize-" || self.contextString
-  hashInput = I2OSP(len(token.data), 2) || token.data ||
+  hashInput = I2OSP(len(input), 2) || input ||
               I2OSP(len(unblindedElement), 2) || unblindedElement ||
               I2OSP(len(info), 2) || info ||
               I2OSP(len(finalizeDST), 2) || finalizeDST
@@ -887,24 +860,27 @@ Input:
 
   PublicKey pkS
   SerializedElement blindedElement
-  Evaluation eval
+  SerializedElement evaluatedElement
+  Proof proof
 
 Output:
 
   boolean verified
 
-def VerifyProof(pkS, blindedElement, eval):
+def VerifyProof(pkS, blindedElement, evaluatedElement, proof):
   blindedElementList = [blindedElement]
-  evaluatedElementList = [eval.element]
+  evaluatedElementList = [evaluatedElement]
 
   a = ComputeComposites(pkS, blindedElementList, evaluatedElementList)
+  c = GG.DeserializeScalar(proof[0])
+  s = GG.DeserializeScalar(proof[1])
 
-  M = GG.Deserialize(a[0])
-  Z = GG.Deserialize(a[1])
-  A' = (ScalarBaseMult(eval.proof[1]) + eval.proof[0] * pkS)
-  B' = (eval.proof[1] * M + eval.proof[0] * Z)
-  a2 = GG.Serialize(A')
-  a3 = GG.Serialize(B')
+  M = GG.DeserializeElement(a[0])
+  Z = GG.DeserializeElement(a[1])
+  A' = (ScalarBaseMult(s) + c * pkS)
+  B' = (s * M + c * Z)
+  a2 = GG.SerializeElement(A')
+  a3 = GG.SerializeElement(B')
 
   challengeDST = "VOPRF05-challenge-" || self.contextString
   h2Input = I2OSP(len(pkS), 2) || pkS ||
@@ -914,9 +890,9 @@ def VerifyProof(pkS, blindedElement, eval):
             I2OSP(len(a3), 2) || a3 ||
             I2OSP(len(challengeDST), 2) || challengeDST
 
-  c  = GG.HashToScalar(h2Input)
+  expected_c  = GG.HashToScalar(h2Input)
 
-  return CT_EQUAL(c, eval.proof[0])
+  return CT_EQUAL(expected_c, c)
 ~~~
 
 #### Unblind
@@ -924,24 +900,23 @@ def VerifyProof(pkS, blindedElement, eval):
 ~~~
 Input:
 
-  PublicKey pkS
-  Token token
+  Scalar blind
+  SerializedElement evaluatedElement
   SerializedElement blindedElement
-  Evaluation eval
+  PublicKey pkS
+  Scalar proof
 
 Output:
 
   SerializedElement unblindedElement
 
-def Unblind(pkS, token, blindedElement, eval):
-  if VerifyProof(pkS, blindedElement, eval) == false:
+def Unblind(blind, evaluatedElement, blindedElement, pkS, proof):
+  if VerifyProof(pkS, blindedElement, evaluatedElement, proof) == false:
     ABORT()
 
-  r = token.blind
-  Z = GG.Deserialize(eval.element)
-  N = (r^(-1)) * Z
-
-  unblindedElement = GG.Serialize(N)
+  Z = GG.DeserializeElement(evaluatedElement)
+  N = (blind^(-1)) * Z
+  unblindedElement = GG.SerializeElement(N)
 
   return unblindedElement
 ~~~
@@ -1273,24 +1248,17 @@ values `r * G` (where `r` is the scalar value that is used), then
 computing `H(x) + (r * G)` is more efficient than computing `r * H(x)`.
 Therefore, it may be advantageous to define the OPRF and VOPRF protocols
 using additive (rather than multiplicative) blinding. In fact,
-the only algorithms that need to change are Blind and Unblind (and
+the only algorithms that need to change are `Blind` and `Unblind` (and
 similarly for the VOPRF variants).
 
 We define the variants of the algorithms in {{api}} for performing
-additive blinding below, along with a new algorithm `Preprocess`. The
-`Preprocess` algorithm can take place offline and before the rest of the
-OPRF protocol. The Blind algorithm takes the preprocessed values as
-inputs, but the signature of Unblind remains the same.
+additive blinding below, called `AdditiveBlind` and `AdditiveUnblind`,
+along with a new algorithm `Preprocess`. The `Preprocess` algorithm can
+take place offline and before the rest of the OPRF protocol. `AdditiveBlind`
+takes the preprocessed values as inputs. `AdditiveUnblind` takes the
+preprocessed values and evaluated element from the server as inputs.
 
 ## Preprocess
-
-~~~
-struct {
-  Scalar blind;
-  SerializedElement blindedGenerator;
-  SerializedElement blindedPublicKey;
-} PreprocessedBlind;
-~~~
 
 ~~~
 Input:
@@ -1299,86 +1267,72 @@ Input:
 
 Output:
 
-  PreprocessedBlind preproc
+  Scalar blind
+  Element blindedGenerator
+  Element blindedPublicKey
 
 def Preprocess(pkS):
-  PK = GG.Deserialize(pkS)
-  r = GG.RandomScalar()
-  blindedGenerator = GG.Serialize(ScalarBaseMult(r))
-  blindedPublicKey = GG.Serialize(r * PK)
+  blind = GG.RandomScalar()
+  blindedGenerator = ScalarBaseMult(r)
+  blindedPublicKey = blind * pkS
 
-  preproc = PreprocessedBlind{
-    blind: r,
-    blindedGenerator: blindedGenerator,
-    blindedPublicKey: blindedPublicKey,
-  }
-
-  return preproc
+  return blind, blindedGenerator, blindedPublicKey
 ~~~
 
-## Blind
+## AdditiveBlind
 
 ~~~
 Input:
 
   ClientInput input
-  PreprocessedBlind preproc
+  Element blindedGenerator
+  Element blindedPublicKey
 
 Output:
 
-  Token token
   SerializedElement blindedElement
 
-def Blind(input, preproc):
-  Q = GG.Deserialize(preproc.blindedGenerator)
+def AdditiveBlind(input, blindedGenerator, blindedPublicKey):
   P = GG.HashToGroup(input)
+  blindedElement = GG.SerializeElement(P + blindedGenerator) /* P + ScalarBaseMult(r) */
 
-  token = Token{
-    data: input,
-    blind: preproc.blindedPublicKey
-  }
-  blindedElement = GG.Serialize(P + Q)        /* P + ScalarBaseMult(r) */
-
-  return (token, blindedElement)
+  return blindedPublicKey, blindedElement
 ~~~
 
-## Unblind
+## AdditiveUnblind
 
 ~~~
 Input:
 
-  Token token
-  SerializedElement blindedElement
-  Evaluation eval
+  Element blindedPublicKey
+  SerializedElement evaluatedElement
 
 Output:
 
  SerializedElement unblindedElement
 
-def Unblind(token, blindedElement, eval):
-  PKR = GG.Deserialize(token.blind)
-  Z = GG.Deserialize(eval.element)
-  N := Z - PKR
+def AdditiveUnblind(blindedPublicKey, evaluatedElement):
+  Z = GG.DeserializeElement(evaluatedElement)
+  N := Z - blindedPublicKey
 
-  unblindedElement = GG.Serialize(N)
+  unblindedElement = GG.SerializeElement(N)
 
   return unblindedElement
 ~~~
 
-Let `P = GG.HashToGroup(input)`. Notice that Unblind computes:
+Let `P = GG.HashToGroup(input)`. Notice that AdditiveUnblind computes:
 
 ~~~
-Z - PKR = k * (P + r * G) - r * pkS
-        = k * P + k * (r * G) - r * (k * G)
-        = k * P
+Z - blindedPublicKey = k * (P + r * G) - r * pkS
+                     = k * P + k * (r * G) - r * (k * G)
+                     = k * P
 ~~~
 
 by the commutativity of the scalar field. This is the same
 output as in the `Unblind` algorithm for multiplicative blinding.
 
-Note that the verifiable variant of `Unblind` works as above but
-includes the step to `VerifyProof`, as specified in
-{{verifiable-client}}.
+Note that the verifiable variant of `AdditiveUnblind` works as above but
+includes the step to `VerifyProof`, as specified in {{verifiable-client}}.
 
 ### Parameter Commitments
 
