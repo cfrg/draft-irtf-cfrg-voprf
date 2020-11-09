@@ -1277,7 +1277,7 @@ Output:
 
 def Preprocess(pkS):
   blind = GG.RandomScalar()
-  blindedGenerator = ScalarBaseMult(r)
+  blindedGenerator = ScalarBaseMult(blind)
   blindedPublicKey = blind * pkS
 
   return blind, blindedGenerator, blindedPublicKey
