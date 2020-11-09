@@ -403,7 +403,7 @@ The following one-byte values distinguish between these two modes:
 | modeBase       | 0x00  |
 | modeVerifiable | 0x01  |
 
-## Overview
+## Overview {#protocol-overview}
 
 Both participants agree on the mode and a choice of ciphersuite that is
 used before the protocol exchange. Once established, the core protocol
@@ -802,6 +802,10 @@ def Blind(input):
 
 #### Unblind
 
+In this mode, `Unblind` takes only two inputs. The additional inputs indicated
+in {{protocol-overview}} are only omitted as they are ignored. These additional
+inputs are only useful for the verifiable mode, described in {{verifiable-unblind}}.
+
 ~~~
 Input:
 
@@ -895,7 +899,7 @@ def VerifyProof(pkS, blindedElement, evaluatedElement, proof):
   return CT_EQUAL(expected_c, c)
 ~~~
 
-#### Unblind
+#### Unblind {#verifiable-unblind}
 
 ~~~
 Input:
