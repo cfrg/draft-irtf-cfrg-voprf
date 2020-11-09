@@ -479,7 +479,7 @@ Each setup function takes a ciphersuite from the list defined in
 {{ciphersuites}}. Each ciphersuite has a two-byte field ID used to
 identify the suite.
 
-## Protocol Types {#structs}
+## Data Types {#structs}
 
 The following is a list of data structures that are defined for
 providing inputs and outputs for each of the context interfaces defined
