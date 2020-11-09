@@ -555,11 +555,11 @@ Output:
 def FullEvaluate(skS, input, info):
   P = GG.HashToGroup(input)
   T = skS * P
-  issuedToken = GG.SerializeElement(T)
+  issuedElement = GG.SerializeElement(T)
 
   finalizeDST = "VOPRF05-Finalize-" || self.contextString
   hashInput = I2OSP(len(input), 2) || input ||
-              I2OSP(len(issuedToken), 2) || issuedToken ||
+              I2OSP(len(issuedElement), 2) || issuedElement ||
               I2OSP(len(info), 2) || info ||
               I2OSP(len(finalizeDST), 2) || finalizeDST
 
@@ -682,8 +682,8 @@ Unlike other functions, `ComputeComposites` takes lists of inputs,
 rather than a single input. Applications can take advantage of this
 functionality by invoking `GenerateProof` on batches of inputs to
 produce a combined, constant-size proof. (In the pseudocode above,
-the single inputs `blindToken` and `element` are passed as one-item
-lists to `ComputeComposites`.)
+the single inputs `blindedElement` and `evaluatedElement` are passed as
+one-item lists to `ComputeComposites`.)
 
 ##### Fresh randomness
 
