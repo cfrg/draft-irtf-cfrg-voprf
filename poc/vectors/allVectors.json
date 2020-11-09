@@ -1,657 +1,317 @@
-[
-  {
-    "hash": "sha256",
-    "mode": 0,
-    "skS": "0x1c767891e5465e4f1362d237521104338cde6717e26a25a5770da7ad85c704c6",
-    "suite": "P256-SHA256-SSWU-RO",
-    "vectors": [
-      {
-        "Blind": {
-          "BlindedElement": "0x031355a0e0f1f455bb1151e7849ecd14d859263adadf580d4eec8d58da3d95b6a1",
-          "Token": "0xa83790351ccba927343e624eb17989aea751f3f6adf0328fddd53b7529c7bfc2"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666f00",
+{
+  "OPRF(P-256, SHA-256)": {
+    "0": {
+      "hash": "SHA256",
+      "mode": 0,
+      "skS": "0x60bc62e56ff37c6581f2fc4caa02d0c319008799af0a9a144063ec25a2359d5a",
+      "suite": "OPRF(P-256, SHA-256)",
+      "vectors": [
+        {
+          "Blind": "0x4139483eea7a9eea77c69cf278b54b606155a520b6b285f63244a7720e3e13da",
+          "BlindedElement": "0x0357ad3856fbf91b6a5e4ca40f947e954ea11b54d63dfd04cd3ac635eb04a42d5e",
+          "EvaluationElement": "0x02997ae7d215b685d71ede8b714c6f44a9ae542542429dd6dc757889df8d6683f8",
+          "Info": "0x736f6d655f696e666f",
           "Input": "0x00",
-          "Output": "0xd7be70fb6fb48cc28ea7995d3e9c41a22137f5dd43e597dc3124b8fd46d72fd6"
+          "Output": "0x2d045fe28a01aac47603429cc299ba942d2178ce835d441b18864842ed70bf49",
+          "UnblindedElement": "0x0280e859fec74b58b2395df939124f707a32c30bc74483d01a816932a410fbbd10"
         },
-        "Evaluation": {
-          "EvaluatedElement": "0x03d006d5bf325cf246808df7a28b5b53cd202fa6c7c98753a4e945ee3812d525b0"
-        },
-        "Unblind": {
-          "IssuedToken": "0x0273176b1e78e8146f9afd593fceb1f62af4a66537ac7c38991f278452393d3f7c"
-        }
-      },
-      {
-        "Blind": {
-          "BlindedElement": "0x0388ea6a3599a9c73b6fc46fa6b51fd135df8c02e74ada2688f0ab5efdd46a80e7",
-          "Token": "0x5f29bf062b0116a48941a76d08b3af2366cc6ee4237b306d3153fc6b2095d85e"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666f5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+        {
+          "Blind": "0xc672df059de9473a310eac1ec425a4d26da4096a158435c1637b37f920e0973a",
+          "BlindedElement": "0x03259bb3502d3d072fad5306c5969c7b9df6f69a176d3e82b0873e0019fe3c21c2",
+          "EvaluationElement": "0x03eafda7dfa0cf87b9d3ced2da834acb6023123c90ca80a839221c948a0a856b31",
+          "Info": "0x736f6d655f696e666f",
           "Input": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
-          "Output": "0x03446577bf309ee28f29f727136c6157ed92518113bc623ba3e264d225fed82d"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0x038a7a1172aff6ff3dd58d0c22d5ceaefc32aa24a4680ef24cbaddeaafbcd4db4c"
-        },
-        "Unblind": {
-          "IssuedToken": "0x02a158f28052072312953f89f445dd0cc31dca6a18d590727a6ef043fe0648634f"
+          "Output": "0x1a4734127482466f3c259cd4b21f2e414ace9360afaaaa5c848b62513a650948",
+          "UnblindedElement": "0x022228611ae2dce976339c94cf2f43d997dbd957ef938e284661f9413cfd704c50"
         }
-      },
-      {
-        "Blind": {
-          "BlindedElement": "0x023a3dedae3ba7b0d2a04e6c03b574d7cce06c0df9ddf4ed8196b0e37d523e13a0",
-          "Token": "0xd2ef9e2054b9704fc88b0487bb2a63b4f8ba4e8436387474b9236415399c24ac"
+      ]
+    },
+    "1": {
+      "hash": "SHA256",
+      "mode": 1,
+      "pkS": "0x029229acd897a9574df03f83f8d0e9ab1508780181d11f76de4b7fd8f5afa9d1e3",
+      "skS": "0x50095b231b227acb849f55b8cb003ed7b77da8bc6050114b35e95e4a658ed5e2",
+      "suite": "OPRF(P-256, SHA-256)",
+      "vectors": [
+        {
+          "Blind": "0x5fd6bca1cc98ead4b590ef189459b62ba67d1b0154e9ab86130ef1033f55aba1",
+          "BlindedElement": "0x02a988eae89889e14b108b79bf7bfd66e0b37d6618d9426d2fe436cea2a392ccf0",
+          "EvaluationElement": "0x02c4308c7a0c217bf0bba0317de49574517d92c1f83c9493098a580af02b2a4d4e",
+          "EvaluationProof": {
+            "c": "0x70d330e604faf49b2ecb0221bed7971b76b301d57cba3030de61ee007332dabc",
+            "s": "0x4507a43e79cebc6a9fa43b8e605306f52ba65fcacaacc797b14fdeb3cb748a7"
+          },
+          "Info": "0x736f6d655f696e666f",
+          "Input": "0x00",
+          "Output": "0xe30d2937978046f11d8aaa1c92b839c25fec8a59ab5402b79330c5ee96101078",
+          "UnblindedElement": "0x0395323189b27ace62e9aa67241bedd06bdb42cbf608757ea07bd0226975a6ae9b"
         },
-        "Client": {
-          "Info": "0x736f6d655f696e666fffffffffffffffffffffffffffffffffffffffffffffff",
-          "Input": "0xffffffffffffffffffffffffffffffffffffffffffffff",
-          "Output": "0x8a1df978540b6caae9687d18cc14c03f6cbe01c201c54756ed54f2631bdfac01"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0x03608f5ad65761d4921ee7b50c2412e4cd9ec66de5bd0aa67922cbdaec4e6d2f3c"
-        },
-        "Unblind": {
-          "IssuedToken": "0x03c5f663a23a5aeba30f4ca344a8ba66177291c2410a84887e6b285673b925d5f0"
+        {
+          "Blind": "0xd109200faf9f3ed91580252aacabffab14c28a79fa6ace8c0eb8821ebc93e0e3",
+          "BlindedElement": "0x024a27e57ebd89421415ca7412146c86dd2ed6b16f2ca15887c355e803e4afc367",
+          "EvaluationElement": "0x039cac47588fcd25b1eba321b15e04b71721e5dd936853b1fcb4cdf740b86b15b3",
+          "EvaluationProof": {
+            "c": "0xd3e3dd32f419115e7739e8790dd64dbac526d697a64ada88c5fe7887329594c6",
+            "s": "0xc082ee06162c2d8f89c14ceb1a8c4c6bd3247f62c4e2f25b26c8dfba5b81410c"
+          },
+          "Info": "0x736f6d655f696e666f",
+          "Input": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+          "Output": "0x19520ef989669213ee2bc88de8f5eb72476d2cfa14681073a3afdf8e894a4b50",
+          "UnblindedElement": "0x02b97b6d484d441a7b4320d1989733818df2e4c24054b7a863e1a3971957e41a7e"
         }
-      }
-    ]
+      ]
+    }
   },
-  {
-    "hash": "sha256",
-    "mode": 1,
-    "pkS": "0x03bf0c2b4dcfc7cd36621f90497f23035d7c62e61bf791ffd132b0b943eff320ce",
-    "skS": "0x98923eb7cc6e3e825c12530a483e467d11e9ee8bc62924d892d5cc9da8e1ef20",
-    "suite": "P256-SHA256-SSWU-RO",
-    "vectors": [
-      {
-        "Blind": {
-          "BlindedElement": "0x02851bf43fb4121e6d6ec78cf01e2d2ad42c2a096014e5d48242b69ec74781a869",
-          "Token": "0x19a93718638d51e7645a0ec1e9afdfaa431e0627b7ac461f5dd0b1b6fe6683ed"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666f00",
+  "OPRF(P-384, SHA-512)": {
+    "0": {
+      "hash": "SHA512",
+      "mode": 0,
+      "skS": "0x7d338f1671b5fcbd5d9e7f6efd3093c32ecceabd57fb03cf760c926d2a7bfa265babf29ec98af0cfab51fd7202017f04",
+      "suite": "OPRF(P-384, SHA-512)",
+      "vectors": [
+        {
+          "Blind": "0xaa264a26c0e3d42fb773b3173ba76f9588c9b14779bd8d90825155ab61f17605af2ae2e935c78d857c9407bcd45128d6",
+          "BlindedElement": "0x0205cb08167f7dd5170766176bca7ef0b1ad7263c0b57cffaec92114a96a2432c5b2ecc2b16eb8dc6dab7900d3638e3bbe",
+          "EvaluationElement": "0x0340efa748b9a9f65ee8ed5490c1b280f4307de101899d52781a4e25b31f98c95ed8a1fd58e87467c89d67ac2b81c20599",
+          "Info": "0x736f6d655f696e666f",
           "Input": "0x00",
-          "Output": "0x5527e36c666a92ff060bc9a2dce21d0ab3db2650fd7824b30396db32a2ca2bea"
+          "Output": "0xed62736163e49f3f55ba6cb775181cf0b3d7a07e7c2e29d83501c397c7e00fba80394dec95097f36b97b5937580283a28455fb2aa8a320621188e3026b01ba06",
+          "UnblindedElement": "0x03b0cf8a62a34ffd0336b4c9fa2b7220623479b046d858f0f39be1743c4713a2c111605af7a8633a404e11f631540bfff3"
         },
-        "Evaluation": {
-          "EvaluatedElement": "0x02520243bbbac2655f9717e1926df2c9c6acd0ad1017c59ca262616105cc1154ea",
-          "proof": {
-            "c": "0xdb8280c011d27f9162a17ae003f44f813bc3bc764c622981eea9b98968a8f946",
-            "s": "0x13e9e3494ba6cbbc5e3c1452a2f760068bc1e9941baf1c703c04a0a83e9c2698"
-          }
-        },
-        "Unblind": {
-          "IssuedToken": "0x02de214bd5ed63e7257ec4be5dc25147b05bd9708a9c9bc6c608a94469a7bc3f25"
-        }
-      },
-      {
-        "Blind": {
-          "BlindedElement": "0x02bd51c782a10beb14bcddcd86c442de677fd11feb96493abba621eef7012d98b7",
-          "Token": "0x3f3d86c3e0e019c1c5e47d3b1743cf3b333d8459e92f1fa45c1a19c8421ac689"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666f5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+        {
+          "Blind": "0xd0b7db3d2b4597a670a5204b2b606f5a28328916e1e5ea5a17862d7a261fdd6d959759758d5e34abcee64d86fd20ab4d",
+          "BlindedElement": "0x024e071675ca92b9ac4599300a9adf75e7181048b6976ddbee8839017f3c338babd11d155f8063029be8c9ee29de7f8690",
+          "EvaluationElement": "0x036c12b503d6b41bf091cb18239142c7022a9f87def4bc9419f14eb92a06002969c4cfdd407b19f297c33f07f89dc5cbe6",
+          "Info": "0x736f6d655f696e666f",
           "Input": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
-          "Output": "0xf9ac8e3e6d8fa99c1d796be4ce4dd453ded38ad790535c63997315dde9b76924"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0x03924a12eaaf90b570c6dd9f9d62c649dc3a545c37e86fa790dda0102a47349071",
-          "proof": {
-            "c": "0x76bd4261df3d32f217d7d818930407d84e65d7316a089e052318848049bc6446",
-            "s": "0xe551cc327ceffa7f54c294c824218e2d2fdb23f60ee012c639dd6c3a374de773"
-          }
-        },
-        "Unblind": {
-          "IssuedToken": "0x034b7536edebace3da58c6461bd035b2986c3b55e6f1dc64ec89d29b8e96abc864"
+          "Output": "0x770dd2e3c19721eb327757099abaa2d7850c1f7fd2c518a683fe7acb67ae3aa4cf312de4e3aca1f6a6e3d5bb4edd593621c8b42e084edfd768479ff034d9a26b",
+          "UnblindedElement": "0x03e19e065997f507040f96eaebe4fa3928009f5438ad231483ae3d75733443c2d45f11f8c1eb423c77bec157d13763c6d4"
         }
-      },
-      {
-        "Blind": {
-          "BlindedElement": "0x028be2151761e72513f986aca1c5687f154b1cfa52b902337b13146f7cf43e5910",
-          "Token": "0x59518b657d3f019ddf427d1950cbf23edd454f187bbd19256cf2d550fd06ae74"
+      ]
+    },
+    "1": {
+      "hash": "SHA512",
+      "mode": 1,
+      "pkS": "0x022a448ce78e089cd76160451272b32c68dc162b5e20622cb81e5529930a50100c3cad3db88b97700acb574a7535fdc6b4",
+      "skS": "0x242b4cd534a79bacfc2e715b2db1e7a3ad4ff8af1b24daa1922d13757ac9df4adc7e4e0b6b39943267b5bcebad6393e3",
+      "suite": "OPRF(P-384, SHA-512)",
+      "vectors": [
+        {
+          "Blind": "0x626a939e19daca653b9217801b5d51cef66d9fdbd94a53533e7c5057e09e220065ea8c257c0dd6055c4b401063eff0c0",
+          "BlindedElement": "0x03f71e54bd200c4830d0d45b91317546156d75ce9b8f27051d74140dcad6565a1fd74443c4f0c1c030a401744bd97ba129",
+          "EvaluationElement": "0x02dea9103c0d721b30634d5189bc2b3c6eb327fa9c522b1408bc388995242cdaa93ca175f194eff81eaaa163e2fa9c36bb",
+          "EvaluationProof": {
+            "c": "0xa1fc1d5b237bc1538a099390964016a94d05cb08c9cc6f41be400b84827f467d16ac82dfbf5954067c55ec6bada1f999",
+            "s": "0xcb99f1705f0ad655951da09b44233d366771c4840b5ea6feaeaf4a0551f647daeb5da4e97b8f18e8ff6649048c080960"
+          },
+          "Info": "0x736f6d655f696e666f",
+          "Input": "0x00",
+          "Output": "0x9d69a2a63ca08149fef763554bd4b07a36795b9e1abf9ea4051185b5b3731836f2c3b8dd0232f1b2356e1d5257bde0fead29ed518374a8035f94152cdd7e295d",
+          "UnblindedElement": "0x033f0100eb4724abf46f6df7fb398590b1bdaa3ddd405414e39043ccc5119a980b51bc3eb82fe2b70b51b943801cc192f9"
         },
-        "Client": {
-          "Info": "0x736f6d655f696e666fffffffffffffffffffffffffffffffffffffffffffffff",
-          "Input": "0xffffffffffffffffffffffffffffffffffffffffffffff",
-          "Output": "0xd5534881515f8bf276c8ded5cf3564a9db1e8815e6dcc38d47170ae643081959"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0x0384e5f12fb505e29badae1f36f0722e53efddda659814e1a385f87afee994f9b2",
-          "proof": {
-            "c": "0x6eadb1ad145ee3b9ddc48ce70da87aa881d9901b0a338aa8664c211ecdcbca34",
-            "s": "0xa013bc41bd8401d1b8e0d1ee0b25715ae43fe01d550bc5b80876cadecb316370"
-          }
-        },
-        "Unblind": {
-          "IssuedToken": "0x031ceee5f048cab858a3a81217b02eddc9b45bca6c1c46d73a342ee77ad2de2343"
+        {
+          "Blind": "0x2e3431bcc25f80b409c533dd21924d77bcbd10873989b7e58306b863276ae74049615162a416d507a6532c99c1ea3f04",
+          "BlindedElement": "0x02956f21bf51c974b4c494b91862a935f2bbd3d2046976c33fed32f83b0b927cbfb075996c20dfd438ee9d7e3128aa3e4b",
+          "EvaluationElement": "0x02a2ec71a4e21caec122621effa30292c1006c6614b806bd92d10a59b5407d4ec2fe4ecb3865a32c256bf545b9efcd85d0",
+          "EvaluationProof": {
+            "c": "0x9fac7e4b7609d08808b600fd0e55310728b269a213bd37055f2ebd37194802a44be1735ddeb2d2acdb6819f396db6e54",
+            "s": "0xeed172acb00edfe626ad4cc8a51cf140172803cb6d8def8e974942d5b6991ed2dd79fe4948db9a198382f2ec67bd32e6"
+          },
+          "Info": "0x736f6d655f696e666f",
+          "Input": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+          "Output": "0xfa0969aa275e936a531a633ea3d18940bc008b8126fea3551f60ebe143d2930ae16be1b3ceb5a2a3e594770ea4dc082ec52b5ff33a2645bef7bc992a1e67ded7",
+          "UnblindedElement": "0x03d809aba1ea387c3bb000eee9bb2c4d6d0a42050e639e2aab08c3653637386bdedd352ef91e3f90c3d28753bcabcb1004"
         }
-      }
-    ]
+      ]
+    }
   },
-  {
-    "hash": "sha512",
-    "mode": 0,
-    "skS": "0xba55be738921ac19f934c9916d2e3c527eaf00310a7fd2a0cb9f3a195cbdfe78b1e1b08905452c6decee5f79773e5180",
-    "suite": "P384-SHA512-SSWU-RO",
-    "vectors": [
-      {
-        "Blind": {
-          "BlindedElement": "0x02b5aec877ff77408a8eb2668cefd28b39c8fa0b08e4ddd0e5f396eab726ab6bad6f8ea776036089ee1040cae446a88f70",
-          "Token": "0x46736c42376170a98651af33ac718e4c44f8220586a8e4ee92157925c3aef5396174f54bbdafdd3bcfd4a06041237b0e"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666f00",
+  "OPRF(P-521, SHA-512)": {
+    "0": {
+      "hash": "SHA512",
+      "mode": 0,
+      "skS": "0x1aab4a6308f8b09589e4283efb9cd1ee4061c6bf884e60a877321ece4f9b6ffd01ce82082545413bd9bb5e8f3c63b86ae88d9ce0530b01cb1c23382c7ec9bdd6e76",
+      "suite": "OPRF(P-521, SHA-512)",
+      "vectors": [
+        {
+          "Blind": "0x121c0ffaa7a1e1d1ced3c477fea691e696032c8709c86cbcda2b184ad0029d29abeabede9788d11782429bff296102f6338df84c9602bfa9e7d690b1f7a173d07e7",
+          "BlindedElement": "0x020109acd11a4e5f6f884165e8b4be6ecf11b42a4fda7de1f5a5f108dfb6f2cc46a8a85ee5e0d1497fae11e9c5ed06b78430fbaa9a2401101ca115c8fc59c0c455565d",
+          "EvaluationElement": "0x030048685d781e050407895ae6d68d14f3c5b905eb51e73261907f04460099f9f6ec90c36060d761ebe45ecae7083355b3d0b961f04ab11790745ec336f16837b667e2",
+          "Info": "0x736f6d655f696e666f",
           "Input": "0x00",
-          "Output": "0x4af2473d8c308ecdaaffb23445d975255042098f8e8ca6a055c37559aecea1e3a3ab4f6434676d74b43e39995f94ed9d8e6cefffb6e460ff7041db9081df4ef9"
+          "Output": "0x991301a4201ab98d0f53b640861b35e60c7bf6f50541b3252ea5bc3105fe67a8558866a5d29a2af859097a37dc5475009ba317477c45b850b7269010122d9705",
+          "UnblindedElement": "0x0200a8ab6153e2e5dc23ab7af3e99225a7a82dbefdc4dbabf861bf85aa255ce5d3d23df59bc93246eb455b508980ce9bbcdd24fc5824d976fd0a4f324262da2d44a3f3"
         },
-        "Evaluation": {
-          "EvaluatedElement": "0x03462a7b8c2a9d205a3bd5cf7ca88071efb805ed774bf2e0377283a92485127f77d550cd263aec12e034de4caa55b0921e"
-        },
-        "Unblind": {
-          "IssuedToken": "0x0246abeeef2aeedcd473ad5ec5088990bc1cff8286a08071d87cbd9725e0f3ca6ab55b32c2013cc29dd9253e5d67577fbb"
-        }
-      },
-      {
-        "Blind": {
-          "BlindedElement": "0x0374178d41b95911cbd4bb1a138ed210899f4a581e50591d6d4383f04f6612fd0f54b8b5dd75192dd3e980f1943eb809c5",
-          "Token": "0x7099ee55b43d6b3d9473f5183433b3eaed8bc3e0f19f3828ac0dda46ffefed869b3573a28845a1cdc8156dda1cb42c82"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666f5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+        {
+          "Blind": "0x1ec3e3869237f74106241777f230582e849076f08753056c186437ded8ee22f96e44bd5b6ec07cb131d51cf1324c123869859b596174a682828f3934d510217ce79",
+          "BlindedElement": "0x0300e94854724cec7891186b41f394b8a7caea3e88f5bd2d2cdbdd42a52f3d8e72da74f9a2eca57b6988756eb6f50b34af5ae7a40742d9eaf363922def739cda01c96f",
+          "EvaluationElement": "0x03005983900a78a7883c86099feacfef9c5001fa289634ffc3ab6b72c420fdbc378bcbfcf2bc2aa43041b7564c8fb92a7baa577ad4b7eb9b4e18bdc2e0633b1301f64f",
+          "Info": "0x736f6d655f696e666f",
           "Input": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
-          "Output": "0xc2b43703092b52c61a87fa037c52c64369ec441fb6ffdf73278a6e25eae14149decf73c5ded0967cc26817d63e51edd327ab0c09185392d53132edce0c86138e"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0x02e552bc32e5ed0e9ee0f412e5577b69f618b2057a5ef70c853040f57abd60f5814df257740ae79623604db13db413575d"
-        },
-        "Unblind": {
-          "IssuedToken": "0x03ab433878f23bf73c7414ab8d21e7a2447bc4a9636ee77638bbd6ccd25982bc593122959179648e9f5dc19cd8f8ce8739"
+          "Output": "0x2d1abe4741582fe6e33d2bb0f97b4ac4db858c571f738a54f97bfd60c6df61b159964c8e0ab4b7deb163dc95ac76a7303006a0b5de942fa6fb7de34e336145ac",
+          "UnblindedElement": "0x0201fe3ed2a14f6a7dbc0c56e707f1bf1820d2ac599b3051326b21bc12118a8031d57489ffaf07665d191632b089b036e6584ddd89c6536c1ef2e92ddeb271c9490f38"
         }
-      },
-      {
-        "Blind": {
-          "BlindedElement": "0x0375c1d6001afcf57e2d09e33d61562ca8739ad5bdc08ac772678f27d0b0dc94c1f2bc83bdfdd796581fb85f3896378394",
-          "Token": "0x257f7ae8250bf7f992b0e07477e3d32487b2d637e712ef4ee28dc1da700bcb8aa24e01948190264065c6060ee1ed7968"
+      ]
+    },
+    "1": {
+      "hash": "SHA512",
+      "mode": 1,
+      "pkS": "0x030003e5ac399b2b3be612da9af2ebddc96c9aaef06d99f214071a01193dbd03cae197f07f6177e5ce0724f0e2231728af78ce77a49ece6e632fb2718d7c50a1d4ea04",
+      "skS": "0x1d8213ea2e374252f29a6e19915f81b0c7dcea93ce6580e089ede31c1b6b5b33494581b48678aec1d0c3d16afd032da7ba961449a56cec6fb918e932b06d5778ac8",
+      "suite": "OPRF(P-521, SHA-512)",
+      "vectors": [
+        {
+          "Blind": "0x1fc03bf1d9f39878b22e5c4833d34c486a8510e7cca4c1b81ece04f47e8d2554a5ebd83679b4c1e67ed82f2891751aa7094602be672c324929abb1876a7f7165ac8",
+          "BlindedElement": "0x0200e6b73acd79f6d4fdab0d5ba191de50b419c8e7b59a09258ecfc3ba1ec38113f5af76cd68ab0427c08aa9207f0b6f14871f2f1d3cde31843d749071c783d6316852",
+          "EvaluationElement": "0x02001e5ef351601eb4cb2a03900f44eafa2beefdb41273d158c5a5e7c90d0c401d0aa4cf1a21c5257618f8dcec8c54a5113af1c60e7eb6bb8eaa85113d47a6ab4da512",
+          "EvaluationProof": {
+            "c": "0x6aedb83f1864c2119b6cd99ec89b51184c65afe63292cd747f787266068a0e329d6c1c0307e3bfa4f7c2f5a5c00f3e4bff6f3d83a0af0629f15dbad79a194d323d",
+            "s": "0x30df040f6dafa541130800c5e00a69004bf2f9b14659c87d7599636649bddcc0b2cd28075f8896cdfd3979a0383abec8d1ad4e1584a978b599f8cb12cf1b1d1a30"
+          },
+          "Info": "0x736f6d655f696e666f",
+          "Input": "0x00",
+          "Output": "0x95fcbfc77c6f980ac33be8295c964f90963b2dacae92574e49232a9031e7b8cd76b739f7a981dfb6dcef653a208945ae7e75e6a478daaa7247f2e9aefdfc6d58",
+          "UnblindedElement": "0x0301ecd1ea47fc21bb8a9550e7f2655c63366157d4e358f8f602385eb8ba5b8bbe192b35fb0deabd290dce989459a0a3d68ac4954316c2112f2a992c44650ae383e218"
         },
-        "Client": {
-          "Info": "0x736f6d655f696e666fffffffffffffffffffffffffffffffffffffffffffffff",
-          "Input": "0xffffffffffffffffffffffffffffffffffffffffffffff",
-          "Output": "0x1186e0763d24481c20b93230d63d4a445c7e2e10988c01ef2c9d4abd1f6640d4c51917b520104763cf653e9f767460d3ba4a4fe0054b308c92be9f17b914c878"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0x03ed1bdc00a41026364f678ef3e474c5456c5771f910beabf35e9f1a1c35b79c5f127840f8cff44d3210bd867e8d5f384b"
-        },
-        "Unblind": {
-          "IssuedToken": "0x02b3a2ba51133ba2ab1d740ece5a73c0f8c86171ff388931d9cc9b0c66cad9e755d427c3a31682dfb0ae1d7b193bac92bf"
+        {
+          "Blind": "0x16ae149b0938b45f65717a40c38f671d326e196e8a21bf6cfd40327a95f1ccfc82a9f83a75dae86286729214a1ba9a359ab01833477b8cb91932d0c81667a0e3245",
+          "BlindedElement": "0x03011c755c7ba8eeb4d1348945048e2b73ef4a7fae77f5745bbd74407a200a8e3b83349fb985fd4231fbe9b1e0a669b760210cb4f688c2cabe8cd58a80207964efae8d",
+          "EvaluationElement": "0x030082727d17122b41f70906909e42eb6fe6d756aaa2dfb947a2af16dda6e87a1221cf641e5a83fe088df4ebb10f4a0a734c0fd8bcf3a6656b48df0799a0e5a3b9ca35",
+          "EvaluationProof": {
+            "c": "0x1c46f1353aa97fc3523ce2a8494cadd6f534351a7049df35ef50126ccf652989d2363d7472b9e93d410b3b53a65f6241035a4419e526dc3c088d2d2a57ec2bef13",
+            "s": "0x17c86c7841209cb0f5fbd32fe650149747fc06ef80ead8a46b65ac601828f6b15023d2b1f69970fd0eda423d002871a9b90d2b944d1a740ac246caf45ac2de68ebe"
+          },
+          "Info": "0x736f6d655f696e666f",
+          "Input": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+          "Output": "0x7a396ab19e031d3c5f8d04ab2b7dc1b97a0ffc857de2ef86c2069fa431167703a55b5f3753ab6e230247c9bc8a0116e16126c27db27184eabbf4f66b35a0e2ec",
+          "UnblindedElement": "0x0300e0e7f5a7de0d4ae88c693e9cd075428b5fe86b4bb2cffa875517ce6157edde4797fe8c2b8f3df61a8e417159247d99222bacfa9ef5354990f62afccf0cb371e804"
         }
-      }
-    ]
+      ]
+    }
   },
-  {
-    "hash": "sha512",
-    "mode": 1,
-    "pkS": "0x03a96283e9ea3516ba1310d5e2a844e359fa53d2462614538fdb333330ad73cc0f62c7fd05b2290d7137aaecd2f2c7ce16",
-    "skS": "0xf527714e9150ceeac5f8fcf0720308d07cdac06b8ed12948946f1eba55b2349a448bec98cc9ce2dc3992a8989882a0f3",
-    "suite": "P384-SHA512-SSWU-RO",
-    "vectors": [
-      {
-        "Blind": {
-          "BlindedElement": "0x02b5baa753aa57c82b146fe636dae880c4a658a603d7511f650f64af3c6d87fb06beec9e735adc79b502c44c21d3e06cf5",
-          "Token": "0xedf0d84fa4ffd1ad521e1982d0c95e3640d0c9b6d03ec2b88a359bd81a60509bbbbb68e65c633c6711c1c75c215f7277"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666f00",
+  "OPRF(decaf448, SHA-512)": {
+    "0": {
+      "hash": "SHA512",
+      "mode": 0,
+      "skS": "0x2b037691ffefed869b3573a28845a1cdc8156dda1cb42c8146736c42376170a98651af33ac718e4c44f8220586a8e4ee92157925c3aef53a",
+      "suite": "OPRF(decaf448, SHA-512)",
+      "vectors": [
+        {
+          "Blind": "0x21ecb58de712ef4ee28dc1da700bcb8aa24e01948190264065c6060ee1ed79677099ee55b43d6b3d9473f5183433b3eaed8bc3e0f19f3829",
+          "BlindedElement": "0xb2e1511c25f1eb56d169bc321f51b2bca2767ef0858af8392c6c14e54c8313892666d420967cb5ee8a7e3b82957b4b96fac905b029ece4f6",
+          "EvaluationElement": "0x0a3f5f287443492a6b9c9ed5b843c54ead402b5214b8d42b6f236911e8173f499357676a482fecf558bc48887a1eb87346066df56f2ab1ea",
+          "Info": "0x736f6d655f696e666f",
           "Input": "0x00",
-          "Output": "0xc513e9394934babe67c3e2f4e035703a267cce61a772c681f63898b894e570309db0484cf2f5a219081f6bd1fb5099a166b9958b6ef637f1eb324cc85e66fb59"
+          "Output": "0x8a37299c3e09bba95a9b21bd66dcc0370675738075cd422e176c5ec98b50c274bb42d79123329cc14e3305503acf6843a824e71b149ef1fd5ab19c33e1021022",
+          "UnblindedElement": "0x10a7d897fbc7003de40360cc54473cf1ff87ba310c467d3d7336a657b6c9aea3eccade967996e098387fb919e445e04f347b224b75ae6d71"
         },
-        "Evaluation": {
-          "EvaluatedElement": "0x038c9c1598e9eaff57d0fa00f5e532be00b026c7dd84f4c2c5a95e86fa6f4f80428299054ee581456f732131a4a68a1c17",
-          "proof": {
-            "c": "0x16d0fb40697f74df34f7ff984ab1f49c8a8ddbd9bbec4f8bc46a2337ca4352fdb9c46566f17df3feb4860ac6c3d7a527",
-            "s": "0x6fbadc7c657293b4ffe55496de7255ac64aeb752eb4ce5a578c1a113e9c7dc4bdbb1966bce0dcef18996efad78150fb7"
-          }
-        },
-        "Unblind": {
-          "IssuedToken": "0x02daf40de4f30a0d14a81a7774dca2d29c5c8cf7bc438a108acb5b4e1711bf2071c61ff3f039d2c1daf46ac5f03a815ffb"
-        }
-      },
-      {
-        "Blind": {
-          "BlindedElement": "0x02b5b4f44d7aa6a64e27e14e43e4c2a5e4c565dbb37b1fa22a563beadb2c8c20a80ec90db2318d9e05aecbdaddbd08196e",
-          "Token": "0xbd08ef503d18a67b0a52d73984dda94a864450bb45c3f128107ec2e1f2ecd4538c8ff1b2555a3f1a7d4d381f767bfa66"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666f5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+        {
+          "Blind": "0x317e3f3c720308d07cdac06b8ed12948946f1eba55b2349a448bec98cc9ce2dc3992a8989882a0f2257f7ae8250bf7f992b0e07477e3d325",
+          "BlindedElement": "0xae30473bb227b552413307553331022f682020de145e5f28fd8ec7d7d21913c87ec357703d84c087db1e0615f51ef9a9ec6fc5ea19c135e9",
+          "EvaluationElement": "0x6c70c7366cc2cbae26888fee18fc231faab844d571049562da0e951d527bc88eff90f492732ceecc856b28594f92b522291b74c262979778",
+          "Info": "0x736f6d655f696e666f",
           "Input": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
-          "Output": "0x4277d507abcca4617ac8af6f2d6800bf8f579434540bdb41fc9ab8fbc82a4d8d7f7e068837d77931d8fd670872d4c6c2f56112c1f877d7b63371322516a25b3f"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0x02f974cc73e9716c2988efd4d8ba76c57922f71b37de16783c019dda9b803503f9a35b58eb70a8531d1ecc1f3afc3a6f54",
-          "proof": {
-            "c": "0xa188039666291af96a1b7b1beb108b81f47de81ffaa986f018251cffdd94e94a9d550b5a8da944978e17f4d76d4cabd7",
-            "s": "0x1bdf1f5b624d514efd152d80bf981a6eab958e00811bd4b1cbb51bd3226b28d8ebaf2b6ba5bcae72281bd5150bc6c890"
-          }
-        },
-        "Unblind": {
-          "IssuedToken": "0x036cf2c3310c9daf536d1262c9c9dcfa49c54dfd1ff456381aba5144da62d1a3962173f977e2e8721be034f8cccee79db9"
+          "Output": "0xb92ab2e4e0df026d1f6bfffd1056029947cfe14b8594e165a5f58b298de696d6db274f7baee20eb44968f1f3a763b4cbd4844be59c614730752c7f2fae4be1fe",
+          "UnblindedElement": "0xc04c9b67c795e5587ef1afa03de64871ea1c1ea6ec3bf46e4b77f505bf49d664216dd0e28516865d9826c8642c7079f6ec38ba389199426f"
         }
-      },
-      {
-        "Blind": {
-          "BlindedElement": "0x023b4d196d3e2596bbf0863cd8655ae25fecc7d2e5c29635921a1aba17c06797ea43d6d5a0083d3ac50142bc4dcf2aa39d",
-          "Token": "0xad4f8d61d3eb4357b2a483be55992e2ee92317a26274bde189712cce3955d9f6329eea5c98a24d7ee5b56a88a373455f"
+      ]
+    },
+    "1": {
+      "hash": "SHA512",
+      "mode": 1,
+      "pkS": "0x0886cae30f40a3b55c2e26ac11619efca65e42059cc9b432740a48ab6ef57de5176cfb680fce37d71326efdbd6ffe6035fec3b39f9a9aaba",
+      "skS": "0x3b7c3613a4ffd1ad521e1982d0c95e3640d0c9b6d03ec2b88a359bd81a60509bbbbb68e65c633c6711c1c75c215f7276f527714e9150ceeb",
+      "suite": "OPRF(decaf448, SHA-512)",
+      "vectors": [
+        {
+          "Blind": "0x6d8a69db16d934b631f0582cea43441a161b28e01e4e165958be2a15be54ac701d4f3be1d776857bfaba18e6da8cc89f57dcfa306363717",
+          "BlindedElement": "0xd2af4f2f812ae745489936d9fbf513b8f3ef016df5b4f39f04ec2d45791db165184d3dd0081d41a33f480ca1a40d5a5c255cc88014eab050",
+          "EvaluationElement": "0xce6a5920609a20b6ef6c44529a62d0bd204ff57cf56a345c09672c649079ad29e04fd8d6afab2fde2dbb48c590ab8b442e5b3624df743be0",
+          "EvaluationProof": {
+            "c": "0x3f28ec28de4f6021a828d3e7065bf7fb07e0642202b66c76f012a11e138c0510972a77d8155da817dc3d78fac56b15290bd123011a670a93",
+            "s": "0x38bb8f8c82f0dc03382d22d7c69aeda67b52815fb4d534cef8aca3d7d5699ca472ba773ed3494bbd1e0b042b19e06a745e83015b4bb456bd"
+          },
+          "Info": "0x736f6d655f696e666f",
+          "Input": "0x00",
+          "Output": "0xbd1700b5aa744f7cbbd288def8da75ea731b3b13520d714decf3a2d0f8dca9a0f82b12f55e6a459dfe0aeb36d00744280e7aaa4607b361e42d0216a096b379cc",
+          "UnblindedElement": "0x3a455524e146fcad512e9642397ec98cb1ed3f9f6a1167b27328340bc2f7407436eed7d158fe0692e253a7220010bb10c214c0976bb175c6"
         },
-        "Client": {
-          "Info": "0x736f6d655f696e666fffffffffffffffffffffffffffffffffffffffffffffff",
-          "Input": "0xffffffffffffffffffffffffffffffffffffffffffffff",
-          "Output": "0x2681bb012be80985837af75923c7f379fa7d1271aad043c8b9baccefa99c704864ff4d3ecb0ee3ca3ea1ba6f53d38692fd54bbdbede7e1b63918aac741af0009"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0x02de671124f490b184e70056738e9b45e9ccb4f73c49eb4c209de419492c0d0deb1e0b2df2e682833a319a5bafd5f80ed9",
-          "proof": {
-            "c": "0x8a371f1d1b05bb33edc982f8ca72ba2c77f93394d6a40c47409e68d06d1e547886c9d1ae08ebc3b1b3d8cf50b0ddc517",
-            "s": "0x48d95e18951e357211dc01d242df42f2f5a017088cdf4d0c22621111b9882addda8993fa84a787defb0999d478da0df2"
-          }
-        },
-        "Unblind": {
-          "IssuedToken": "0x02b6c663cb132fd523904969319457ee30351e4db3924f03adbc5ddb1e06b103873f43c53c3b7bfb07d9ea2ccdf17ed781"
+        {
+          "Blind": "0x100bce5e5135b314b9a56c2dbcfa8db48c88e11a9b70ab7226e92d354d0a0d0702c5ca1fb743a013921efc828bcea630c81fb4ca9b4ed2e1",
+          "BlindedElement": "0x2eab6d99c2cb185fcfc46360637cfcf96156a5805daa25121208cc119f9fadf7253bbc84ca7318fc411127add548d1f0c6ab314fb9a17b5e",
+          "EvaluationElement": "0xf64ff2ae2af64e7667111caa92dfb7e0f3a87b2f46efddb7e5c81584da3241982e70179404719a0ce1c5ee3a3e63660e2afaca1a4d046a00",
+          "EvaluationProof": {
+            "c": "0x15352b9da860ac30cc79cb9659ad1b789c8220a6601dda70625df5df2c7f53c5151efe2febfd803a2c62a0c6379d4e36a923955d4b08ee88",
+            "s": "0x2fa2aa9f842b7d3cfcf8662fce6ca41c9ce559661189b9205aefaeb1b0fdf1117e6c470d2ece4da61f1a8b59da4e3b7d5307ccd25de2b303"
+          },
+          "Info": "0x736f6d655f696e666f",
+          "Input": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+          "Output": "0x31eccf7fbe0d5c91959da89764ddbf96cf00d68ebedf7806c7930cab14c587a61c5b5df9550f7452ecd1baf6c09a925e2e5fda5c9501b3573ffa135ad7832b53",
+          "UnblindedElement": "0x6055fb4dfb5789d577b9d873c24617a1bba0eed3010155f000ceefeb0bebee980e817cdacaef75b1866d0d36db0e4a3a105e0dfcc1c9ab37"
         }
-      }
-    ]
+      ]
+    }
   },
-  {
-    "hash": "sha512",
-    "mode": 0,
-    "skS": "0x196b77da8bc6050114b35e95e4a658ed5e1c672df059de9473a310eac1ec425a4d26da4096a158435c1637b37f920e097394139483eea7a9eea77c69cf278b54b61",
-    "suite": "P521-SHA512-SSWU-RO",
-    "vectors": [
-      {
-        "Blind": {
-          "BlindedElement": "0x030190eb18d0c9dce4a1498dec1129785af00b1e6069d50f18e4b7f51662aaaff43f01ffbdc830d8f3b7e075a3896bd4c81e0b9e7dcbdfd57398fe5e67c5cbf774c9d7",
-          "Token": "0x232b649ae6e64f799b9033ef7c1c6acf4b89f114a55fd6bca1cc98ead4b590ef189459b62ba67d1b0154e9ab86130ef1033f55aba050095b231b227acb849f55b9"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666f00",
+  "OPRF(ristretto255, SHA-256)": {
+    "0": {
+      "hash": "SHA256",
+      "mode": 0,
+      "skS": "0x38ecf12e5465e4f1362d237521104338cde6717e26a25a5770da7ad85c704c6",
+      "suite": "OPRF(ristretto255, SHA-256)",
+      "vectors": [
+        {
+          "Blind": "0xbe537e02b0116a48941a76d08b3af2366cc6ee4237b306d3153fc6b2095d85e",
+          "BlindedElement": "0xdcdfdc7560b0fb00809bbddc395eb740ec198e3a3d098c0741a077fa20fc8126",
+          "EvaluationElement": "0x9e066b349ff1f2e1eb82264f9777ce63fe3aea2e429e9449b89116fb1b85871d",
+          "Info": "0x736f6d655f696e666f",
           "Input": "0x00",
-          "Output": "0xeddd52813a83f7c041e0e790e6ef8531d7acc40c12ae87a806a007e9320cca308c9b0108098f55b6b64d217209139e0a1d7788b516b2d6b4cddbf4802b204b80"
+          "Output": "0xfcd3f3487ae992174f936ba7cbdca296720cd7696d6b96b9b88a3d075f585b24",
+          "UnblindedElement": "0xe81179b0fa0b03ab4f1d4e557233f17bd05d23f158d32552def49a0d38ea5249"
         },
-        "Evaluation": {
-          "EvaluatedElement": "0x0201fbd1eb7add25cc828e121ddbd0d9006cbb3eeb3d02da516d6b0e3e5e0f93512d1e82a9510d43ca9c03219383e68092b8024c46f825286385827b1ecf00de08ce95"
-        },
-        "Unblind": {
-          "IssuedToken": "0x020047d2196f2ba9952de97b430a52e37cab7e521a2e63b0040e34f4c751140d635d716f52e21f5cb915a70e5b8d9a1fcae467c262b48f8abc24a070cd30c09243705e"
-        }
-      },
-      {
-        "Blind": {
-          "BlindedElement": "0x0201983d2c0431bb7b659ad5d7587c3847f09f06112f6c4282d1ff1979429dbea11e88f2fa4abed0b288d8bd2dd38ae35bb5186ad6170709df47c12a84951d62e97177",
-          "Token": "0x15f1580252aacabffab14c28a79fa6ace8c0eb8821ebc93e0e2e4ef901e052ddd929ec7aae1c006b10a0be67dc26ce5073f12ed7ca74a79e71f47316a6bafffeb90"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666f5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+        {
+          "Blind": "0x33526e3638d51e7645a0ec1e9afdfaa431e0627b7ac461f5dd0b1b6fe6683ed",
+          "BlindedElement": "0xac4c298c2573f964b09687d964c031afdb34950d9ca03e9a8408d4555a6a6a56",
+          "EvaluationElement": "0x88cdb551ffe7267cd16219848c5796a8eb8eb3ed99fd7655883dd77ba6abbc30",
+          "Info": "0x736f6d655f696e666f",
           "Input": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
-          "Output": "0xccbb3f9270eb0bb1cc25178edc550e19b209062f29fbb2b5d7c92971f6f172893a217f8e7df0680c7750c5d254ef8488b7382bc35d78e4a20136ec0dacde1826"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0x02001c78e03ba9e0187c673030d3719e92946e681c397af48955dc6e006ffdbd3d55cd73f52be0ed956a28ef7c3ad707c4e74ab81d8879c9facabb7ef3fb61df516175"
-        },
-        "Unblind": {
-          "IssuedToken": "0x020139153be8bf1f2f17dfdba3603a55221facc450d44f400627c6de8f5d666a71f881ee0811f6c13a92d7fac2e0b73064f8b1f223006324a0e3722304260720435126"
+          "Output": "0xbad3249645bba257c2d379a44e8c4f953cd141c42de4daddf350e54e25c9d7c6",
+          "UnblindedElement": "0xde6e573e297427811dc787c6acf47bee2e7687c49a4745eb9353b5d139f7ff24"
         }
-      },
-      {
-        "Blind": {
-          "BlindedElement": "0x0201ddb21e8bcced8606a11235060cd8ccc4849bf1c8be32a8071af63783b7a0c001fae3bd129f5d14d46db198c8a21729e050b0b71c6eea6a808d54d5f7e6e19a8699",
-          "Token": "0xefa378c46175141eeb28db81bd6e67ffd9f8af813a48c2c5f724dc590126da289237c586eb5b730752ab3a8b65e5ec765ddfe0842b1e767d094676796cd1092010"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666fffffffffffffffffffffffffffffffffffffffffffffff",
-          "Input": "0xffffffffffffffffffffffffffffffffffffffffffffff",
-          "Output": "0x662df4a8e3615371edae988b84074fc6802c81663fba3c03978ed2a88a33903c24a6c5fae9bc4521e2066105d54570132d620458110b308e8428469b001e796a"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0x02014342f54097095eb22f26f7bc84bb240132dd8b619d780e187286a857cd20aa015f3b13552748b83f12944eb603cdaed81bbe51ab3e07906258de108f7dd0244bda"
-        },
-        "Unblind": {
-          "IssuedToken": "0x030015663725b923c3d9b2e22ebb0b2660fe7c8c49a82e1fd53373e0d380b146305dd10eafc05a3b45b07f932a3e11313b6963f5b9637fa22edc55d42e678515155999"
-        }
-      }
-    ]
-  },
-  {
-    "hash": "sha512",
-    "mode": 1,
-    "pkS": "0x030043805bf6760ed5b98d32a5287208d5549296067ed80cc88e9dd145925cee962d6a35a3bf2945c2d164cbca15737b8963e8f514d16d9faca52993979822b4d568c7",
-    "skS": "0xc3af2ae2e935c78d857c9407bcd45128d57d338f1671b5fcbd5d9e7f6efd3093c32ecceabd57fb03cf760c926d2a7bfa265babf29ec98af0cfab51fd7202017f04",
-    "suite": "P521-SHA512-SSWU-RO",
-    "vectors": [
-      {
-        "Blind": {
-          "BlindedElement": "0x0200e14f8b1da9601a0bf76dcd10ba5f809bd5534765b21bcf5b7f03c9d356ca782c9e687341e0239bb77ab23f448858bc1cfa5418e2a772a9b0b33e884c410b14dc00",
-          "Token": "0xe12b606f5a28328916e1e5ea5a17862d7a261fdd6d959759758d5e34abcee64d86fd20ab4caa264a26c0e3d42fb773b3173ba76f9588c9b14779bd8d90825155ac"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666f00",
+      ]
+    },
+    "1": {
+      "hash": "SHA256",
+      "mode": 1,
+      "pkS": "0xeee7a9c7fec3460c27c160c683d46a4fd18f537c055c3998748b8e4cd8f29b3e",
+      "skS": "0x91a688c1b83ecbc9dac5da9042f60bbda9f332fd6cdf828252920741dbd9c01",
+      "suite": "OPRF(ristretto255, SHA-256)",
+      "vectors": [
+        {
+          "Blind": "0x7e7b0d8e0e019c1c5e47d3b1743cf3b333d8459e92f1fa45c1a19c8421ac689",
+          "BlindedElement": "0x363a88fa387aaf53af32ca567d4eb2733eadba9e07625da8c9381a79c4f12732",
+          "EvaluationElement": "0xa486f94d1dc389c11a6bbd823a27d0717ba9fae15d0592f8941af967f7855c05",
+          "EvaluationProof": {
+            "c": "0x860fdbb81f9dff798c11d4f4c0e7ead7bff192e188eb70ab960e1d76025b819",
+            "s": "0xb345dd2a498cb5567c934c34585f153010a889ffe7099099c3a27c2aed188c7"
+          },
+          "Info": "0x736f6d655f696e666f",
           "Input": "0x00",
-          "Output": "0x8c66394e29cf627852d4baef40a8c08f33ed284f817c184cdd93b40501e0d420b6b6f2f38f3f8051da5324d0758151a0321064caa2f2efeecf62f943ad7bd0f6"
+          "Output": "0xe3b2cda5a9de7483575206fe7d448cef15fde20908432533e9c245b996ebea7d",
+          "UnblindedElement": "0x4cc7d5d2c6d477b1ca9ae8e5ffeae0b9cd6ca13154f40d41c7d81b42bb835063"
         },
-        "Evaluation": {
-          "EvaluatedElement": "0x030143eedda9902ffd71ff402e231b3b6cf94d0b07bc65a8241b97de60d0734f4db2c9f58fa34654815f922b7a44065fab4a466c44275c2245ac5f6115fb9a3a88fc4b",
-          "proof": {
-            "c": "0x1978f5c1f1b9aceeb3ff4453c6a98145077ad5b75b85497bd31478d640017aaebe4fc4b74ba9f8cdfe3cb772398d8705c164ca33e5cbcca8bad8f334ced7e14baf5",
-            "s": "0x81e6bc1faedb2ec284440f9576c2daee85a561054791b1ad0ccb50631be73f291a76f0cccbc737864b5a940d9d13c56057cff356549bf21bff8161e16aafc26ab9"
-          }
-        },
-        "Unblind": {
-          "IssuedToken": "0x03012179066ce3f9ebc7047cbf81892ca694bc41c3878723de0ae2cf2935c0f3971e1e0d492657341265d8b843d889939946335635946d099cea4dad1cd1effc6e24fe"
-        }
-      },
-      {
-        "Blind": {
-          "BlindedElement": "0x0200d97910412f3a7fec2f2379dcd4882f9ca9df470d323608c8de0c6e63d8591800b79d4781ee9c5432497d12bf4dfafed912c076dc8c29574ba86556a6d35aa5fdf9",
-          "Token": "0x183d05f6e78dc1edabd3b9631be9f8b274d9aaf671bfb6a775229bf435021b89c683259773bc686956af0c7822ba317fb5e86028c44b92bd3aedcf6744d388ca014"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666f5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+        {
+          "Blind": "0x9c97062a1b0a0229b0775217c99815e2036aff826a4044cb752ade92250668d",
+          "BlindedElement": "0x0ce022b05289134ef3cb723779bacc504004182e45c2d042f438a0eb61a9e03d",
+          "EvaluationElement": "0x568fbac4c4388dcd61a0180ba7951ce9fb2e57e1e48e502b91a303230b73e25f",
+          "EvaluationProof": {
+            "c": "0x5e55896d9f2efe987be984fb825ef88692593b3df5fe9f51e6bdf402a3af275",
+            "s": "0xc34caf446ee1ccda4223cc0d45a61de389516d53d5ce328367e0f2beccd50b0"
+          },
+          "Info": "0x736f6d655f696e666f",
           "Input": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
-          "Output": "0xa4547e1d748e7c48ca2aa056cd51d259e3b5784ead37f967fbc5f3ffc51a862f9df4daae4d0e1e66a672bfce2bbcf7338e5945b9b73f15194f3cb6be01697e1d"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0x02016cd93fb446559ec571d5a78b5431dfffe65d55038bea815b3968d829f3d1c36204b544333114aae45fa68819232a21d5371c666e6ea85f235e1c5fb3a6793d08ca",
-          "proof": {
-            "c": "0xda0ffbe11c71e0a05293d62e72b1de4801224c8383143287c41d26935f611932ba5f36286b36942a6d72a1e3d0ec1973aa53c7b05d6ddee6e304d9963f5a544ca",
-            "s": "0x10d893f6d8b9de277a9e521c3fca174a313ac6b8c036a6bc93f52e52de315a4ae003d41977e021d3f384c19ee167acb18bff4ed9cfaa9b52905b406acae9dececf3"
-          }
-        },
-        "Unblind": {
-          "IssuedToken": "0x02010cf25dac40c06c9f891384089aadbe8e50b602c4e0d757dbd5f2e484c4573fb4a34aadb9d8723c2c890da0a01f317a1721b30b3721a8607950aeae02718d2bcc88"
+          "Output": "0x2602885505d46a8c851f92357ca275b6c2833830638b7c3e2332981079ed8096",
+          "UnblindedElement": "0xfaf0133cf1a4f74a9943237d28af463d134d66bf15b82f9629aaab80b9410c2e"
         }
-      },
-      {
-        "Blind": {
-          "BlindedElement": "0x020111a9cb22479a01337408814d5696a82cb308a19dce87953259664c34b40cd67b7fd5f4c9916848c39dc5030009fe6f274b436842e38cf384ca10732063189a597e",
-          "Token": "0x1698b09589e4283efb9cd1ee4061c6bf884e60a877321ece4f9b6ffd01ce82082545413bd9bb5e8f3c63b86ae88d9ce0530b01cb1c23382c7ec9bdd6e75898e4878"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666fffffffffffffffffffffffffffffffffffffffffffffff",
-          "Input": "0xffffffffffffffffffffffffffffffffffffffffffffff",
-          "Output": "0x67641a410bddfa5f85ddd6f6630dbc4639f20102608847edde8e0b03e2391a296656cfb1f10ae44570782767594670a8ea75e87ff31aa14545304a1feb3f36c5"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0x02006646ae056cfac8ecb209c2d0056ac6c8c29068ff8471c3631ea28bcd2e20c0569a0f868fb151913eee165edd2d33a559d63243f584c09a41275882ae4a8d7a5fee",
-          "proof": {
-            "c": "0x28a4b4412edeeb39377b731ad4a5d2fb8510b6aeec5c5e892f9c1e1c6d65e48d20dab22855580b07c56ce65599b983952a9d7f70e8f93a53a6de69d84df7d05d5",
-            "s": "0x1480d5baf23a2e8564abb813ca0f35721a619465d72e9cdf814d9c05fd7da04a43e9c809bfaea8c3e97dec323e48d12f3b632e7ced9661a3d200d908ab4d3293a5b"
-          }
-        },
-        "Unblind": {
-          "IssuedToken": "0x0301546e121ef32b659994ac5b87afb89703b20e64b3b1e164a662483b352cff12480b66da9b040a9abae50cb6397734fb6d7c3deedb1d7022bebb87231cb0eaa9644e"
-        }
-      }
-    ]
-  },
-  {
-    "hash": "sha256",
-    "mode": 0,
-    "skS": "0xe84a5e5a6e19915f81b0c7dcea93ce6580e089ede31c1b6b5b33494581b4868",
-    "suite": "ristretto255-SHA512-R255MAP-RO",
-    "vectors": [
-      {
-        "Blind": {
-          "BlindedElement": "0x12dad0ff429b07ef0982ccf70aa321c92aa2507c57ce957514d3ec1f4c2eaf34",
-          "Token": "0x62ed50cc697b2c392aff2aeb77eb20c2ae6ba52fe31e13e03bf1d9f39878b23"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666f00",
-          "Input": "0x00",
-          "Output": "0x64bc348b61a0bb7185d674fe2abaa1d537327f04acec94752b72e0cd94a7f790"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0x363bf8a7a15cf9b7887729e46439808bfd05aed11ffc64a177d06ce152c92659"
-        },
-        "Unblind": {
-          "IssuedToken": "0x2451b5972758cd9cd8b5056a6b264c31bd2407e05b7412b2a32513e8bc764f56"
-        }
-      },
-      {
-        "Blind": {
-          "BlindedElement": "0x9a58a60db612861f418693b5e1a014e8f23d2bbb42c1a2dded3aa7c79205db0f",
-          "Token": "0xa22e2c5f1d28bb7402ca4aea6465e267b7f977a1fb71593281099ef2625644b"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666f5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
-          "Input": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
-          "Output": "0x638331c21dc9556f8f52a7706ee201e952df71ef16a989f8874c22f8c254e808"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0x0e1baf65eb1637e777a2cdf1f6fa373a79f74153e5087f67a2cc3774486d9118"
-        },
-        "Unblind": {
-          "IssuedToken": "0xf6a62bb8c413ee39ab7aed930a9fa796576b4ec8131775a3f4cda5f45a69b815"
-        }
-      },
-      {
-        "Blind": {
-          "BlindedElement": "0xda76887354a3d4c8ee2fb90d7bce9ecce2890031cf1d0c7624326325922de775",
-          "Token": "0xd993f59dc7ab251997738a3a232f352c2059c25684e6ccea420f8d0c793fa0"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666fffffffffffffffffffffffffffffffffffffffffffffff",
-          "Input": "0xffffffffffffffffffffffffffffffffffffffffffffff",
-          "Output": "0x9ae117e133e0c6e0417b47020198d2a7cfc74ce9014ed8c145e6c1d8c195a7e5"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0xa00c8c11c88842dc31fa1f07ff72069be6c2c005cdfd6d8c8c2a9686e833920c"
-        },
-        "Unblind": {
-          "IssuedToken": "0x62f59fb866dffff0f6bae740035039337d97ad82fa74df18fd5813edb98eaf7d"
-        }
-      }
-    ]
-  },
-  {
-    "hash": "sha256",
-    "mode": 1,
-    "pkS": "0x920391fa4ac5798763da4d1ff06777c0b66d567e6b0ae8c56684b843dd2a6166",
-    "skS": "0x37ed9fa0327a95f1ccfc82a9f83a75dae86286729214a1ba9a359ab01833478",
-    "suite": "ristretto255-SHA512-R255MAP-RO",
-    "vectors": [
-      {
-        "Blind": {
-          "BlindedElement": "0x42f34aabaf1040367609054594719936be611718d01b62e6d22311c7677e5e6c",
-          "Token": "0xa47dff1b014d9b8b53ad7b0e149b0938b45f65717a40c38f671d326e196e8a3"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666f00",
-          "Input": "0x00",
-          "Output": "0xe900b6183e7fde36691f6071114ce796a6ca7639e298dddc423136b24be3a0d9"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0x32a2ebefe630ca7e15cfee3caf1930d1b2ed12ad7f5dd21a71d8e3f4bf05733d",
-          "proof": {
-            "c": "0x8568a3c093185f7e31fc684ed230c90df1399da6b6fa9e4d27b0e6dfb44859b",
-            "s": "0xe869ec1b5353b0b8f146e9e52189cbb7eaa6d90f1509b287bea7bbe244aaeb2"
-          }
-        },
-        "Unblind": {
-          "IssuedToken": "0x4e85b25b8defe3c704d6e8d243f96bdfc93a957e485d2d6f101b97e570fa3677"
-        }
-      },
-      {
-        "Blind": {
-          "BlindedElement": "0x7c691c0c118b3ac80943f801ddd57e0125dabda1e51d1a7347f6d820386cb510",
-          "Token": "0x6e423c29f306fc904c2d4fe4cc69c0a15c1b9ee1e66339439e3925cf8ce21cf"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666f5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
-          "Input": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
-          "Output": "0x0a0feee4001f580c63f30c87bf59d8c53aecd57d3751b68aceb259c38508c20d"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0x78eccd7ce3187dab0cf4f93abb53642c901588aaadd43d0e7bc6d497fe033b0d",
-          "proof": {
-            "c": "0x514cd7f56c809404deb9bbd2681ff5b513558ffba578a8e994292c87814bf63",
-            "s": "0xf77aaf855f3c621c91367341d3cc914df07aa0c7f6815de9cb93df1a42ba40f"
-          }
-        },
-        "Unblind": {
-          "IssuedToken": "0xc6b513534c7f03bac5d74c14a01c7428bbf5108809b751c5e0a220cb087ac623"
-        }
-      },
-      {
-        "Blind": {
-          "BlindedElement": "0xd4043c79bd2c2437ad3cc273f7380ffb0b5a0a7c018fc79cc0163795f9506a3c",
-          "Token": "0x5d908a17904db87240b9dd47b1e487ec625f11a7ba2cc3de74c5078a81806f8"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666fffffffffffffffffffffffffffffffffffffffffffffff",
-          "Input": "0xffffffffffffffffffffffffffffffffffffffffffffff",
-          "Output": "0xa39ac9aadde35968e16a18448bd77b3c18bb98fbeb414a601d379f007f60ed97"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0x842bc7187d8a501418986e419b25fe851fafa595ea339125bb25a359c8224752",
-          "proof": {
-            "c": "0xe5d96f8499665cd81703d2e7914dae6a743270f576fb7381c3618a74bb6b247",
-            "s": "0xf3d059491a083ddf16421d7bef661fa9c791860ce9486904120df5af2e77664"
-          }
-        },
-        "Unblind": {
-          "IssuedToken": "0x7a4abdd332d18105cb593911060e6986ac694ffa838518375034b56f89ea796d"
-        }
-      }
-    ]
-  },
-  {
-    "hash": "sha512",
-    "mode": 0,
-    "skS": "0x3198a95bd2db95e1e7bf2dea02bd1fa76e953a630772f68b53baade9962d164565d8c0e3a1ba1a337759061965a423d9d3d6e1e1006dc899",
-    "suite": "decaf448-SHA512-R255MAP-RO",
-    "vectors": [
-      {
-        "Blind": {
-          "BlindedElement": "0x7e05f500256421cd53e379308f3a82ef6d2c98662c5b052d466b1de9076f3bc8a89e64c8a8e1e849544fc929f8b39fd2d806105368b20bcd",
-          "Token": "0x3b6cdc5d7432b68bbea293aa8a69353b023f4a0e6a39eef47b0d4ca4c64825ba085de242042b84d9ebe3b2e9de07678ff96713dfe16f40f3"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666f00",
-          "Input": "0x00",
-          "Output": "0x0f14408f07da424c288a43cb53caec9f7a1eab9544e1b30b3a88c2a108236210476a6376ec2610f46fa5083e3af7a095fbe0a6e94589af42a13d784d360eb1cc"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0x26c0d546ca35109cac9b4333e403b89bef82bc7b710358983ae033572c0fece7363817cb9a5197f5b5d12ef54cfc8aead3d1ff4d7eba3685"
-        },
-        "Unblind": {
-          "IssuedToken": "0xdaccf0295b4ea170ad9ad984701f6ed986ccbde2cfba731bc5694466c74d25462e87a19ddc699ff4423c6ef9fec09ed360bc90926b36f43e"
-        }
-      },
-      {
-        "Blind": {
-          "BlindedElement": "0x625baec9e8c0a25363f7278f9c835467d3f0c9febfdeeec1fdbd368fce46c82ae098e86038de61f11f48c395c46465c5492bc03bec7b8d66",
-          "Token": "0xf57196d5a1b8960563b3420d7764097502850c445ccd86e2d20d7e4ec77617a4238835743037876080d2e3e27bc3ce7b5fb6a1107ffedeb"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666f5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
-          "Input": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
-          "Output": "0x64cffae03c05b126cb07952c4933f2ed364661bbffcbb6cc70fa678b0acd95b8b1ba86dfed5c5f6f289c74b9aa5a4ac09552576c1eb8a6d957ca6eddc1fc3467"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0xdeeef30ca8db5686ac6c76340c3e00cc45f4ba3ef4d97ea26a9c0a477481b6cde92feb74c6a2cbbb8ff7a505d9938e0ba092087291f01841"
-        },
-        "Unblind": {
-          "IssuedToken": "0xdcd1d5ab5af8ea3d2f11a91ded2c8aaf3281be900b0a4e17d5152d125e5617464d2dcc6e3466e99fc04690b2a9e224a37eb50b536d273b11"
-        }
-      },
-      {
-        "Blind": {
-          "BlindedElement": "0xbc8ed737a4af0662a35e50b8090cac7094e06aec75530b57b78ebef4642ba7b99b6aed76c8b0d28f7704a0f900f0ea76ac25ce03a9276c4a",
-          "Token": "0x2b2d6add318e54223c759e9747f59c0d4ecbc087302667fabefa647b1766accb7c82a46aa3fc6caecbb9e935f0bfb00ea27eb2359bb3b4f0"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666fffffffffffffffffffffffffffffffffffffffffffffff",
-          "Input": "0xffffffffffffffffffffffffffffffffffffffffffffff",
-          "Output": "0x098b0ee41c73c66801663f95ffe07119865bc1ab7087d8dac78f867419e3f16272bd2752336d0dcf1ade3da6fdc8e1e7274931b22e0f1d5ab0efab20c6f91451"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0x3ef947a581ca169a2932c07500c39a91ccd431dd1d6174a6e4c13511c2924f60e1c4c06259c3f5469121415face3c5e7075d378db4c98b4c"
-        },
-        "Unblind": {
-          "IssuedToken": "0xae505f2c15b831b3f18880b3a9224fbe1a4f0d6a9acf768bd39678786ef15524f8f557342060819eae0724e81f8d8d7174e35ae62fe0b268"
-        }
-      }
-    ]
-  },
-  {
-    "hash": "sha512",
-    "mode": 1,
-    "pkS": "0xb8410e8e02e571a931a27ca71f03b3e80c0df6d60994dee1fecdf4f76f6a4cdf095b08eea9aa75875a120933bda16d04f851592f0d08c020",
-    "skS": "0x182719a4f28cd3d57ed77bf66e0ab7d86c6990f0fcd9a655f77ff0b2ebcfe21e1a1ca4a84361e9f1b18e24c9a40ed5eec262bf51dc970d64",
-    "suite": "decaf448-SHA512-R255MAP-RO",
-    "vectors": [
-      {
-        "Blind": {
-          "BlindedElement": "0x5a66882badbfc43f8356c3887c33deef0376becbc92c29553817b48713684540027e97944e5aff684cc33efa674a4d1c914c4be223a4a899",
-          "Token": "0x2b07be359d21a7c13f95c9b1334d8af16ae1e69f5adc24e5aa89ebb63637c835fd39b17a1a4453eb5d963d22a54f137dbe5f5eb4a34dcb74"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666f00",
-          "Input": "0x00",
-          "Output": "0x459427a99b4df970a786684e9c0d49a7a8c8a763a83e35c70a034ffaae20a0e94a82edecdbc8561d811624a0b837eed64cf990cdda50603fc1f0ee65db3951f7"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0x189cc3c1dd2a088c37da1cb5f3cc2d239fd68dbe6bd6b4ee554774f070f2dca82172616e62ea4604f0496683ce6b8e36905d1118abefb07a",
-          "proof": {
-            "c": "0x2d27ad4f74ed504ab0bff4f942e76f7be4ef498bbbcc2a31a28fec1bc7278a75678b5444f5faba42d09b5baf15bfc8812d86deef571a7b08",
-            "s": "0x352aaa725617ef5cdf7d323eedd7097cf66e65fce5d09083143c652bdc01469d69342cb0c3c1c48220b5e09a3e2675003cf95ef89a6bf051"
-          }
-        },
-        "Unblind": {
-          "IssuedToken": "0x7adfefed8b10445bc17dfb8f408c5d21eda55796cf56cfcfffe13f6a3e6f57c4cbf0f143c55b13cdf7bd4a8625d433e63ce9130eca89e3ca"
-        }
-      },
-      {
-        "Blind": {
-          "BlindedElement": "0xb43ccdd3ce2a5125fc1c7aeb8fe4cad237e02af5e1b9a6ce106862994506dea6e09bb01243bdec390872f65a7b16877446f6eb0cde8bb2e9",
-          "Token": "0x33698f7f3137c959747ec1d27852fce42d79fc710159f349e7da18455479e27473269d2926fec54d4567adabd7951ad51ea3741feab175ad"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666f5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
-          "Input": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
-          "Output": "0x2f88a8bc84a7bab30db1e9b6f75c92b785866ddebd375bf1f394ac8dc51f942bc1b0ba4b662b237ab0628812da7d1befc697be2275b69356e86e67f10bcfccc8"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0x1415c1355c6444ca7a79c08539150531dffa38911dc6364b5eae09486b434cdd24c599b28ffadd5e4c9432cdfa9919723b3d6e9eed7614b7",
-          "proof": {
-            "c": "0x29d32638c61da3fa19e50081b00e82066013ea280f7b5391396ec02886e40e3c00ff2251c35f396c0a588201b2dec793cfa380c7ebdab5cf",
-            "s": "0x16cf5ba777fc025c71b2f42ed725fc1efeb34fa1d852e54e07cfce00f610d242ef838b4afd2ad5054f7a7e0a2e6b12542ae9c84fee520343"
-          }
-        },
-        "Unblind": {
-          "IssuedToken": "0x2073435b366c99b2c1174de2739c02e39010130c2cd8cc207aa893e5b18ec755cade4b2144ebb8d7ea7fe4bfbcda795a63f355eae4dd3d9e"
-        }
-      },
-      {
-        "Blind": {
-          "BlindedElement": "0x8a7c135c2aa8d021a202d3e3cfbd9495986915d8596d820512a69d0badeb36936022879f48f616e45521d5c24464010cb2ca9168baa33fcb",
-          "Token": "0x273d19449653bf8e484c01c5f8516f98f3159b3fed13a409f5685928c72d9dab8ddfe45de734ce0d4ff5823d2e40c4fcf880e9a8272b46ef"
-        },
-        "Client": {
-          "Info": "0x736f6d655f696e666fffffffffffffffffffffffffffffffffffffffffffffff",
-          "Input": "0xffffffffffffffffffffffffffffffffffffffffffffff",
-          "Output": "0x350a79bf78652b32c3e71c0687634bf2345a6a6cdbe7f9c45cc409f50385646a962d12aab264990f6d604e049ece5681c46711fbd85e50a3b10886c3b60c43c6"
-        },
-        "Evaluation": {
-          "EvaluatedElement": "0xdc0bf6028a70ce0da17c9d537d0632aae6539afeac16867bdf467f451f2b6e2389e036cebd93509277633f79489d334cdce4af589b2d9508",
-          "proof": {
-            "c": "0x2ef3ebe064149d35bddc9a5660c6aa060514788b52e105acc88dcf3cc66d177225821c7c6fbcd093cbab6618e0166e6a4c208fddfc37f642",
-            "s": "0x2cb01d8b224999f418f9215c9a33b38d96468f6cbb57cd1b32cb31a0b68046894566a84a5732d0e6bea7fa007a91cc69675cbe9ab114b9a4"
-          }
-        },
-        "Unblind": {
-          "IssuedToken": "0x36e71d7f6ae3d0d0eb68417cc7309471f0c5facca4556753c3f85e65f5a6022d8dc5417dd4d2546f91b966bc0916a0ffff92d5b33e25834c"
-        }
-      }
-    ]
+      ]
+    }
   }
-]
+}
