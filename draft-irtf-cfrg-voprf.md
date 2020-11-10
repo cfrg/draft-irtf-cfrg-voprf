@@ -661,7 +661,7 @@ def GenerateProof(skS, pkS, blindedElement, evaluatedElement)
   a3 = GG.SerializeElement(r * M)
 
   pkSm = GG.SerializeElement(pkS)
-  challengeDST = "VOPRF05-challenge-" || self.contextString
+  challengeDST = "VOPRF05-Challenge-" || self.contextString
   h2Input = I2OSP(len(pkSm), 2) || pkSm ||
             I2OSP(len(a[0]), 2) || a[0] ||
             I2OSP(len(a[1]), 2) || a[1] ||
@@ -710,8 +710,8 @@ Output:
 
 def ComputeComposites(pkS, blindedElements, evaluatedElements):
   pkSm = GG.SerializeElement(pkS)
-  seedDST = "VOPRF05-seed-" || self.contextString
-  compositeDST = "VOPRF05-composite-" || self.contextString
+  seedDST = "VOPRF05-Seed-" || self.contextString
+  compositeDST = "VOPRF05-Composite-" || self.contextString
   h1Input = I2OSP(len(pkSm), 2) || pkSm ||
             I2OSP(len(seedDST), 2) || seedDST
 
@@ -749,8 +749,8 @@ Output:
 
 def ComputeCompositesFast(skS, pkS, blindedElements, evaluatedElements):
   pkSm = GG.SerializeElement(pkS)
-  seedDST = "VOPRF05-seed-" || self.contextString
-  compositeDST = "VOPRF05-composite-" || self.contextString
+  seedDST = "VOPRF05-Seed-" || self.contextString
+  compositeDST = "VOPRF05-Composite-" || self.contextString
   h1Input = I2OSP(len(pkSm), 2) || pkSm ||
             I2OSP(len(seedDST), 2) || seedDST
 
@@ -886,7 +886,7 @@ def VerifyProof(pkS, blindedElement, evaluatedElement, proof):
   a2 = GG.SerializeElement(A')
   a3 = GG.SerializeElement(B')
 
-  challengeDST = "VOPRF05-challenge-" || self.contextString
+  challengeDST = "VOPRF05-Challenge-" || self.contextString
   h2Input = I2OSP(len(pkS), 2) || pkS ||
             I2OSP(len(a[0]), 2) || a[0] ||
             I2OSP(len(a[1]), 2) || a[1] ||
@@ -950,7 +950,7 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
   - HashToGroup(): hash_to_ristretto255
     {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
-    "VOPRF05-" || contextString, where contextString is that which is
+    "VOPRF05-HashToGroup-" || contextString, where contextString is that which is
     computed in the Setup functions, and `expand_message` = `expand_message_xmd`
     using SHA-512.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
@@ -967,7 +967,7 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 - Group: decaf448 {{!RISTRETTO}}
   - HashToGroup(): hash_to_decaf448
     {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
-    "VOPRF05-" || contextString, where contextString is that which is
+    "VOPRF05-HashToGroup-" || contextString, where contextString is that which is
     computed in the Setup functions, and `expand_message` = `expand_message_xmd`
     using SHA-512.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
@@ -984,7 +984,7 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 - Group: P-256 (secp256r1) {{x9.62}}
   - HashToGroup(): P256_XMD:SHA-256_SSWU_RO\_
     {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
-    "VOPRF05-" || contextString, where contextString is that which is
+    "VOPRF05-HashToGroup-" || contextString, where contextString is that which is
     computed in the Setup functions.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=48, and `expand_message_xmd` with
@@ -999,7 +999,7 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 - Group: P-384 (secp384r1) {{x9.62}}
   - HashToGroup(): P384_XMD:SHA-512_SSWU_RO\_
     {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
-    "VOPRF05-" || contextString, where contextString is that which is
+    "VOPRF05-HashToGroup-" || contextString, where contextString is that which is
     computed in the Setup functions.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=72, and `expand_message_xmd` with
@@ -1014,7 +1014,7 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 - Group: P-521 (secp521r1) {{x9.62}}
   - HashToGroup(): P521_XMD:SHA-512_SSWU_RO\_
     {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
-    "VOPRF05-" || contextString, where contextString is that which is
+    "VOPRF05-HashToGroup-" || contextString, where contextString is that which is
     computed in the Setup functions.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=98, and `expand_message_xmd` with

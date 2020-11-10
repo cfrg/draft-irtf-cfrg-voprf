@@ -43,7 +43,7 @@ class ClientContext(object):
 
     def blind(self, x):
         blind = ZZ(self.suite.group.random_scalar())
-        dst = _as_bytes("VOPRF05-") + self.context_string
+        dst = _as_bytes("VOPRF05-HashToGroup-") + self.context_string
         P = self.suite.group.hash_to_group(x, dst)
         R = blind * P
         blinded_element = self.suite.group.serialize(R)
@@ -82,7 +82,7 @@ class ServerContext(object):
         return evaluated_element, None
 
     def verify_finalize(self, x, info, expected_digest):
-        dst = _as_bytes("VOPRF05-") + self.context_string
+        dst = _as_bytes("VOPRF05-HashToGroup-") + self.context_string
         P = self.suite.group.hash_to_group(x, dst)
         input_element = self.suite.group.serialize(P)
         issued_element, _ = self.evaluate(input_element) # Ignore the proof output
@@ -101,8 +101,8 @@ class ServerContext(object):
 
 class Verifiable(object):
     def compute_composites_inner(self, skS, pkSm, blinded_element, evaluated_element):
-        seedDST = _as_bytes("VOPRF05-seed-") + self.context_string
-        compositeDST = _as_bytes("VOPRF05-composite-") + self.context_string
+        seedDST = _as_bytes("VOPRF05-Seed-") + self.context_string
+        compositeDST = _as_bytes("VOPRF05-Composite-") + self.context_string
         h1_input = I2OSP(len(pkSm), 2) + pkSm \
             + I2OSP(len(seedDST), 2) + seedDST
         h = self.suite.H()
@@ -159,7 +159,7 @@ class VerifiableClientContext(ClientContext,Verifiable):
         a2 = self.suite.group.serialize(Ap)
         a3 = self.suite.group.serialize(Bp)
 
-        challengeDST = _as_bytes("VOPRF05-challenge-") + self.context_string
+        challengeDST = _as_bytes("VOPRF05-Challenge-") + self.context_string
         h2s_input = I2OSP(len(pkSm), 2) + pkSm \
             + I2OSP(len(a[0]), 2) + a[0] \
             + I2OSP(len(a[1]), 2) + a[1] \
@@ -197,7 +197,7 @@ class VerifiableServerContext(ServerContext,Verifiable):
         a2 = self.suite.group.serialize(r * G)
         a3 = self.suite.group.serialize(r * M)
 
-        challengeDST = _as_bytes("VOPRF05-challenge-") + self.context_string
+        challengeDST = _as_bytes("VOPRF05-Challenge-") + self.context_string
         h2s_input = I2OSP(len(pkSm), 2) + pkSm \
             + I2OSP(len(a[0]), 2) + a[0] \
             + I2OSP(len(a[1]), 2) + a[1] \
