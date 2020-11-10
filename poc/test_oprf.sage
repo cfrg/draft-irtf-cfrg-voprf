@@ -13,11 +13,16 @@ try:
 except ImportError as e:
     sys.exit("Error loading preprocessed sage files. Try running `make setup && make clean pyfiles`. Full error: " + e)
 
-def to_hex(octet_string):
+def to_hex_string(octet_string):
     if isinstance(octet_string, str):
         return "".join("{:02x}".format(ord(c)) for c in octet_string)
     assert isinstance(octet_string, (bytes, bytearray))
     return "0x" + "".join("{:02x}".format(c) for c in octet_string)
+
+def to_hex(octet_string):
+    if isinstance(octet_string, list):
+        return ",".join([to_hex_string(x) for x in octet_string])
+    return to_hex_string(octet_string)
 
 class Protocol(object):
     def __init__(self, suite, mode):
@@ -38,10 +43,9 @@ class Protocol(object):
         group = self.client.suite.group
         client = self.client
         server = self.server
+        info = "some_info".encode("utf-8")
 
-        vectors = []
-        for x in self.inputs:
-            info = "some_info".encode("utf-8")
+        def create_test_vector_for_input(x):
             blind, blinded_element = client.blind(x)
             evaluated_element, proof = server.evaluate(blinded_element)
             unblinded_element = client.unblind(blind, evaluated_element, blinded_element, proof)
@@ -64,8 +68,49 @@ class Protocol(object):
             vector["Input"] = to_hex(x)
             vector["Info"] = to_hex(info)
             vector["Output"] = to_hex(output)
+            vector["Batch"] = str(1)
 
-            vectors.append(vector)
+            return vector
+
+        def create_batched_test_vector_for_inputs(xs):
+            blinds = []
+            blinded_elements = []
+            for x in xs:
+                blind, blinded_element = client.blind(x)
+                blinds.append(blind)
+                blinded_elements.append(blinded_element)
+
+            evaluated_elements, proof = server.evaluate_batch(blinded_elements)
+            unblinded_elements = client.unblind_batch(blinds, evaluated_elements, blinded_elements, proof)
+
+            outputs = []
+            for i, unblinded_element in enumerate(unblinded_elements):
+                output = client.finalize(xs[i], unblinded_element, info)
+                assert(server.verify_finalize(xs[i], info, output))
+                outputs.append(output)
+
+            vector = {}
+            vector["Blind"] = ",".join([hex(blind) for blind in blinds])
+            vector["BlindedElement"] = to_hex(blinded_elements)
+            vector["EvaluationElement"] = to_hex(evaluated_elements)
+            vector["UnblindedElement"] = to_hex(unblinded_elements)
+
+            if self.mode == mode_verifiable:
+                vector["EvaluationProof"] = {
+                    "c": hex(proof[0]),
+                    "s": hex(proof[1]),
+                }
+
+            vector["Input"] = to_hex(xs)
+            vector["Info"] = to_hex(info)
+            vector["Output"] = to_hex(outputs)
+            vector["Batch"] = str(len(xs))
+
+            return vector
+
+        vectors = [create_test_vector_for_input(x) for x in self.inputs]
+        if self.mode == mode_verifiable:
+            vectors.append(create_batched_test_vector_for_inputs(self.inputs))
 
         vecSuite = {}
         vecSuite["suite"] = self.suite.name
@@ -95,7 +140,7 @@ def write_base_vector(fh, vector):
     write_value(fh, "skS", vector["skS"])
     fh.write("\n")
     for i, v in enumerate(vector["vectors"]):
-        fh.write("#### Test Vector " + str(i+1) + "\n")
+        fh.write("#### Test Vector " + str(i+1) + ", Batch Size " + v["Batch"] + "\n")
         fh.write("\n")
         write_value(fh, "Input", v["Input"])
         write_value(fh, "Blind", v["Blind"])
@@ -111,7 +156,7 @@ def write_verifiable_vector(fh, vector):
     write_value(fh, "pkS", vector["pkS"])
     fh.write("\n")
     for i, v in enumerate(vector["vectors"]):
-        fh.write("#### Test Vector " + str(i+1) + "\n")
+        fh.write("#### Test Vector " + str(i+1) + ", Batch Size " + v["Batch"] + "\n")
         fh.write("\n")
         write_value(fh, "Input", v["Input"])
         write_value(fh, "Blind", v["Blind"])
