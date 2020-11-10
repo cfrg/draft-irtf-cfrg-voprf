@@ -102,18 +102,24 @@ class ServerContext(object):
 class Verifiable(object):
     def compute_composites_inner(self, skS, pkSm, blinded_element, evaluated_element):
         seedDST = _as_bytes("VOPRF05-seed-") + self.context_string
-        hash_input = I2OSP(len(pkSm), 2) + pkSm \
-            + I2OSP(len(blinded_element), 2) + blinded_element \
-            + I2OSP(len(evaluated_element), 2) + evaluated_element \
+        compositeDST = _as_bytes("VOPRF05-composite-") + self.context_string
+        h1_input = I2OSP(len(pkSm), 2) + pkSm \
             + I2OSP(len(seedDST), 2) + seedDST
         h = self.suite.H()
-        h.update(hash_input)
+        h.update(h1_input)
         seed = h.digest()
 
         M = self.suite.group.identity()
         Z = self.suite.group.identity()
 
-        di = 1
+        i = 1
+        h2_input = I2OSP(len(seed), 2) + seed \
+            + I2OSP(i, 2) \
+            + I2OSP(len(blinded_element), 2) + blinded_element \
+            + I2OSP(len(evaluated_element), 2) + evaluated_element \
+            + I2OSP(len(compositeDST), 2) + compositeDST
+
+        di = self.suite.group.hash_to_scalar(h2_input)
         Mi = self.suite.group.deserialize(blinded_element)
         M = (di * Mi) + M
 

@@ -713,8 +713,6 @@ def ComputeComposites(pkS, blindedElements, evaluatedElements):
   seedDST = "VOPRF05-seed-" || self.contextString
   compositeDST = "VOPRF05-composite-" || self.contextString
   h1Input = I2OSP(len(pkSm), 2) || pkSm ||
-            I2OSP(len(blindedElements), 2) || blindedElements ||
-            I2OSP(len(evaluatedElements), 2) || evaluatedElements ||
             I2OSP(len(seedDST), 2) || seedDST
 
   seed = Hash(h1Input)
@@ -722,6 +720,8 @@ def ComputeComposites(pkS, blindedElements, evaluatedElements):
   Z = GG.Identity()
   for i = 0 to m-1:
     h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
+              I2OSP(len(blindedElements[i]), 2) || blindedElements[i] ||
+              I2OSP(len(evaluatedElements[i]), 2) || evaluatedElements[i] ||
               I2OSP(len(compositeDST), 2) || compositeDST
     di = GG.HashToScalar(h2Input)
     Mi = GG.DeserializeElement(blindedElements[i])
@@ -752,14 +752,14 @@ def ComputeCompositesFast(skS, pkS, blindedElements, evaluatedElements):
   seedDST = "VOPRF05-seed-" || self.contextString
   compositeDST = "VOPRF05-composite-" || self.contextString
   h1Input = I2OSP(len(pkSm), 2) || pkSm ||
-            I2OSP(len(blindedElements), 2) || blindedElements ||
-            I2OSP(len(evaluatedElements), 2) || evaluatedElements ||
             I2OSP(len(seedDST), 2) || seedDST
 
   seed = Hash(h1Input)
   M = GG.Identity()
   for i = 0 to m-1:
     h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
+              I2OSP(len(blindedElements[i]), 2) || blindedElements[i] ||
+              I2OSP(len(evaluatedElements[i]), 2) || evaluatedElements[i] ||
               I2OSP(len(compositeDST), 2) || compositeDST
     di = GG.HashToScalar(h2Input)
     Mi = GG.DeserializeElement(blindedElements[i])
@@ -1289,17 +1289,16 @@ Input:
 
   ClientInput input
   Element blindedGenerator
-  Element blindedPublicKey
 
 Output:
 
   SerializedElement blindedElement
 
-def AdditiveBlind(input, blindedGenerator, blindedPublicKey):
+def AdditiveBlind(input, blindedGenerator):
   P = GG.HashToGroup(input)
   blindedElement = GG.SerializeElement(P + blindedGenerator) /* P + ScalarBaseMult(r) */
 
-  return blindedPublicKey, blindedElement
+  return blindedElement
 ~~~
 
 ## AdditiveUnblind
