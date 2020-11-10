@@ -116,9 +116,9 @@ class Protocol(object):
         vecSuite["suite"] = self.suite.name
         vecSuite["mode"] = int(self.mode)
         vecSuite["hash"] = self.suite.H().name.upper()
-        vecSuite["skS"] = hex(server.skS)
+        vecSuite["skSm"] = hex(server.skS)
         if self.mode == mode_verifiable:
-            vecSuite["pkS"] = to_hex(group.serialize(server.pkS))
+            vecSuite["pkSm"] = to_hex(group.serialize(server.pkS))
         vecSuite["vectors"] = vectors
 
         return vecSuite
@@ -137,7 +137,7 @@ def write_value(fh, name, value):
     wrap_write(fh, name + ' = ' + value)
 
 def write_base_vector(fh, vector):
-    write_value(fh, "skS", vector["skS"])
+    write_value(fh, "skSm", vector["skSm"])
     fh.write("\n")
     for i, v in enumerate(vector["vectors"]):
         fh.write("#### Test Vector " + str(i+1) + ", Batch Size " + v["Batch"] + "\n")
@@ -152,8 +152,8 @@ def write_base_vector(fh, vector):
         fh.write("\n")
 
 def write_verifiable_vector(fh, vector):
-    write_value(fh, "skS", vector["skS"])
-    write_value(fh, "pkS", vector["pkS"])
+    write_value(fh, "skSm", vector["skSm"])
+    write_value(fh, "pkSm", vector["pkSm"])
     fh.write("\n")
     for i, v in enumerate(vector["vectors"]):
         fh.write("#### Test Vector " + str(i+1) + ", Batch Size " + v["Batch"] + "\n")
