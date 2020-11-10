@@ -21,7 +21,7 @@ This requires that you have the necessary software installed.  See
 
 | Implementation                                                            | Language | Version  | Modes  |
 | ------------------------------------------------------------------------- |:---------|:---------|:-------|
-| [**Reference**](https://github.com/cfrg/draft-irtf-cfrg-voprf/poc)        | Sage/Python | draft-05 | All |
+| [**Reference**](https://github.com/cfrg/draft-irtf-cfrg-voprf/tree/master/poc)        | Sage/Python | draft-05 | All |
 | [voprf](https://github.com/bytemare/voprf/)                               | Go       | draft-05 | All    |
 | [CIRCL](https://github.com/cloudflare/circl/)                             | Go       | draft-05 | All    |
 | [voprf-poc-go](https://github.com/alxdavids/voprf-poc/tree/master/go)     | Go       | draft-03 | All    |
