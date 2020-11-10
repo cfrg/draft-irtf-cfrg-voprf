@@ -178,8 +178,12 @@ def main(path="vectors"):
             suiteVectors[str(mode)] = protocol.run()
         allVectors[suite.name] = suiteVectors
     
+    flatVectors = []
+    for suite in allVectors:
+        for mode in allVectors[suite]:
+            flatVectors.append(allVectors[suite][mode])
     with open(path + "/allVectors.json", 'wt') as f:
-        json.dump(allVectors, f, sort_keys=True, indent=2)
+        json.dump(flatVectors, f, sort_keys=True, indent=2)
         f.write("\n")
 
     with open(path + "/allVectors.txt", 'wt') as f:
