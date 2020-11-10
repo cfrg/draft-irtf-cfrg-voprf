@@ -171,7 +171,7 @@ class GroupRistretto255(Group):
         return Ed25519Point().hash_to_group(msg, dst)
 
     def hash_to_scalar(self, msg, dst=""):
-        return hash_to_field(msg, 1, dst, self.order(), 1, self.L, expand_message_xmd, hashlib.sha256, self.k)[0][0]
+        return hash_to_field(msg, 1, dst, self.order(), 1, self.L, expand_message_xmd, hashlib.sha512, self.k)[0][0]
 
 class GroupDecaf448(Group):
     def __init__(self):

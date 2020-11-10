@@ -242,14 +242,14 @@ def SetupVerifiableClient(suite, pkS):
 
 Ciphersuite = namedtuple("Ciphersuite", ["name", "identifier", "group", "H"])
 
-ciphersuite_ristretto255_sha256 = 0x0001
+ciphersuite_ristretto255_sha512 = 0x0001
 ciphersuite_decaf448_sha512 = 0x0002
 ciphersuite_p256_sha256 = 0x0003
 ciphersuite_p384_sha512 = 0x0004
 ciphersuite_p521_sha512 = 0x0005
 
 oprf_ciphersuites = [
-    Ciphersuite("OPRF(ristretto255, SHA-256)", ciphersuite_ristretto255_sha256, GroupRistretto255(), hashlib.sha256),
+    Ciphersuite("OPRF(ristretto255, SHA-512)", ciphersuite_ristretto255_sha512, GroupRistretto255(), hashlib.sha512),
     Ciphersuite("OPRF(decaf448, SHA-512)", ciphersuite_decaf448_sha512, GroupDecaf448(), hashlib.sha512),
     Ciphersuite("OPRF(P-256, SHA-256)", ciphersuite_p256_sha256, GroupP256(), hashlib.sha256),
     Ciphersuite("OPRF(P-384, SHA-512)", ciphersuite_p384_sha512, GroupP384(), hashlib.sha512),
