@@ -100,7 +100,8 @@ class ServerContext(object):
         return (digest == expected_digest)
 
 class Verifiable(object):
-    def compute_composites_inner(self, skS, pkSm, blinded_element, evaluated_element):
+    def compute_composites_inner(self, skS, pkSm, blinded_elements, evaluated_elements):
+        assert(len(blinded_elements) == len(evaluated_elements))
         seedDST = _as_bytes("VOPRF05-Seed-") + self.context_string
         compositeDST = _as_bytes("VOPRF05-Composite-") + self.context_string
         h1_input = I2OSP(len(pkSm), 2) + pkSm \
@@ -112,44 +113,46 @@ class Verifiable(object):
         M = self.suite.group.identity()
         Z = self.suite.group.identity()
 
-        i = 1
-        h2_input = I2OSP(len(seed), 2) + seed \
-            + I2OSP(i, 2) \
-            + I2OSP(len(blinded_element), 2) + blinded_element \
-            + I2OSP(len(evaluated_element), 2) + evaluated_element \
-            + I2OSP(len(compositeDST), 2) + compositeDST
+        for i in range(len(blinded_elements)):
+            blinded_element = blinded_elements[i]
+            evaluated_element = evaluated_elements[i]
+            h2_input = I2OSP(len(seed), 2) + seed \
+                + I2OSP(i, 2) \
+                + I2OSP(len(blinded_element), 2) + blinded_element \
+                + I2OSP(len(evaluated_element), 2) + evaluated_element \
+                + I2OSP(len(compositeDST), 2) + compositeDST
 
-        di = self.suite.group.hash_to_scalar(h2_input)
-        Mi = self.suite.group.deserialize(blinded_element)
-        M = (di * Mi) + M
+            di = self.suite.group.hash_to_scalar(h2_input)
+            Mi = self.suite.group.deserialize(blinded_element)
+            M = (di * Mi) + M
 
-        if skS == None:
-            Zi = self.suite.group.deserialize(evaluated_element)
-            Z = (di * Zi) + Z
-        else:
-            Z = self.skS * M
+            if skS == None:
+                Zi = self.suite.group.deserialize(evaluated_element)
+                Z = (di * Zi) + Z
+            else:
+                Z = self.skS * M
 
         Mm = self.suite.group.serialize(M)
         Zm = self.suite.group.serialize(Z)
 
         return [Mm, Zm]
 
-    def compute_composites_fast(self, skS, pkSm, blinded_element, evaluated_element):
-        return self.compute_composites_inner(self.skS, pkSm, blinded_element, evaluated_element)
+    def compute_composites_fast(self, skS, pkSm, blinded_elements, evaluated_elements):
+        return self.compute_composites_inner(self.skS, pkSm, blinded_elements, evaluated_elements)
 
-    def compute_composites(self, pkSm, blinded_element, evaluated_element):
-        return self.compute_composites_inner(None, pkSm, blinded_element, evaluated_element)
+    def compute_composites(self, pkSm, blinded_elements, evaluated_elements):
+        return self.compute_composites_inner(None, pkSm, blinded_elements, evaluated_elements)
 
 class VerifiableClientContext(ClientContext,Verifiable):
     def __init__(self, suite, context_string, pkS):
         ClientContext.__init__(self, suite, context_string)
         self.pkS = pkS
 
-    def verify_proof(self, blinded_element, evaluated_element, proof):
+    def verify_proof(self, blinded_elements, evaluated_elements, proof):
         G = self.suite.group.generator()
         pkSm = self.suite.group.serialize(self.pkS)
 
-        a = self.compute_composites(pkSm, blinded_element, evaluated_element)
+        a = self.compute_composites(pkSm, blinded_elements, evaluated_elements)
         M = self.suite.group.deserialize(a[0])
         Z = self.suite.group.deserialize(a[1])
 
@@ -173,7 +176,7 @@ class VerifiableClientContext(ClientContext,Verifiable):
         return c == proof[0]
 
     def unblind(self, blind, evaluated_element, blinded_element, proof):
-        if not self.verify_proof(blinded_element, evaluated_element, proof):
+        if not self.verify_proof([blinded_element], [evaluated_element], proof):
             raise Exception("Proof verification failed")
 
         Z = self.suite.group.deserialize(evaluated_element)
@@ -182,15 +185,32 @@ class VerifiableClientContext(ClientContext,Verifiable):
         unblinded_element = self.suite.group.serialize(N)
         return unblinded_element
 
+    def unblind_batch(self, blinds, evaluated_elements, blinded_elements, proof):
+        assert(len(blinds) == len(evaluated_elements))
+        assert(len(evaluated_elements) == len(blinded_elements))
+
+        if not self.verify_proof(blinded_elements, evaluated_elements, proof):
+            raise Exception("Proof verification failed")
+
+        unblinded_elements = []
+        for i, evaluated_element in enumerate(evaluated_elements):
+            Z = self.suite.group.deserialize(evaluated_element)
+            blind_inv = inverse_mod(blinds[i], self.suite.group.order())
+            N = blind_inv * Z
+            unblinded_element = self.suite.group.serialize(N)
+            unblinded_elements.append(unblinded_element)
+
+        return unblinded_elements
+
 class VerifiableServerContext(ServerContext,Verifiable):
     def __init__(self, suite, context_string, skS, pkS):
         ServerContext.__init__(self, suite, context_string, skS, pkS)
 
-    def generate_proof(self, blinded_element, evaluated_element):
+    def generate_proof(self, blinded_elements, evaluated_elements):
         G = self.suite.group.generator()
         pkSm = self.suite.group.serialize(self.pkS)
 
-        a = self.compute_composites_fast(self.skS, pkSm, blinded_element, evaluated_element)
+        a = self.compute_composites_fast(self.skS, pkSm, blinded_elements, evaluated_elements)
         M = self.suite.group.deserialize(a[0])
 
         r = ZZ(self.suite.group.random_scalar())
@@ -214,8 +234,19 @@ class VerifiableServerContext(ServerContext,Verifiable):
         R = self.suite.group.deserialize(blinded_element)
         Z = self.skS * R
         evaluated_element = self.suite.group.serialize(Z)
-        proof = self.generate_proof(blinded_element, evaluated_element)
+        proof = self.generate_proof([blinded_element], [evaluated_element])
         return evaluated_element, proof
+
+    def evaluate_batch(self, blinded_elements):
+        evaluated_elements = []
+        for blinded_element in blinded_elements:
+            R = self.suite.group.deserialize(blinded_element)
+            Z = self.skS * R
+            evaluated_element = self.suite.group.serialize(Z)
+            evaluated_elements.append(evaluated_element)
+
+        proof = self.generate_proof(blinded_elements, evaluated_elements)
+        return evaluated_elements, proof
 
 mode_base = 0x00
 mode_verifiable = 0x01
