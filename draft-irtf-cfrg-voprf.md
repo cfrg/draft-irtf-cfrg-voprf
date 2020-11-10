@@ -1289,17 +1289,16 @@ Input:
 
   ClientInput input
   Element blindedGenerator
-  Element blindedPublicKey
 
 Output:
 
   SerializedElement blindedElement
 
-def AdditiveBlind(input, blindedGenerator, blindedPublicKey):
+def AdditiveBlind(input, blindedGenerator):
   P = GG.HashToGroup(input)
   blindedElement = GG.SerializeElement(P + blindedGenerator) /* P + ScalarBaseMult(r) */
 
-  return blindedPublicKey, blindedElement
+  return blindedElement
 ~~~
 
 ## AdditiveUnblind
