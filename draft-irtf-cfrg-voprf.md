@@ -1346,15 +1346,6 @@ combination. Upon redemption of a token T from the client, server can
 later verify that T was generated using the scalar associated with the
 corresponding parameters.
 
-# Contributors
-
-- Sofía Celi            (cherenkov@riseup.net)
-- Alex Davidson         (alex.davidson92@gmail.com)
-- Armando Faz Hernandez (armfazh@cloudflare.com)
-- Eli-Shaoul Khedouri   (eli@intuitionmachines.com)
-- Nick Sullivan         (nick@cloudflare.com)
-- Christopher A. Wood   (caw@heapingbits.net)
-
 # Acknowledgements
 
 This document resulted from the work of the Privacy Pass team
