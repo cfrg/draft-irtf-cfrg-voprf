@@ -934,13 +934,14 @@ on the specific instantiation is assumed throughout. A ciphersuite contains
 instantiations of the following functionalities:
 
 - `GG`: A prime-order group exposing the API detailed in {{pog}}, with base
-  point defined in the corresponding reference for each group.
+  point, HashToGroup, HashToScalar, and serialization functionalities defined
+  in the corresponding reference for each group. For HashToGroup, the domain
+  separation tag (DST) is constructed to satisfy the recommendations in
+  {{!I-D.irtf-cfrg-hash-to-curve}}, Section 3.1.
 - `Hash`: A cryptographic hash function that is indifferentiable from a
   Random Oracle, whose output length is Nh bytes long.
 
-This section specifies supported VOPRF group and hash function
-instantiations. For each group, we specify the HashToGroup, HashToScalar,
-and serialization functionalities.
+This section specifies ciphersuites with supported groups and hash functions.
 
 Applications should take caution in using ciphersuites targeting P-256
 and ristretto255. See {{cryptanalysis}} for related discussion.
