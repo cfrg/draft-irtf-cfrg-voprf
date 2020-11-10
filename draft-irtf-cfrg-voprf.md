@@ -935,7 +935,7 @@ instantiations of the following functionalities:
 
 - `GG`: A prime-order group exposing the API detailed in {{pog}}, with base
   point defined in the corresponding reference for each group. Each group also
-  specifies HashToGroup, HashToScalar, and serialization functionalities. For 
+  specifies HashToGroup, HashToScalar, and serialization functionalities. For
   HashToGroup, the domain separation tag (DST) is constructed in accordance
   with the recommendations in {{!I-D.irtf-cfrg-hash-to-curve}}, Section 3.1.
 - `Hash`: A cryptographic hash function that is indifferentiable from a
@@ -1358,8 +1358,10 @@ corresponding parameters.
 # Acknowledgements
 
 This document resulted from the work of the Privacy Pass team
-{{PrivacyPass}}. The authors would also like to acknowledge the helpful
+{{PrivacyPass}}. The authors would also like to acknowledge helpful
 conversations with Hugo Krawczyk. Eli-Shaoul Khedouri provided
-additional review and comments on key consistency.
+additional review and comments on key consistency. Daniel Bourdrez,
+Tatiana Bradley, Sofía Celi, Frank Denis, and Bas Westerbaan also
+provided helpful input and contributions on the document.
 
 --- back
