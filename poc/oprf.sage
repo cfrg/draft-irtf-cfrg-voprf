@@ -112,8 +112,9 @@ class Verifiable(object):
         M = self.suite.group.identity()
         Z = self.suite.group.identity()
 
+        i = 0
         h2_input = I2OSP(len(seed), 2) + seed \
-            + I2OSP(1, 2) \
+            + I2OSP(i, 2) \
             + I2OSP(len(blinded_element), 2) + blinded_element \
             + I2OSP(len(evaluated_element), 2) + evaluated_element \
             + I2OSP(len(compositeDST), 2) + compositeDST
