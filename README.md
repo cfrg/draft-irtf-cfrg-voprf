@@ -21,6 +21,7 @@ This requires that you have the necessary software installed.  See
 
 | Implementation                                                            | Language | Version  | Modes  |
 | ------------------------------------------------------------------------- |:---------|:---------|:-------|
+| [voprf](https://github.com/bytemare/voprf/)                               | Go       | draft-05 | All    |
 | [CIRCL](https://github.com/cloudflare/circl/)                             | Go       | draft-05 | All    |
 | [voprf-poc](https://github.com/alxdavids/voprf-poc/tree/master/go)        | Go       | draft-03 | All    |
 | [voprf-poc](https://github.com/alxdavids/voprf-poc/tree/master/rust)      | Rust     | draft-03 | All    |
