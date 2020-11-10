@@ -130,8 +130,8 @@ class Verifiable(object):
                 Zi = self.suite.group.deserialize(evaluated_element)
                 Z = (di * Zi) + Z
 
-    if skS != None:
-        Z = self.skS * M
+        if skS != None:
+            Z = self.skS * M
 
         Mm = self.suite.group.serialize(M)
         Zm = self.suite.group.serialize(Z)
