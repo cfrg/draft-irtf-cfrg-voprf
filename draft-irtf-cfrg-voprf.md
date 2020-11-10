@@ -623,8 +623,8 @@ Output:
   Proof proof
 
 def Evaluate(skS, pkS, blindedElement):
-  BT = GG.DeserializeElement(blindedElement)
-  Z = skS * BT
+  R = GG.DeserializeElement(blindedElement)
+  Z = skS * R
   evaluatedElement = GG.SerializeElement(Z)
 
   proof = GenerateProof(skS, pkS, blindedElement, evaluatedElement)
