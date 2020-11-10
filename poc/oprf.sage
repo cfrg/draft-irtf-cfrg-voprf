@@ -129,8 +129,9 @@ class Verifiable(object):
             if skS == None:
                 Zi = self.suite.group.deserialize(evaluated_element)
                 Z = (di * Zi) + Z
-            else:
-                Z = self.skS * M
+
+    if skS != None:
+        Z = self.skS * M
 
         Mm = self.suite.group.serialize(M)
         Zm = self.suite.group.serialize(Z)
