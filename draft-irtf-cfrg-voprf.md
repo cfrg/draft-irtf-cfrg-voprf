@@ -945,21 +945,21 @@ and serialization functionalities.
 Applications should take caution in using ciphersuites targeting P-256
 and ristretto255. See {{cryptanalysis}} for related discussion.
 
-## OPRF(ristretto255, SHA-256)
+## OPRF(ristretto255, SHA-512)
 
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
   - HashToGroup(): hash_to_ristretto255
     {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
     "VOPRF05-" || contextString, where contextString is that which is
     computed in the Setup functions, and `expand_message` = `expand_message_xmd`
-    using SHA-256.
+    using SHA-512.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, with L=48, and expand_message_xmd with
-    SHA-256.
+    SHA-512.
   - Serialization: Serialization converts group elements to 32-byte strings
     using the 'Encode' function from {{!RISTRETTO}}. Deserialization converts
     32-byte strings to group elements using the 'Decode' function from {{!RISTRETTO}}.
-- Hash: SHA-256
+- Hash: SHA-512
 - ID: 0x0001
 
 ## OPRF(decaf448, SHA-512)

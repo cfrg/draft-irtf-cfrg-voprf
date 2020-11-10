@@ -251,12 +251,12 @@
       ]
     }
   },
-  "OPRF(ristretto255, SHA-256)": {
+  "OPRF(ristretto255, SHA-512)": {
     "0": {
-      "hash": "SHA256",
+      "hash": "SHA512",
       "mode": 0,
       "skS": "0x38ecf12e5465e4f1362d237521104338cde6717e26a25a5770da7ad85c704c6",
-      "suite": "OPRF(ristretto255, SHA-256)",
+      "suite": "OPRF(ristretto255, SHA-512)",
       "vectors": [
         {
           "Blind": "0xbe537e02b0116a48941a76d08b3af2366cc6ee4237b306d3153fc6b2095d85e",
@@ -264,7 +264,7 @@
           "EvaluationElement": "0x9e066b349ff1f2e1eb82264f9777ce63fe3aea2e429e9449b89116fb1b85871d",
           "Info": "0x736f6d655f696e666f",
           "Input": "0x00",
-          "Output": "0xfcd3f3487ae992174f936ba7cbdca296720cd7696d6b96b9b88a3d075f585b24",
+          "Output": "0xe92097246454c274559d40a10404f29dbdea6f63f7d6a5998a4ef1a01f2de3aae9c95d870174f7ff1accf920d5cb7d733d7d6f5e29ddd13fce5b5c13ff4b785b",
           "UnblindedElement": "0xe81179b0fa0b03ab4f1d4e557233f17bd05d23f158d32552def49a0d38ea5249"
         },
         {
@@ -273,29 +273,29 @@
           "EvaluationElement": "0x88cdb551ffe7267cd16219848c5796a8eb8eb3ed99fd7655883dd77ba6abbc30",
           "Info": "0x736f6d655f696e666f",
           "Input": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
-          "Output": "0xbad3249645bba257c2d379a44e8c4f953cd141c42de4daddf350e54e25c9d7c6",
+          "Output": "0xe27af3b1f0b52cfedae838a9cc4b8e5518d2dae6a0295cc7ba8aaa0839c2db1286af857c3c31b2d4a2593b633e8996c61a8a0ffc74bf5144d9dd1673b29e52a0",
           "UnblindedElement": "0xde6e573e297427811dc787c6acf47bee2e7687c49a4745eb9353b5d139f7ff24"
         }
       ]
     },
     "1": {
-      "hash": "SHA256",
+      "hash": "SHA512",
       "mode": 1,
       "pkS": "0xeee7a9c7fec3460c27c160c683d46a4fd18f537c055c3998748b8e4cd8f29b3e",
       "skS": "0x91a688c1b83ecbc9dac5da9042f60bbda9f332fd6cdf828252920741dbd9c01",
-      "suite": "OPRF(ristretto255, SHA-256)",
+      "suite": "OPRF(ristretto255, SHA-512)",
       "vectors": [
         {
           "Blind": "0x7e7b0d8e0e019c1c5e47d3b1743cf3b333d8459e92f1fa45c1a19c8421ac689",
           "BlindedElement": "0x363a88fa387aaf53af32ca567d4eb2733eadba9e07625da8c9381a79c4f12732",
           "EvaluationElement": "0xa486f94d1dc389c11a6bbd823a27d0717ba9fae15d0592f8941af967f7855c05",
           "EvaluationProof": {
-            "c": "0x8c99b66234db1e7a0d663b243735a667ca86d5ef3119ca298efd21f9d39b402",
-            "s": "0x844306183501b92a8de846d993df784c38ed1c4f437e8bec2a308d8aa678c78"
+            "c": "0xcee9f865cf77cba30597f47a648ac84635adc85a83f6d45b3e0786d098f926e",
+            "s": "0xe990403e781d4fcec3335037fa55534576b008dfa528fd1c5cf4e27b1acfb8c"
           },
           "Info": "0x736f6d655f696e666f",
           "Input": "0x00",
-          "Output": "0xe3b2cda5a9de7483575206fe7d448cef15fde20908432533e9c245b996ebea7d",
+          "Output": "0x69169dec402175046285c4496bb1fbf40015bd1c7e8ade7a43cf90c5eb4f86b88a42a199a5a47d1bacafbd8734d9efaabd149cb65fde9f6d3c705ea3f8fc51f2",
           "UnblindedElement": "0x4cc7d5d2c6d477b1ca9ae8e5ffeae0b9cd6ca13154f40d41c7d81b42bb835063"
         },
         {
@@ -303,12 +303,12 @@
           "BlindedElement": "0x0ce022b05289134ef3cb723779bacc504004182e45c2d042f438a0eb61a9e03d",
           "EvaluationElement": "0x568fbac4c4388dcd61a0180ba7951ce9fb2e57e1e48e502b91a303230b73e25f",
           "EvaluationProof": {
-            "c": "0x13d14a6d217c77e15111538f426b75f96149fb77ca51c31ec50b26c29ca9e74",
-            "s": "0x185850ba0017cf2b5c93531caecfcc67e931a35a5a5b81286ea36612d351f2a"
+            "c": "0xf5a6dcccd4b6fef54af9f10578ea3e046f2a39f33bf1c3d21472ea82f39d8c6",
+            "s": "0xdf3ee8f4f2498bf929cc39586d7610e5f0e4a1b82301f9349450de98d1894cb"
           },
           "Info": "0x736f6d655f696e666f",
           "Input": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
-          "Output": "0x2602885505d46a8c851f92357ca275b6c2833830638b7c3e2332981079ed8096",
+          "Output": "0x5be55d698353e325a4d0f2b0e27059950fadbc983ba9f6212ef439112f093eb88d614b30e42bbed9b42b91bf4f4c77143e7857f35ebdecb4820aa1733e6cf086",
           "UnblindedElement": "0xfaf0133cf1a4f74a9943237d28af463d134d66bf15b82f9629aaab80b9410c2e"
         }
       ]
