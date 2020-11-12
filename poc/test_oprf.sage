@@ -24,6 +24,9 @@ def to_hex(octet_string):
         return ",".join([to_hex_string(x) for x in octet_string])
     return to_hex_string(octet_string)
 
+def int_to_hex(integer, byteLen):
+    return "0x{0:0{1}x}".format(int(integer), 2*byteLen)
+
 class Protocol(object):
     def __init__(self, suite, mode):
         self.inputs = [b'\x00', b'\x5A'*17]
@@ -44,6 +47,7 @@ class Protocol(object):
         client = self.client
         server = self.server
         info = "some_info".encode("utf-8")
+        byteLen = group.scalar_byte_length()
 
         def create_test_vector_for_input(x):
             blind, blinded_element = client.blind(x)
@@ -54,7 +58,7 @@ class Protocol(object):
             assert(server.verify_finalize(x, info, output))
 
             vector = {}
-            vector["Blind"] = hex(blind)
+            vector["Blind"] = int_to_hex(blind,byteLen)
             vector["BlindedElement"] = to_hex(blinded_element)
             vector["EvaluationElement"] = to_hex(evaluated_element)
             vector["UnblindedElement"] = to_hex(unblinded_element)
@@ -68,7 +72,7 @@ class Protocol(object):
             vector["Input"] = to_hex(x)
             vector["Info"] = to_hex(info)
             vector["Output"] = to_hex(output)
-            vector["Batch"] = str(1)
+            vector["Batch"] = int(1)
 
             return vector
 
@@ -90,21 +94,21 @@ class Protocol(object):
                 outputs.append(output)
 
             vector = {}
-            vector["Blind"] = ",".join([hex(blind) for blind in blinds])
+            vector["Blind"] = ",".join([int_to_hex(blind,byteLen) for blind in blinds])
             vector["BlindedElement"] = to_hex(blinded_elements)
             vector["EvaluationElement"] = to_hex(evaluated_elements)
             vector["UnblindedElement"] = to_hex(unblinded_elements)
 
             if self.mode == mode_verifiable:
                 vector["EvaluationProof"] = {
-                    "c": hex(proof[0]),
-                    "s": hex(proof[1]),
+                    "c": int_to_hex(proof[0],byteLen),
+                    "s": int_to_hex(proof[1],byteLen),
                 }
 
             vector["Input"] = to_hex(xs)
             vector["Info"] = to_hex(info)
             vector["Output"] = to_hex(outputs)
-            vector["Batch"] = str(len(xs))
+            vector["Batch"] = int(len(xs))
 
             return vector
 
@@ -113,10 +117,11 @@ class Protocol(object):
             vectors.append(create_batched_test_vector_for_inputs(self.inputs))
 
         vecSuite = {}
-        vecSuite["suite"] = self.suite.name
+        vecSuite["suiteName"] = self.suite.name
+        vecSuite["suiteID"] = int(self.suite.identifier)
         vecSuite["mode"] = int(self.mode)
         vecSuite["hash"] = self.suite.H().name.upper()
-        vecSuite["skSm"] = hex(server.skS)
+        vecSuite["skSm"] = int_to_hex(server.skS,byteLen)
         if self.mode == mode_verifiable:
             vecSuite["pkSm"] = to_hex(group.serialize(server.pkS))
         vecSuite["vectors"] = vectors
@@ -140,7 +145,7 @@ def write_base_vector(fh, vector):
     write_value(fh, "skSm", vector["skSm"])
     fh.write("\n")
     for i, v in enumerate(vector["vectors"]):
-        fh.write("#### Test Vector " + str(i+1) + ", Batch Size " + v["Batch"] + "\n")
+        fh.write("#### Test Vector " + str(i+1) + ", Batch Size " + str(v["Batch"]) + "\n")
         fh.write("\n")
         write_value(fh, "Input", v["Input"])
         write_value(fh, "Blind", v["Blind"])
@@ -156,7 +161,7 @@ def write_verifiable_vector(fh, vector):
     write_value(fh, "pkSm", vector["pkSm"])
     fh.write("\n")
     for i, v in enumerate(vector["vectors"]):
-        fh.write("#### Test Vector " + str(i+1) + ", Batch Size " + v["Batch"] + "\n")
+        fh.write("#### Test Vector " + str(i+1) + ", Batch Size " + str(v["Batch"]) + "\n")
         fh.write("\n")
         write_value(fh, "Input", v["Input"])
         write_value(fh, "Blind", v["Blind"])
@@ -177,7 +182,7 @@ def main(path="vectors"):
             protocol = Protocol(suite, mode)
             suiteVectors[str(mode)] = protocol.run()
         allVectors[suite.name] = suiteVectors
-    
+
     flatVectors = []
     for suite in allVectors:
         for mode in allVectors[suite]:

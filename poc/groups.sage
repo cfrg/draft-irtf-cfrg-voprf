@@ -34,6 +34,9 @@ class Group(object):
     def __init__(self, name):
         self.name = name
 
+    def scalar_byte_length(self):
+        pass
+
     def generator(self):
         return None
 
@@ -85,6 +88,9 @@ class GroupNISTCurve(Group):
         self.k = k
         self.H = H
         self.expand = expand
+
+    def scalar_byte_length(self):
+        return int(ceil(len(self.p.bits())/8))
 
     def generator(self):
         return self.G
@@ -152,6 +158,9 @@ class GroupRistretto255(Group):
         self.k = 128
         self.L = 48
 
+    def scalar_byte_length(self):
+        return int(32)
+
     def generator(self):
         return Ed25519Point().base()
 
@@ -178,6 +187,9 @@ class GroupDecaf448(Group):
         Group.__init__(self, "decaf448")
         self.k = 224
         self.L = 84
+
+    def scalar_byte_length(self):
+        return int(56)
 
     def generator(self):
         return Ed448GoldilocksPoint().base()
