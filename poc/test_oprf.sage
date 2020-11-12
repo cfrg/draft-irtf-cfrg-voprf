@@ -17,7 +17,7 @@ def to_hex_string(octet_string):
     if isinstance(octet_string, str):
         return "".join("{:02x}".format(ord(c)) for c in octet_string)
     assert isinstance(octet_string, (bytes, bytearray))
-    return "0x" + "".join("{:02x}".format(c) for c in octet_string)
+    return "".join("{:02x}".format(c) for c in octet_string)
 
 def to_hex(octet_string):
     if isinstance(octet_string, list):
@@ -54,21 +54,21 @@ class Protocol(object):
             assert(server.verify_finalize(x, info, output))
 
             vector = {}
-            vector["Blind"] = hex(blind)
+            vector["Blind"] = to_hex(group.serialize_scalar(blind))
             vector["BlindedElement"] = to_hex(blinded_element)
             vector["EvaluationElement"] = to_hex(evaluated_element)
             vector["UnblindedElement"] = to_hex(unblinded_element)
 
             if self.mode == mode_verifiable:
                 vector["EvaluationProof"] = {
-                    "c": hex(proof[0]),
-                    "s": hex(proof[1]),
+                    "c": to_hex(group.serialize_scalar(proof[0])),
+                    "s": to_hex(group.serialize_scalar(proof[1])),
                 }
 
             vector["Input"] = to_hex(x)
             vector["Info"] = to_hex(info)
             vector["Output"] = to_hex(output)
-            vector["Batch"] = str(1)
+            vector["Batch"] = int(1)
 
             return vector
 
@@ -90,21 +90,21 @@ class Protocol(object):
                 outputs.append(output)
 
             vector = {}
-            vector["Blind"] = ",".join([hex(blind) for blind in blinds])
+            vector["Blind"] = ",".join([to_hex(group.serialize_scalar(blind)) for blind in blinds])
             vector["BlindedElement"] = to_hex(blinded_elements)
             vector["EvaluationElement"] = to_hex(evaluated_elements)
             vector["UnblindedElement"] = to_hex(unblinded_elements)
 
             if self.mode == mode_verifiable:
                 vector["EvaluationProof"] = {
-                    "c": hex(proof[0]),
-                    "s": hex(proof[1]),
+                    "c": to_hex(group.serialize_scalar(proof[0])),
+                    "s": to_hex(group.serialize_scalar(proof[1])),
                 }
 
             vector["Input"] = to_hex(xs)
             vector["Info"] = to_hex(info)
             vector["Output"] = to_hex(outputs)
-            vector["Batch"] = str(len(xs))
+            vector["Batch"] = int(len(xs))
 
             return vector
 
@@ -113,10 +113,11 @@ class Protocol(object):
             vectors.append(create_batched_test_vector_for_inputs(self.inputs))
 
         vecSuite = {}
-        vecSuite["suite"] = self.suite.name
+        vecSuite["suiteName"] = self.suite.name
+        vecSuite["suiteID"] = int(self.suite.identifier)
         vecSuite["mode"] = int(self.mode)
         vecSuite["hash"] = self.suite.H().name.upper()
-        vecSuite["skSm"] = hex(server.skS)
+        vecSuite["skSm"] = to_hex(group.serialize_scalar(server.skS))
         if self.mode == mode_verifiable:
             vecSuite["pkSm"] = to_hex(group.serialize(server.pkS))
         vecSuite["vectors"] = vectors
@@ -140,7 +141,7 @@ def write_base_vector(fh, vector):
     write_value(fh, "skSm", vector["skSm"])
     fh.write("\n")
     for i, v in enumerate(vector["vectors"]):
-        fh.write("#### Test Vector " + str(i+1) + ", Batch Size " + v["Batch"] + "\n")
+        fh.write("#### Test Vector " + str(i+1) + ", Batch Size " + str(v["Batch"]) + "\n")
         fh.write("\n")
         write_value(fh, "Input", v["Input"])
         write_value(fh, "Blind", v["Blind"])
@@ -156,7 +157,7 @@ def write_verifiable_vector(fh, vector):
     write_value(fh, "pkSm", vector["pkSm"])
     fh.write("\n")
     for i, v in enumerate(vector["vectors"]):
-        fh.write("#### Test Vector " + str(i+1) + ", Batch Size " + v["Batch"] + "\n")
+        fh.write("#### Test Vector " + str(i+1) + ", Batch Size " + str(v["Batch"]) + "\n")
         fh.write("\n")
         write_value(fh, "Input", v["Input"])
         write_value(fh, "Blind", v["Blind"])
@@ -177,7 +178,7 @@ def main(path="vectors"):
             protocol = Protocol(suite, mode)
             suiteVectors[str(mode)] = protocol.run()
         allVectors[suite.name] = suiteVectors
-    
+
     flatVectors = []
     for suite in allVectors:
         for mode in allVectors[suite]:

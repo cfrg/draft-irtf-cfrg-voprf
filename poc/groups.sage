@@ -49,6 +49,9 @@ class Group(object):
     def deserialize(self, encoded):
         return None
 
+    def serialize_scalar(self, scalar):
+        pass
+
     def hash_to_group(self, x):
         return None
 
@@ -118,6 +121,9 @@ class GroupNISTCurve(Group):
             y = -y
         return self.curve(self.F(x), self.F(y))
 
+    def serialize_scalar(self, scalar):
+        return I2OSP(scalar % self.order(), int(ceil(len(self.p.bits()) / 8)))
+
     def hash_to_group(self, msg, dst):
         self.h2c_suite.dst = dst
         return self.h2c_suite(msg)
@@ -167,6 +173,9 @@ class GroupRistretto255(Group):
     def deserialize(self, encoded):
         return Ed25519Point().decode(encoded)
 
+    def serialize_scalar(self, scalar):
+        return I2OSP(scalar % self.order(), 32)[::-1]
+
     def hash_to_group(self, msg, dst):
         return Ed25519Point().hash_to_group(msg, dst)
 
@@ -193,6 +202,9 @@ class GroupDecaf448(Group):
 
     def deserialize(self, encoded):
         return Ed448GoldilocksPoint().decode(encoded)
+
+    def serialize_scalar(self, scalar):
+        return I2OSP(scalar % self.order(), 56)[::-1]
 
     def hash_to_group(self, msg, dst):
         return Ed448GoldilocksPoint().hash_to_group(msg, dst)
