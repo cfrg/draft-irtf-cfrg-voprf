@@ -138,11 +138,14 @@ def write_value(fh, name, value):
     wrap_write(fh, name + ' = ' + value)
 
 def write_base_vector(fh, vector):
+    fh.write("~~~\n")
     write_value(fh, "skSm", vector["skSm"])
+    fh.write("~~~\n")
     fh.write("\n")
     for i, v in enumerate(vector["vectors"]):
         fh.write("#### Test Vector " + str(i+1) + ", Batch Size " + str(v["Batch"]) + "\n")
         fh.write("\n")
+        fh.write("~~~\n")
         write_value(fh, "Input", v["Input"])
         write_value(fh, "Blind", v["Blind"])
         write_value(fh, "BlindedElement", v["BlindedElement"])
@@ -150,15 +153,19 @@ def write_base_vector(fh, vector):
         write_value(fh, "UnblindedElement", v["UnblindedElement"])
         write_value(fh, "Info", v["Info"])
         write_value(fh, "Output", v["Output"])
+        fh.write("~~~\n")
         fh.write("\n")
 
 def write_verifiable_vector(fh, vector):
+    fh.write("~~~\n")
     write_value(fh, "skSm", vector["skSm"])
     write_value(fh, "pkSm", vector["pkSm"])
+    fh.write("~~~\n")
     fh.write("\n")
     for i, v in enumerate(vector["vectors"]):
         fh.write("#### Test Vector " + str(i+1) + ", Batch Size " + str(v["Batch"]) + "\n")
         fh.write("\n")
+        fh.write("~~~\n")
         write_value(fh, "Input", v["Input"])
         write_value(fh, "Blind", v["Blind"])
         write_value(fh, "BlindedElement", v["BlindedElement"])
@@ -168,6 +175,7 @@ def write_verifiable_vector(fh, vector):
         write_value(fh, "EvaluationProofS", v["EvaluationProof"]["s"])
         write_value(fh, "Info", v["Info"])
         write_value(fh, "Output", v["Output"])
+        fh.write("~~~\n")
         fh.write("\n")
 
 def main(path="vectors"):
