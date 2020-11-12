@@ -17,15 +17,12 @@ def to_hex_string(octet_string):
     if isinstance(octet_string, str):
         return "".join("{:02x}".format(ord(c)) for c in octet_string)
     assert isinstance(octet_string, (bytes, bytearray))
-    return "0x" + "".join("{:02x}".format(c) for c in octet_string)
+    return "".join("{:02x}".format(c) for c in octet_string)
 
 def to_hex(octet_string):
     if isinstance(octet_string, list):
         return ",".join([to_hex_string(x) for x in octet_string])
     return to_hex_string(octet_string)
-
-def int_to_hex(integer, byteLen):
-    return "0x{0:0{1}x}".format(int(integer), 2*byteLen)
 
 class Protocol(object):
     def __init__(self, suite, mode):
@@ -47,7 +44,6 @@ class Protocol(object):
         client = self.client
         server = self.server
         info = "some_info".encode("utf-8")
-        byteLen = group.scalar_byte_length()
 
         def create_test_vector_for_input(x):
             blind, blinded_element = client.blind(x)
@@ -58,15 +54,15 @@ class Protocol(object):
             assert(server.verify_finalize(x, info, output))
 
             vector = {}
-            vector["Blind"] = int_to_hex(blind,byteLen)
+            vector["Blind"] = to_hex(group.serialize_scalar(blind))
             vector["BlindedElement"] = to_hex(blinded_element)
             vector["EvaluationElement"] = to_hex(evaluated_element)
             vector["UnblindedElement"] = to_hex(unblinded_element)
 
             if self.mode == mode_verifiable:
                 vector["EvaluationProof"] = {
-                    "c": hex(proof[0]),
-                    "s": hex(proof[1]),
+                    "c": to_hex(group.serialize_scalar(proof[0])),
+                    "s": to_hex(group.serialize_scalar(proof[1])),
                 }
 
             vector["Input"] = to_hex(x)
@@ -94,15 +90,15 @@ class Protocol(object):
                 outputs.append(output)
 
             vector = {}
-            vector["Blind"] = ",".join([int_to_hex(blind,byteLen) for blind in blinds])
+            vector["Blind"] = ",".join([to_hex(group.serialize_scalar(blind)) for blind in blinds])
             vector["BlindedElement"] = to_hex(blinded_elements)
             vector["EvaluationElement"] = to_hex(evaluated_elements)
             vector["UnblindedElement"] = to_hex(unblinded_elements)
 
             if self.mode == mode_verifiable:
                 vector["EvaluationProof"] = {
-                    "c": int_to_hex(proof[0],byteLen),
-                    "s": int_to_hex(proof[1],byteLen),
+                    "c": to_hex(group.serialize_scalar(proof[0])),
+                    "s": to_hex(group.serialize_scalar(proof[1])),
                 }
 
             vector["Input"] = to_hex(xs)
@@ -121,7 +117,7 @@ class Protocol(object):
         vecSuite["suiteID"] = int(self.suite.identifier)
         vecSuite["mode"] = int(self.mode)
         vecSuite["hash"] = self.suite.H().name.upper()
-        vecSuite["skSm"] = int_to_hex(server.skS,byteLen)
+        vecSuite["skSm"] = to_hex(group.serialize_scalar(server.skS))
         if self.mode == mode_verifiable:
             vecSuite["pkSm"] = to_hex(group.serialize(server.pkS))
         vecSuite["vectors"] = vectors
