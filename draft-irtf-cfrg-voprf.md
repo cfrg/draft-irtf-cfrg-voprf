@@ -1386,7 +1386,7 @@ string. The label for each test vector value is described below.
 
 Test vectors with batch size B > 1 have inputs separated by a comma
 ",". Applicable test vectors will have B different values for the "Input", 
-"Blind", "BlindedElement", "EvaluatedElement", "UnblindedElement",
+"Blind", "BlindedElement", "EvaluationElement", "UnblindedElement",
 and "Output" fields.
 
 The server key material, pkSm and skSm, are listed under the mode for
