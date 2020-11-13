@@ -117,9 +117,6 @@ class Protocol(object):
         vecSuite["suiteID"] = int(self.suite.identifier)
         vecSuite["mode"] = int(self.mode)
         vecSuite["hash"] = self.suite.H().name.upper()
-        vecSuite["Ne"] = int(group.element_byte_length())
-        vecSuite["Ns"] = int(group.scalar_byte_length())
-        vecSuite["Nh"] = int(self.suite.H().digest_size)
         vecSuite["skSm"] = to_hex(group.serialize_scalar(server.skS))
         if self.mode == mode_verifiable:
             vecSuite["pkSm"] = to_hex(group.serialize(server.pkS))
