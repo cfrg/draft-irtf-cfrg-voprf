@@ -955,13 +955,13 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
     computed in the Setup functions, and `expand_message` = `expand_message_xmd`
     using SHA-512.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
-    using Order() as the prime modulus, with L=48, and expand_message_xmd with
-    SHA-512.
-  - Serialization: Both group elements and scalars are encoded in Ne=Ns=32
+    using Order() as the prime modulus, with L = 48, and expand_message_xmd
+    with SHA-512.
+  - Serialization: Both group elements and scalars are encoded in Ne = Ns = 32
     bytes. For group elements, use the 'Encode' and 'Decode' functions from
     {{!RISTRETTO}}. For scalars, ensure they are fully reduced modulo p and
     in little-endian order.
-- Hash: SHA-512, and Nh=64.
+- Hash: SHA-512, and Nh = 64.
 - ID: 0x0001
 
 ## OPRF(decaf448, SHA-512)
@@ -973,13 +973,13 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
     computed in the Setup functions, and `expand_message` = `expand_message_xmd`
     using SHA-512.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
-    using Order() as the prime modulus, with L=84, and `expand_message_xmd` with
-    SHA-512.
-  - Serialization: Both group elements and scalars are encoded in Ne=Ns=56
+    using Order() as the prime modulus, with L = 84, and `expand_message_xmd`
+    with SHA-512.
+  - Serialization: Both group elements and scalars are encoded in Ne = Ns = 56
     bytes. For group elements, use the 'Encode' and 'Decode' functions from
     {{!RISTRETTO}}. For scalars, ensure they are fully reduced modulo p and
     in little-endian order.
-- Hash: SHA-512, and Nh=64.
+- Hash: SHA-512, and Nh = 64.
 - ID: 0x0002
 
 ## OPRF(P-256, SHA-256)
@@ -990,13 +990,13 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
     "VOPRF06-HashToGroup-" || contextString, where contextString is that which is
     computed in the Setup functions.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
-    using Order() as the prime modulus, with L=48, and `expand_message_xmd` with
-    SHA-256.
-  - Serialization: Group elements are encoded in Ne=33 bytes if compressed
-    point encoding is used, as defined in {{SEC1}}. Scalars are encoded in
-    Ns=32 bytes ensuring they are fully reduced modulo p and in big-endian
+    using Order() as the prime modulus, with L = 48, and `expand_message_xmd`
+    with SHA-256.
+  - Serialization: Elements are serialized as Ne = 33 byte strings using
+    compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
+    Ns = 32 byte strings by fully reducing the value modulo p and in big-endian
     order.
-- Hash: SHA-256, and Nh=32.
+- Hash: SHA-256, and Nh = 32.
 - ID: 0x0003
 
 ## OPRF(P-384, SHA-512)
@@ -1007,13 +1007,13 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
     "VOPRF06-HashToGroup-" || contextString, where contextString is that which is
     computed in the Setup functions.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
-    using Order() as the prime modulus, with L=72, and `expand_message_xmd` with
-    SHA-512.
-  - Serialization: Group elements are encoded in Ne=49 bytes if compressed
-    point encoding is used, as defined in {{SEC1}}. Scalars are encoded in
-    Ns=48 bytes ensuring they are fully reduced modulo p and in big-endian
+    using Order() as the prime modulus, with L = 72, and `expand_message_xmd`
+    with SHA-512.
+  - Serialization: Elements are serialized as Ne = 49 byte strings using
+    compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
+    Ns = 48 byte strings by fully reducing the value modulo p and in big-endian
     order.
-- Hash: SHA-512, and Nh=64.
+- Hash: SHA-512, and Nh = 64.
 - ID: 0x0004
 
 ## OPRF(P-521, SHA-512)
@@ -1024,13 +1024,13 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
     "VOPRF06-HashToGroup-" || contextString, where contextString is that which is
     computed in the Setup functions.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
-    using Order() as the prime modulus, with L=98, and `expand_message_xmd` with
-    SHA-512.
-  - Serialization: Group elements are encoded in Ne=67 bytes if compressed
-    point encoding is used, as defined in {{SEC1}}. Scalars are encoded in
-    Ns=66 bytes ensuring they are fully reduced modulo p and in big-endian
+    using Order() as the prime modulus, with L = 98, and `expand_message_xmd`
+    with SHA-512.
+  - Serialization: Elements are serialized as Ne = 67 byte strings using
+    compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
+    Ns = 66 byte strings by fully reducing the value modulo p and in big-endian
     order.
-- Hash: SHA-512, and Nh=64.
+- Hash: SHA-512, and Nh = 64.
 - ID: 0x0005
 
 # Security Considerations {#sec}
