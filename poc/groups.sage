@@ -52,6 +52,12 @@ class Group(object):
     def serialize_scalar(self, scalar):
         pass
 
+    def element_byte_length(self):
+        pass
+
+    def scalar_byte_length(self):
+        pass
+
     def hash_to_group(self, x):
         return None
 
@@ -88,6 +94,7 @@ class GroupNISTCurve(Group):
         self.k = k
         self.H = H
         self.expand = expand
+        self.field_bytes_length = int(ceil(len(self.p.bits()) / 8))
 
     def generator(self):
         return self.G
@@ -102,8 +109,7 @@ class GroupNISTCurve(Group):
         x, y = element[0], element[1]
         sgn = sgn0(y)
         byte = 2 if sgn == 0 else 3
-        L = int(((log(self.p, 2) + 8) / 8).n())
-        return I2OSP(byte, 1) + I2OSP(x, L)
+        return I2OSP(byte, 1) + I2OSP(x, self.field_bytes_length)
 
    # this is using point compression
     def deserialize(self, encoded):
@@ -122,7 +128,13 @@ class GroupNISTCurve(Group):
         return self.curve(self.F(x), self.F(y))
 
     def serialize_scalar(self, scalar):
-        return I2OSP(scalar % self.order(), int(ceil(len(self.p.bits()) / 8)))
+        return I2OSP(scalar % self.order(), self.scalar_byte_length())
+
+    def element_byte_length(self):
+        return int(1 + self.field_bytes_length)
+
+    def scalar_byte_length(self):
+        return int(self.field_bytes_length)
 
     def hash_to_group(self, msg, dst):
         self.h2c_suite.dst = dst
@@ -157,6 +169,7 @@ class GroupRistretto255(Group):
         Group.__init__(self, "ristretto255")
         self.k = 128
         self.L = 48
+        self.field_bytes_length = 32
 
     def generator(self):
         return Ed25519Point().base()
@@ -174,7 +187,13 @@ class GroupRistretto255(Group):
         return Ed25519Point().decode(encoded)
 
     def serialize_scalar(self, scalar):
-        return I2OSP(scalar % self.order(), 32)[::-1]
+        return I2OSP(scalar % self.order(), self.scalar_byte_length())[::-1]
+
+    def element_byte_length(self):
+        return self.field_bytes_length
+
+    def scalar_byte_length(self):
+        return self.field_bytes_length
 
     def hash_to_group(self, msg, dst):
         return Ed25519Point().hash_to_group(msg, dst)
@@ -187,6 +206,7 @@ class GroupDecaf448(Group):
         Group.__init__(self, "decaf448")
         self.k = 224
         self.L = 84
+        self.field_bytes_length = 56
 
     def generator(self):
         return Ed448GoldilocksPoint().base()
@@ -204,7 +224,13 @@ class GroupDecaf448(Group):
         return Ed448GoldilocksPoint().decode(encoded)
 
     def serialize_scalar(self, scalar):
-        return I2OSP(scalar % self.order(), 56)[::-1]
+        return I2OSP(scalar % self.order(), self.scalar_byte_length())[::-1]
+
+    def element_byte_length(self):
+        return self.field_bytes_length
+
+    def scalar_byte_length(self):
+        return self.field_bytes_length
 
     def hash_to_group(self, msg, dst):
         return Ed448GoldilocksPoint().hash_to_group(msg, dst)
