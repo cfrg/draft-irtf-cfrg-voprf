@@ -292,7 +292,7 @@ The (V)OPRF protocol in this document has two primary dependencies:
 
 - `GG`: A prime-order group implementing the API described below in {{pog}},
   with base point defined in the corresponding reference for each group.
-  (See {{ciphersuites}} for these base base points.)
+  (See {{ciphersuites}} for these base points.)
 - `Hash`: A cryptographic hash function that is indifferentiable from a
   Random Oracle, whose output length is Nh bytes long.
 
@@ -357,7 +357,7 @@ this document, all algorithms that we detail assume that the group is a
 prime-order group, and this MUST be upheld by any implementer. That is,
 any curve instantiation should be written such that any discrepancies
 with a prime-order group instantiation are removed. See {{ciphersuites}}
-for advice corresponding to implementation of this interface for
+for advice corresponding to the implementation of this interface for
 specific definitions of elliptic curves.
 
 ## Other conventions
@@ -1117,7 +1117,7 @@ can optionally perform multiple VOPRF evaluations in one go, whilst only
 constructing one NIZK proof object. This is enabled using an established
 batching technique.
 
-Consequently the cryptographic security of our construction is based on
+Consequently, the cryptographic security of our construction is based on
 the assumption that the One-More Gap DH is computationally difficult to
 solve.
 
@@ -1173,8 +1173,8 @@ Notice that it is easy to instantiate a Q-sDH oracle using the OPRF
 functionality that we provide. A client can just submit sequential
 queries of the form (G, k * G, (k^2)G, ..., (k^(Q-1))G), where each
 query is the output of the previous interaction. This means that any
-client that submit Q queries to the OPRF can use the aforementioned
-attacks to reduce security of the group instantiation by log_2(Q) bits.
+client that submits Q queries to the OPRF can use the aforementioned
+attacks to reduce the security of the group instantiation by log_2(Q) bits.
 
 Recall that from a malicious client's perspective, the adversary wins if
 they can distinguish the OPRF interaction from a protocol that computes
@@ -1339,10 +1339,10 @@ includes the step to `VerifyProof`, as specified in {{verifiable-client}}.
 
 ### Parameter Commitments
 
-For some applications, it may be desirable for server to bind tokens to
+For some applications, it may be desirable for the server to bind tokens to
 certain parameters, e.g., protocol versions, ciphersuites, etc. To
-accomplish this, server should use a distinct scalar for each parameter
-combination. Upon redemption of a token T from the client, server can
+accomplish this, the server should use a distinct scalar for each parameter
+combination. Upon redemption of a token T from the client, the server can
 later verify that T was generated using the scalar associated with the
 corresponding parameters.
 
@@ -1353,7 +1353,7 @@ This document resulted from the work of the Privacy Pass team
 conversations with Hugo Krawczyk. Eli-Shaoul Khedouri provided
 additional review and comments on key consistency. Daniel Bourdrez,
 Tatiana Bradley, Sofía Celi, Frank Denis, and Bas Westerbaan also
-provided helpful input and contributions on the document.
+provided helpful input and contributions to the document.
 
 --- back
 
@@ -1385,8 +1385,8 @@ string. The label for each test vector value is described below.
 - "Output": The OPRF output, a byte string of length `Nh` bytes.
 
 Test vectors with batch size B > 1 have inputs separated by a comma
-",". Applicable test vectors will have B different values for the
-"Blind", "BlindedElement", "EvaluationElement", "UnblindedElement",
+",". Applicable test vectors will have B different values for the "Input", 
+"Blind", "BlindedElement", "EvaluatedElement", "UnblindedElement",
 and "Output" fields.
 
 The server key material, pkSm and skSm, are listed under the mode for
