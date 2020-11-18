@@ -309,7 +309,7 @@ class RistrettoPoint(QuotientEdwardsPoint):
         return cls.fromJacobiQuartic(s,t)
 
     def hash_to_group(self, msg, dst):
-        u = expand_message_xmd(msg, dst, int(64), hashlib.sha256, 128)
+        u = expand_message_xmd(msg, dst, int(64), hashlib.sha512, 128)
         P1 = self.map(u[0:32])
         P2 = self.map(u[32:64])
         P = P1 + P2
