@@ -28,7 +28,7 @@ This requires that you have the necessary software installed.  See
 | [voprf-poc-go](https://github.com/alxdavids/voprf-poc/tree/master/go)     | Go       | draft-03 | All    |
 | [voprf-poc-rust](https://github.com/alxdavids/voprf-poc/tree/master/rust) | Rust     | draft-03 | All    |
 
-Submit a PR if you have a complaint implementation!
+Submit a PR if you have a compliant implementation!
 
 ## Contributing
 
