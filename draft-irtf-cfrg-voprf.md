@@ -925,6 +925,21 @@ def Unblind(blind, evaluatedElement, blindedElement, pkS, proof):
   return unblindedElement
 ~~~
 
+### Batching
+
+Clients that need multiple verifiable evaluations would make as much requests
+to the server. Batching the inputs enables the server to evaluate them all
+individually and to compute a single NIZK proof for the whole set at once.
+
+With this technique, the client sends a set of blindedElements to the server,
+and the server responds with the set of evaluatedElements and the proof object
+(proofC and proofS).
+
+The optimization takes place in the ComputeComposites function, and therefore
+benefits both the server and the client. Hence, for N blinded inputs from the
+client, instead of having N requests, N evaluations, N proofs, and N responses,
+we would bring that down to N evaluations and 1 proof in 1 roundtrip.
+
 # Ciphersuites {#ciphersuites}
 
 A ciphersuite (also referred to as 'suite' in this document) for the protocol
