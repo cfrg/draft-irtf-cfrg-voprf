@@ -932,7 +932,7 @@ to the server. Batching the inputs enables the server to evaluate them all
 individually and to compute a single NIZK proof for the whole set at once.
 
 With this technique, the client sends a set of blindedElements to the server,
-and the server responds with the set of evaluatedElements and the proof object
+and the server responds with the set of evaluatedElements and a single proof object
 (proofC and proofS).
 
 The optimization takes place in the ComputeComposites function, and therefore
