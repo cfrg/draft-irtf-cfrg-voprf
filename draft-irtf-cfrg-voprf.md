@@ -685,6 +685,11 @@ produce a combined, constant-size proof. (In the pseudocode above,
 the single inputs `blindedElement` and `evaluatedElement` are passed as
 one-item lists to `ComputeComposites`.)
 
+In particular, servers can produce a single, constant-sized proof for N
+client inputs sent in a single request, rather than one proof per client
+input. This optimization benefits clients and servers since it amortizes
+the cost of proof generation and bandwidth across multiple requests.
+
 ##### Fresh randomness
 
 We note here that it is essential that a different `r` value is used for
@@ -924,22 +929,6 @@ def Unblind(blind, evaluatedElement, blindedElement, pkS, proof):
 
   return unblindedElement
 ~~~
-
-## Batching
-
-Clients that need multiple verifiable evaluations would make as many requests
-to the server. Batching the inputs enables the server to evaluate them all
-individually and to compute a single NIZK proof for the whole set at once.
-
-With this technique, the client sends a set of blindedElements to the server,
-and the server responds with the set of evaluatedElements and a single proof object
-(proofC and proofS).
-
-The optimization takes place in the ComputeComposites function, and therefore
-benefits both the server and the client. Hence, for N blinded inputs from the
-client, instead of having N roundtrips for fetching N evaluations and N proofs,
-we would bring that down to a single roundtrip carrying N evaluations and 
-one proof.
 
 # Ciphersuites {#ciphersuites}
 
