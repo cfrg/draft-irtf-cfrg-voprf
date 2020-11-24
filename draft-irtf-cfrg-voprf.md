@@ -937,8 +937,9 @@ and the server responds with the set of evaluatedElements and a single proof obj
 
 The optimization takes place in the ComputeComposites function, and therefore
 benefits both the server and the client. Hence, for N blinded inputs from the
-client, instead of having N requests, N evaluations, N proofs, and N responses,
-we would bring that down to N evaluations and 1 proof in 1 roundtrip.
+client, instead of having N roundtrips for fetching N evaluations and N proofs,
+we would bring that down to a single roudtrip carrying N evaluations and 
+one proof.
 
 # Ciphersuites {#ciphersuites}
 
