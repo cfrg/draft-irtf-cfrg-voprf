@@ -947,7 +947,7 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 ## OPRF(ristretto255, SHA-512)
 
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
-  - HashToGroup(): hash_to_ristretto255
+  - HashToGroup(): Use hash_to_ristretto255
     {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
     "VOPRF06-HashToGroup-" || contextString, where contextString is that which is
     computed in the Setup functions, and `expand_message` = `expand_message_xmd`
@@ -965,7 +965,7 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 ## OPRF(decaf448, SHA-512)
 
 - Group: decaf448 {{!RISTRETTO}}
-  - HashToGroup(): hash_to_decaf448
+  - HashToGroup(): Use hash_to_decaf448
     {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
     "VOPRF06-HashToGroup-" || contextString, where contextString is that which is
     computed in the Setup functions, and `expand_message` = `expand_message_xmd`
@@ -983,8 +983,8 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 ## OPRF(P-256, SHA-256)
 
 - Group: P-256 (secp256r1) {{x9.62}}
-  - HashToGroup(): P256_XMD:SHA-256_SSWU_RO\_
-    {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
+  - HashToGroup(): Use hash_to_curve with suite P256_XMD:SHA-256_SSWU_RO\_
+    {{!I-D.irtf-cfrg-hash-to-curve}} and DST =
     "VOPRF06-HashToGroup-" || contextString, where contextString is that which is
     computed in the Setup functions.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
@@ -1000,8 +1000,8 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 ## OPRF(P-384, SHA-512)
 
 - Group: P-384 (secp384r1) {{x9.62}}
-  - HashToGroup(): P384_XMD:SHA-512_SSWU_RO\_
-    {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
+  - HashToGroup(): Use hash_to_curve with suite P384_XMD:SHA-512_SSWU_RO\_
+    {{!I-D.irtf-cfrg-hash-to-curve}} and DST =
     "VOPRF06-HashToGroup-" || contextString, where contextString is that which is
     computed in the Setup functions.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
@@ -1017,8 +1017,8 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 ## OPRF(P-521, SHA-512)
 
 - Group: P-521 (secp521r1) {{x9.62}}
-  - HashToGroup(): P521_XMD:SHA-512_SSWU_RO\_
-    {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
+  - HashToGroup(): Use hash_to_curve with suite P521_XMD:SHA-512_SSWU_RO\_
+    {{!I-D.irtf-cfrg-hash-to-curve}} and DST =
     "VOPRF06-HashToGroup-" || contextString, where contextString is that which is
     computed in the Setup functions.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
