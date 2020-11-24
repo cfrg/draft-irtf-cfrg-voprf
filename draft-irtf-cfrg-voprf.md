@@ -925,7 +925,7 @@ def Unblind(blind, evaluatedElement, blindedElement, pkS, proof):
   return unblindedElement
 ~~~
 
-### Batching
+## Batching
 
 Clients that need multiple verifiable evaluations would make as much requests
 to the server. Batching the inputs enables the server to evaluate them all
