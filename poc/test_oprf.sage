@@ -43,7 +43,7 @@ class Protocol(object):
         group = self.client.suite.group
         client = self.client
         server = self.server
-        info = "some_info".encode("utf-8")
+        info = "OPRF test vectors".encode("utf-8")
 
         def create_test_vector_for_input(x):
             blind, blinded_element = client.blind(x)
