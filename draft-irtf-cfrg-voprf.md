@@ -683,6 +683,11 @@ produce a combined, constant-size proof. (In the pseudocode above,
 the single inputs `blindedElement` and `evaluatedElement` are passed as
 one-item lists to `ComputeComposites`.)
 
+In particular, servers can produce a single, constant-sized proof for N
+client inputs sent in a single request, rather than one proof per client
+input. This optimization benefits clients and servers since it amortizes
+the cost of proof generation and bandwidth across multiple requests.
+
 ##### Fresh randomness
 
 We note here that it is essential that a different `r` value is used for
