@@ -118,6 +118,7 @@ class Protocol(object):
         vecSuite["mode"] = int(self.mode)
         vecSuite["hash"] = self.suite.H().name.upper()
         vecSuite["skSm"] = to_hex(group.serialize_scalar(server.skS))
+        vecSuite["groupDST"] = to_hex(client.group_domain_separation_tag())
         if self.mode == mode_verifiable:
             vecSuite["pkSm"] = to_hex(group.serialize(server.pkS))
         vecSuite["vectors"] = vectors

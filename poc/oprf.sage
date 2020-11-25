@@ -41,10 +41,12 @@ class ClientContext(object):
     def identifier(self):
         return self.identifier
 
+    def group_domain_separation_tag(self):
+        return _as_bytes("VOPRF06-HashToGroup-") + self.context_string
+
     def blind(self, x):
         blind = ZZ(self.suite.group.random_scalar())
-        dst = _as_bytes("VOPRF06-HashToGroup-") + self.context_string
-        P = self.suite.group.hash_to_group(x, dst)
+        P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
         R = blind * P
         blinded_element = self.suite.group.serialize(R)
         return blind, blinded_element
@@ -75,6 +77,9 @@ class ServerContext(object):
         self.skS = skS
         self.pkS = pkS
 
+    def group_domain_separation_tag(self):
+        return _as_bytes("VOPRF06-HashToGroup-") + self.context_string
+
     def evaluate(self, blinded_element):
         R = self.suite.group.deserialize(blinded_element)
         Z = self.skS * R
@@ -82,8 +87,7 @@ class ServerContext(object):
         return evaluated_element, None
 
     def verify_finalize(self, x, info, expected_digest):
-        dst = _as_bytes("VOPRF06-HashToGroup-") + self.context_string
-        P = self.suite.group.hash_to_group(x, dst)
+        P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
         input_element = self.suite.group.serialize(P)
         issued_element, _ = self.evaluate(input_element) # Ignore the proof output
 

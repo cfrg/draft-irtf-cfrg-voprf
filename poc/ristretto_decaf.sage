@@ -414,7 +414,8 @@ def testMapDecaf(cls):
     exp = bytearray.fromhex("f4ccb31d263731ab88bed634304956d2603174c66da38742053fa37dd902346c3862155d68db63be87439e3d68758ad7268e239d39c4fd3b")
     assert P.encode() == exp
 
-testVectorsRistretto(Ed25519Point)
-testVectorsDecaf(Ed448GoldilocksPoint)
-testMapRistretto(Ed25519Point)
-testMapDecaf(Ed448GoldilocksPoint)
+def test():
+    testVectorsRistretto(Ed25519Point)
+    testVectorsDecaf(Ed448GoldilocksPoint)
+    testMapRistretto(Ed25519Point)
+    testMapDecaf(Ed448GoldilocksPoint)
