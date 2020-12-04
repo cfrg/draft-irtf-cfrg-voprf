@@ -28,6 +28,12 @@ This requires that you have the necessary software installed.  See
 | [voprf-poc-go](https://github.com/alxdavids/voprf-poc/tree/master/go)     | Go       | draft-03 | All    |
 | [voprf-poc-rust](https://github.com/alxdavids/voprf-poc/tree/master/rust) | Rust     | draft-03 | All    |
 
+### Other Integrations
+
+| Implementation                                                            | Language | Version  | Modes  | Notes |
+| ------------------------------------------------------------------------- |:---------|:---------|:-------|:------|
+| [opaque-ke](https://github.com/novifinancial/opaque-ke/)                  | Rust     | draft-06 | Base   | As a component for OPAQUE |
+
 Submit a PR if you have a compliant implementation!
 
 ## Contributing
