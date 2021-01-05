@@ -22,7 +22,7 @@ This requires that you have the necessary software installed.  See
 | Implementation                                                            | Language | Version  | Modes  |
 | ------------------------------------------------------------------------- |:---------|:---------|:-------|
 | [**Reference**](https://github.com/cfrg/draft-irtf-cfrg-voprf/tree/master/poc)        | Sage/Python | draft-06 | All |
-| [voprf](https://github.com/bytemare/voprf/)                               | Go       | draft-05 | All    |
+| [voprf](https://github.com/bytemare/voprf/)                               | Go       | draft-06 | All    |
 | [CIRCL](https://github.com/cloudflare/circl/)                             | Go       | draft-06 | All    |
 | [BoringSSL](https://boringssl.googlesource.com/boringssl/+/refs/heads/master/crypto/trust_token/) | C       | draft-04 | All    |
 | [voprf-poc-go](https://github.com/alxdavids/voprf-poc/tree/master/go)     | Go       | draft-03 | All    |
