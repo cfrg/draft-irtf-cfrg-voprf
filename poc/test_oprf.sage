@@ -47,7 +47,7 @@ class Protocol(object):
 
         def create_test_vector_for_input(x):
             blind, blinded_element = client.blind(x)
-            evaluated_element, proof = server.evaluate(blinded_element)
+            evaluated_element, proof, proof_randomness = server.evaluate(blinded_element)
             unblinded_element = client.unblind(blind, evaluated_element, blinded_element, proof)
             output = client.finalize(x, unblinded_element, info)
 
@@ -63,6 +63,7 @@ class Protocol(object):
                 vector["EvaluationProof"] = {
                     "c": to_hex(group.serialize_scalar(proof[0])),
                     "s": to_hex(group.serialize_scalar(proof[1])),
+                    "r": to_hex(group.serialize_scalar(proof_randomness)),
                 }
 
             vector["Input"] = to_hex(x)
@@ -80,7 +81,7 @@ class Protocol(object):
                 blinds.append(blind)
                 blinded_elements.append(blinded_element)
 
-            evaluated_elements, proof = server.evaluate_batch(blinded_elements)
+            evaluated_elements, proof, proof_randomness = server.evaluate_batch(blinded_elements)
             unblinded_elements = client.unblind_batch(blinds, evaluated_elements, blinded_elements, proof)
 
             outputs = []
@@ -99,6 +100,7 @@ class Protocol(object):
                 vector["EvaluationProof"] = {
                     "c": to_hex(group.serialize_scalar(proof[0])),
                     "s": to_hex(group.serialize_scalar(proof[1])),
+                    "r": to_hex(group.serialize_scalar(proof_randomness)),
                 }
 
             vector["Input"] = to_hex(xs)
