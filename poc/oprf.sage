@@ -84,12 +84,12 @@ class ServerContext(object):
         R = self.suite.group.deserialize(blinded_element)
         Z = self.skS * R
         evaluated_element = self.suite.group.serialize(Z)
-        return evaluated_element, None
+        return evaluated_element, None, None
 
     def verify_finalize(self, x, info, expected_digest):
         P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
         input_element = self.suite.group.serialize(P)
-        issued_element, _ = self.evaluate(input_element) # Ignore the proof output
+        issued_element, _, _ = self.evaluate(input_element) # Ignore the proof output
 
         finalizeDST = _as_bytes("VOPRF06-Finalize-") + self.context_string
         finalize_input = I2OSP(len(x), 2) + x \
@@ -233,14 +233,14 @@ class VerifiableServerContext(ServerContext,Verifiable):
         c = self.suite.group.hash_to_scalar(h2s_input)
         s = (r - c * self.skS) % self.suite.group.order()
 
-        return [c, s]
+        return [c, s], r
 
     def evaluate(self, blinded_element):
         R = self.suite.group.deserialize(blinded_element)
         Z = self.skS * R
         evaluated_element = self.suite.group.serialize(Z)
-        proof = self.generate_proof([blinded_element], [evaluated_element])
-        return evaluated_element, proof
+        proof, r = self.generate_proof([blinded_element], [evaluated_element])
+        return evaluated_element, proof, r
 
     def evaluate_batch(self, blinded_elements):
         evaluated_elements = []
@@ -250,8 +250,8 @@ class VerifiableServerContext(ServerContext,Verifiable):
             evaluated_element = self.suite.group.serialize(Z)
             evaluated_elements.append(evaluated_element)
 
-        proof = self.generate_proof(blinded_elements, evaluated_elements)
-        return evaluated_elements, proof
+        proof, r = self.generate_proof(blinded_elements, evaluated_elements)
+        return evaluated_elements, proof, r
 
 mode_base = 0x00
 mode_verifiable = 0x01
