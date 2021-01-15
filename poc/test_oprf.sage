@@ -9,7 +9,12 @@ try:
     from sagelib.oprf                                                       \
     import KeyGen, SetupBaseServer, SetupBaseClient, SetupVerifiableServer, \
            SetupVerifiableClient, oprf_ciphersuites, _as_bytes, mode_base,  \
-           mode_verifiable
+           mode_verifiable, \
+           ciphersuite_ristretto255_sha512, \
+           ciphersuite_decaf448_sha512, \
+           ciphersuite_p256_sha256, \
+           ciphersuite_p384_sha512, \
+           ciphersuite_p521_sha512
 except ImportError as e:
     sys.exit("Error loading preprocessed sage files. Try running `make setup && make clean pyfiles`. Full error: " + e)
 
@@ -23,6 +28,14 @@ def to_hex(octet_string):
     if isinstance(octet_string, list):
         return ",".join([to_hex_string(x) for x in octet_string])
     return to_hex_string(octet_string)
+
+test_suites = [
+    ciphersuite_ristretto255_sha512,
+    ciphersuite_decaf448_sha512,
+    ciphersuite_p256_sha256,
+    ciphersuite_p384_sha512,
+    ciphersuite_p521_sha512
+]
 
 class Protocol(object):
     def __init__(self, suite, mode):
@@ -181,7 +194,8 @@ def write_verifiable_vector(fh, vector):
 
 def main(path="vectors"):
     allVectors = {}
-    for suite in oprf_ciphersuites:
+    for suite_id in test_suites:
+        suite = oprf_ciphersuites[suite_id]
         suiteVectors = {}
         for mode in [mode_base, mode_verifiable]:
             protocol = Protocol(suite, mode)
