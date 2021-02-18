@@ -56,15 +56,14 @@ class Protocol(object):
         group = self.client.suite.group
         client = self.client
         server = self.server
-        info = "OPRF test vectors".encode("utf-8")
 
         def create_test_vector_for_input(x):
             blind, blinded_element = client.blind(x)
             evaluated_element, proof, proof_randomness = server.evaluate(blinded_element)
             unblinded_element = client.unblind(blind, evaluated_element, blinded_element, proof)
-            output = client.finalize(x, unblinded_element, info)
+            output = client.finalize(x, unblinded_element)
 
-            assert(server.verify_finalize(x, info, output))
+            assert(server.verify_finalize(x, output))
 
             vector = {}
             vector["Blind"] = to_hex(group.serialize_scalar(blind))
@@ -80,7 +79,6 @@ class Protocol(object):
                 }
 
             vector["Input"] = to_hex(x)
-            vector["Info"] = to_hex(info)
             vector["Output"] = to_hex(output)
             vector["Batch"] = int(1)
 
@@ -99,8 +97,8 @@ class Protocol(object):
 
             outputs = []
             for i, unblinded_element in enumerate(unblinded_elements):
-                output = client.finalize(xs[i], unblinded_element, info)
-                assert(server.verify_finalize(xs[i], info, output))
+                output = client.finalize(xs[i], unblinded_element)
+                assert(server.verify_finalize(xs[i], output))
                 outputs.append(output)
 
             vector = {}
@@ -117,7 +115,6 @@ class Protocol(object):
                 }
 
             vector["Input"] = to_hex(xs)
-            vector["Info"] = to_hex(info)
             vector["Output"] = to_hex(outputs)
             vector["Batch"] = int(len(xs))
 
@@ -167,7 +164,6 @@ def write_base_vector(fh, vector):
         write_value(fh, "BlindedElement", v["BlindedElement"])
         write_value(fh, "EvaluationElement", v["EvaluationElement"])
         write_value(fh, "UnblindedElement", v["UnblindedElement"])
-        write_value(fh, "Info", v["Info"])
         write_value(fh, "Output", v["Output"])
         fh.write("~~~\n")
         fh.write("\n")
@@ -189,7 +185,6 @@ def write_verifiable_vector(fh, vector):
         write_value(fh, "UnblindedElement", v["UnblindedElement"])
         write_value(fh, "EvaluationProofC", v["EvaluationProof"]["c"])
         write_value(fh, "EvaluationProofS", v["EvaluationProof"]["s"])
-        write_value(fh, "Info", v["Info"])
         write_value(fh, "Output", v["Output"])
         fh.write("~~~\n")
         fh.write("\n")

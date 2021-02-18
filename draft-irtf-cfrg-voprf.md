@@ -15,10 +15,6 @@ author:
  -
     ins: A. Davidson
     name: Alex Davidson
-    org: Cloudflare
-    street: County Hall
-    city: London, SE1 7GP
-    country: United Kingdom
     email: alex.davidson92@gmail.com
  -
     ins: A. Faz-Hernandez
@@ -408,35 +404,26 @@ used before the protocol exchange. Once established, the core protocol
 runs to compute `output = F(skS, input)` as follows:
 
 ~~~
-   Client(pkS, input, info)                 Server(skS, pkS)
+   Client(pkS, input)                     Server(skS, pkS)
   ----------------------------------------------------------
     blind, blindedElement = Blind(input)
 
                        blindedElement
                         ---------->
 
-                  evaluatedElement, proof = Evaluate(skS, pkS, blindedElement)
+    evaluatedElement, proof = Evaluate(skS, pkS, blindedElement)
 
                   evaluatedElement, proof
                         <----------
 
-    unblindedElement = Unblind(blind, evaluatedElement, blindedElement, pkS, proof)
-    output = Finalize(input, unblindedElement, info)
+    output = Finalize(input, blind, evaluatedElement, blindedElement, pkS, proof)
 ~~~
 
 In `Blind` the client generates a token and blinding data. The server
 computes the (V)OPRF evaluation in `Evaluation` over the client's
-blinded token. In `Unblind` the client unblinds the server response (and
-verifies the server's proof if verifiability is required). In
-`Finalize`, the client produces a byte array corresponding to the output
-of the OPRF protocol.
-
-Note that in the final output, the client computes Finalize over some
-auxiliary input data `info`. This parameter SHOULD be used for domain
-separation in the (V)OPRF protocol. Specifically, any system which has
-multiple (V)OPRF applications should use separate auxiliary values to
-ensure finalized outputs are separate. Guidance for constructing info
-can be found in {{!I-D.irtf-cfrg-hash-to-curve}}; Section 3.1.
+blinded token. In `Finalize` the client unblinds the server response,
+verifies the server's proof if verifiability is required, and produces
+a byte array corresponding to the output of the OPRF protocol.
 
 ## Context Setup
 
@@ -544,13 +531,12 @@ Input:
 
   PrivateKey skS
   ClientInput input
-  opaque info<1..2^16-1>
 
 Output:
 
   opaque output[Nh]
 
-def FullEvaluate(skS, input, info):
+def FullEvaluate(skS, input):
   P = GG.HashToGroup(input)
   T = skS * P
   issuedElement = GG.SerializeElement(T)
@@ -558,7 +544,6 @@ def FullEvaluate(skS, input, info):
   finalizeDST = "VOPRF06-Finalize-" || self.contextString
   hashInput = I2OSP(len(input), 2) || input ||
               I2OSP(len(issuedElement), 2) || issuedElement ||
-              I2OSP(len(info), 2) || info ||
               I2OSP(len(finalizeDST), 2) || finalizeDST
 
   return Hash(hashInput)
@@ -573,14 +558,13 @@ Input:
 
   PrivateKey skS
   ClientInput input
-  opaque info<1..2^16-1>
   opaque output[Nh]
 
 Output:
 
   boolean valid
 
-def VerifyFinalize(skS, input, info, output):
+def VerifyFinalize(skS, input, output):
   T = GG.HashToGroup(input)
   element = GG.SerializeElement(T)
   issuedElement = Evaluate(skS, [element])
@@ -589,7 +573,6 @@ def VerifyFinalize(skS, input, info, output):
   finalizeDST = "VOPRF06-Finalize-" || self.contextString
   hashInput = I2OSP(len(input), 2) || input ||
               I2OSP(len(E), 2) || E ||
-              I2OSP(len(info), 2) || info ||
               I2OSP(len(finalizeDST), 2) || finalizeDST
 
   digest = Hash(hashInput)
@@ -776,8 +759,9 @@ def ComputeCompositesFast(skS, pkS, blindedElements, evaluatedElements):
 ### Client Context
 
 The ClientContext encapsulates the context string constructed during
-setup. It has three functions, `Blind()`, `Unblind()`, and `Finalize()`,
-as described below.
+setup. It has two functions, `Blind()` and `Finalize()`, as described
+below. It also has an internal function, `Unblind()`, which is used
+by `Finalize`. Its implementation varies depending on the mode.
 
 #### Blind
 
@@ -829,22 +813,27 @@ def Unblind(blind, evaluatedElement, ...):
 
 #### Finalize
 
+`Finalize` depends on the internal `Unblind` function. In this mode, `Finalize`
+and does not include all inputs listed in {{protocol-overview}}. These additional
+inputs are only useful for the verifiable mode, described in {{verifiable-unblind}}.
+
 ~~~
 Input:
 
   ClientInput input
-  SerializedElement unblindedElement
-  opaque info<1..2^16-1>
+  Scalar blind
+  SerializedElement evaluatedElement
 
 Output:
 
   opaque output[Nh]
 
-def Finalize(input, unblindedElement, info):
+def Finalize(input, blind, evaluatedElement):
+  unblindedElement = Unblind(blind, evaluatedElement)
+
   finalizeDST = "VOPRF06-Finalize-" || self.contextString
   hashInput = I2OSP(len(input), 2) || input ||
               I2OSP(len(unblindedElement), 2) || unblindedElement ||
-              I2OSP(len(info), 2) || info ||
               I2OSP(len(finalizeDST), 2) || finalizeDST
   return Hash(hashInput)
 ~~~
@@ -902,7 +891,7 @@ def VerifyProof(pkS, blindedElement, evaluatedElement, proof):
   return CT_EQUAL(expected_c, c)
 ~~~
 
-#### Unblind {#verifiable-unblind}
+#### Verifiable Unblind {#verifiable-unblind}
 
 ~~~
 Input:
@@ -927,6 +916,40 @@ def Unblind(blind, evaluatedElement, blindedElement, pkS, proof):
 
   return unblindedElement
 ~~~
+
+#### Verifiable Finalize {#verifiable-finalize}
+
+~~~
+Input:
+
+  ClientInput input
+  Scalar blind
+  SerializedElement evaluatedElement
+  SerializedElement blindedElement
+  PublicKey pkS
+  Scalar proof
+
+Output:
+
+  SerializedElement unblindedElement
+
+def Finalize(input, blind, evaluatedElement, blindedElement, pkS, proof):
+  unblindedElement = Unblind(blind, evaluatedElement, blindedElement, pkS, proof)
+
+  finalizeDST = "VOPRF06-Finalize-" || self.contextString
+  hashInput = I2OSP(len(input), 2) || input ||
+              I2OSP(len(unblindedElement), 2) || unblindedElement ||
+              I2OSP(len(finalizeDST), 2) || finalizeDST
+  return Hash(hashInput)
+~~~
+
+# Domain Separation {#domain-separation}
+
+Applications SHOULD construct input to the protocol to provide domain
+separation. Any system which has multiple (V)OPRF applications should
+use distinguish client inputs to ensure the OPRF results are separate.
+Guidance for constructing info can be found in
+{{!I-D.irtf-cfrg-hash-to-curve}}; Section 3.1.
 
 # Ciphersuites {#ciphersuites}
 
@@ -1392,7 +1415,6 @@ byte string. The label for each test vector value is described below.
   `Ns` bytes long.
 - "UnblindedElement": The unblinded element output by `Unblind()`,
   a serialized `Element` of `Ne` bytes long.
-- "Info": The client `info` parameter, an opaque byte string.
 - "Output": The OPRF output, a byte string of length `Nh` bytes.
 
 Test vectors with batch size B > 1 have inputs separated by a comma
@@ -1425,10 +1447,9 @@ EvaluationElement = 86bd5eeabf29a87cb4a5c7207cb3ade5297e65f9b74c979b
 d3551891f4b21515
 UnblindedElement = 3c7f2d901c0d4f245503a186086fbdf5d8b4408432b25c516
 3e8b5a19c258348
-Info = 4f505246207465737420766563746f7273
-Output = 0bb570873cc0402ca38f1a2c395301f2a3627616e305f2bc54bb08c3f6e
-a9871eb71074e52e36b90778ba7c3e3429ef7170245c9e01647f3827fdef84d3ba93
-0
+Output = efd97b5a95b3b55ad7582d5ebd5dbc6cc1ca0aaca8cf5f942929e4e5b3f
+53c716cdd4d6ce59ce1a21f066da1611d6e46ae6ce33ce6cc1b90f2f98aab8e52d32
+3
 ~~~
 
 #### Test Vector 2, Batch Size 1
@@ -1443,10 +1464,9 @@ EvaluationElement = 063b91a12e7cbb98dfeb75d8a7eeb83aacf9fd6df7e0b419
 7466fb77a27fa631
 UnblindedElement = 804ec6774764ed50a0bbad0a5f477aa04df7323acab8f98ca
 6e468b7790bca4c
-Info = 4f505246207465737420766563746f7273
-Output = af7cc264dbc96a6b898ba0fa33bfa9e1407bf1dcfbf8772204d470d4458
-b8f047806679dbfa251f656b906edf9fa638e268adf979bd0e2380a092047d61f9db
-9
+Output = 74d7355d722567ae5f58b2413ab082966a366edabda98a159c25da1cf9e
+5547a352d015c2d1be2276fe768f77fa6388f85b2150405fd67739958ad3819d9d41
+8
 ~~~
 
 ### Verifiable Mode
@@ -1474,10 +1494,9 @@ EvaluationProofC = 673b5e2d75540afdacd7b6183c3a84323f1822b60c8ee9d90
 088fa3b3a508908
 EvaluationProofS = a1edd24e73bffabff314d9cc7ad1af6f0b2cae7ec88bcef08
 e7efedc9d0eb00e
-Info = 4f505246207465737420766563746f7273
-Output = 004c3577d9172f6b7c08e522db912d9138e38d5aca725c79c9029d06dba
-26b026fb261f40041e86e057ab964227f278cf561c8155a2123baf8d256f603ebbb0
-e
+Output = 0f4a4c8f18d4e4d926166b01e90fad9a12ae94ce512cd6ae792b985a1e4
+fa599d5c403915d2f781b2961b41248f2055c642f6c10af9840f7ba32bb2812ed9c6
+b
 ~~~
 
 #### Test Vector 2, Batch Size 1
@@ -1496,10 +1515,9 @@ EvaluationProofC = 025e0a1e109baa97cea27550cf432d596e48bab2b1b0cf95c
 9af25fd89431e06
 EvaluationProofS = 295f8cb05f90f6c28b9e707fe5acc29dbe31b50375a64403f
 965116afe5d7501
-Info = 4f505246207465737420766563746f7273
-Output = 449a8e7f559b4a6e67fa505b6d78b0be86eac3cbc9410af5666400a7fbc
-5870aa15f67443473b87ef333b996f6128fa0174f85ab1a0a9cf5d5f89398a178799
-c
+Output = c0b33cad9d19b3edee74ab75e0925871d96daeec9a1b30bbdafe1947dd9
+d508b92da6179f9e0ee0d794bc165801bc689494cb3a9f4eeda4c55ba1f275112252
+9
 ~~~
 
 #### Test Vector 3, Batch Size 2
@@ -1522,11 +1540,10 @@ EvaluationProofC = 5ed544c7e6b8f8ab3d15d1650577a76107ba28986c6a600f4
 eceff259110e40a
 EvaluationProofS = 1cf74024f8d29c73d92d536b60e196d78bdeaf6c3481b62e8
 cd8cf85c128be03
-Info = 4f505246207465737420766563746f7273
-Output = 004c3577d9172f6b7c08e522db912d9138e38d5aca725c79c9029d06dba
-26b026fb261f40041e86e057ab964227f278cf561c8155a2123baf8d256f603ebbb0
-e,449a8e7f559b4a6e67fa505b6d78b0be86eac3cbc9410af5666400a7fbc5870aa1
-5f67443473b87ef333b996f6128fa0174f85ab1a0a9cf5d5f89398a178799c
+Output = 0f4a4c8f18d4e4d926166b01e90fad9a12ae94ce512cd6ae792b985a1e4
+fa599d5c403915d2f781b2961b41248f2055c642f6c10af9840f7ba32bb2812ed9c6
+b,c0b33cad9d19b3edee74ab75e0925871d96daeec9a1b30bbdafe1947dd9d508b92
+da6179f9e0ee0d794bc165801bc689494cb3a9f4eeda4c55ba1f2751122529
 ~~~
 
 ## OPRF(decaf448, SHA-512)
@@ -1550,9 +1567,8 @@ EvaluationElement = a6cf272ceb18e8f6abcf9216819b0b2265ad10502633d087
 1b102b5ea7f574d9c6852af32f1082b578878bd09709df1897aa064f52b16414
 UnblindedElement = 0cedeea1ef6934cff2d95b2af842806d7364312d8845504ae
 31dac84511a92285d20cb281e13797f37b4415f117915106b9bf3a0a462eee9
-Info = 4f505246207465737420766563746f7273
-Output = 00b4c47498785b196ae032096d1c72bbf2c08c62215c3b40c4d696064f8
-5f5d9224fc642322d65b7e72e6efcfc2d3bcf86bc7fb73ca2add97028eea3445882a
+Output = 78185ecde195c20d313ff81ad9236d8df4c64727df049bf3b3f01e9d046
+a9a1c4b3a3784864659558a98b861ac03191652e150a038bd1ed4d3d1d7c0bc9d3c0
 6
 ~~~
 
@@ -1568,10 +1584,9 @@ EvaluationElement = f60cf47549fa62e72ae7253a4d42a8fc6ca70e0ac0ddc319
 30627692eb3096792cf988115f792c99c03b08b0a5d07f2a2b7141dcb8c73cb9
 UnblindedElement = a8d2cfdb49a2d1409a53656cbdf12829ccb6fcad73807727d
 c2eaa4499e45f0af4cce88b443bedfc4cd08e9cdede61fd243e089a4f010a0f
-Info = 4f505246207465737420766563746f7273
-Output = a501a44719ed91d77ec885d3a9f17cd63d9784d66a1cfd71f3932ba7274
-bcd2a507a50ef2dfa4a70595133f14fdec401284768b9b969b9a97503d5ae67c7642
-d
+Output = 7192f9f36b32b3f7280d6e66d942ddab204d4ccc5a1ddb82bce119e9f8b
+b7d4ebe2d086ea2d395eebcbd9f7b047562efca7f1ef9b214ad21cd540b93462bae2
+f
 ~~~
 
 ### Verifiable Mode
@@ -1599,10 +1614,9 @@ EvaluationProofC = c4af97abc45ca793c288bcf789fddb91ba97f4facb814a920
 b58f06174b67accd626d212126c14db4276d4e0bd196dad3c1183c6d8e5fe3d
 EvaluationProofS = c664d2dabd679ab657ac57a195bfbcdb82b7fbf105cc0118c
 1b568875eafb64d504d72a7e2dc697b85358859115c51ee50ae348b411a841d
-Info = 4f505246207465737420766563746f7273
-Output = edaedd902e87de49fda24f501053500648e0c87fb59807976cbf568f9b0
-209047cb1a0921e35270fe1c71153cc2c2b4ba80ba004a1d4a40fedd29e3c7fab356
-c
+Output = bcc27beaf945f2120ec04fb5d2833db486a2b0c5bfab88ccb449da0c635
+ec0924607dabf51047abc41fead961a31620d8ac8206842594b056408b201a278417
+a
 ~~~
 
 #### Test Vector 2, Batch Size 1
@@ -1621,10 +1635,9 @@ EvaluationProofC = d5672632ceb780f677397bcb06a362e7169f4829369e6d044
 372294618677e3f2032a85d9ce8f1e41bd8194f35c81bc799927720ba763934
 EvaluationProofS = bf4db6f201ba01cf6e58b1be9491cc5b2aa8ddd5498c0dbdf
 fa99bd7f6539d36a9c6737e1302af33e6ab4a48b8bec87ef4f41296fff11a14
-Info = 4f505246207465737420766563746f7273
-Output = fda088c9c6b87dc7ecdf30016164c33b25bc32b6f5bce9fb161de869d81
-0eb844572c3e7f20bbdda5c049cf568b8499dfbfcc653862d1ede19b2602698049a5
-7
+Output = a54b5c9b302e40e25fd61e3d80cd92d552d3c9465d24caffe4c07a3822a
+d2fbea2644b895e7d6d44e7975fdb8ab2382d9c1735d770c6a7e26b0bb4096ab4c62
+a
 ~~~
 
 #### Test Vector 3, Batch Size 2
@@ -1651,11 +1664,10 @@ EvaluationProofC = e9dba5de07f66d9fc40707c6bb0c69b893e0291d76402d829
 76696ee0247b94bb6697e8d5e93963e48e057ad5978c49a4f8c781ff2004c1e
 EvaluationProofS = 9d1227714a1807d72566bfc06ae807e8900bce5c7fd6511ad
 112a3734b3c192f3b9979c3357dee5c7df933830c299a5422d0e2d7ebe59a21
-Info = 4f505246207465737420766563746f7273
-Output = edaedd902e87de49fda24f501053500648e0c87fb59807976cbf568f9b0
-209047cb1a0921e35270fe1c71153cc2c2b4ba80ba004a1d4a40fedd29e3c7fab356
-c,fda088c9c6b87dc7ecdf30016164c33b25bc32b6f5bce9fb161de869d810eb8445
-72c3e7f20bbdda5c049cf568b8499dfbfcc653862d1ede19b2602698049a57
+Output = bcc27beaf945f2120ec04fb5d2833db486a2b0c5bfab88ccb449da0c635
+ec0924607dabf51047abc41fead961a31620d8ac8206842594b056408b201a278417
+a,a54b5c9b302e40e25fd61e3d80cd92d552d3c9465d24caffe4c07a3822ad2fbea2
+644b895e7d6d44e7975fdb8ab2382d9c1735d770c6a7e26b0bb4096ab4c62a
 ~~~
 
 ## OPRF(P-256, SHA-256)
@@ -1679,9 +1691,8 @@ EvaluationElement = 02350c80b07aa03da012f7d9162645673bd3535a89b96bf5
 2f4f0d9b026610b325
 UnblindedElement = 036421a5471d3efcdd941dd85b511939ffbee330d8c96ac5e
 1a529cc428eab3aeb
-Info = 4f505246207465737420766563746f7273
-Output = 5cd0e305a01b99f65cb4e423cf26ecff44cc42d279d390e4b35694bb51d
-ff677
+Output = 0155ea41ae88b027bf002fbc4594017e2c4d6e17be3335cad3573f3f4fd
+5be05
 ~~~
 
 #### Test Vector 2, Batch Size 1
@@ -1696,9 +1707,8 @@ EvaluationElement = 03807af5cbdbf6c56842f866b87c69f7b9fc4ab8d891353d
 f97395f63145c9aea2
 UnblindedElement = 03bbf0692f18ec393df3755ae5fcf0473ba4c924fc32dd118
 40dd196bdf15471c0
-Info = 4f505246207465737420766563746f7273
-Output = 8dfc020a5820501b479ab9dd1a9ccf8a6f0c5db7c12c1b7aa06cd4e8df5
-d35a7
+Output = 86bd7d240512bc81d570a5be62e75dd22d31ab01390df0c941a1d1215d9
+57aeb
 ~~~
 
 ### Verifiable Mode
@@ -1726,9 +1736,8 @@ EvaluationProofC = 2d0c60ea2211b48ef1c3924d5243fe81a1c9155c6578af08e
 664565d3816ac6a
 EvaluationProofS = 074d637aa4522b51dcee362a9ed306b6b8a54727f7b4e5ab8
 c3b3e1c6e5ce02c
-Info = 4f505246207465737420766563746f7273
-Output = c4480a76725eb8adbb28ed9b36fe93537132b9981baf854ef31651bf08d
-589e2
+Output = 8d62e8d4d7de18a9bd39c5ecd1619b2ebc9a6f7159bcf3615be47be977c
+40e3e
 ~~~
 
 #### Test Vector 2, Batch Size 1
@@ -1747,9 +1756,8 @@ EvaluationProofC = 238f041989e3e71ff5ee25e86566c76e4366baa819bbfbfbc
 4757cdd2f3fc6d5
 EvaluationProofS = 766c01412f32e6740972e4b5fda0563e3720faecdd4aaedeb
 ba0bba84248aa04
-Info = 4f505246207465737420766563746f7273
-Output = f3070e5c02a7795585b5313df451739b99f6c47537c1a0f64790485bc7a
-b6c00
+Output = ffb8749294f1abe1dbc235593849a2f744de37f2a059da039ee3a7de781
+3a894
 ~~~
 
 #### Test Vector 3, Batch Size 2
@@ -1772,10 +1780,9 @@ EvaluationProofC = ffeb7a787565a5d23f0b3b5c2c6064ee1d0aa69e98f7bbe04
 7c14a7b924f11f3
 EvaluationProofS = f8c99cb8557db8f77509a041a5fb9bf7df9d50e538cb68bba
 59adefc7b4a6985
-Info = 4f505246207465737420766563746f7273
-Output = c4480a76725eb8adbb28ed9b36fe93537132b9981baf854ef31651bf08d
-589e2,f3070e5c02a7795585b5313df451739b99f6c47537c1a0f64790485bc7ab6c
-00
+Output = 8d62e8d4d7de18a9bd39c5ecd1619b2ebc9a6f7159bcf3615be47be977c
+40e3e,ffb8749294f1abe1dbc235593849a2f744de37f2a059da039ee3a7de7813a8
+94
 ~~~
 
 ## OPRF(P-384, SHA-512)
@@ -1799,10 +1806,9 @@ EvaluationElement = 02bdf50a96769acb293d3ba11a124c6b784e921d2d3d3112
 eb696a998a0a3464c9c27f6eddf8a270ac721678e75e7df344
 UnblindedElement = 0339cc6aa5b5ef9bd0ba57b1f317e17d8aac3311c1fd6e581
 ae84b4af19f4d4efd2877a8e127a7141cbedbbebd77826192
-Info = 4f505246207465737420766563746f7273
-Output = bd2fc54549a028c19de0fa14e772be2e17324b9b8f66c3fbc511c355b78
-c4eb5d841c365816f2a89a250c225eedc6ab9c312dc2945722d3265f05fe16ef5762
-9
+Output = c36238cbfef6bfb73039547e24eaa9ff83c3bf2e052c4568d8c8c7a4a63
+6b00af968e6698238081bffc431acc87d05baefc5901487e0e8eea8e0e90365dc9bd
+f
 ~~~
 
 #### Test Vector 2, Batch Size 1
@@ -1817,10 +1823,9 @@ EvaluationElement = 029fffdcadf404bec3ac2a120a0e4df38c6563e691cd256c
 6fe6adaabb0362097b6026ae3c6e2995cf5f0c18548e6706af
 UnblindedElement = 035540b79d5a64cb696cf0310692cbadd391d5de2f19f838b
 17264d5117a0813489c9a28a604e3ed56b00aeb5931391cb1
-Info = 4f505246207465737420766563746f7273
-Output = 1f67938dc2d31c474797f03958ec3afb4e2eb3c5a12341bba921959f763
-3ee53fa36496fbbe1cd40194f54250506ce905f782a5341451915fee8f13593028a6
-f
+Output = 7aaad5e12a9c614f284b57ac4e1de8dd869e53a3f41cbb13323b486da53
+12ea11fa312400b132e056687b0444df821c714913c1ee873a6b1a3a1681ad3b3b0c
+8
 ~~~
 
 ### Verifiable Mode
@@ -1848,10 +1853,9 @@ EvaluationProofC = 9bc67e891fcd80112dfe7deb70182bebe509b470fe0f194a0
 3d16cdcdb2a3a8008ec19ba26366ca6bb8809af6a44e7e0
 EvaluationProofS = 73a2a536c65b6fff02eb9615d7c08490f3d0cedf789a6d791
 cb3b98592f5e1941fa92746fb73f186b534e27b540e0c2c
-Info = 4f505246207465737420766563746f7273
-Output = 9a98a6a359a99bf6549689badbb8ebfde6d5a3b6290af2165301a41a082
-d8f36fdb8937d48d41189932f052c4523683cf216aeb7b57dc61f268e9a67f684ef4
-5
+Output = 9a15b632ae81fd8eeb8b7d8517b34793fc0951f5278d1ec8b33bbc59b12
+b94d7ad1123a149dbadd66ae4206e4f91c3240ec211d9d0c42284278831fdd99a9b6
+1
 ~~~
 
 #### Test Vector 2, Batch Size 1
@@ -1870,10 +1874,9 @@ EvaluationProofC = a79fe0ddd80f3ad91257ad638e6f80328c0779b3e9f90ef14
 bb0be6e9131bb268b030562302eb0387ed95fbd6effb086
 EvaluationProofS = af5524e526e0649fce351adcf199251a0f3dc2ec93c885652
 09a64c95ebe5b03ed88f75e1cd1835bf87b3c1c8c3519e6
-Info = 4f505246207465737420766563746f7273
-Output = 6f1bca7bea7fe041f764528e17ff55a4c0d4eb96f98e06f4b005f1cd1e0
-f973875b752079f1faf5397eec89a6bcd90c037914b5f9e4cda1f423909ae080c3de
-2
+Output = cf65ed58228db965b697f704ca0665035519318ce12672e2141ba92f5e6
+0bb73110e4a910c3644744c01a9d45a3959416faafad2cad9c497b1d3ee7dae7013c
+4
 ~~~
 
 #### Test Vector 3, Batch Size 2
@@ -1899,11 +1902,10 @@ EvaluationProofC = 37de36448a3838fc074c4eb87e1dcda24d80cd8e90ebf778f
 1e6c22a14e87e76691271324e656319cb572c2cf38906a1
 EvaluationProofS = 89512f46b3282d5cc3cfc816f13ff6213ae66eb97316fcbb8
 b1196e50708f3dead470f6913cc7b5bc4655f8a54aacbb4
-Info = 4f505246207465737420766563746f7273
-Output = 9a98a6a359a99bf6549689badbb8ebfde6d5a3b6290af2165301a41a082
-d8f36fdb8937d48d41189932f052c4523683cf216aeb7b57dc61f268e9a67f684ef4
-5,6f1bca7bea7fe041f764528e17ff55a4c0d4eb96f98e06f4b005f1cd1e0f973875
-b752079f1faf5397eec89a6bcd90c037914b5f9e4cda1f423909ae080c3de2
+Output = 9a15b632ae81fd8eeb8b7d8517b34793fc0951f5278d1ec8b33bbc59b12
+b94d7ad1123a149dbadd66ae4206e4f91c3240ec211d9d0c42284278831fdd99a9b6
+1,cf65ed58228db965b697f704ca0665035519318ce12672e2141ba92f5e60bb7311
+0e4a910c3644744c01a9d45a3959416faafad2cad9c497b1d3ee7dae7013c4
 ~~~
 
 ## OPRF(P-521, SHA-512)
@@ -1932,10 +1934,9 @@ aef3b1f565c3c8010e
 UnblindedElement = 03005e3cef397da7e8d193d31107ea2da163eca97b54d6d6e
 cd664b9c5021834f355800657bbde325f9c4c5a5a64d5a7651d669b720e46674e069
 14382182dcce16fc7
-Info = 4f505246207465737420766563746f7273
-Output = ee8408b7b6c93d0f47081bacd42f0890be817d2a6913f25974e04566bce
-a2ac112cdbc8bc5d3bb8b83cb38c40c821ffac97f16ed56882fee4ba9b05b6f6539c
-9
+Output = 9681170a311adcf0a7af297b00a921ff1539f2497d7e2aba33843c9dbc0
+74ac65d05fb967b8484685db483c4caa0946e1274ab19620190c174afa5d53d3dab5
+7
 ~~~
 
 #### Test Vector 2, Batch Size 1
@@ -1954,10 +1955,9 @@ a8e7e7afd8465cfb14
 UnblindedElement = 0301938d6f170ce442b762cf25f9d816d22d3ab10f4416aa0
 6ee061aef19954a1a13b3910d243b3fe046e54cf19d16191d55230b92b4d0a004bff
 74087453425630e1f
-Info = 4f505246207465737420766563746f7273
-Output = d1f8c49f41711a058e79850d97fb02bf9d02f4d5d014681d350a5e1656a
-b1d6f656d939460bd9ab730aea22c4aad77b250c13d613f3f18ccc74f0e271e09806
-6
+Output = 57ab3b8d4f90c872686083d9cf20beb3ed2da3455cc9cc7c95568087a33
+1c6245a12722bdea91872e242045400f42547817d1bfb1a9be8d2f09fb1740ae934a
+8
 ~~~
 
 ### Verifiable Mode
@@ -1993,10 +1993,9 @@ c5f069569cd3974
 EvaluationProofS = 01a08833077d1aec89a730429e8062e71bd085a1dbfaa7f68
 953cbf3af5e05dffa7e040db2ee81c1b1f75d8d5d9015ea0fae55f10968c1577aa0e
 38e718c4fc8ff80
-Info = 4f505246207465737420766563746f7273
-Output = 474928ccc8088a22c80d2205187eed5a7e31cdbdd50528de43b306a4958
-269054059ce94e242cc3d3583537c7a399a283b65219ac9e33e9d44b396a6b889e21
-1
+Output = d4b9cd4e38d00825dd2728e989cada729d245238955c429ecd3ee149ba2
+8be6a6f080484e83d101e4958d81ecb211a8fedd23883775127c8d7df140a8b5b86f
+8
 ~~~
 
 #### Test Vector 2, Batch Size 1
@@ -2021,10 +2020,9 @@ af6321c7b3a069d
 EvaluationProofS = 00532d796210ea9e5eea285d358c8fdb4a1e8bc7559389276
 5e13db6f64a52830fa2c55a1e5039f4aeea2309bdb1bb55f964113d4b25fd169cb91
 fd93dce6afd6199
-Info = 4f505246207465737420766563746f7273
-Output = 963ee0b1ed3a319a8947b9fef093ddf270628c5987cab96bff89287f818
-40486adc514c9f73568f4ac43ff84b113041137ca4837849b4bcb58c6d4c576cd4b1
-5
+Output = cb0b0295d81dc7feab24db72acd33225fc6bbb94df56408350bc9276961
+0838ccf55c9358f82e34f298dfe8637eb2d2249f905e378b1ac3b42d1d293f57f4e0
+0
 ~~~
 
 #### Test Vector 3, Batch Size 2
@@ -2057,9 +2055,8 @@ c5ff97cf4bade00
 EvaluationProofS = 01b7c17f5474a7fdd637e6351566b7606e1b03ac034728e24
 5a855278bc245fe2d1fb6c93180b4904f1037909d2ea8746ac806e507b7de668cc13
 0de7264da4003e2
-Info = 4f505246207465737420766563746f7273
-Output = 474928ccc8088a22c80d2205187eed5a7e31cdbdd50528de43b306a4958
-269054059ce94e242cc3d3583537c7a399a283b65219ac9e33e9d44b396a6b889e21
-1,963ee0b1ed3a319a8947b9fef093ddf270628c5987cab96bff89287f81840486ad
-c514c9f73568f4ac43ff84b113041137ca4837849b4bcb58c6d4c576cd4b15
+Output = d4b9cd4e38d00825dd2728e989cada729d245238955c429ecd3ee149ba2
+8be6a6f080484e83d101e4958d81ecb211a8fedd23883775127c8d7df140a8b5b86f
+8,cb0b0295d81dc7feab24db72acd33225fc6bbb94df56408350bc92769610838ccf
+55c9358f82e34f298dfe8637eb2d2249f905e378b1ac3b42d1d293f57f4e00
 ~~~
