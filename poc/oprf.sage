@@ -59,11 +59,10 @@ class ClientContext(object):
         unblinded_element = self.suite.group.serialize(N)
         return unblinded_element
 
-    def finalize(self, x, unblinded_element, info):
+    def finalize(self, x, unblinded_element):
         finalizeDST = _as_bytes("VOPRF06-Finalize-") + self.context_string
         finalize_input = I2OSP(len(x), 2) + x \
             + I2OSP(len(unblinded_element), 2) + unblinded_element \
-            + I2OSP(len(info), 2) + info \
             + I2OSP(len(finalizeDST), 2) + finalizeDST
 
         h = self.suite.H()
@@ -86,7 +85,7 @@ class ServerContext(object):
         evaluated_element = self.suite.group.serialize(Z)
         return evaluated_element, None, None
 
-    def verify_finalize(self, x, info, expected_digest):
+    def verify_finalize(self, x, expected_digest):
         P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
         input_element = self.suite.group.serialize(P)
         issued_element, _, _ = self.evaluate(input_element) # Ignore the proof output
@@ -94,7 +93,6 @@ class ServerContext(object):
         finalizeDST = _as_bytes("VOPRF06-Finalize-") + self.context_string
         finalize_input = I2OSP(len(x), 2) + x \
             + I2OSP(len(issued_element), 2) + issued_element \
-            + I2OSP(len(info), 2) + info \
             + I2OSP(len(finalizeDST), 2) + finalizeDST
 
         h = self.suite.H()
