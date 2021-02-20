@@ -6,6 +6,7 @@ import json
 import random
 import hashlib
 import binascii
+import struct
 
 from hash_to_field import I2OSP, OS2IP, expand_message_xmd, hash_to_field
 
@@ -29,6 +30,30 @@ else:
 # Fix a seed so all test vectors are deterministic
 FIXED_SEED = "oprf".encode('utf-8')
 random.seed(int.from_bytes(hashlib.sha256(FIXED_SEED).digest(), 'big'))
+
+# little-endian version of I2OSP
+def I2OSP_le(val, length):
+    val = int(val)
+    if val < 0 or val >= (1 << (8 * length)):
+        raise ValueError("bad I2OSP call: val=%d length=%d" % (val, length))
+    ret = [0] * length
+    val_ = val
+    for idx in range(0, length):
+        ret[idx] = val_ & 0xff
+        val_ = val_ >> 8
+    ret = struct.pack("=" + "B" * length, *ret)
+    assert OS2IP_le(ret, True) == val
+    return ret
+
+# little-endian version of OS2IP
+def OS2IP_le(octets, skip_assert=False):
+    ret = 0
+    for octet in reversed(struct.unpack("=" + "B" * len(octets), octets)):
+        ret = ret << 8
+        ret += octet
+    if not skip_assert:
+        assert octets == I2OSP_le(ret, len(octets))
+    return ret
 
 class Group(object):
     def __init__(self, name):
@@ -199,7 +224,8 @@ class GroupRistretto255(Group):
         return Ed25519Point().hash_to_group(msg, dst)
 
     def hash_to_scalar(self, msg, dst=""):
-        return hash_to_field(msg, 1, dst, self.order(), 1, self.L, expand_message_xmd, hashlib.sha512, self.k)[0][0]
+        uniform_bytes = expand_message_xmd(msg, dst, 64, hashlib.sha512, self.k)
+        return OS2IP_le(uniform_bytes) % self.order()
 
 class GroupDecaf448(Group):
     def __init__(self):
@@ -236,4 +262,5 @@ class GroupDecaf448(Group):
         return Ed448GoldilocksPoint().hash_to_group(msg, dst)
 
     def hash_to_scalar(self, msg, dst=""):
-        return hash_to_field(msg, 1, dst, self.order(), 1, self.L, expand_message_xmd, hashlib.sha512, self.k)[0][0]
+        uniform_bytes = expand_message_xmd(msg, dst, 64, hashlib.sha512, self.k)
+        return OS2IP_le(uniform_bytes) % self.order()

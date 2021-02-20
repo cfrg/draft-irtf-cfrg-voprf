@@ -125,7 +125,7 @@ class Verifiable(object):
                 + I2OSP(len(evaluated_element), 2) + evaluated_element \
                 + I2OSP(len(compositeDST), 2) + compositeDST
 
-            di = self.suite.group.hash_to_scalar(h2_input)
+            di = self.suite.group.hash_to_scalar(h2_input, "VOPRF06-HashToScalar-")
             Mi = self.suite.group.deserialize(blinded_element)
             M = (di * Mi) + M
 
@@ -174,7 +174,7 @@ class VerifiableClientContext(ClientContext,Verifiable):
             + I2OSP(len(a3), 2) + a3 \
             + I2OSP(len(challengeDST), 2) + challengeDST
 
-        c = self.suite.group.hash_to_scalar(h2s_input)
+        c = self.suite.group.hash_to_scalar(h2s_input, "VOPRF06-HashToScalar-")
 
         assert(c == proof[0])
         return c == proof[0]
@@ -248,7 +248,7 @@ class VerifiableServerContext(ServerContext,Verifiable):
             + I2OSP(len(a3), 2) + a3 \
             + I2OSP(len(challengeDST), 2) + challengeDST
 
-        c = self.suite.group.hash_to_scalar(h2s_input)
+        c = self.suite.group.hash_to_scalar(h2s_input, "VOPRF06-HashToScalar-")
         s = (r - c * self.skS) % self.suite.group.order()
 
         return [c, s], r
