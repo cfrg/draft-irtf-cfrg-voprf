@@ -60,8 +60,7 @@ class Protocol(object):
         def create_test_vector_for_input(x):
             blind, blinded_element = client.blind(x)
             evaluated_element, proof, proof_randomness = server.evaluate(blinded_element)
-            unblinded_element = client.unblind(blind, evaluated_element, blinded_element, proof)
-            output = client.finalize(x, unblinded_element)
+            output = client.finalize(x, blind, evaluated_element, blinded_element, proof)
 
             assert(server.verify_finalize(x, output))
 
@@ -69,7 +68,6 @@ class Protocol(object):
             vector["Blind"] = to_hex(group.serialize_scalar(blind))
             vector["BlindedElement"] = to_hex(blinded_element)
             vector["EvaluationElement"] = to_hex(evaluated_element)
-            vector["UnblindedElement"] = to_hex(unblinded_element)
 
             if self.mode == mode_verifiable:
                 vector["EvaluationProof"] = {
@@ -93,19 +91,15 @@ class Protocol(object):
                 blinded_elements.append(blinded_element)
 
             evaluated_elements, proof, proof_randomness = server.evaluate_batch(blinded_elements)
-            unblinded_elements = client.unblind_batch(blinds, evaluated_elements, blinded_elements, proof)
 
-            outputs = []
-            for i, unblinded_element in enumerate(unblinded_elements):
-                output = client.finalize(xs[i], unblinded_element)
+            outputs = client.finalize_batch(xs, blinds, evaluated_elements, blinded_elements, proof)
+            for i, output in enumerate(outputs):
                 assert(server.verify_finalize(xs[i], output))
-                outputs.append(output)
 
             vector = {}
             vector["Blind"] = ",".join([to_hex(group.serialize_scalar(blind)) for blind in blinds])
             vector["BlindedElement"] = to_hex(blinded_elements)
             vector["EvaluationElement"] = to_hex(evaluated_elements)
-            vector["UnblindedElement"] = to_hex(unblinded_elements)
 
             if self.mode == mode_verifiable:
                 vector["EvaluationProof"] = {
@@ -163,7 +157,6 @@ def write_base_vector(fh, vector):
         write_value(fh, "Blind", v["Blind"])
         write_value(fh, "BlindedElement", v["BlindedElement"])
         write_value(fh, "EvaluationElement", v["EvaluationElement"])
-        write_value(fh, "UnblindedElement", v["UnblindedElement"])
         write_value(fh, "Output", v["Output"])
         fh.write("~~~\n")
         fh.write("\n")
@@ -182,7 +175,6 @@ def write_verifiable_vector(fh, vector):
         write_value(fh, "Blind", v["Blind"])
         write_value(fh, "BlindedElement", v["BlindedElement"])
         write_value(fh, "EvaluationElement", v["EvaluationElement"])
-        write_value(fh, "UnblindedElement", v["UnblindedElement"])
         write_value(fh, "EvaluationProofC", v["EvaluationProof"]["c"])
         write_value(fh, "EvaluationProofS", v["EvaluationProof"]["s"])
         write_value(fh, "Output", v["Output"])
