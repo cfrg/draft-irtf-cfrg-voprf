@@ -59,7 +59,8 @@ class ClientContext(object):
         unblinded_element = self.suite.group.serialize(N)
         return unblinded_element
 
-    def finalize(self, x, unblinded_element):
+    def finalize(self, x, blind, evaluated_element, blinded_element, proof):
+        unblinded_element = self.unblind(blind, evaluated_element, blinded_element, proof)
         finalizeDST = _as_bytes("VOPRF06-Finalize-") + self.context_string
         finalize_input = I2OSP(len(x), 2) + x \
             + I2OSP(len(unblinded_element), 2) + unblinded_element \
@@ -204,6 +205,25 @@ class VerifiableClientContext(ClientContext,Verifiable):
             unblinded_elements.append(unblinded_element)
 
         return unblinded_elements
+
+    def finalize_batch(self, xs, blinds, evaluated_elements, blinded_elements, proof):
+        assert(len(blinds) == len(evaluated_elements))
+        assert(len(evaluated_elements) == len(blinded_elements))
+
+        unblinded_elements = self.unblind_batch(blinds, evaluated_elements, blinded_elements, proof)
+
+        outputs = []
+        finalizeDST = _as_bytes("VOPRF06-Finalize-") + self.context_string
+        for i, unblinded_element in enumerate(unblinded_elements):
+            finalize_input = I2OSP(len(xs[i]), 2) + xs[i] \
+                + I2OSP(len(unblinded_element), 2) + unblinded_element \
+                + I2OSP(len(finalizeDST), 2) + finalizeDST
+
+            h = self.suite.H()
+            h.update(finalize_input)
+            outputs.append(h.digest())
+
+        return outputs
 
 class VerifiableServerContext(ServerContext,Verifiable):
     def __init__(self, suite, context_string, skS, pkS):
