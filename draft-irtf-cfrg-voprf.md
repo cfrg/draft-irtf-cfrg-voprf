@@ -968,6 +968,8 @@ instantiations of the following functionalities:
   Random Oracle, whose output length is Nh bytes long.
 
 This section specifies ciphersuites with supported groups and hash functions.
+For each ciphersuite, contextString is that which is computed in the Setup
+functions.
 
 Applications should take caution in using ciphersuites targeting P-256
 and ristretto255. See {{cryptanalysis}} for related discussion.
@@ -977,8 +979,7 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
   - HashToGroup(): Use hash_to_ristretto255
     {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
-    "VOPRF06-HashToGroup-" || contextString, where contextString is that which is
-    computed in the Setup functions, and `expand_message` = `expand_message_xmd`
+    "VOPRF06-HashToGroup-" || contextString, and `expand_message` = `expand_message_xmd`
     using SHA-512.
   - HashToScalar(): Compute `uniform_bytes` using `expand_message` = `expand_message_xmd`,
     DST = "VOPRF06-HashToScalar-" || contextString, and output length 64, interpret
@@ -996,8 +997,7 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 - Group: decaf448 {{!RISTRETTO}}
   - HashToGroup(): Use hash_to_decaf448
     {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
-    "VOPRF06-HashToGroup-" || contextString, where contextString is that which is
-    computed in the Setup functions, and `expand_message` = `expand_message_xmd`
+    "VOPRF06-HashToGroup-" || contextString, and `expand_message` = `expand_message_xmd`
     using SHA-512.
   - HashToScalar(): Compute `uniform_bytes` using `expand_message` = `expand_message_xmd`,
     DST = "VOPRF06-HashToScalar-" || contextString, and output length 64, interpret
@@ -1015,11 +1015,10 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 - Group: P-256 (secp256r1) {{x9.62}}
   - HashToGroup(): Use hash_to_curve with suite P256_XMD:SHA-256_SSWU_RO\_
     {{!I-D.irtf-cfrg-hash-to-curve}} and DST =
-    "VOPRF06-HashToGroup-" || contextString, where contextString is that which is
-    computed in the Setup functions.
+    "VOPRF06-HashToGroup-" || contextString.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
-    using Order() as the prime modulus, with L = 48, and `expand_message_xmd`
-    with SHA-256.
+    using Order() as the prime modulus, L = 48, `expand_message_xmd`
+    with SHA-256, and DST = "VOPRF06-HashToScalar-" || contextString.
   - Serialization: Elements are serialized as Ne = 33 byte strings using
     compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
     Ns = 32 byte strings by fully reducing the value modulo p and in big-endian
@@ -1032,11 +1031,10 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 - Group: P-384 (secp384r1) {{x9.62}}
   - HashToGroup(): Use hash_to_curve with suite P384_XMD:SHA-512_SSWU_RO\_
     {{!I-D.irtf-cfrg-hash-to-curve}} and DST =
-    "VOPRF06-HashToGroup-" || contextString, where contextString is that which is
-    computed in the Setup functions.
+    "VOPRF06-HashToGroup-" || contextString.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
-    using Order() as the prime modulus, with L = 72, and `expand_message_xmd`
-    with SHA-512.
+    using Order() as the prime modulus, L = 72, `expand_message_xmd`
+    with SHA-512, and DST = "VOPRF06-HashToScalar-" || contextString.
   - Serialization: Elements are serialized as Ne = 49 byte strings using
     compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
     Ns = 48 byte strings by fully reducing the value modulo p and in big-endian
@@ -1049,11 +1047,10 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 - Group: P-521 (secp521r1) {{x9.62}}
   - HashToGroup(): Use hash_to_curve with suite P521_XMD:SHA-512_SSWU_RO\_
     {{!I-D.irtf-cfrg-hash-to-curve}} and DST =
-    "VOPRF06-HashToGroup-" || contextString, where contextString is that which is
-    computed in the Setup functions.
+    "VOPRF06-HashToGroup-" || contextString.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
-    using Order() as the prime modulus, with L = 98, and `expand_message_xmd`
-    with SHA-512.
+    using Order() as the prime modulus, L = 98, `expand_message_xmd`
+    with SHA-512, and DST = "VOPRF06-HashToScalar-" || contextString.
   - Serialization: Elements are serialized as Ne = 67 byte strings using
     compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
     Ns = 66 byte strings by fully reducing the value modulo p and in big-endian
