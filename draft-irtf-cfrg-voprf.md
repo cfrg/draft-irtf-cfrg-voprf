@@ -947,7 +947,7 @@ def Finalize(input, blind, evaluatedElement, blindedElement, pkS, proof):
 
 Applications SHOULD construct input to the protocol to provide domain
 separation. Any system which has multiple (V)OPRF applications should
-use distinguish client inputs to ensure the OPRF results are separate.
+distinguish client inputs to ensure the OPRF results are separate.
 Guidance for constructing info can be found in
 {{!I-D.irtf-cfrg-hash-to-curve}}; Section 3.1.
 
