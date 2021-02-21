@@ -220,6 +220,16 @@ security properties.
 
 ## Change log
 
+[draft-06](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-06):
+
+- Specification of serialization of group elements and scalars.
+- Unblind function is non-exported, but absorbed into Finalize.
+- Optimized method for ComputeComposites having knowledge of private key.
+- Remove info from client's input.
+- Randomized and deterministic key generation methods.
+- Added domain separation guidelines.
+- Added test vectors and minor editorial changes.
+
 [draft-05](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-05):
 
 - Move to ristretto255 and decaf448 ciphersuites.
