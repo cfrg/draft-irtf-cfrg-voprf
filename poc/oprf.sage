@@ -274,8 +274,13 @@ class VerifiableServerContext(ServerContext,Verifiable):
 mode_base = 0x00
 mode_verifiable = 0x01
 
-def KeyGen(suite):
+def GenerateKeyPair(suite):
     skS, pkS = suite.group.key_gen()
+    return skS, pkS
+
+def DeriveKeyPair(suite, seed):
+    skS = suite.group.hash_to_scalar(seed)
+    pkS = skS * suite.group.generator()
     return skS, pkS
 
 def SetupBaseServer(suite, skS):

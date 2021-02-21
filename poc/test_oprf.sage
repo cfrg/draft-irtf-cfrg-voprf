@@ -6,8 +6,8 @@ import json
 import binascii
 
 try:
-    from sagelib.oprf                                                       \
-    import KeyGen, SetupBaseServer, SetupBaseClient, SetupVerifiableServer, \
+    from sagelib.oprf \
+    import DeriveKeyPair, SetupBaseServer, SetupBaseClient, SetupVerifiableServer, \
            SetupVerifiableClient, oprf_ciphersuites, _as_bytes, mode_base,  \
            mode_verifiable, \
            ciphersuite_ristretto255_sha512, \
@@ -42,7 +42,9 @@ class Protocol(object):
         self.inputs = [b'\x00', b'\x5A'*17]
         self.suite = suite
         self.mode = mode
-        skS, pkS = KeyGen(suite)
+
+        self.seed = os.urandom(suite.group.scalar_byte_length())
+        skS, pkS = DeriveKeyPair(suite, self.seed)
         if mode == mode_base:
             self.server = SetupBaseServer(suite, skS)
             self.client = SetupBaseClient(suite)
@@ -123,6 +125,7 @@ class Protocol(object):
         vecSuite["suiteID"] = int(self.suite.identifier)
         vecSuite["mode"] = int(self.mode)
         vecSuite["hash"] = self.suite.H().name.upper()
+        vecSuite["seed"] = to_hex(self.seed)
         vecSuite["skSm"] = to_hex(group.serialize_scalar(server.skS))
         vecSuite["groupDST"] = to_hex(client.group_domain_separation_tag())
         if self.mode == mode_verifiable:
@@ -146,6 +149,7 @@ def write_value(fh, name, value):
 
 def write_base_vector(fh, vector):
     fh.write("~~~\n")
+    write_value(fh, "seed", vector["seed"])
     write_value(fh, "skSm", vector["skSm"])
     fh.write("~~~\n")
     fh.write("\n")
@@ -163,6 +167,7 @@ def write_base_vector(fh, vector):
 
 def write_verifiable_vector(fh, vector):
     fh.write("~~~\n")
+    write_value(fh, "seed", vector["seed"])
     write_value(fh, "skSm", vector["skSm"])
     write_value(fh, "pkSm", vector["pkSm"])
     fh.write("~~~\n")
