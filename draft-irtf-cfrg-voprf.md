@@ -222,13 +222,13 @@ security properties.
 
 [draft-06](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-06):
 
-- Specification of serialization of group elements and scalars.
-- Unblind function is non-exported, but absorbed into Finalize.
-- Optimized method for ComputeComposites having knowledge of private key.
-- Remove info from client's input.
-- Randomized and deterministic key generation methods.
-- Added domain separation guidelines.
-- Added test vectors and minor editorial changes.
+- Specify of group element and scalar serialization.
+- Remove info parameter from the protocol API and update domain separation guidance.
+- Fold Unblind function into Finalize.
+- Optimize ComputeComposites for servers (using knowledge of the private key).
+- Specify deterministic key generation method.
+- Update test vectors. 
+- Apply various editorial changes.
 
 [draft-05](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-05):
 
@@ -2035,4 +2035,3 @@ Output = 5d6bb0a459ebabdc24f4eb1f2d5ba84967b5362e28b4263113ae82f64b6
 2,be1882653a80f060f3c65f654270c202abbc5be961cb8c79ff952f2e284a82ba08
 7e8c26f06c43c98518b0b75940d061a3f5665557e292cee9e86487be05bba6 
 ~~~
-
