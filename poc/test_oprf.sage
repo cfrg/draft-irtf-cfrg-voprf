@@ -43,7 +43,7 @@ class Protocol(object):
         self.suite = suite
         self.mode = mode
 
-        self.seed = b'\xA3'*suite.group.scalar_byte_length()
+        self.seed = b'\xA3' * suite.group.scalar_byte_length()
         skS, pkS = DeriveKeyPair(suite, self.seed)
         if mode == mode_base:
             self.server = SetupBaseServer(suite, skS)
