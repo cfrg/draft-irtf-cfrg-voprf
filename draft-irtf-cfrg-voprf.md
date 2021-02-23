@@ -1035,7 +1035,7 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
     using SHAKE-256.
   - HashToScalar(): Compute `uniform_bytes` using `expand_message` = `expand_message_xof`,
     DST = "VOPRF06-HashToScalar-" || contextString, and output length 112, interpret
-    `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the integer
+    `uniform_bytes` as a 896-bit integer in little-endian order, and reduce the integer
     modulo `Order()`.
   - Serialization: Both group elements and scalars are encoded in Ne = Ns = 56
     bytes. For group elements, use the 'Encode' and 'Decode' functions from
