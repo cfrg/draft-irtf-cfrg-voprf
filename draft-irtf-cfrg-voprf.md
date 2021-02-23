@@ -1031,10 +1031,10 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 - Group: decaf448 {{!RISTRETTO}}
   - HashToGroup(): Use hash_to_decaf448
     {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
-    "VOPRF06-HashToGroup-" || contextString, and `expand_message` = `expand_message_xmd`
-    using SHA-512.
-  - HashToScalar(): Compute `uniform_bytes` using `expand_message` = `expand_message_xmd`,
-    DST = "VOPRF06-HashToScalar-" || contextString, and output length 64, interpret
+    "VOPRF06-HashToGroup-" || contextString, and `expand_message` = `expand_message_xof`
+    using SHAKE-256.
+  - HashToScalar(): Compute `uniform_bytes` using `expand_message` = `expand_message_xof`,
+    DST = "VOPRF06-HashToScalar-" || contextString, and output length 112, interpret
     `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the integer
     modulo `Order()`.
   - Serialization: Both group elements and scalars are encoded in Ne = Ns = 56
