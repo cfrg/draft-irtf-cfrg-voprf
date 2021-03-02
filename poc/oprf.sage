@@ -147,6 +147,31 @@ class Verifiable(object):
     def compute_composites(self, pkSm, blinded_elements, evaluated_elements):
         return self.compute_composites_inner(None, pkSm, blinded_elements, evaluated_elements)
 
+class WeakVerifiableClientContext(ClientContext):
+    def __init__(self, suite, context_string, pkS):
+        ClientContext.__init__(self, suite, context_string)
+        self.pkS = pkS
+
+    def blind(self, x):
+        r = ZZ(self.suite.group.random_scalar())
+        p = ZZ(self.suite.group.random_scalar())
+        T = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
+        G = self.suite.group.generator()
+        R = r * (T - (p * G))
+
+        blinded_element = self.suite.group.serialize(R)
+        blind = (r, p)
+        return blind, blinded_element
+
+    def unblind(self, blind, evaluated_element, blinded_element, proof):
+        # Note: blinded_element and proof are unused in the base mode
+        Z = self.suite.group.deserialize(evaluated_element)
+        (r, p) = blind
+        r_inv = inverse_mod(r, self.suite.group.order())
+        N = (r_inv * Z) + (p * self.pkS)
+        unblinded_element = self.suite.group.serialize(N)
+        return unblinded_element
+
 class VerifiableClientContext(ClientContext,Verifiable):
     def __init__(self, suite, context_string, pkS):
         ClientContext.__init__(self, suite, context_string)
@@ -273,6 +298,7 @@ class VerifiableServerContext(ServerContext,Verifiable):
 
 mode_base = 0x00
 mode_verifiable = 0x01
+mode_weak_verifiable = 0x02
 
 def GenerateKeyPair(suite):
     skS, pkS = suite.group.key_gen()
@@ -298,6 +324,14 @@ def SetupVerifiableServer(suite, skS, pkS):
 def SetupVerifiableClient(suite, pkS):
     context_string = I2OSP(mode_verifiable, 1) + I2OSP(suite.identifier, 2)
     return VerifiableClientContext(suite, context_string, pkS)
+
+def SetupWeakVerifiableServer(suite, skS, pkS):
+    context_string = I2OSP(mode_verifiable, 1) + I2OSP(suite.identifier, 2)
+    return ServerContext(suite, context_string, skS, pkS)
+
+def SetupWeakVerifiableClient(suite, pkS):
+    context_string = I2OSP(mode_verifiable, 1) + I2OSP(suite.identifier, 2)
+    return WeakVerifiableClientContext(suite, context_string, pkS)
 
 Ciphersuite = namedtuple("Ciphersuite", ["name", "identifier", "group", "H"])
 

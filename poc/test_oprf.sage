@@ -7,9 +7,12 @@ import binascii
 
 try:
     from sagelib.oprf \
-    import DeriveKeyPair, SetupBaseServer, SetupBaseClient, SetupVerifiableServer, \
-           SetupVerifiableClient, oprf_ciphersuites, _as_bytes, mode_base,  \
-           mode_verifiable, \
+    import DeriveKeyPair, \
+           SetupBaseServer, SetupBaseClient, \
+           SetupVerifiableServer, SetupVerifiableClient, \
+           SetupWeakVerifiableServer, SetupWeakVerifiableClient, \
+           oprf_ciphersuites, _as_bytes, \
+           mode_base, mode_verifiable, mode_weak_verifiable, \
            ciphersuite_ristretto255_sha512, \
            ciphersuite_decaf448_sha512, \
            ciphersuite_p256_sha256, \
@@ -51,6 +54,9 @@ class Protocol(object):
         elif mode == mode_verifiable:
             self.server = SetupVerifiableServer(suite, skS, pkS)
             self.client = SetupVerifiableClient(suite, pkS)
+        elif mode == mode_weak_verifiable:
+            self.server = SetupWeakVerifiableServer(suite, skS, pkS)
+            self.client = SetupWeakVerifiableClient(suite, pkS)
         else:
             raise Exception("bad mode")
 
@@ -67,7 +73,10 @@ class Protocol(object):
             assert(server.verify_finalize(x, output))
 
             vector = {}
-            vector["Blind"] = to_hex(group.serialize_scalar(blind))
+            if self.mode == mode_weak_verifiable:
+                vector["Blind"] = "(" + to_hex(group.serialize_scalar(blind[0])) + "," + to_hex(group.serialize_scalar(blind[1])) + ")"
+            else:
+                vector["Blind"] = to_hex(group.serialize_scalar(blind))
             vector["BlindedElement"] = to_hex(blinded_element)
             vector["EvaluationElement"] = to_hex(evaluated_element)
 
@@ -99,7 +108,10 @@ class Protocol(object):
                 assert(server.verify_finalize(xs[i], output))
 
             vector = {}
-            vector["Blind"] = ",".join([to_hex(group.serialize_scalar(blind)) for blind in blinds])
+            if self.mode == mode_weak_verifiable:
+                vector["Blind"] = ",".join(["(" + to_hex(group.serialize_scalar(blind[0])) + "," + to_hex(group.serialize_scalar(blind[1])) + ")" for blind in blinds])
+            else:
+                vector["Blind"] = ",".join([to_hex(group.serialize_scalar(blind)) for blind in blinds])
             vector["BlindedElement"] = to_hex(blinded_elements)
             vector["EvaluationElement"] = to_hex(evaluated_elements)
 
@@ -186,12 +198,30 @@ def write_verifiable_vector(fh, vector):
         fh.write("~~~\n")
         fh.write("\n")
 
+def write_weak_verifiable_vector(fh, vector):
+    fh.write("~~~\n")
+    write_value(fh, "seed", vector["seed"])
+    write_value(fh, "skSm", vector["skSm"])
+    fh.write("~~~\n")
+    fh.write("\n")
+    for i, v in enumerate(vector["vectors"]):
+        fh.write("#### Test Vector " + str(i+1) + ", Batch Size " + str(v["Batch"]) + "\n")
+        fh.write("\n")
+        fh.write("~~~\n")
+        write_value(fh, "Input", v["Input"])
+        write_value(fh, "Blind", v["Blind"])
+        write_value(fh, "BlindedElement", v["BlindedElement"])
+        write_value(fh, "EvaluationElement", v["EvaluationElement"])
+        write_value(fh, "Output", v["Output"])
+        fh.write("~~~\n")
+        fh.write("\n")
+
 def main(path="vectors"):
     allVectors = {}
     for suite_id in test_suites:
         suite = oprf_ciphersuites[suite_id]
         suiteVectors = {}
-        for mode in [mode_base, mode_verifiable]:
+        for mode in [mode_base, mode_verifiable, mode_weak_verifiable]:
             protocol = Protocol(suite, mode)
             suiteVectors[str(mode)] = protocol.run()
         allVectors[suite.name] = suiteVectors
@@ -213,10 +243,15 @@ def main(path="vectors"):
                     f.write("### Base Mode\n")
                     f.write("\n")
                     write_base_vector(f, allVectors[suite][mode])
-                else:
+                elif mode == str(mode_verifiable):
                     f.write("### Verifiable Mode\n")
                     f.write("\n")
                     write_verifiable_vector(f, allVectors[suite][mode])
+                elif mode == str(mode_weak_verifiable):
+                    f.write("### Weak Verifiable Mode\n")
+                    f.write("\n")
+                    write_weak_verifiable_vector(f, allVectors[suite][mode])
+
 
 if __name__ == "__main__":
     main()
