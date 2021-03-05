@@ -8,7 +8,7 @@ import binascii
 
 from collections import namedtuple
 
-from hash_to_field import I2OSP, OS2IP, expand_message_xmd, hash_to_field
+from hash_to_field import I2OSP
 
 try:
     from sagelib.groups import GroupP256, GroupP384, GroupP521, GroupRistretto255, GroupDecaf448
@@ -68,7 +68,10 @@ class ClientContext(object):
 
         h = self.suite.H()
         h.update(finalize_input)
-        return h.digest()
+        if self.suite.name == "OPRF(decaf448, SHAKE-256)":
+           return h.digest(int(56))
+        else:
+           return h.digest()
 
 class ServerContext(object):
     def __init__(self, suite, context_string, skS, pkS):
@@ -98,7 +101,10 @@ class ServerContext(object):
 
         h = self.suite.H()
         h.update(finalize_input)
-        digest = h.digest()
+        if self.suite.name == "OPRF(decaf448, SHAKE-256)":
+           digest = h.digest(int(56))
+        else:
+           digest = h.digest()
 
         return (digest == expected_digest)
 
@@ -114,7 +120,10 @@ class Verifiable(object):
             + I2OSP(len(seedDST), 2) + seedDST
         h = self.suite.H()
         h.update(h1_input)
-        seed = h.digest()
+        if self.suite.name == "OPRF(decaf448, SHAKE-256)":
+           seed = h.digest(int(56))
+        else:
+           seed = h.digest()
 
         M = self.suite.group.identity()
         Z = self.suite.group.identity()
@@ -229,7 +238,11 @@ class VerifiableClientContext(ClientContext,Verifiable):
 
             h = self.suite.H()
             h.update(finalize_input)
-            outputs.append(h.digest())
+
+            if self.suite.name == "OPRF(decaf448, SHAKE-256)":
+               outputs.append(h.digest(int(56)))
+            else:
+               outputs.append(h.digest())
 
         return outputs
 
@@ -318,14 +331,14 @@ def SetupVerifiableClient(suite, pkS):
 Ciphersuite = namedtuple("Ciphersuite", ["name", "identifier", "group", "H"])
 
 ciphersuite_ristretto255_sha512 = 0x0001
-ciphersuite_decaf448_sha512 = 0x0002
+ciphersuite_decaf448_shake256 = 0x0002
 ciphersuite_p256_sha256 = 0x0003
 ciphersuite_p384_sha512 = 0x0004
 ciphersuite_p521_sha512 = 0x0005
 
 oprf_ciphersuites = {
     ciphersuite_ristretto255_sha512: Ciphersuite("OPRF(ristretto255, SHA-512)", ciphersuite_ristretto255_sha512, GroupRistretto255(), hashlib.sha512),
-    ciphersuite_decaf448_sha512: Ciphersuite("OPRF(decaf448, SHA-512)", ciphersuite_decaf448_sha512, GroupDecaf448(), hashlib.sha512),
+    ciphersuite_decaf448_shake256: Ciphersuite("OPRF(decaf448, SHAKE-256)", ciphersuite_decaf448_shake256, GroupDecaf448(), hashlib.shake_256),
     ciphersuite_p256_sha256: Ciphersuite("OPRF(P-256, SHA-256)", ciphersuite_p256_sha256, GroupP256(), hashlib.sha256),
     ciphersuite_p384_sha512: Ciphersuite("OPRF(P-384, SHA-512)", ciphersuite_p384_sha512, GroupP384(), hashlib.sha512),
     ciphersuite_p521_sha512: Ciphersuite("OPRF(P-521, SHA-512)", ciphersuite_p521_sha512, GroupP521(), hashlib.sha512),
