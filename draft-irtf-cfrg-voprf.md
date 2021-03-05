@@ -227,7 +227,7 @@ security properties.
 - Fold Unblind function into Finalize.
 - Optimize ComputeComposites for servers (using knowledge of the private key).
 - Specify deterministic key generation method.
-- Update test vectors. 
+- Update test vectors.
 - Apply various editorial changes.
 
 [draft-05](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-05):
@@ -320,10 +320,11 @@ also a member of `GG`. Also, for any `A` in `GG`, there exists an element
 `-A` such that `A + (-A) = (-A) + A = I`. Scalar multiplication is
 equivalent to the repeated application of the group operation on an
 element A with itself `r-1` times, this is denoted as `r*A = A + ... + A`.
-For any element `A`, `p*A=I`. Scalar base multiplication is equivalent to
-the repeated application of the group operation on the base point with
-itself `r-1` times, this is denoted as `ScalarBaseMult(r)`. The set of
-scalars corresponds to `GF(p)`.
+For any element `A`, `p*A=I`. We denote `G` as the fixed generator of
+the group. Scalar base multiplication is equivalent to the repeated
+application of the group operation `G` with itself `r-1` times, this
+is denoted as `ScalarBaseMult(r)`. The set of scalars corresponds to
+`GF(p)`.
 
 We now detail a number of member functions that can be invoked on a
 prime-order group `GG`.
@@ -626,7 +627,7 @@ def Evaluate(skS, pkS, blindedElement):
   Z = skS * R
   evaluatedElement = GG.SerializeElement(Z)
 
-  proof = GenerateProof(skS, pkS, blindedElement, evaluatedElement)
+  proof = GenerateProof(skS, G, pkS, R, Z)
 
   return evaluatedElement, proof
 ~~~
@@ -639,37 +640,43 @@ below.
 ~~~
 Input:
 
-  PrivateKey skS
-  PublicKey pkS
-  SerializedElement blindedElement
-  SerializedElement evaluatedElement
+  Scalar k
+  Element A
+  Element B
+  Element C
+  Element D
 
 Output:
 
   Proof proof
 
-def GenerateProof(skS, pkS, blindedElement, evaluatedElement)
-  blindedElementList = [blindedElement]
-  evaluatedElementList = [evaluatedElement]
+def GenerateProof(k, A, B, C, D)
+  Cs = [C]
+  Ds = [D]
+  a = ComputeCompositesFast(k, B, Cs, Ds)
 
-  a = ComputeCompositesFast(skS, pkS, blindedElementList, evaluatedElementList)
-
-  M = GG.DeserializeElement(a[0])
   r = GG.RandomScalar()
-  a2 = GG.SerializeElement(ScalarBaseMult(r))
-  a3 = GG.SerializeElement(r * M)
+  M = a[0]
+  Z = a[1]
+  t2 = r * A
+  t3 = r * M
 
-  pkSm = GG.SerializeElement(pkS)
+  Bm = GG.SerializeElement(B)
+  a0 = GG.SerializeElement(M)
+  a1 = GG.SerializeElement(Z)
+  a2 = GG.SerializeElement(t2)
+  a3 = GG.SerializeElement(t3)
+
   challengeDST = "VOPRF06-Challenge-" || self.contextString
-  h2Input = I2OSP(len(pkSm), 2) || pkSm ||
-            I2OSP(len(a[0]), 2) || a[0] ||
-            I2OSP(len(a[1]), 2) || a[1] ||
+  h2Input = I2OSP(len(Bm), 2) || Bm ||
+            I2OSP(len(a0), 2) || a0 ||
+            I2OSP(len(a1), 2) || a1 ||
             I2OSP(len(a2), 2) || a2 ||
             I2OSP(len(a3), 2) || a3 ||
             I2OSP(len(challengeDST), 2) || challengeDST
 
   c = GG.HashToScalar(h2Input)
-  s = (r - c * skS) mod p
+  s = (r - c * k) mod p
   proof = [GG.SerializeScalar(c), GG.SerializeScalar(s)]
 
   return proof
@@ -704,36 +711,37 @@ used both on generation and verification of the proof.
 ~~~
 Input:
 
-  PublicKey pkS
-  SerializedElement blindedElements[m]
-  SerializedElement evaluatedElements[m]
+  Element B
+  Element Cs[m]
+  Element Ds[m]
 
 Output:
 
-  SerializedElement composites[2]
+  Element composites[2]
 
-def ComputeComposites(pkS, blindedElements, evaluatedElements):
-  pkSm = GG.SerializeElement(pkS)
+def ComputeComposites(B, Cs, Ds):
+  Bm = GG.SerializeElement(B)
   seedDST = "VOPRF06-Seed-" || self.contextString
   compositeDST = "VOPRF06-Composite-" || self.contextString
-  h1Input = I2OSP(len(pkSm), 2) || pkSm ||
-            I2OSP(len(seedDST), 2) || seedDST
 
+  h1Input = I2OSP(len(Bm), 2) || Bm ||
+            I2OSP(len(seedDST), 2) || seedDST
   seed = Hash(h1Input)
+
   M = GG.Identity()
   Z = GG.Identity()
   for i = 0 to m-1:
+    Ci = GG.SerializeElement(Cs[i])
+    Di = GG.SerializeElement(Ds[i])
     h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
-              I2OSP(len(blindedElements[i]), 2) || blindedElements[i] ||
-              I2OSP(len(evaluatedElements[i]), 2) || evaluatedElements[i] ||
+              I2OSP(len(Ci), 2) || Ci ||
+              I2OSP(len(Di), 2) || Di ||
               I2OSP(len(compositeDST), 2) || compositeDST
     di = GG.HashToScalar(h2Input)
-    Mi = GG.DeserializeElement(blindedElements[i])
-    M = di * Mi + M
-    Zi = GG.DeserializeElement(evaluatedElements[i])
-    Z = di * Zi + Z
+    M = di * Cs[i] + M
+    Z = di * Ds[i] + Z
 
- return [GG.SerializeElement(M), GG.SerializeElement(Z)]
+ return [M, Z]
 ~~~
 
 If the private key is known, as is the case for the server, this function
@@ -742,36 +750,38 @@ can be optimized as shown in `ComputeCompositesFast` below.
 ~~~
 Input:
 
-  PrivateKey skS
-  PublicKey pkS
-  SerializedElement blindedElements[m]
-  SerializedElement evaluatedElements[m]
+  Scalar k
+  Element B
+  Element Cs[m]
+  Element Ds[m]
 
 Output:
 
-  SerializedElement composites[2]
+  Element composites[2]
 
-def ComputeCompositesFast(skS, pkS, blindedElements, evaluatedElements):
-  pkSm = GG.SerializeElement(pkS)
+def ComputeCompositesFast(k, B, Cs, Ds):
+  Bm = GG.SerializeElement(B)
   seedDST = "VOPRF06-Seed-" || self.contextString
   compositeDST = "VOPRF06-Composite-" || self.contextString
-  h1Input = I2OSP(len(pkSm), 2) || pkSm ||
-            I2OSP(len(seedDST), 2) || seedDST
 
+  h1Input = I2OSP(len(Bm), 2) || Bm ||
+            I2OSP(len(seedDST), 2) || seedDST
   seed = Hash(h1Input)
+
   M = GG.Identity()
   for i = 0 to m-1:
+    Ci = GG.SerializeElement(Cs[i])
+    Di = GG.SerializeElement(Ds[i])
     h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
-              I2OSP(len(blindedElements[i]), 2) || blindedElements[i] ||
-              I2OSP(len(evaluatedElements[i]), 2) || evaluatedElements[i] ||
+              I2OSP(len(Ci), 2) || Ci ||
+              I2OSP(len(Di), 2) || Di ||
               I2OSP(len(compositeDST), 2) || compositeDST
     di = GG.HashToScalar(h2Input)
-    Mi = GG.DeserializeElement(blindedElements[i])
-    M = di * Mi + M
+    M = di * Cs[i] + M
 
-  Z = skS * M
+  Z = k * M
 
- return [GG.SerializeElement(M), GG.SerializeElement(Z)]
+ return [M, Z]
 ~~~
 
 ### Client Context
@@ -872,41 +882,46 @@ proof inside of the evaluation verifies correctly, or not.
 ~~~
 Input:
 
-  PublicKey pkS
-  SerializedElement blindedElement
-  SerializedElement evaluatedElement
+  Element A
+  Element B
+  Element C
+  Element D
   Proof proof
 
 Output:
 
   boolean verified
 
-def VerifyProof(pkS, blindedElement, evaluatedElement, proof):
-  blindedElementList = [blindedElement]
-  evaluatedElementList = [evaluatedElement]
+def VerifyProof(A, B, C, D, proof):
+  Cs = [C]
+  Ds = [D]
 
-  a = ComputeComposites(pkS, blindedElementList, evaluatedElementList)
+  a = ComputeComposites(B, Cs, Ds)
   c = GG.DeserializeScalar(proof[0])
   s = GG.DeserializeScalar(proof[1])
 
-  M = GG.DeserializeElement(a[0])
-  Z = GG.DeserializeElement(a[1])
-  A' = (ScalarBaseMult(s) + c * pkS)
-  B' = (s * M + c * Z)
-  a2 = GG.SerializeElement(A')
-  a3 = GG.SerializeElement(B')
+  M = a[0]
+  Z = a[1]
+  t2 = ((s * A) + (c * B))
+  t3 = ((s * M) + (c * Z))
+
+  Bm = GG.SerializeElement(B)
+  a0 = GG.SerializeElement(M)
+  a1 = GG.SerializeElement(Z)
+  a2 = GG.SerializeElement(t2)
+  a3 = GG.SerializeElement(t3)
 
   challengeDST = "VOPRF06-Challenge-" || self.contextString
-  h2Input = I2OSP(len(pkS), 2) || pkS ||
-            I2OSP(len(a[0]), 2) || a[0] ||
-            I2OSP(len(a[1]), 2) || a[1] ||
+  h2Input = I2OSP(len(Bm), 2) || Bm ||
+            I2OSP(len(a0), 2) || a0 ||
+            I2OSP(len(a1), 2) || a1 ||
             I2OSP(len(a2), 2) || a2 ||
             I2OSP(len(a3), 2) || a3 ||
             I2OSP(len(challengeDST), 2) || challengeDST
 
-  expected_c  = GG.HashToScalar(h2Input)
+  expectedC  = GG.HashToScalar(h2Input)
 
-  return CT_EQUAL(expected_c, c)
+  return CT_EQUAL(expectedC, c)
 ~~~
 
 #### Verifiable Unblind {#verifiable-unblind}
@@ -925,10 +940,11 @@ Output:
   SerializedElement unblindedElement
 
 def Unblind(blind, evaluatedElement, blindedElement, pkS, proof):
-  if VerifyProof(pkS, blindedElement, evaluatedElement, proof) == false:
+  Z = GG.DeserializeElement(evaluatedElement)
+  R = GG.DeserializeElement(blindedElement)
+  if VerifyProof(G, pkS, R, Z, proof) == false:
     ABORT()
 
-  Z = GG.DeserializeElement(evaluatedElement)
   N = (blind^(-1)) * Z
   unblindedElement = GG.SerializeElement(N)
 
@@ -949,7 +965,7 @@ Input:
 
 Output:
 
-  SerializedElement unblindedElement
+  opaque output[Nh]
 
 def Finalize(input, blind, evaluatedElement, blindedElement, pkS, proof):
   unblindedElement = Unblind(blind, evaluatedElement, blindedElement, pkS, proof)
@@ -1448,111 +1464,111 @@ is derived from a `seed`, which is listed as well.
 
 ~~~
 seed = aca1ae53bec831a1279b75ec6091b23d28034b59f77abeb0fa8f6d1a01340
-234 
+234
 skSm = 758cbac0e1eb4265d80f6e6489d9a74d788f7ddeda67d7fb3c08b08f44bda
-30a 
+30a
 ~~~
 
 #### Test Vector 1, Batch Size 1
 
 ~~~
-Input = 00 
+Input = 00
 Blind = c604c785ada70d77a5256ae21767de8c3304115237d262134f5e46e512cf
-8e03 
+8e03
 BlindedElement = 3c7f2d901c0d4f245503a186086fbdf5d8b4408432b25c5163e
-8b5a19c258348 
+8b5a19c258348
 EvaluationElement = fc6c2b854553bf1ed6674072ed0bde1a9911e02b4bd64aa0
-2cfb428f30251e77 
+2cfb428f30251e77
 Output = d8ed12382086c74564ae19b7a2b5ed9bdc52656d1fc151faaae51aaba86
 291e8df0b2143a92f24d44d5efd0892e2e26721d27d88745343493634a66d3a925e3
-a 
+a
 ~~~
 
 #### Test Vector 2, Batch Size 1
 
 ~~~
-Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a 
+Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
 Blind = 5ed895206bfc53316d307b23e46ecc6623afb3086da74189a416012be037
-e50b 
+e50b
 BlindedElement = 28a5e797b710f76d20a52507145fbf320a574ec2c8ab0e33e65
-dd2c277d0ee56 
+dd2c277d0ee56
 EvaluationElement = 345e140b707257ae83d4911f7ead3177891e7a62c5409773
-2802c4c7a98ab25a 
+2802c4c7a98ab25a
 Output = 4d5f4221b5ebfd4d1a9dd54830e1ed0bce5a8f30a792723a6fddfe6cfe9
 f86bb1d95a3725818aeb725eb0b1b52e01ee9a72f47042372ef66c307770054d674f
-c 
+c
 ~~~
 
 ### Verifiable Mode
 
 ~~~
 seed = 23ad84086377ae0ac20acfcf143a9b5c34be63758b94f7ed0a8485345a748
-431 
+431
 skSm = 8d30b6ed995e28692f9ae5517ad4d974395605fd31cbe65b47f88822a142e
-d05 
+d05
 pkSm = c447ae83e5ea5a070c3b35ca0926460020378fd48402b54a7ba2e36b48011
-f0c 
+f0c
 ~~~
 
 #### Test Vector 1, Batch Size 1
 
 ~~~
-Input = 00 
+Input = 00
 Blind = ed8366feb6b1d05d1f46acb727061e43aadfafe9c10e5a64e7518d63e326
-3503 
+3503
 BlindedElement = 9cf00acd9be7d00b87012823aec2480afac98468fc7e0766e52
-c2c42eb66802a 
+c2c42eb66802a
 EvaluationElement = a0a6cbd69a6c3c84bf84ae2b2178debe5ca2d7de8c0c3439
-e340f503e87f9b65 
+e340f503e87f9b65
 EvaluationProofC = 4c1e61ab430c2026b14dbe2df62d64bf5b76001edc0ac5e84
-b0b50b09977da05 
+b0b50b09977da05
 EvaluationProofS = 490660d2a0974c09ab13a10091f70d21e6229638c4e6a902a
-7a0530962cd990f 
+7a0530962cd990f
 Output = 960fb25a94db326205638c0d02c87c064445514e30d539acecb440b36bf
 74c7182a915b7b900ddeab239d4fe73ebcb451e05a4aacb8a05cfd403327b4606f27
-a 
+a
 ~~~
 
 #### Test Vector 2, Batch Size 1
 
 ~~~
-Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a 
+Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
 Blind = e6d0f1d89ad552e383d6c6f4e8598cc3037d6e274d22da3089e7afbd4171
-ea02 
+ea02
 BlindedElement = 9669e8326632c31ddac138b1da65cf39bdc6fa085050f5afd2b
-fedf3dc1a3313 
+fedf3dc1a3313
 EvaluationElement = dc1bf956f7ee401ff5fd1ab206ac13ead704d609ce81469a
-9710cde58ef9bc7c 
+9710cde58ef9bc7c
 EvaluationProofC = 44d8c86b857be2321c2ddf75898508e0f9b56e96ea21c76a8
-ddc2f229ff4bc00 
+ddc2f229ff4bc00
 EvaluationProofS = cec985971cfb2b5747374d85527a58b0a69ce906e5f9eb2fd
-56c56b409e51e02 
+56c56b409e51e02
 Output = fce0ce88eda349292e209eae49032e03bc73a756a5093ca380b0f59db94
 2783aa29396bd2215a721e55a71c166586d3b867e5673713951f79c2499f75a7fa0e
-d 
+d
 ~~~
 
 #### Test Vector 3, Batch Size 2
 
 ~~~
-Input = 00,5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a 
+Input = 00,5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
 Blind = 80513e77795feeec6d2c450589b0e1b178febd5c193a9fcba0d27f0a06e0
 d50f,533c2e6d91c934f919ac218973be55ba0d7b234160a0d4cf3bddafbda99e2e0
-c 
+c
 BlindedElement = 6620ec0b7dc26cb6a6cc7a72ecf28971863861b88363b374f91
 c44c056544245,06f533d9495a54252c2ccced2edb2fb5840f9cf8462a8233a7b4ec
-2d5f788348 
+2d5f788348
 EvaluationElement = c2860fa4213e425c1e5eebff92bbb8e532389b8871fae9fa
 f2348718483f6c05,9618bb1dee5a94017e020993ad7cb0cfb4b5d5b70538ce85680
-acd3b9348757b 
+acd3b9348757b
 EvaluationProofC = 8ecc6109a673872da634dbaa091674a255866599e380dc6c2
-12e163f976b7706 
+12e163f976b7706
 EvaluationProofS = 0949b5e1705ba2c76d179deef6c45891cc38a0515010be0a9
-007bf9471c7fe0e 
+007bf9471c7fe0e
 Output = 960fb25a94db326205638c0d02c87c064445514e30d539acecb440b36bf
 74c7182a915b7b900ddeab239d4fe73ebcb451e05a4aacb8a05cfd403327b4606f27
 a,fce0ce88eda349292e209eae49032e03bc73a756a5093ca380b0f59db942783aa2
-9396bd2215a721e55a71c166586d3b867e5673713951f79c2499f75a7fa0ed 
+9396bd2215a721e55a71c166586d3b867e5673713951f79c2499f75a7fa0ed
 ~~~
 
 ## OPRF(decaf448, SHA-512)
@@ -1561,114 +1577,114 @@ a,fce0ce88eda349292e209eae49032e03bc73a756a5093ca380b0f59db942783aa2
 
 ~~~
 seed = 22bfaee29297b24011e2635ddcd67155ec1805954faa50deb34d937143b4a
-eea23dcd5713571c0ab8d1810efe2749a23c323e2eb757f1f75 
+eea23dcd5713571c0ab8d1810efe2749a23c323e2eb757f1f75
 skSm = 4b2674b32c4975645382b98f2cd8401eaf90a48c5be505118bc674eca46e7
-422042565e51ca263bb8b4285d7f0f099835da2d4a4ecfccd39 
+422042565e51ca263bb8b4285d7f0f099835da2d4a4ecfccd39
 ~~~
 
 #### Test Vector 1, Batch Size 1
 
 ~~~
-Input = 00 
+Input = 00
 Blind = d1080372f0fcf8c5eace50914e7127f576725f215cc7c111673c635ce668
-bbbb9b50601ad89b358ab8c23ed0b6c9d040365ec9d060868714 
+bbbb9b50601ad89b358ab8c23ed0b6c9d040365ec9d060868714
 BlindedElement = 0e5e2ac2924bee04fa1ae372a6a26f6f71972372494c08433d6
-766aeb103c2aef393e06cdc52ed270f1c94e4538068ab724d84ad217f7b2c 
+766aeb103c2aef393e06cdc52ed270f1c94e4538068ab724d84ad217f7b2c
 EvaluationElement = 9837f23012ebd3f817e597481b03d6da85b17d16eee4c5f4
-6986355a751a348d0911b141173b40d0dc0c97792fc4a0749c1b9586cfab0b6d 
+6986355a751a348d0911b141173b40d0dc0c97792fc4a0749c1b9586cfab0b6d
 Output = 9139010e665e84800d86d912c5ea0407b51efd3fb9fdad5fc661964a15a
 1591e35f22d5d5dc14f4f68456987702863642eca5fadbc8ad5e07732d0a8c589813
-3 
+3
 ~~~
 
 #### Test Vector 2, Batch Size 1
 
 ~~~
-Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a 
+Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
 Blind = aed1ffa44fd8f0ed16373606a3cf7df589cca86d8ea1abbf5768771dbef3
-d401c74ae55ba1e28b9565e1e4018eb261a14134a4ce60c1c718 
+d401c74ae55ba1e28b9565e1e4018eb261a14134a4ce60c1c718
 BlindedElement = 0016392cdfbe773dd6740eaa7b41ad19b62b7552a5fff88a337
-90391c656726e7c7b346c2d6989085c6bc11b31a14b15ba2340f776891dc0 
+90391c656726e7c7b346c2d6989085c6bc11b31a14b15ba2340f776891dc0
 EvaluationElement = fc0afdf7f6eaefb86c884b2dd8a21ffe8c375d1e189def2d
-b0b284542be94f338bea2e341961a31d61644e01e2ff6f3d6a07dd5212fda0c7 
+b0b284542be94f338bea2e341961a31d61644e01e2ff6f3d6a07dd5212fda0c7
 Output = 52f8970ec1ed4759758135e5526422d0dfb912b45a963a0e94ea8aa27c0
 54b34c8eb1b5bb65bb3ea45dbb58e1da99046658669cc5161c20d5f948f9a7fce0a0
-c 
+c
 ~~~
 
 ### Verifiable Mode
 
 ~~~
 seed = 9cd0d686c7af3459483e2dcd807912748650131d61c654dd0657213eea091
-03b13290911110f36b27e2d1a73660fc7c7dc7d2243f5c56c35 
+03b13290911110f36b27e2d1a73660fc7c7dc7d2243f5c56c35
 skSm = 2e233ab9d5a9300c0c8af8410b819eff8c47ddf6a65daddf046ee1ef91b05
-89b39bad3b5ac2cf6b0263c201dd98bf79fcd9eee79d2890f34 
+89b39bad3b5ac2cf6b0263c201dd98bf79fcd9eee79d2890f34
 pkSm = ac0a06cde8eddf02a5fb710537e00ffcac23ca6de5c744309366fd7fe71b7
-1a135a7977c763c457d0449d2fd627132817036349e65adcbf5 
+1a135a7977c763c457d0449d2fd627132817036349e65adcbf5
 ~~~
 
 #### Test Vector 1, Batch Size 1
 
 ~~~
-Input = 00 
+Input = 00
 Blind = 4c936db1779a621b6c71475ac3111fd5703a59b713929f36dfd1e892a7fe
-814479c93d8b4b6e11d1f6fe5351e51457b665fa7b76074e531f 
+814479c93d8b4b6e11d1f6fe5351e51457b665fa7b76074e531f
 BlindedElement = b06491721a030478fcf4756de92f0937e29a3898496964636be
-0c9c884a3143a933dcc085e9a0303bde79b3ebdc77448eaa80203d7b57c40 
+0c9c884a3143a933dcc085e9a0303bde79b3ebdc77448eaa80203d7b57c40
 EvaluationElement = e20b32caa3976efe88ff6104ae69d1e4110ce8d536e7b8d6
-c42e9d3188ceacb11c759f2e6352d1ea52272b018e0a6c30da35f2ffb4d53f50 
+c42e9d3188ceacb11c759f2e6352d1ea52272b018e0a6c30da35f2ffb4d53f50
 EvaluationProofC = 75162c17aaa22c38538ad5d3bb1dab6b7dde1410f76f58de2
-5fe98e90c3d43a6532f6277ef45c424deeb4b0f4105bf3edbbef9e8d6327330 
+5fe98e90c3d43a6532f6277ef45c424deeb4b0f4105bf3edbbef9e8d6327330
 EvaluationProofS = 6e6cb40e86974de14f2a96a87d8e4b78f31a92b67a2232f44
-39d0d28e65a79e2b764006c11b89620e15e826bc6ffb22c4e3c3c41593b6830 
+39d0d28e65a79e2b764006c11b89620e15e826bc6ffb22c4e3c3c41593b6830
 Output = 727b216c822412144797413444bf52bde9a7e3d0e0b8a18fbce80316914
 01992cc413951da6f2e557833bf5ef227260ea508f7e2fb7fe221adaa98c8d990177
-a 
+a
 ~~~
 
 #### Test Vector 2, Batch Size 1
 
 ~~~
-Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a 
+Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
 Blind = 15b3355179392f40c3d5a15f0d5ffc354e340454ec779f575e4573a3886a
-b5e57e4da2985cea9e32f6d95539ce2c7189e1bd7462e8c5483a 
+b5e57e4da2985cea9e32f6d95539ce2c7189e1bd7462e8c5483a
 BlindedElement = 3ea98d0d80c5e34582534f06daa3f5747d594fc271dddf4bcb9
-034442eb01564ad92e4a4340f2c9e40f4f212a0a7cdc7bdcad3b8cf83998f 
+034442eb01564ad92e4a4340f2c9e40f4f212a0a7cdc7bdcad3b8cf83998f
 EvaluationElement = 4a981797731fad28fac6c9423eaf3d4ec74214ef38edc8a6
-33cbe8912d1ec157ecb34f8b10f23eb67f7dbc35764b0e37d02e3e3254793a45 
+33cbe8912d1ec157ecb34f8b10f23eb67f7dbc35764b0e37d02e3e3254793a45
 EvaluationProofC = 3ec1c00ad2821e528058ed30081e6a1cd5f344a45e9bf51eb
-9a34895b680b88c20d9464023ae8e754c208a9792af139a2f5a6ab43b266924 
+9a34895b680b88c20d9464023ae8e754c208a9792af139a2f5a6ab43b266924
 EvaluationProofS = 0063bb1ffffe2e2ec2d22d7b9fa61d8d8914b5599eaaf8998
-6d41201b9baa51b9393cce63e7ea7e5155fdf6c7747ddbd999d1818a06b9a29 
+6d41201b9baa51b9393cce63e7ea7e5155fdf6c7747ddbd999d1818a06b9a29
 Output = 025579e09632d69fa8a58fb93fd7dd0b03fa719247cbe6716ebdc49e2c9
 f5e10ac2ea2c17230a86d0716efd4e223e541e65cd83e8ef95eb5c212456126f75d1
-6 
+6
 ~~~
 
 #### Test Vector 3, Batch Size 2
 
 ~~~
-Input = 00,5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a 
+Input = 00,5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
 Blind = 614bb578f29cc677ea9e7aea3e4839413997e020f9377b63c13584156a09
 a46dd2a425c41eac0e313a47e99d05df72c6e1d58e6592577a0d,4c115060bca87db
 7d73e00cbb8559f84cb7a221b235b0950a0ab553f03f10e1386abe954011b7da62bb
-6599418ef90b5d4ea98cc28aff517 
+6599418ef90b5d4ea98cc28aff517
 BlindedElement = 3a3cb2e82a88063371b1983fbb47e4b6838102f3225f21fb578
 af1398ca763a0c1ef7e3c827547d85d87a53ea18b6e29695c0667f7e6d062,a27a04
 823af77878e659b5be66bd61baf06207cfcba7365c9a4dbbdc4d013119c0d88d6b23
-b1eb7dee10bb553ec8bdbc1d1e38a18ee7103c 
+b1eb7dee10bb553ec8bdbc1d1e38a18ee7103c
 EvaluationElement = 8e6630cac5c1d4d7b76b478432a9a5b633314e0880d2c026
 04267ea2499998170ac84ac6ad0c71ef335ac8201ae1f9bda3d4c6873e175a88,08c
 4e567eac74f299a91474d893fc204625e1e15db42b81e574950fbf0d51f78059feb0
-d7a3cb528b65e81b2902fcf78f1b785bd54d90ac2 
+d7a3cb528b65e81b2902fcf78f1b785bd54d90ac2
 EvaluationProofC = 060ea0d134649060a9dc7d4747f9302096229bbd90d6bed3a
-b2f9694cbd06e2642d12b533dab8ba3a96eb47e635c8c6ca544e5f74b2c4535 
+b2f9694cbd06e2642d12b533dab8ba3a96eb47e635c8c6ca544e5f74b2c4535
 EvaluationProofS = f15fabd7dfb504b9473989366b19b6d3576d8c64670099f66
-a41756e6dcbf854100dc33ce97d27599f5dfe388ba1efb36ca4737de11b1403 
+a41756e6dcbf854100dc33ce97d27599f5dfe388ba1efb36ca4737de11b1403
 Output = 727b216c822412144797413444bf52bde9a7e3d0e0b8a18fbce80316914
 01992cc413951da6f2e557833bf5ef227260ea508f7e2fb7fe221adaa98c8d990177
 a,025579e09632d69fa8a58fb93fd7dd0b03fa719247cbe6716ebdc49e2c9f5e10ac
-2ea2c17230a86d0716efd4e223e541e65cd83e8ef95eb5c212456126f75d16 
+2ea2c17230a86d0716efd4e223e541e65cd83e8ef95eb5c212456126f75d16
 ~~~
 
 ## OPRF(P-256, SHA-256)
@@ -1677,106 +1693,106 @@ a,025579e09632d69fa8a58fb93fd7dd0b03fa719247cbe6716ebdc49e2c9f5e10ac
 
 ~~~
 seed = 3eff673ea2fb8669d141dddd1af5a7e43f97f3e00e00273f6435d8407ec93
-322 
+322
 skSm = 95771c829754f4bec369da4f9502fbd709b5b98a260ae720fe41661868639
-b20 
+b20
 ~~~
 
 #### Test Vector 1, Batch Size 1
 
 ~~~
-Input = 00 
+Input = 00
 Blind = 5d9e7f6efd3093c32ecceabd57fb03cf760c926d2a7bfa265babf29ec98a
-f0d0 
+f0d0
 BlindedElement = 02f09475852ef62318680a3ea1319d0474dfabc4402b752ec94
-7c8a37c5c1491a2 
+7c8a37c5c1491a2
 EvaluationElement = 03b304fc1030556762e95ada14aaf68358a68cc66efa231b
-5a6014daff0d75f239 
+5a6014daff0d75f239
 Output = a7bb47cee7f531bd5dc412a4a14b10c6fe532c5e9e74a7509a4b2349311
-b01a8 
+b01a8
 ~~~
 
 #### Test Vector 2, Batch Size 1
 
 ~~~
-Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a 
+Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
 Blind = 825155ab61f17605af2ae2e935c78d857c9407bcd45128d57d338f1671b5
-fcbe 
+fcbe
 BlindedElement = 02589019677db1bca1ca2f94da740691016578952337e2d19e0
-7d1de0d26563c4f 
+7d1de0d26563c4f
 EvaluationElement = 02d26a438f0b7fd11950ddca72f9d8302c3c9363c596255e
-544f3cc1680736d6d1 
+544f3cc1680736d6d1
 Output = 26918fb45d5aa80e101954ac6f6455497aab7423e7271571f87fad343c3
-93dd1 
+93dd1
 ~~~
 
 ### Verifiable Mode
 
 ~~~
 seed = ab2f339a7220e50cc4dc9da84913863596593d9ead69c6a61cf50d8da5cdf
-079 
+079
 skSm = 0773c16f0faf8a5d3e8f76631600d5d5837cb65192531d8f06add8151c895
-923 
+923
 pkSm = 02715ccbcb67ce334bc6527dfbc795aea8839d13c888eeae822022ff8062c
-c7e5b 
+c7e5b
 ~~~
 
 #### Test Vector 1, Batch Size 1
 
 ~~~
-Input = 00 
+Input = 00
 Blind = cee64d86fd20ab4caa264a26c0e3d42fb773b3173ba76f9588c9b14779bd
-8d91 
+8d91
 BlindedElement = 03458b1f2964895be9500419f7252a5f899932a0e1a80dad2a5
-8c93205d87c189c 
+8c93205d87c189c
 EvaluationElement = 02f33b62756f2af3e7789adb228a69d6a477fb9c71ff0bf7
-31f9e1688fed173856 
+31f9e1688fed173856
 EvaluationProofC = f20cd08a2fc81ac3379f1704cb1e63fd7d206fab9b0d8aeda
-4d3814e2d21ac83 
+4d3814e2d21ac83
 EvaluationProofS = 85ca571b54edea4b8bce2247c37cdea760aab6f480286e871
-d1b5aaf8354fe7c 
+d1b5aaf8354fe7c
 Output = 307bce9725d306e5b28c589084e9458985d57e482c8a4e92bf2ffd1e236
-3672d 
+3672d
 ~~~
 
 #### Test Vector 2, Batch Size 1
 
 ~~~
-Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a 
+Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
 Blind = 5c4b401063eff0bf242b4cd534a79bacfc2e715b2db1e7a3ad4ff8af1b24
-daa2 
+daa2
 BlindedElement = 02b600c8cd1f859fb7a87a1c9298b68d12902e4d093c9573af0
-6b1b376c58e6623 
+6b1b376c58e6623
 EvaluationElement = 03af5ace869c4c48a4d169f72a5d78fa806c566f36dbd73a
-40372373b5ff5b7d47 
+40372373b5ff5b7d47
 EvaluationProofC = 31b202d4df078ac8def9054a29ee0dce585fbff4384763606
-c16bd2489b9507e 
+c16bd2489b9507e
 EvaluationProofS = 1cfc5ab981b3da6a9ee344108fb1e2547e7817ec7f1966638
-6014b4950f62230 
+6014b4950f62230
 Output = cba462665ec1a01c302a05f2c29a2e4b5282ee639db91460f63353999ec
-6ac53 
+6ac53
 ~~~
 
 #### Test Vector 3, Batch Size 2
 
 ~~~
-Input = 00,5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a 
+Input = 00,5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
 Blind = f0c7822ba317fb5e86028c44b92bd3aedcf6744d388ca013ef33edd36930
 4eda,3b9631be9f8b274d9aaf671bfb6a775229bf435021b89c683259773bc686956
-b 
+b
 BlindedElement = 03ac68c358da4a3cff87c0a31e9646d178be69bbda8e00d204e
 10d00d4518b8821,03f0189aef822b923cfacb055a74af1111c545093a1c8b2afabc
-d79abf79a300da 
+d79abf79a300da
 EvaluationElement = 03f7c0a0373e2bf57d0f86d92ad1e8d97c009a420d43706e
 f3ba5707c8b0fb4b85,02b14ee68ff6194b8be68a72f6968f62f53018699694f3ada
-bc5825f7181cf60d4 
+bc5825f7181cf60d4
 EvaluationProofC = 0785f1389d3e9e91e5514d97d192f8f35cd5288b52b750332
-e7ae696d350abc2 
+e7ae696d350abc2
 EvaluationProofS = b0e8ee29aabee13fa30833e9c55b9c657d1b52e6599058432
-3825ed6c596f9b2 
+3825ed6c596f9b2
 Output = 307bce9725d306e5b28c589084e9458985d57e482c8a4e92bf2ffd1e236
 3672d,cba462665ec1a01c302a05f2c29a2e4b5282ee639db91460f63353999ec6ac
-53 
+53
 ~~~
 
 ## OPRF(P-384, SHA-512)
@@ -1785,113 +1801,113 @@ Output = 307bce9725d306e5b28c589084e9458985d57e482c8a4e92bf2ffd1e236
 
 ~~~
 seed = 63e92b15555b6cb760d44daf230782c763430c860fcac60eac7508526b79c
-96cdf05f0489f13a1196b4d5cabc8f257f3 
+96cdf05f0489f13a1196b4d5cabc8f257f3
 skSm = 8abb9c0771d2fd11ffb7d84ae7623d32c92a8688f7ab4110f041cba48990a
-533f4c5d6d396e75ceeddffda061301f0ff 
+533f4c5d6d396e75ceeddffda061301f0ff
 ~~~
 
 #### Test Vector 1, Batch Size 1
 
 ~~~
-Input = 00 
+Input = 00
 Blind = 359073c015b92d15450f7fb395bf52c6ea98384c491fe4e4d423b59de7b0
-df382902c13bdc9993d3717bda68fc080b99 
+df382902c13bdc9993d3717bda68fc080b99
 BlindedElement = 022250ba7604814ab2058e70fdc5dcf2604afb3ab6e15fc97c5
-14973bb5e574d586ce518700ad0dd02b54982ce202020e1 
+14973bb5e574d586ce518700ad0dd02b54982ce202020e1
 EvaluationElement = 02779e7450227d438ee2b24d257cad8ec842fe6b1f1ed55e
-fdb65c07d3058036759059b8f4bbdbae3d5db0b7444b276a43 
+fdb65c07d3058036759059b8f4bbdbae3d5db0b7444b276a43
 Output = 26668250052b501b6d884549726eaf95094a4c249eb83ff6c90fab0e798
 88b0b3fdbb449e22d42834377d3a990087fe0b33a20ab60ce1a0b0d75d09c08c7c76
-4 
+4
 ~~~
 
 #### Test Vector 2, Batch Size 1
 
 ~~~
-Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a 
+Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
 Blind = 21ece4f9b6ffd01ce82082545413bd9bb5e8f3c63b86ae88d9ce0530b01c
-b1c23382c7ec9bdd6e75898e4877d8e2bc17 
+b1c23382c7ec9bdd6e75898e4877d8e2bc17
 BlindedElement = 022dd0addbced4c8ea73eaa8e38f43506a7c3f98288ed479725
-d596fa3a578f728915414f5df77084cadefcd5e4662f6df 
+d596fa3a578f728915414f5df77084cadefcd5e4662f6df
 EvaluationElement = 0274578679fbcff1a9d8e5fedf024361a039915b7e347540
-960f24fb7434b1d9b54655e91237226234182f2515e1d50501 
+960f24fb7434b1d9b54655e91237226234182f2515e1d50501
 Output = 4e603ffa07b244507b6939359caa372a27793c65a08027df9859fe768cb
 c0d454803d6929d95a7a0bf399065d91140a559e627d9b2386fae03c3d8c4f9ad9c4
-f 
+f
 ~~~
 
 ### Verifiable Mode
 
 ~~~
 seed = 1ce2b395fbc9b0c94142ca50b5237fbf30955deb98195e4a8f9b85b14cbfb
-a7a12c9fe2fa70222086298dce67fc0ce56 
+a7a12c9fe2fa70222086298dce67fc0ce56
 skSm = b33d6912f3d98f4127eb29022196ae5fd203875953fdd00eed62588cf7511
-9c594e841c2caea2b7eac83bdf6f26e9b4a 
+9c594e841c2caea2b7eac83bdf6f26e9b4a
 pkSm = 029668c6874e11fb84c854653910bad621060af56e3beaa459a454ac9d8d6
-90092aa5361739737da93327a76e219fa6155 
+90092aa5361739737da93327a76e219fa6155
 ~~~
 
 #### Test Vector 1, Batch Size 1
 
 ~~~
-Input = 00 
+Input = 00
 Blind = 102f6338df84c9602bfa9e7d690b1f7a173d07e6d54a419db4a6308f8b09
-589e4283efb9cd1ee4061c6bf884e60a8774 
+589e4283efb9cd1ee4061c6bf884e60a8774
 BlindedElement = 03c267661f12013daa1e4fe319713adde264a37bea8b91c5cb2
-71e9e3ee12e5ed829f5a7a23aa4803704381e638a927e3a 
+71e9e3ee12e5ed829f5a7a23aa4803704381e638a927e3a
 EvaluationElement = 02711fcd5e6f778121ff23f40fbbf0280ff022f61437be61
-931126244a0c5ab3ad80bb28eb5112f750e82bb2951d39ccf1 
+931126244a0c5ab3ad80bb28eb5112f750e82bb2951d39ccf1
 EvaluationProofC = 51ead6a0432a4d5c355fc58c075d420907e1155703a9df21e
-51128ed900391e5e4aa6b14d7d5a1df271c7c8e816363ed 
+51128ed900391e5e4aa6b14d7d5a1df271c7c8e816363ed
 EvaluationProofS = 88a8510e0aabfd3d0957616adc007508d030e21d695a768df
-57b1db194847f4e93aa89cdb553c5d9ebc141f4a0bb9369 
+57b1db194847f4e93aa89cdb553c5d9ebc141f4a0bb9369
 Output = 1512d25e41336b8975d51e061f3ad8ca79f76fb6c5467526c9fecfd38cf
 e7d811fc969d10c9caa87190a3879004e9bcbeef8904f4c644cb378bf461c237fff0
-0 
+0
 ~~~
 
 #### Test Vector 2, Batch Size 1
 
 ~~~
-Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a 
+Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
 Blind = 8aec1d0c3d16afd032da7ba961449a56cec6fb918e932b06d5778ac7f67b
-ecfb3e3869237f74106241777f230582e84a 
+ecfb3e3869237f74106241777f230582e84a
 BlindedElement = 038f7b700d59fe135484a799fa10bb761b622d29a606ef9ecb5
-b922409de93473c850bbccfd449a9cd1c352021faed9285 
+b922409de93473c850bbccfd449a9cd1c352021faed9285
 EvaluationElement = 028bb86d62701dd511ae0e7d074ed46519c71d3d8b82be23
-6e17de883e41e2c5d0d779f75c59fcdd7b21a7aebdaddb1294 
+6e17de883e41e2c5d0d779f75c59fcdd7b21a7aebdaddb1294
 EvaluationProofC = 4ad66d430fe36eca8dd13d72b8a79c14afe42dd8b78196cef
-650c6c9425c01cc269ddcfb435db06924047fdfa32d87fe 
+650c6c9425c01cc269ddcfb435db06924047fdfa32d87fe
 EvaluationProofS = d8340cbcbf1bc19afeca7bac68610b6101588b99a99cea1dd
-5aa7824d0f7cd188204883f20252d23e453ee7d2dea6a54 
+5aa7824d0f7cd188204883f20252d23e453ee7d2dea6a54
 Output = 2fed20cb0c1bcda344057b5c16faa96cc62a9ae6572a94a175b1a2742a2
 d299ff95de6ebcfe6ac1859d88cd154c1498a22ce7578ed2d1beca5c21f9857f0207
-d 
+d
 ~~~
 
 #### Test Vector 3, Batch Size 2
 
 ~~~
-Input = 00,5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a 
+Input = 00,5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
 Blind = 41fabd4722d92472d858051ce9ad1a533176a862c697b2c392aff2aeb77e
 b20c2ae6ba52fe31e13e03bf1d9f39878b23,51171628f1d28bb7402ca4aea6465e2
-67b7f977a1fb71593281099ef2625644aee0b6c5f5e6e01a2b052b3bd4caf539b 
+67b7f977a1fb71593281099ef2625644aee0b6c5f5e6e01a2b052b3bd4caf539b
 BlindedElement = 0261f6684d6b14f9a751e3837b09545fea017d792c3b3585524
 7b4e900adf6874c77a57805b020c3ae2e7560e078fb2410,02e2b67e4571f2d83998
 6cd1b989edebe55ed6c05fb5173e12ed7c56fd262f2ab806b23f44e81101f532b224
-d788e66c02 
+d788e66c02
 EvaluationElement = 029a2f611bd2f4346e9f834e91c6828354fb49262e60473f
 a494b65be33478bcac5e253878be75613beffb45da0ac3c3a0,03fc35912f5f1642c
 75bbbddbd6844861eef94ab435ea63292e3c073b8af4f3c2c20db0741b5a167acf5e
-3f92b8eeceeb5 
+3f92b8eeceeb5
 EvaluationProofC = a3009c06dd2c102d748bb7d3bc873fb6bad12aa310f6ca83a
-2d9591109ef05211789c9876704e043054ebd4bc11e62a8 
+2d9591109ef05211789c9876704e043054ebd4bc11e62a8
 EvaluationProofS = 861ab3ea88d2e428d0ca95332a7ccb3f3d71c5158502925e2
-3d4ee84b1f4619302ba7bd4822538be223bb22f6955cf39 
+3d4ee84b1f4619302ba7bd4822538be223bb22f6955cf39
 Output = 1512d25e41336b8975d51e061f3ad8ca79f76fb6c5467526c9fecfd38cf
 e7d811fc969d10c9caa87190a3879004e9bcbeef8904f4c644cb378bf461c237fff0
 0,2fed20cb0c1bcda344057b5c16faa96cc62a9ae6572a94a175b1a2742a2d299ff9
-5de6ebcfe6ac1859d88cd154c1498a22ce7578ed2d1beca5c21f9857f0207d 
+5de6ebcfe6ac1859d88cd154c1498a22ce7578ed2d1beca5c21f9857f0207d
 ~~~
 
 ## OPRF(P-521, SHA-512)
@@ -1901,46 +1917,46 @@ e7d811fc969d10c9caa87190a3879004e9bcbeef8904f4c644cb378bf461c237fff0
 ~~~
 seed = 860941f8d1d28513d9b38da971d0291cb2532a9dacc9256d5eaaa022e3f32
 bb447479ec7d6bc8204328b9f28fb3ccf63ebba9e02837c8386e7a50f6cb210467e5
-78f 
+78f
 skSm = 0095b985908df61dae8bf8c037488cafea62377af2a2f41030f6dd8b3c750
 237c241ad68e7f07682d422fc2395008a3811675be0a53a58c4dae4b5974ad11d6f8
-4d4 
+4d4
 ~~~
 
 #### Test Vector 1, Batch Size 1
 
 ~~~
-Input = 00 
+Input = 00
 Blind = 01b983705fcc9a39607288b935b0797ac6b3c4b2e848823ac9ae16b3a3b5
 816be03432370deb7c3c17d9fc7cb4e0ce646e04e42d638e0fa7a434ed340772a8b5
-d626 
+d626
 BlindedElement = 0301df6ecf5c96659ecc36613357a9f337b43687e0073f67b9a
 d8b6714bc1e8abdfbb74115189474ddb697df70676c551c103d601640c51e10ef607
-fc4d0fe485b557f 
+fc4d0fe485b557f
 EvaluationElement = 0300b7706ad75473f5265a4456b3fbc61c998895cc157cb1
 f48ba433f5fc3cb9caf845aa959b89eca919aff08f19d38d195a9fa7c0862362e681
-09a45f980b124e5be0 
+09a45f980b124e5be0
 Output = 3a34c3c5c87a7d14617e3f20fb76b861f6db25b0074369b80e5256dd30b
 8a749393f90e7bcea80c844fc1bbdc62d52a80c6c648fb3e470d39ea4cd98138a819
-f 
+f
 ~~~
 
 #### Test Vector 2, Batch Size 1
 
 ~~~
-Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a 
+Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
 Blind = 01a03b1096b0316bc8567c89bd70267d35c8ddcb2be2cdc867089a2eb5cf
 471b1e6eb4b043b9644c8539857abe3a2022e9c9fd6a1695bbabe8add48bcd149ff3
-b841 
+b841
 BlindedElement = 0201412d7330e8ef457d1e21e25feb41c3b09d3bcd347916743
 f60b10cdb0bd9498a965f35ee525ffccc16606be42a1c1764d18fabd7bb0b61da95a
-b3c9a23918233ef 
+b3c9a23918233ef
 EvaluationElement = 020182d03c2244a6be2246f023ce67cd876b88dc75ebfcad
 d0c952f6cc4ec7f47c31b2f019e8091e999f866ec3110cfd7c84e91c4185dab1e2bc
-5cdd9e87662276ad85 
+5cdd9e87662276ad85
 Output = 105da360c0bca0e14a645cbb8b93e0033d061f3351ac494882c9a00c9c6
 0263a17382bcec7bcf96a96a41800de007a5313120ff6b96ec236eed872a4de23f70
-d 
+d
 ~~~
 
 ### Verifiable Mode
@@ -1948,90 +1964,90 @@ d
 ~~~
 seed = 2d317f9cfdbedf19e3b3264399ffbac20c1c39899b50af2f0abb24177ddfc
 5b0682e6ba98e41e90814b9b8216d82c211be6a9f886b5f73f49188ba7aeb7fab828
-d0b 
+d0b
 skSm = 0097bfe7b0db0760d3d062be371d5fb9ae91f75221dc7b24be288deec3dac
 d049f79ed8f5ae99d825970b37c398ea01e8a3e14209fb2e8f53be8dd98b63626ab0
-df6 
+df6
 pkSm = 0200641f1fbe204bdf4f47b358a3daa1f0c68ca55e39716178ae7804c5b86
 faf4822bcffef994411eee7bf8d708b42b5d02b7fc13de3ab14cf3fd1ca24d9d83e9
-f3db9 
+f3db9
 ~~~
 
 #### Test Vector 1, Batch Size 1
 
 ~~~
-Input = 00 
+Input = 00
 Blind = 00bbb82117c88bbd91b8954e16c0b9ceed3ce992b198be1ebfba9ba970db
 d75beefbfc6d056b7f7ba1ef79f4facbf2d912c26ce2ecc5bb8d66419b379952e96b
-d6f5 
+d6f5
 BlindedElement = 0200f9ed4c09f771e30913440c62139f63300f6577d31f5af0b
 026ef2c7dfa438516c7265702cc9bfdba04e1bca1796447ad55fab987d4d72ee7076
-5328651033581e2 
+5328651033581e2
 EvaluationElement = 0300c69b7af34014ec66228f8109a71294e86b232a500ca4
 a8e5c29f105a7c078f08eaeb1a29dbf8c1baa64976097c938f721686aac8f22b5b4c
-f09147606d07bedd14 
+f09147606d07bedd14
 EvaluationProofC = 0180092b8c106e6453eee63718642a11580d3943947940e71
 abc67d961693153e32f8c3428514c3f32bbf04cd2cee437f5dad3de81802ee259aa6
-9f14de908c4af1c 
+9f14de908c4af1c
 EvaluationProofS = 00010c5168438bcfb0fcdd5737416ed4c2f3ab9fdd70d5552
 721444872dd6dda4c7324eade2460aa1cd193b2f2b99f7651f090a163ddab135d69e
-73e816a0e5cb101 
+73e816a0e5cb101
 Output = 5d6bb0a459ebabdc24f4eb1f2d5ba84967b5362e28b4263113ae82f64b6
 16b14675c300a80d1a29f3b9f43c7c115d76a55b69785925b193d0742e32c7c26abc
-2 
+2
 ~~~
 
 #### Test Vector 2, Batch Size 1
 
 ~~~
-Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a 
+Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
 Blind = 009055c99bf9591cb0eab2a72d044c05ca2cc2ef9b609a38546f74b6d688
 f70cf205f782fa11a0d61b2f5a8a2a1143368327f3077c68a1545e9aafbba6a90dc0
-d40a 
+d40a
 BlindedElement = 0201dfa5dc7ea17f0cf60caa26d2a488e7af296268834b35eaf
 f497488a211670008a74ed649b20379ab63a3ff8f2dd718f5418cb30ec317e68b5c8
-014a577b19710a3 
+014a577b19710a3
 EvaluationElement = 03008ec6ce61d8438ba2d10d83a476ba8cc28d7e385e2ea6
 357ac00226491fa9b037d14775bd0beb152ba0b1559979f0d186fcd3b76983d1a25f
-9a958d71eba5564e4f 
+9a958d71eba5564e4f
 EvaluationProofC = 01dfab8e49173c15e3fe755b6d0d18181eb6f223cd44c4d8c
 3bb67727cabf209d95858fe82ecfab0ed6958bd088567cc759d7fe2d00be07973248
-b5154f567598443 
+b5154f567598443
 EvaluationProofS = 017a99db7e59297be3bee22d7de9f7939dbf55a3d0d3344ec
 61f44be16ef2aed795b355a1fb583b5bef5aefe105f7ffa2e0feb063d56be48ee8d5
-a43fdf4f11f9339 
+a43fdf4f11f9339
 Output = be1882653a80f060f3c65f654270c202abbc5be961cb8c79ff952f2e284
 a82ba087e8c26f06c43c98518b0b75940d061a3f5665557e292cee9e86487be05bba
-6 
+6
 ~~~
 
 #### Test Vector 3, Batch Size 2
 
 ~~~
-Input = 00,5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a 
+Input = 00,5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
 Blind = 01c6cf092d80c7cf2cb55388d899515238094c800bdd9c65f71780ba85f5
 ae9b4703e17e559ca3ccd1944f9a70536c175f11a827452672b60d4e9f89eba28104
 6e29,00cba1ba1a337759061965a423d9d3d6e1e1006dc8984ad28a4c93ecfc36fc2
 171046b3c4284855cfa2434ed98db9e68a597db2c14728fade716a6a82d600444b26
-e 
+e
 BlindedElement = 0300be204aba0367d902f293aa8bda66a136f7e3962dfafab88
 ba04aacf62a4e63993060704cd1714cf7af4e16ea0a1c91ff7506a65b40253f6ae01
 9b7a6160d50c814,0200082b5f723e4a635902e5bbf27fea807792399af5ac8d276b
 c6aa62bc1685cb6bdb2ff1c92979d4413da3627df180d709ddd03597fc8f095c6826
-fd97e8adbceca9 
+fd97e8adbceca9
 EvaluationElement = 0200482edc448a8be76098f64ff783309b7e5c1e8882b7e1
 c25c05308ce594063252e5b6ff7ea52621d56762ae4dbac4ff38be14608a5f967667
 79d331e65964823d80,03008c0faeb5ba9eaf1c2303e2dbaed68274b77898455a944
 fab83603c5495e4ec74adcc3bf78cdacdac6996d657f6f163e82680987f0ded2062b
-ee712843c4ffaf054 
+ee712843c4ffaf054
 EvaluationProofC = 0008ce3eb07c5b4b230c1e7424d3282ebfa665aee41f69860
 a64312d706361cb3c2704b12490f5e0d58681c91cbea4f53cbd1d4925c450b2ed9b4
-b1ddfa92cb30cbb 
+b1ddfa92cb30cbb
 EvaluationProofS = 00b5521b8a33efb3bb0e1c02f5d93b3fb9d8f6531085a7117
 cd78cea125bf20eaeae59a179067d45119b34f2ef82f71e54bda17440c3e27f04d50
-04c49ab25a62add 
+04c49ab25a62add
 Output = 5d6bb0a459ebabdc24f4eb1f2d5ba84967b5362e28b4263113ae82f64b6
 16b14675c300a80d1a29f3b9f43c7c115d76a55b69785925b193d0742e32c7c26abc
 2,be1882653a80f060f3c65f654270c202abbc5be961cb8c79ff952f2e284a82ba08
-7e8c26f06c43c98518b0b75940d061a3f5665557e292cee9e86487be05bba6 
+7e8c26f06c43c98518b0b75940d061a3f5665557e292cee9e86487be05bba6
 ~~~
