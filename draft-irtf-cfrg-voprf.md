@@ -148,7 +148,7 @@ normative:
         org: Independent
   SEC1:
     title: "SEC 1: Elliptic Curve Cryptography"
-    target: https://www.secg.org/sec1-v2.pdff
+    target: https://www.secg.org/sec1-v2.pdf
     date: false
     author:
       -
