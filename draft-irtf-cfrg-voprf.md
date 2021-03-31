@@ -509,7 +509,7 @@ SerializedScalar Proof[2];
 In this section, we detail the APIs available on the client and server
 (V)OPRF contexts. Each API has the following implicit parameters:
 
-- GG, a prime-order group implementing the API described below in {{pog}}.
+- GG, a prime-order group implementing the API described in {{pog}}.
 - contextString, a domain separation tag taken from the client or server
   context.
 
