@@ -458,11 +458,11 @@ The base mode setup functions for creating client and server contexts are below:
 
 ~~~
 def SetupBaseServer(suite, skS):
-  contextString = I2OSP(modeBase, 1) || I2OSP(suite.ID, 2)
+  contextString = "VOPRF06-" || I2OSP(modeBase, 1) || I2OSP(suite.ID, 2)
   return ServerContext(contextString, skS)
 
 def SetupBaseClient(suite):
-  contextString = I2OSP(modeBase, 1) || I2OSP(suite.ID, 2)
+  contextString = "VOPRF06-" || I2OSP(modeBase, 1) || I2OSP(suite.ID, 2)
   return ClientContext(contextString)
 ~~~
 
@@ -471,17 +471,19 @@ contexts are below:
 
 ~~~
 def SetupVerifiableServer(suite, skS, pkS):
-  contextString = I2OSP(modeVerifiable, 1) || I2OSP(suite.ID, 2)
+  contextString = "VOPRF06-" || I2OSP(modeVerifiable, 1) || I2OSP(suite.ID, 2)
   return VerifiableServerContext(contextString, skS)
 
 def SetupVerifiableClient(suite, pkS):
-  contextString = I2OSP(modeVerifiable, 1) || I2OSP(suite.ID, 2)
+  contextString = "VOPRF06-" || I2OSP(modeVerifiable, 1) || I2OSP(suite.ID, 2)
   return VerifiableClientContext(contextString, pkS)
 ~~~
 
 Each setup function takes a ciphersuite from the list defined in
 {{ciphersuites}}. Each ciphersuite has a two-byte field ID used to
 identify the suite.
+
+[[RFC editor: please change "VOPRF06" to "RFCXXXX", where XXXX is the final number, here and elsewhere before publication.]]
 
 ## Data Types {#structs}
 
@@ -505,7 +507,11 @@ SerializedScalar Proof[2];
 ## Context APIs {#api}
 
 In this section, we detail the APIs available on the client and server
-(V)OPRF contexts.
+(V)OPRF contexts. Each API has the following implicit parameters:
+
+- GG, a prime-order group implementing the API described below in {{pog}}.
+- contextString, a domain separation tag taken from the client or server
+  context.
 
 ### Server Context
 
@@ -560,15 +566,13 @@ def FullEvaluate(skS, input):
   T = skS * P
   issuedElement = GG.SerializeElement(T)
 
-  finalizeDST = "VOPRF06-Finalize-" || self.contextString
+  finalizeDST = "Finalize-" || contextString
   hashInput = I2OSP(len(input), 2) || input ||
               I2OSP(len(issuedElement), 2) || issuedElement ||
               I2OSP(len(finalizeDST), 2) || finalizeDST
 
   return Hash(hashInput)
 ~~~
-
-[[RFC editor: please change "VOPRF06" to "RFCXXXX", where XXXX is the final number, here and elsewhere before publication.]]
 
 #### VerifyFinalize
 
@@ -589,7 +593,7 @@ def VerifyFinalize(skS, input, output):
   issuedElement = Evaluate(skS, [element])
   E = GG.SerializeElement(issuedElement)
 
-  finalizeDST = "VOPRF06-Finalize-" || self.contextString
+  finalizeDST = "Finalize-" || contextString
   hashInput = I2OSP(len(input), 2) || input ||
               I2OSP(len(E), 2) || E ||
               I2OSP(len(finalizeDST), 2) || finalizeDST
@@ -598,8 +602,6 @@ def VerifyFinalize(skS, input, output):
 
   return CT_EQUAL(digest, output)
 ~~~
-
-[[RFC editor: please change "VOPRF06" to "RFCXXXX", where XXXX is the final number, here and elsewhere before publication.]]
 
 ### VerifiableServerContext
 
@@ -667,7 +669,7 @@ def GenerateProof(k, A, B, C, D)
   a2 = GG.SerializeElement(t2)
   a3 = GG.SerializeElement(t3)
 
-  challengeDST = "VOPRF06-Challenge-" || self.contextString
+  challengeDST = "Challenge-" || contextString
   h2Input = I2OSP(len(Bm), 2) || Bm ||
             I2OSP(len(a0), 2) || a0 ||
             I2OSP(len(a1), 2) || a1 ||
@@ -721,8 +723,8 @@ Output:
 
 def ComputeComposites(B, Cs, Ds):
   Bm = GG.SerializeElement(B)
-  seedDST = "VOPRF06-Seed-" || self.contextString
-  compositeDST = "VOPRF06-Composite-" || self.contextString
+  seedDST = "Seed-" || contextString
+  compositeDST = "Composite-" || contextString
 
   h1Input = I2OSP(len(Bm), 2) || Bm ||
             I2OSP(len(seedDST), 2) || seedDST
@@ -761,8 +763,8 @@ Output:
 
 def ComputeCompositesFast(k, B, Cs, Ds):
   Bm = GG.SerializeElement(B)
-  seedDST = "VOPRF06-Seed-" || self.contextString
-  compositeDST = "VOPRF06-Composite-" || self.contextString
+  seedDST = "Seed-" || contextString
+  compositeDST = "Composite-" || contextString
 
   h1Input = I2OSP(len(Bm), 2) || Bm ||
             I2OSP(len(seedDST), 2) || seedDST
@@ -859,7 +861,7 @@ Output:
 def Finalize(input, blind, evaluatedElement):
   unblindedElement = Unblind(blind, evaluatedElement)
 
-  finalizeDST = "VOPRF06-Finalize-" || self.contextString
+  finalizeDST = "Finalize-" || contextString
   hashInput = I2OSP(len(input), 2) || input ||
               I2OSP(len(unblindedElement), 2) || unblindedElement ||
               I2OSP(len(finalizeDST), 2) || finalizeDST
@@ -911,7 +913,7 @@ def VerifyProof(A, B, C, D, proof):
   a2 = GG.SerializeElement(t2)
   a3 = GG.SerializeElement(t3)
 
-  challengeDST = "VOPRF06-Challenge-" || self.contextString
+  challengeDST = "Challenge-" || contextString
   h2Input = I2OSP(len(Bm), 2) || Bm ||
             I2OSP(len(a0), 2) || a0 ||
             I2OSP(len(a1), 2) || a1 ||
@@ -970,7 +972,7 @@ Output:
 def Finalize(input, blind, evaluatedElement, blindedElement, pkS, proof):
   unblindedElement = Unblind(blind, evaluatedElement, blindedElement, pkS, proof)
 
-  finalizeDST = "VOPRF06-Finalize-" || self.contextString
+  finalizeDST = "Finalize-" || contextString
   hashInput = I2OSP(len(input), 2) || input ||
               I2OSP(len(unblindedElement), 2) || unblindedElement ||
               I2OSP(len(finalizeDST), 2) || finalizeDST
@@ -1013,10 +1015,10 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
   - HashToGroup(): Use hash_to_ristretto255
     {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
-    "VOPRF06-HashToGroup-" || contextString, and `expand_message` = `expand_message_xmd`
+    "HashToGroup-" || contextString, and `expand_message` = `expand_message_xmd`
     using SHA-512.
   - HashToScalar(): Compute `uniform_bytes` using `expand_message` = `expand_message_xmd`,
-    DST = "VOPRF06-HashToScalar-" || contextString, and output length 64, interpret
+    DST = "HashToScalar-" || contextString, and output length 64, interpret
     `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the integer
     modulo `Order()`.
   - Serialization: Both group elements and scalars are encoded in Ne = Ns = 32
@@ -1031,10 +1033,10 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 - Group: decaf448 {{!RISTRETTO}}
   - HashToGroup(): Use hash_to_decaf448
     {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
-    "VOPRF06-HashToGroup-" || contextString, and `expand_message` = `expand_message_xmd`
+    "HashToGroup-" || contextString, and `expand_message` = `expand_message_xmd`
     using SHA-512.
   - HashToScalar(): Compute `uniform_bytes` using `expand_message` = `expand_message_xmd`,
-    DST = "VOPRF06-HashToScalar-" || contextString, and output length 64, interpret
+    DST = "HashToScalar-" || contextString, and output length 64, interpret
     `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the integer
     modulo `Order()`.
   - Serialization: Both group elements and scalars are encoded in Ne = Ns = 56
@@ -1049,10 +1051,10 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 - Group: P-256 (secp256r1) {{x9.62}}
   - HashToGroup(): Use hash_to_curve with suite P256_XMD:SHA-256_SSWU_RO\_
     {{!I-D.irtf-cfrg-hash-to-curve}} and DST =
-    "VOPRF06-HashToGroup-" || contextString.
+    "HashToGroup-" || contextString.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, L = 48, `expand_message_xmd`
-    with SHA-256, and DST = "VOPRF06-HashToScalar-" || contextString.
+    with SHA-256, and DST = "HashToScalar-" || contextString.
   - Serialization: Elements are serialized as Ne = 33 byte strings using
     compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
     Ns = 32 byte strings by fully reducing the value modulo p and in big-endian
@@ -1065,10 +1067,10 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 - Group: P-384 (secp384r1) {{x9.62}}
   - HashToGroup(): Use hash_to_curve with suite P384_XMD:SHA-512_SSWU_RO\_
     {{!I-D.irtf-cfrg-hash-to-curve}} and DST =
-    "VOPRF06-HashToGroup-" || contextString.
+    "HashToGroup-" || contextString.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, L = 72, `expand_message_xmd`
-    with SHA-512, and DST = "VOPRF06-HashToScalar-" || contextString.
+    with SHA-512, and DST = "HashToScalar-" || contextString.
   - Serialization: Elements are serialized as Ne = 49 byte strings using
     compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
     Ns = 48 byte strings by fully reducing the value modulo p and in big-endian
@@ -1081,10 +1083,10 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 - Group: P-521 (secp521r1) {{x9.62}}
   - HashToGroup(): Use hash_to_curve with suite P521_XMD:SHA-512_SSWU_RO\_
     {{!I-D.irtf-cfrg-hash-to-curve}} and DST =
-    "VOPRF06-HashToGroup-" || contextString.
+    "HashToGroup-" || contextString.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
     using Order() as the prime modulus, L = 98, `expand_message_xmd`
-    with SHA-512, and DST = "VOPRF06-HashToScalar-" || contextString.
+    with SHA-512, and DST = "HashToScalar-" || contextString.
   - Serialization: Elements are serialized as Ne = 67 byte strings using
     compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
     Ns = 66 byte strings by fully reducing the value modulo p and in big-endian

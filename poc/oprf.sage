@@ -42,7 +42,7 @@ class ClientContext(object):
         return self.identifier
 
     def group_domain_separation_tag(self):
-        return _as_bytes("VOPRF06-HashToGroup-") + self.context_string
+        return _as_bytes("HashToGroup-") + self.context_string
 
     def blind(self, x):
         blind = ZZ(self.suite.group.random_scalar())
@@ -61,7 +61,7 @@ class ClientContext(object):
 
     def finalize(self, x, blind, evaluated_element, blinded_element, proof):
         unblinded_element = self.unblind(blind, evaluated_element, blinded_element, proof)
-        finalizeDST = _as_bytes("VOPRF06-Finalize-") + self.context_string
+        finalizeDST = _as_bytes("Finalize-") + self.context_string
         finalize_input = I2OSP(len(x), 2) + x \
             + I2OSP(len(unblinded_element), 2) + unblinded_element \
             + I2OSP(len(finalizeDST), 2) + finalizeDST
@@ -78,7 +78,7 @@ class ServerContext(object):
         self.pkS = pkS
 
     def group_domain_separation_tag(self):
-        return _as_bytes("VOPRF06-HashToGroup-") + self.context_string
+        return _as_bytes("HashToGroup-") + self.context_string
 
     def evaluate(self, blinded_element):
         R = self.suite.group.deserialize(blinded_element)
@@ -91,7 +91,7 @@ class ServerContext(object):
         input_element = self.suite.group.serialize(P)
         issued_element, _, _ = self.evaluate(input_element) # Ignore the proof output
 
-        finalizeDST = _as_bytes("VOPRF06-Finalize-") + self.context_string
+        finalizeDST = _as_bytes("Finalize-") + self.context_string
         finalize_input = I2OSP(len(x), 2) + x \
             + I2OSP(len(issued_element), 2) + issued_element \
             + I2OSP(len(finalizeDST), 2) + finalizeDST
@@ -106,8 +106,8 @@ class Verifiable(object):
     def compute_composites_inner(self, k, B, Cs, Ds):
         assert(len(Cs) == len(Ds))
 
-        seedDST = _as_bytes("VOPRF06-Seed-") + self.context_string
-        compositeDST = _as_bytes("VOPRF06-Composite-") + self.context_string
+        seedDST = _as_bytes("Seed-") + self.context_string
+        compositeDST = _as_bytes("Composite-") + self.context_string
         Bm = self.suite.group.serialize(B)
 
         h1_input = I2OSP(len(Bm), 2) + Bm \
@@ -128,7 +128,7 @@ class Verifiable(object):
                 + I2OSP(len(Di), 2) + Di \
                 + I2OSP(len(compositeDST), 2) + compositeDST
 
-            di = self.suite.group.hash_to_scalar(h2_input, _as_bytes("VOPRF06-HashToScalar-") + self.context_string)
+            di = self.suite.group.hash_to_scalar(h2_input, _as_bytes("HashToScalar-") + self.context_string)
             M = (di * Cs[i]) + M
 
             if k == None:
@@ -164,7 +164,7 @@ class VerifiableClientContext(ClientContext,Verifiable):
         a2 = self.suite.group.serialize(t2)
         a3 = self.suite.group.serialize(t3)
 
-        challengeDST = _as_bytes("VOPRF06-Challenge-") + self.context_string
+        challengeDST = _as_bytes("Challenge-") + self.context_string
         h2s_input = I2OSP(len(Bm), 2) + Bm \
             + I2OSP(len(a0), 2) + a0 \
             + I2OSP(len(a1), 2) + a1 \
@@ -172,7 +172,7 @@ class VerifiableClientContext(ClientContext,Verifiable):
             + I2OSP(len(a3), 2) + a3 \
             + I2OSP(len(challengeDST), 2) + challengeDST
 
-        c = self.suite.group.hash_to_scalar(h2s_input, _as_bytes("VOPRF06-HashToScalar-") + self.context_string)
+        c = self.suite.group.hash_to_scalar(h2s_input, _as_bytes("HashToScalar-") + self.context_string)
 
         assert(c == proof[0])
         return c == proof[0]
@@ -221,7 +221,7 @@ class VerifiableClientContext(ClientContext,Verifiable):
         unblinded_elements = self.unblind_batch(blinds, evaluated_elements, blinded_elements, proof)
 
         outputs = []
-        finalizeDST = _as_bytes("VOPRF06-Finalize-") + self.context_string
+        finalizeDST = _as_bytes("Finalize-") + self.context_string
         for i, unblinded_element in enumerate(unblinded_elements):
             finalize_input = I2OSP(len(xs[i]), 2) + xs[i] \
                 + I2OSP(len(unblinded_element), 2) + unblinded_element \
@@ -252,7 +252,7 @@ class VerifiableServerContext(ServerContext,Verifiable):
         a2 = self.suite.group.serialize(t2)
         a3 = self.suite.group.serialize(t3)
 
-        challengeDST = _as_bytes("VOPRF06-Challenge-") + self.context_string
+        challengeDST = _as_bytes("Challenge-") + self.context_string
         h2s_input = I2OSP(len(Bm), 2) + Bm \
             + I2OSP(len(a0), 2) + a0 \
             + I2OSP(len(a1), 2) + a1 \
@@ -260,7 +260,7 @@ class VerifiableServerContext(ServerContext,Verifiable):
             + I2OSP(len(a3), 2) + a3 \
             + I2OSP(len(challengeDST), 2) + challengeDST
 
-        c = self.suite.group.hash_to_scalar(h2s_input, _as_bytes("VOPRF06-HashToScalar-") + self.context_string)
+        c = self.suite.group.hash_to_scalar(h2s_input, _as_bytes("HashToScalar-") + self.context_string)
         s = (r - c * k) % self.suite.group.order()
 
         return [c, s], r
@@ -300,19 +300,19 @@ def DeriveKeyPair(suite, seed):
     return skS, pkS
 
 def SetupBaseServer(suite, skS):
-    context_string = I2OSP(mode_base, 1) + I2OSP(suite.identifier, 2)
+    context_string = _as_bytes("VOPRF06-") + I2OSP(mode_base, 1) + I2OSP(suite.identifier, 2)
     return ServerContext(suite, context_string, skS, None)
 
 def SetupBaseClient(suite):
-    context_string = I2OSP(mode_base, 1) + I2OSP(suite.identifier, 2)
+    context_string = _as_bytes("VOPRF06-") + I2OSP(mode_base, 1) + I2OSP(suite.identifier, 2)
     return ClientContext(suite, context_string)
 
 def SetupVerifiableServer(suite, skS, pkS):
-    context_string = I2OSP(mode_verifiable, 1) + I2OSP(suite.identifier, 2)
+    context_string = _as_bytes("VOPRF06-") + I2OSP(mode_verifiable, 1) + I2OSP(suite.identifier, 2)
     return VerifiableServerContext(suite, context_string, skS, pkS)
 
 def SetupVerifiableClient(suite, pkS):
-    context_string = I2OSP(mode_verifiable, 1) + I2OSP(suite.identifier, 2)
+    context_string = _as_bytes("VOPRF06-") + I2OSP(mode_verifiable, 1) + I2OSP(suite.identifier, 2)
     return VerifiableClientContext(suite, context_string, pkS)
 
 Ciphersuite = namedtuple("Ciphersuite", ["name", "identifier", "group", "H"])
