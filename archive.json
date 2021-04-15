@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2021-04-04T00:47:22.529545+00:00",
+  "timestamp": "2021-04-15T00:45:12.804032+00:00",
   "repo": "cfrg/draft-irtf-cfrg-voprf",
   "labels": [
     {
@@ -16425,7 +16425,7 @@
       "labels": [],
       "body": "",
       "createdAt": "2021-02-23T20:12:27Z",
-      "updatedAt": "2021-03-05T21:56:25Z",
+      "updatedAt": "2021-04-13T13:41:42Z",
       "baseRepository": "cfrg/draft-irtf-cfrg-voprf",
       "baseRefName": "master",
       "baseRefOid": "d88e53c61ce7be263fb5e7f9f6beae6ffaac0e6f",
@@ -16555,6 +16555,27 @@
           "body": "@tmthrgd should be changed now ;)",
           "createdAt": "2021-03-05T21:49:11Z",
           "updatedAt": "2021-03-05T21:49:11Z"
+        },
+        {
+          "author": "chris-wood",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@claucece any updates on this?",
+          "createdAt": "2021-04-13T13:26:16Z",
+          "updatedAt": "2021-04-13T13:26:16Z"
+        },
+        {
+          "author": "claucece",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@chris-wood email was sent asking for the clarifications that you needed. Last time I checked, this was not a big priority prior to IETF111.. is there a reason to make this a bigger priority now? Thanks!",
+          "createdAt": "2021-04-13T13:39:24Z",
+          "updatedAt": "2021-04-13T13:39:24Z"
+        },
+        {
+          "author": "chris-wood",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> is there a reason to make this a bigger priority now? Thanks!\r\n\r\nNope! I'm just curious to know what the status is for this change.",
+          "createdAt": "2021-04-13T13:41:42Z",
+          "updatedAt": "2021-04-13T13:41:42Z"
         }
       ],
       "reviews": [
