@@ -165,7 +165,7 @@ class GroupNISTCurve(Group):
         self.h2c_suite.dst = dst
         return self.h2c_suite(msg)
 
-    def hash_to_scalar(self, msg, dst=""):
+    def hash_to_scalar(self, msg, dst):
         return hash_to_field(msg, 1, dst, self.order(), self.m, self.L, self.expand, self.H, self.k)[0][0]
 
 class GroupP256(GroupNISTCurve):
@@ -223,7 +223,7 @@ class GroupRistretto255(Group):
     def hash_to_group(self, msg, dst):
         return Ed25519Point().hash_to_group(msg, dst)
 
-    def hash_to_scalar(self, msg, dst=""):
+    def hash_to_scalar(self, msg, dst):
         uniform_bytes = expand_message_xmd(msg, dst, 64, hashlib.sha512, self.k)
         return OS2IP_le(uniform_bytes) % self.order()
 
@@ -261,6 +261,6 @@ class GroupDecaf448(Group):
     def hash_to_group(self, msg, dst):
         return Ed448GoldilocksPoint().hash_to_group(msg, dst)
 
-    def hash_to_scalar(self, msg, dst=""):
+    def hash_to_scalar(self, msg, dst):
         uniform_bytes = expand_message_xmd(msg, dst, 64, hashlib.sha512, self.k)
         return OS2IP_le(uniform_bytes) % self.order()

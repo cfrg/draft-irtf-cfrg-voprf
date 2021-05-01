@@ -44,7 +44,7 @@ class Protocol(object):
         self.mode = mode
 
         self.seed = b'\xA3' * suite.group.scalar_byte_length()
-        skS, pkS = DeriveKeyPair(suite, self.seed)
+        skS, pkS = DeriveKeyPair(self.mode, self.suite, self.seed)
         if mode == mode_base:
             self.server = SetupBaseServer(suite, skS)
             self.client = SetupBaseClient(suite)
@@ -136,7 +136,7 @@ class Protocol(object):
 
 def wrap_write(fh, arg, *args):
     line_length = 68
-    string = arg + " " + " ".join(args)
+    string = " ".join( [arg] + list(args))
     for hunk in (string[0+i:line_length+i] for i in range(0, len(string), line_length)):
         if hunk and len(hunk.strip()) > 0:
             fh.write(hunk + "\n")
