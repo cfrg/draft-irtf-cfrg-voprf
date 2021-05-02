@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2021-04-15T00:45:12.804032+00:00",
+  "timestamp": "2021-05-02T00:44:21.041113+00:00",
   "repo": "cfrg/draft-irtf-cfrg-voprf",
   "labels": [
     {
@@ -3588,7 +3588,7 @@
       "labels": [],
       "body": "In this call to HashToScalar, no DST is specified, which is not conformant with Ciphersuite section in the draft.\r\n\r\nhttps://github.com/cfrg/draft-irtf-cfrg-voprf/blob/866a54cc1021390359e67d8a1b773e2d70f19067/poc/oprf.sage#L281-L284\r\n\r\nOTOH, setting `DST = \"VOPRF-HashToScalar\"|| context_string` is a dst specific to the (v)oprf protocol. It seems to me that the derivation of keys must be agnostic of the caller protocol.\r\n",
       "createdAt": "2021-02-23T07:59:16Z",
-      "updatedAt": "2021-03-02T20:24:16Z",
+      "updatedAt": "2021-04-30T23:47:06Z",
       "closedAt": null,
       "comments": [
         {
@@ -3618,6 +3618,20 @@
           "body": "> My main concern is that DeriveKeyPair, as is currently specified in the draft, uses HashToScalar(seed, dst), with dst=\"VOPRF...\". But, the reference implementation sets dst to the empty string. So this needs to be fixed.\r\n\r\nYeah, we can fix the reference implementation if this is the case. ",
           "createdAt": "2021-03-02T20:24:16Z",
           "updatedAt": "2021-03-02T20:24:16Z"
+        },
+        {
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "body": ">> armfazh: My main concern is that DeriveKeyPair, as is currently specified in the draft, uses HashToScalar(seed, dst), with dst=\"VOPRF...\". But, the reference implementation sets dst to the empty string. So this needs to be fixed.\r\n\r\n> chris-wood: Yeah, we can fix the reference implementation if this is the case.\r\n\r\nWhile trying to patch deriveKeyPair function as follows\r\n\r\n```patch \r\ndef DeriveKeyPair(suite, seed):\r\n+     context_string = _as_bytes(\"VOPRF06-\") + I2OSP(mode_base, 1) + I2OSP(suite.identifier, 2)\r\n+     skS = suite.group.hash_to_scalar(seed, _as_bytes(\"HashToScalar-\") + context_string)\r\n    pkS = skS * suite.group.generator()\r\n    return skS, pkS\r\n```\r\nNote that `context_string` depends on the mode: `mode_base` or `mode_verifiable`, so the keys will be attacthed to the mode, not only to the ciphersuite used. is this intended? \r\n\r\n",
+          "createdAt": "2021-04-30T23:35:13Z",
+          "updatedAt": "2021-04-30T23:35:13Z"
+        },
+        {
+          "author": "chris-wood",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Note that context_string depends on the mode: mode_base or mode_verifiable, so the keys will be attacthed to the mode, not only to the ciphersuite used. is this intended?\r\n\r\nI think so, yeah. We can always relax this later if folks think it's too strong, but my take is that more context binding is generally better.",
+          "createdAt": "2021-04-30T23:47:06Z",
+          "updatedAt": "2021-04-30T23:47:06Z"
         }
       ]
     },
@@ -17000,6 +17014,207 @@
           "comments": []
         }
       ]
+    },
+    {
+      "number": 245,
+      "id": "MDExOlB1bGxSZXF1ZXN0NjI4MDUxMTA1",
+      "title": "Running fix lint tool.",
+      "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/pull/245",
+      "state": "MERGED",
+      "author": "armfazh",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2021-04-30T20:01:58Z",
+      "updatedAt": "2021-04-30T20:05:25Z",
+      "baseRepository": "cfrg/draft-irtf-cfrg-voprf",
+      "baseRefName": "master",
+      "baseRefOid": "662d4d60fcd8f6624f4a9fd030d9f087c8dad2c3",
+      "headRepository": "armfazh/draft-irtf-cfrg-voprf",
+      "headRefName": "fixLint",
+      "headRefOid": "d8d5d6cf305ad35df109ea770e31a774f544b0b0",
+      "closedAt": "2021-04-30T20:05:24Z",
+      "mergedAt": "2021-04-30T20:05:24Z",
+      "mergedBy": "chris-wood",
+      "mergeCommit": {
+        "oid": "922a67b9451f248116dfbef436bae6aa7066c597"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NjQ5NTgxMTk2",
+          "commit": {
+            "abbreviatedOid": "d8d5d6c"
+          },
+          "author": "chris-wood",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2021-04-30T20:05:19Z",
+          "updatedAt": "2021-04-30T20:05:19Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 246,
+      "id": "MDExOlB1bGxSZXF1ZXN0NjI4MDYwMjEz",
+      "title": "Highlighting math and crypto functions in the group.",
+      "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/pull/246",
+      "state": "OPEN",
+      "author": "armfazh",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This change unhides the key related operations based on primer order groups.",
+      "createdAt": "2021-04-30T20:07:44Z",
+      "updatedAt": "2021-04-30T23:50:59Z",
+      "baseRepository": "cfrg/draft-irtf-cfrg-voprf",
+      "baseRefName": "master",
+      "baseRefOid": "922a67b9451f248116dfbef436bae6aa7066c597",
+      "headRepository": "armfazh/draft-irtf-cfrg-voprf",
+      "headRefName": "cryptoFuncs",
+      "headRefOid": "6a4f858025520f1819fd517a210491237a1c4d69",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "body": "ok, I'm going to refactor based on these comments.",
+          "createdAt": "2021-04-30T23:50:59Z",
+          "updatedAt": "2021-04-30T23:50:59Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NjQ5NjY0MzE3",
+          "commit": {
+            "abbreviatedOid": "6a4f858"
+          },
+          "author": "chris-wood",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2021-04-30T23:00:18Z",
+          "updatedAt": "2021-04-30T23:02:37Z",
+          "comments": [
+            {
+              "originalPosition": 59,
+              "body": "Why not make this the required implementation? (OPAQUE, for example, depends on the function being implemented this way.)",
+              "createdAt": "2021-04-30T23:00:19Z",
+              "updatedAt": "2021-04-30T23:02:37Z"
+            },
+            {
+              "originalPosition": 4,
+              "body": "```suggestion\r\n```",
+              "createdAt": "2021-04-30T23:00:29Z",
+              "updatedAt": "2021-04-30T23:02:38Z"
+            },
+            {
+              "originalPosition": 36,
+              "body": "```suggestion\r\n```",
+              "createdAt": "2021-04-30T23:00:34Z",
+              "updatedAt": "2021-04-30T23:02:38Z"
+            },
+            {
+              "originalPosition": 41,
+              "body": "Hmm, why isn't this an API on the group? (The description specifically says this is a member function of `GG`, for example.)",
+              "createdAt": "2021-04-30T23:01:15Z",
+              "updatedAt": "2021-04-30T23:02:38Z"
+            },
+            {
+              "originalPosition": 51,
+              "body": "GenerateKeyPair and DeriveKeyPair seem to be the two functions here that are probably best pulled out of the POG API. What do you think?",
+              "createdAt": "2021-04-30T23:02:03Z",
+              "updatedAt": "2021-04-30T23:02:38Z"
+            },
+            {
+              "originalPosition": 39,
+              "body": "```suggestion\r\nWe also assume the two following functions for generating OPRF key pairs.\r\n```",
+              "createdAt": "2021-04-30T23:02:35Z",
+              "updatedAt": "2021-04-30T23:02:38Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NjQ5Njg5NTc4",
+          "commit": {
+            "abbreviatedOid": "6a4f858"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2021-04-30T23:44:35Z",
+          "updatedAt": "2021-04-30T23:44:35Z",
+          "comments": [
+            {
+              "originalPosition": 51,
+              "body": "I agree, so we can relocate them to a different section. ~(together with the hash* see other comment)~",
+              "createdAt": "2021-04-30T23:44:35Z",
+              "updatedAt": "2021-04-30T23:49:07Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NjQ5NjkwMjgw",
+          "commit": {
+            "abbreviatedOid": "6a4f858"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2021-04-30T23:48:15Z",
+          "updatedAt": "2021-04-30T23:48:16Z",
+          "comments": [
+            {
+              "originalPosition": 41,
+              "body": "it's true, it doesn't need to be part of \"the crypto API\"",
+              "createdAt": "2021-04-30T23:48:16Z",
+              "updatedAt": "2021-04-30T23:48:16Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 247,
+      "id": "MDExOlB1bGxSZXF1ZXN0NjI4MzAxODg0",
+      "title": "Set version as prefix of strings.",
+      "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/pull/247",
+      "state": "OPEN",
+      "author": "armfazh",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "no updates in the spec, this updates the code.\r\n\r\nAdds the version as prefix in several parts.\r\n\r\n",
+      "createdAt": "2021-05-01T01:39:42Z",
+      "updatedAt": "2021-05-01T15:09:12Z",
+      "baseRepository": "cfrg/draft-irtf-cfrg-voprf",
+      "baseRefName": "master",
+      "baseRefOid": "922a67b9451f248116dfbef436bae6aa7066c597",
+      "headRepository": "armfazh/draft-irtf-cfrg-voprf",
+      "headRefName": "UpdatePrefix",
+      "headRefOid": "a936212999f950ad7bfd4b6cff50ec2ae6a87d10",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "chris-wood",
+          "authorAssociation": "COLLABORATOR",
+          "body": "#243 changed the domain separation strings such that they're of the following general form:\r\n\r\n```\r\nLABEL-STRING || VERSION || MODE || SUITE-ID\r\n```\r\n\r\nSo, for example, the finalize DST is:\r\n\r\n```\r\n\"Finalize-\" || \"VOPRF06-\" || MODE || SUITE-ID\r\n```\r\n\r\nThis change seems to make the code do something like:\r\n\r\n```\r\n\"VOPRF06-\" || \"Finalize-\" || MODE || SUITE-ID\r\n```\r\n\r\nWhich is a spec change. Was that intended? (For context, the change in #243 was to allow better re-use of internal functions for the DLEQ proofs _outside_ of this spec.)",
+          "createdAt": "2021-05-01T15:09:12Z",
+          "updatedAt": "2021-05-01T15:09:12Z"
+        }
+      ],
+      "reviews": []
     }
   ]
 }
