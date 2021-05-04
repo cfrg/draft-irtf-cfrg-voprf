@@ -291,8 +291,8 @@ class VerifiableServerContext(ServerContext,Verifiable):
         proof, r = self.generate_proof(self.skS, self.suite.group.generator(), self.pkS, Rs, Zs)
         return evaluated_elements, proof, r
 
-mode_base = 0x00
-mode_verifiable = 0x01
+MODE_BASE = 0x00
+MODE_VERIFIABLE = 0x01
 VERSION = "VOPRF06-"
 
 def GenerateKeyPair(suite):
@@ -306,16 +306,16 @@ def DeriveKeyPair(mode, suite, seed):
     return skS, pkS
 
 def SetupBaseServer(suite, skS):
-    return ServerContext(VERSION, mode_base, suite, skS, None)
+    return ServerContext(VERSION, MODE_BASE, suite, skS, None)
 
 def SetupBaseClient(suite):
-    return ClientContext(VERSION, mode_base, suite)
+    return ClientContext(VERSION, MODE_BASE, suite)
 
 def SetupVerifiableServer(suite, skS, pkS):
-    return VerifiableServerContext(VERSION, mode_verifiable, suite, skS, pkS)
+    return VerifiableServerContext(VERSION, MODE_VERIFIABLE, suite, skS, pkS)
 
 def SetupVerifiableClient(suite, pkS):
-    return VerifiableClientContext(VERSION, mode_verifiable, suite, pkS)
+    return VerifiableClientContext(VERSION, MODE_VERIFIABLE, suite, pkS)
 
 Ciphersuite = namedtuple("Ciphersuite", ["name", "identifier", "group", "H"])
 

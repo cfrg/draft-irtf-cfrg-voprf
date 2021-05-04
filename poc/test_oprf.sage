@@ -8,8 +8,8 @@ import binascii
 try:
     from sagelib.oprf \
     import DeriveKeyPair, SetupBaseServer, SetupBaseClient, SetupVerifiableServer, \
-           SetupVerifiableClient, oprf_ciphersuites, _as_bytes, mode_base,  \
-           mode_verifiable, \
+           SetupVerifiableClient, oprf_ciphersuites, _as_bytes, MODE_BASE,  \
+           MODE_VERIFIABLE, \
            ciphersuite_ristretto255_sha512, \
            ciphersuite_decaf448_sha512, \
            ciphersuite_p256_sha256, \
@@ -45,10 +45,10 @@ class Protocol(object):
 
         self.seed = b'\xA3' * suite.group.scalar_byte_length()
         skS, pkS = DeriveKeyPair(self.mode, self.suite, self.seed)
-        if mode == mode_base:
+        if mode == MODE_BASE:
             self.server = SetupBaseServer(suite, skS)
             self.client = SetupBaseClient(suite)
-        elif mode == mode_verifiable:
+        elif mode == MODE_VERIFIABLE:
             self.server = SetupVerifiableServer(suite, skS, pkS)
             self.client = SetupVerifiableClient(suite, pkS)
         else:
@@ -71,7 +71,7 @@ class Protocol(object):
             vector["BlindedElement"] = to_hex(blinded_element)
             vector["EvaluationElement"] = to_hex(evaluated_element)
 
-            if self.mode == mode_verifiable:
+            if self.mode == MODE_VERIFIABLE:
                 vector["EvaluationProof"] = {
                     "c": to_hex(group.serialize_scalar(proof[0])),
                     "s": to_hex(group.serialize_scalar(proof[1])),
@@ -103,7 +103,7 @@ class Protocol(object):
             vector["BlindedElement"] = to_hex(blinded_elements)
             vector["EvaluationElement"] = to_hex(evaluated_elements)
 
-            if self.mode == mode_verifiable:
+            if self.mode == MODE_VERIFIABLE:
                 vector["EvaluationProof"] = {
                     "c": to_hex(group.serialize_scalar(proof[0])),
                     "s": to_hex(group.serialize_scalar(proof[1])),
@@ -117,7 +117,7 @@ class Protocol(object):
             return vector
 
         vectors = [create_test_vector_for_input(x) for x in self.inputs]
-        if self.mode == mode_verifiable:
+        if self.mode == MODE_VERIFIABLE:
             vectors.append(create_batched_test_vector_for_inputs(self.inputs))
 
         vecSuite = {}
@@ -128,7 +128,7 @@ class Protocol(object):
         vecSuite["seed"] = to_hex(self.seed)
         vecSuite["skSm"] = to_hex(group.serialize_scalar(server.skS))
         vecSuite["groupDST"] = to_hex(client.group_domain_separation_tag())
-        if self.mode == mode_verifiable:
+        if self.mode == MODE_VERIFIABLE:
             vecSuite["pkSm"] = to_hex(group.serialize(server.pkS))
         vecSuite["vectors"] = vectors
 
@@ -191,7 +191,7 @@ def main(path="vectors"):
     for suite_id in test_suites:
         suite = oprf_ciphersuites[suite_id]
         suiteVectors = {}
-        for mode in [mode_base, mode_verifiable]:
+        for mode in [MODE_BASE, MODE_VERIFIABLE]:
             protocol = Protocol(suite, mode)
             suiteVectors[str(mode)] = protocol.run()
         allVectors[suite.name] = suiteVectors
@@ -209,7 +209,7 @@ def main(path="vectors"):
             f.write("## " + suite + "\n")
             f.write("\n")
             for mode in allVectors[suite]:
-                if mode == str(mode_base):
+                if mode == str(MODE_BASE):
                     f.write("### Base Mode\n")
                     f.write("\n")
                     write_base_vector(f, allVectors[suite][mode])
