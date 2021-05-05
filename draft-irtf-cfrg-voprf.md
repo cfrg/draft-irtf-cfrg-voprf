@@ -354,15 +354,13 @@ prime-order group `GG`.
   `buf` to a scalar `s`, or fails if the input is not a valid byte
   representation of a scalar.
 
-Two functions can be used for generating a (V)OPRF key pair (`skS`, `pkS`).
-The `DeriveKeyPair` function deterministically generates the private key
-`skS` given a random byte string `seed` that SHOULD have at least `Ns`
-bytes of length. To do that, compute `skS = GG.HashToScalar(seed)`.
-Then, the public key is generated as `pkS = ScalarBaseMult(skS)`.
-The `GenerateKeyPair` function is a randomized algorithm that outputs a
-key pair (`skS`, `pkS`). Both functions must guarantee that the private
-key `skS` is a non-zero integer less than `p`, and the public key is
-generated as `pkS = ScalarBaseMult(skS)`.
+Two functions can be used for generating a (V)OPRF key pair (`skS`, `pkS`)
+where `skS` is a non-zero integer less than `p` and `pkS = ScalarBaseMult(skS)`: 
+`GenerateKeyPair` and `DeriveKeyPair`. `GenerateKeyPair` is a randomized function 
+that outputs a fresh key pair (`skS`, `pkS`) upon ever invocation. `DeriveKeyPair` 
+is a  deterministic  function that generates private key `skS` from a random byte 
+string `seed` that  SHOULD have at least `Ns` bytes of entropy, and then 
+computes `pkS = ScalarBaseMult(skS)`.
 
 It is convenient in cryptographic applications to instantiate such
 prime-order groups using elliptic curves, such as those detailed in
