@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2021-05-02T00:44:21.041113+00:00",
+  "timestamp": "2021-05-06T00:30:12.445649+00:00",
   "repo": "cfrg/draft-irtf-cfrg-voprf",
   "labels": [
     {
@@ -17060,7 +17060,7 @@
     {
       "number": 246,
       "id": "MDExOlB1bGxSZXF1ZXN0NjI4MDYwMjEz",
-      "title": "Highlighting math and crypto functions in the group.",
+      "title": "Highlighting key generation functions.",
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/pull/246",
       "state": "OPEN",
       "author": "armfazh",
@@ -17069,13 +17069,13 @@
       "labels": [],
       "body": "This change unhides the key related operations based on primer order groups.",
       "createdAt": "2021-04-30T20:07:44Z",
-      "updatedAt": "2021-04-30T23:50:59Z",
+      "updatedAt": "2021-05-05T18:17:39Z",
       "baseRepository": "cfrg/draft-irtf-cfrg-voprf",
       "baseRefName": "master",
       "baseRefOid": "922a67b9451f248116dfbef436bae6aa7066c597",
       "headRepository": "armfazh/draft-irtf-cfrg-voprf",
       "headRefName": "cryptoFuncs",
-      "headRefOid": "6a4f858025520f1819fd517a210491237a1c4d69",
+      "headRefOid": "8ff94a90b9724dc40e9a4543250ace9672c2595f",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -17087,6 +17087,13 @@
           "body": "ok, I'm going to refactor based on these comments.",
           "createdAt": "2021-04-30T23:50:59Z",
           "updatedAt": "2021-04-30T23:50:59Z"
+        },
+        {
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I've updated the PR according to the review.",
+          "createdAt": "2021-05-04T18:43:14Z",
+          "updatedAt": "2021-05-04T18:43:14Z"
         }
       ],
       "reviews": [
@@ -17106,37 +17113,37 @@
               "originalPosition": 59,
               "body": "Why not make this the required implementation? (OPAQUE, for example, depends on the function being implemented this way.)",
               "createdAt": "2021-04-30T23:00:19Z",
-              "updatedAt": "2021-04-30T23:02:37Z"
+              "updatedAt": "2021-05-05T18:17:39Z"
             },
             {
               "originalPosition": 4,
               "body": "```suggestion\r\n```",
               "createdAt": "2021-04-30T23:00:29Z",
-              "updatedAt": "2021-04-30T23:02:38Z"
+              "updatedAt": "2021-05-05T18:17:39Z"
             },
             {
               "originalPosition": 36,
               "body": "```suggestion\r\n```",
               "createdAt": "2021-04-30T23:00:34Z",
-              "updatedAt": "2021-04-30T23:02:38Z"
+              "updatedAt": "2021-05-05T18:17:39Z"
             },
             {
               "originalPosition": 41,
               "body": "Hmm, why isn't this an API on the group? (The description specifically says this is a member function of `GG`, for example.)",
               "createdAt": "2021-04-30T23:01:15Z",
-              "updatedAt": "2021-04-30T23:02:38Z"
+              "updatedAt": "2021-05-05T18:17:39Z"
             },
             {
               "originalPosition": 51,
               "body": "GenerateKeyPair and DeriveKeyPair seem to be the two functions here that are probably best pulled out of the POG API. What do you think?",
               "createdAt": "2021-04-30T23:02:03Z",
-              "updatedAt": "2021-04-30T23:02:38Z"
+              "updatedAt": "2021-05-05T18:17:39Z"
             },
             {
               "originalPosition": 39,
               "body": "```suggestion\r\nWe also assume the two following functions for generating OPRF key pairs.\r\n```",
               "createdAt": "2021-04-30T23:02:35Z",
-              "updatedAt": "2021-04-30T23:02:38Z"
+              "updatedAt": "2021-05-05T18:17:39Z"
             }
           ]
         },
@@ -17156,7 +17163,7 @@
               "originalPosition": 51,
               "body": "I agree, so we can relocate them to a different section. ~(together with the hash* see other comment)~",
               "createdAt": "2021-04-30T23:44:35Z",
-              "updatedAt": "2021-04-30T23:49:07Z"
+              "updatedAt": "2021-05-05T18:17:39Z"
             }
           ]
         },
@@ -17176,7 +17183,133 @@
               "originalPosition": 41,
               "body": "it's true, it doesn't need to be part of \"the crypto API\"",
               "createdAt": "2021-04-30T23:48:16Z",
-              "updatedAt": "2021-04-30T23:48:16Z"
+              "updatedAt": "2021-05-05T18:17:39Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NjUxNjE1NjIw",
+          "commit": {
+            "abbreviatedOid": "93a9f05"
+          },
+          "author": "chris-wood",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "",
+          "createdAt": "2021-05-04T20:01:19Z",
+          "updatedAt": "2021-05-04T20:03:49Z",
+          "comments": [
+            {
+              "originalPosition": 21,
+              "body": "Can we move this section up to the where the old text was? It seems more natural to follow the description of the POG.",
+              "createdAt": "2021-05-04T20:01:19Z",
+              "updatedAt": "2021-05-05T18:17:39Z"
+            },
+            {
+              "originalPosition": 31,
+              "body": "Hmm, I think we should only write a description for DeriveKeyPair, and then just list requirements for GenerateKeyPair. Some folks may want to implement GenerateKeyPair a different way, e.g., due to FIPS reasons or something, and we don't want to prohibit that. ",
+              "createdAt": "2021-05-04T20:03:40Z",
+              "updatedAt": "2021-05-05T18:17:39Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NjUxNzMzNDU4",
+          "commit": {
+            "abbreviatedOid": "e16653c"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2021-05-04T22:52:40Z",
+          "updatedAt": "2021-05-04T22:52:41Z",
+          "comments": [
+            {
+              "originalPosition": 31,
+              "body": "take a look on latest changes.",
+              "createdAt": "2021-05-04T22:52:41Z",
+              "updatedAt": "2021-05-05T18:17:39Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NjUxNzQ0Mjc0",
+          "commit": {
+            "abbreviatedOid": "e16653c"
+          },
+          "author": "chris-wood",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2021-05-04T23:18:42Z",
+          "updatedAt": "2021-05-04T23:18:42Z",
+          "comments": [
+            {
+              "originalPosition": 21,
+              "body": "Why does `pkS` need to be _generated_ with this function? Maybe we can just say that `pkS = ScalarBaseMult(skS)`? (The difference being that the latter specifies the relation between `skS` and `pkS`, rather than exactly how one computes `pkS` given `skS`.)",
+              "createdAt": "2021-05-04T23:18:42Z",
+              "updatedAt": "2021-05-05T18:17:39Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NjUxNzU3OTgy",
+          "commit": {
+            "abbreviatedOid": "e16653c"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2021-05-04T23:52:40Z",
+          "updatedAt": "2021-05-04T23:52:40Z",
+          "comments": [
+            {
+              "originalPosition": 21,
+              "body": "Better now?  (feel free to edit)\r\n\r\n```suggestion\r\nTwo functions can be used for generating a (V)OPRF key pair (`skS`, `pkS`).\r\nThe `DeriveKeyPair` function deterministically generates the private key\r\n`skS` given a random byte string `seed` that SHOULD have at least `Ns`\r\nbytes of length; to do that, compute `skS = GG.HashToScalar(seed)`.\r\nThe `GenerateKeyPair` function is a randomized algorithm that outputs a\r\nkey pair (`skS`, `pkS`). Both functions must guarantee that the private\r\nkey `skS` is a non-zero integer less than `p`, and the public key is\r\n`pkS = ScalarBaseMult(skS)`.\r\n```",
+              "createdAt": "2021-05-04T23:52:40Z",
+              "updatedAt": "2021-05-05T18:17:39Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NjUyNTg0NjYy",
+          "commit": {
+            "abbreviatedOid": "e16653c"
+          },
+          "author": "chris-wood",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2021-05-05T17:45:02Z",
+          "updatedAt": "2021-05-05T17:45:02Z",
+          "comments": [
+            {
+              "originalPosition": 21,
+              "body": "How about this slightly different variant?\r\n\r\n```suggestion\r\nTwo functions can be used for generating a (V)OPRF key pair (`skS`, `pkS`)\r\nwhere `skS` is a non-zero integer less than `p` and `pkS = ScalarBaseMult(skS)`: \r\n`GenerateKeyPair` and `DeriveKeyPair`. `GenerateKeyPair` is a randomized function \r\nthat outputs a fresh key pair (`skS`, `pkS`) upon ever invocation. `DeriveKeyPair` \r\nis a  deterministic  function that generates private key `skS` from a random byte \r\nstring `seed` that  SHOULD have at least `Ns` bytes of entropy, and then \r\ncomputes `pkS = ScalarBaseMult(skS)`.\r\n```",
+              "createdAt": "2021-05-05T17:45:02Z",
+              "updatedAt": "2021-05-05T18:17:39Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NjUyNjEyNDM2",
+          "commit": {
+            "abbreviatedOid": "e16653c"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2021-05-05T18:17:20Z",
+          "updatedAt": "2021-05-05T18:17:20Z",
+          "comments": [
+            {
+              "originalPosition": 21,
+              "body": "so much better,",
+              "createdAt": "2021-05-05T18:17:20Z",
+              "updatedAt": "2021-05-05T18:17:39Z"
             }
           ]
         }
@@ -17185,26 +17318,28 @@
     {
       "number": 247,
       "id": "MDExOlB1bGxSZXF1ZXN0NjI4MzAxODg0",
-      "title": "Set version as prefix of strings.",
+      "title": "Use a per-mode-ciphersuite DST for deterministic key derivation",
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/pull/247",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "armfazh",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "no updates in the spec, this updates the code.\r\n\r\nAdds the version as prefix in several parts.\r\n\r\n",
       "createdAt": "2021-05-01T01:39:42Z",
-      "updatedAt": "2021-05-01T15:09:12Z",
+      "updatedAt": "2021-05-04T23:00:41Z",
       "baseRepository": "cfrg/draft-irtf-cfrg-voprf",
       "baseRefName": "master",
       "baseRefOid": "922a67b9451f248116dfbef436bae6aa7066c597",
       "headRepository": "armfazh/draft-irtf-cfrg-voprf",
       "headRefName": "UpdatePrefix",
-      "headRefOid": "a936212999f950ad7bfd4b6cff50ec2ae6a87d10",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "80033ca1bb8a31f3872afbf3a2b769586162ad06",
+      "closedAt": "2021-05-04T23:00:41Z",
+      "mergedAt": "2021-05-04T23:00:41Z",
+      "mergedBy": "armfazh",
+      "mergeCommit": {
+        "oid": "a832d5f74be661bb10ac16484a5f074e36cc76f3"
+      },
       "comments": [
         {
           "author": "chris-wood",
@@ -17212,9 +17347,64 @@
           "body": "#243 changed the domain separation strings such that they're of the following general form:\r\n\r\n```\r\nLABEL-STRING || VERSION || MODE || SUITE-ID\r\n```\r\n\r\nSo, for example, the finalize DST is:\r\n\r\n```\r\n\"Finalize-\" || \"VOPRF06-\" || MODE || SUITE-ID\r\n```\r\n\r\nThis change seems to make the code do something like:\r\n\r\n```\r\n\"VOPRF06-\" || \"Finalize-\" || MODE || SUITE-ID\r\n```\r\n\r\nWhich is a spec change. Was that intended? (For context, the change in #243 was to allow better re-use of internal functions for the DLEQ proofs _outside_ of this spec.)",
           "createdAt": "2021-05-01T15:09:12Z",
           "updatedAt": "2021-05-01T15:09:12Z"
+        },
+        {
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> chris-wood:\r\n> #243 changed the domain separation strings such that they're of the following general form:\r\n> Which is a spec change. Was that intended? \r\n\r\nNo, I did changes in a old version. I fixed that now.\r\nThe only \"breaking change\" is on `DeriveKeyPair`, now it uses the DST derived from mode and ciphersuite. (This was commented in #236 )\r\n\r\n\r\n",
+          "createdAt": "2021-05-04T17:53:14Z",
+          "updatedAt": "2021-05-04T18:00:46Z"
+        },
+        {
+          "author": "chris-wood",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@armfazh can we file an issue to track updating this in CIRCL? And please feel free to merge with or without addressing the comment above!",
+          "createdAt": "2021-05-04T20:14:59Z",
+          "updatedAt": "2021-05-04T20:15:22Z"
         }
       ],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NjUxNjI1NzQx",
+          "commit": {
+            "abbreviatedOid": "7312a73"
+          },
+          "author": "chris-wood",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2021-05-04T20:14:36Z",
+          "updatedAt": "2021-05-04T20:14:45Z",
+          "comments": [
+            {
+              "originalPosition": 118,
+              "body": "Unrelated, but should we also make these constant names all-caps?",
+              "createdAt": "2021-05-04T20:14:36Z",
+              "updatedAt": "2021-05-04T22:59:50Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NjUxNzM2NzEy",
+          "commit": {
+            "abbreviatedOid": "80033ca"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2021-05-04T23:00:02Z",
+          "updatedAt": "2021-05-04T23:00:02Z",
+          "comments": [
+            {
+              "originalPosition": 118,
+              "body": "done\r\n",
+              "createdAt": "2021-05-04T23:00:02Z",
+              "updatedAt": "2021-05-04T23:00:02Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
