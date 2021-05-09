@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2021-05-06T00:30:12.445649+00:00",
+  "timestamp": "2021-05-09T00:34:34.189735+00:00",
   "repo": "cfrg/draft-irtf-cfrg-voprf",
   "labels": [
     {
@@ -17062,24 +17062,26 @@
       "id": "MDExOlB1bGxSZXF1ZXN0NjI4MDYwMjEz",
       "title": "Highlighting key generation functions.",
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/pull/246",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "armfazh",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "This change unhides the key related operations based on primer order groups.",
       "createdAt": "2021-04-30T20:07:44Z",
-      "updatedAt": "2021-05-05T18:17:39Z",
+      "updatedAt": "2021-05-06T00:58:12Z",
       "baseRepository": "cfrg/draft-irtf-cfrg-voprf",
       "baseRefName": "master",
       "baseRefOid": "922a67b9451f248116dfbef436bae6aa7066c597",
       "headRepository": "armfazh/draft-irtf-cfrg-voprf",
       "headRefName": "cryptoFuncs",
       "headRefOid": "8ff94a90b9724dc40e9a4543250ace9672c2595f",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2021-05-06T00:58:12Z",
+      "mergedAt": "2021-05-06T00:58:11Z",
+      "mergedBy": "chris-wood",
+      "mergeCommit": {
+        "oid": "098e1cbd21714805c724d9cfbd816d3a8a5cd1f4"
+      },
       "comments": [
         {
           "author": "armfazh",
@@ -17312,6 +17314,19 @@
               "updatedAt": "2021-05-05T18:17:39Z"
             }
           ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3NjUyODgwNTA0",
+          "commit": {
+            "abbreviatedOid": "8ff94a9"
+          },
+          "author": "chris-wood",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2021-05-06T00:58:08Z",
+          "updatedAt": "2021-05-06T00:58:08Z",
+          "comments": []
         }
       ]
     },
