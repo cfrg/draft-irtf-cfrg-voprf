@@ -169,6 +169,23 @@ normative:
       -
         org: ANSI
 
+informative:
+  JKX21:
+    title: "On the (In)Security of the Diffie-Hellman Oblivious PRF with Multiplicative Blinding"
+    target: https://eprint.iacr.org/2021/273
+    date: March, 2021
+    seriesinfo: PKC'21
+    author:
+      -
+        org: S. Jarecki
+        name: Stanislaw Jarecki
+      -
+        org: H. Krawczyk
+        name: Hugo Krawczyk
+      -
+        org: J. Xu
+        name: Jiayu Xu
+
 --- abstract
 
 An Oblivious Pseudorandom Function (OPRF) is a two-party protocol for
@@ -355,11 +372,11 @@ prime-order group `GG`.
   representation of a scalar.
 
 Two functions can be used for generating a (V)OPRF key pair (`skS`, `pkS`)
-where `skS` is a non-zero integer less than `p` and `pkS = ScalarBaseMult(skS)`: 
-`GenerateKeyPair` and `DeriveKeyPair`. `GenerateKeyPair` is a randomized function 
-that outputs a fresh key pair (`skS`, `pkS`) upon ever invocation. `DeriveKeyPair` 
-is a  deterministic  function that generates private key `skS` from a random byte 
-string `seed` that  SHOULD have at least `Ns` bytes of entropy, and then 
+where `skS` is a non-zero integer less than `p` and `pkS = ScalarBaseMult(skS)`:
+`GenerateKeyPair` and `DeriveKeyPair`. `GenerateKeyPair` is a randomized function
+that outputs a fresh key pair (`skS`, `pkS`) upon ever invocation. `DeriveKeyPair`
+is a  deterministic  function that generates private key `skS` from a random byte
+string `seed` that  SHOULD have at least `Ns` bytes of entropy, and then
 computes `pkS = ScalarBaseMult(skS)`.
 
 It is convenient in cryptographic applications to instantiate such
@@ -788,13 +805,17 @@ def ComputeCompositesFast(k, B, Cs, Ds):
 The ClientContext encapsulates the context string constructed during
 setup. It has two functions, `Blind()` and `Finalize()`, as described
 below. It also has an internal function, `Unblind()`, which is used
-by `Finalize`. Its implementation varies depending on the mode.
+by `Finalize`. The implementation of these functions varies depending
+on the mode.
 
 #### Blind
 
-We note here that the blinding mechanism that we use can be modified
-slightly with the opportunity for making performance gains in some
-scenarios. We detail these modifications in {{blinding}}.
+In this mode, blinding is done multiplicatively. Under certain application
+circumstances, the more optimal additive blinding mechanism described in
+{{verifiable-blind}} can be used. See {{blind-considerations}} for more
+details.
+
+`Blind` is implemented as follows.
 
 ~~~
 Input:
@@ -814,11 +835,7 @@ def Blind(input):
   return blind, blindedElement
 ~~~
 
-#### Unblind
-
-In this mode, `Unblind` takes only two inputs. The additional inputs indicated
-in {{protocol-overview}} are only omitted as they are ignored. These additional
-inputs are only useful for the verifiable mode, described in {{verifiable-unblind}}.
+The inverse `Unblind` is implemented as follows.
 
 ~~~
 Input:
@@ -842,7 +859,7 @@ def Unblind(blind, evaluatedElement, ...):
 
 `Finalize` depends on the internal `Unblind` function. In this mode, `Finalize`
 and does not include all inputs listed in {{protocol-overview}}. These additional
-inputs are only useful for the verifiable mode, described in {{verifiable-unblind}}.
+inputs are only useful for the verifiable mode, described in {{verifiable-finalize}}.
 
 ~~~
 Input:
@@ -923,7 +940,36 @@ def VerifyProof(A, B, C, D, proof):
   return CT_EQUAL(expectedC, c)
 ~~~
 
-#### Verifiable Unblind {#verifiable-unblind}
+#### Verifiable Blind {#verifiable-blind}
+
+In this mode, where the server public key is available for proof verification,
+blinding is done additively. This variant is named `VerifiableBlind` and
+`VerifiableUnblind`. It takes two inputs: the client input and a blinded
+version of the group generator. The latter is computed using a function called
+`VerifiablePreprocess`, also described below.
+
+`VerifiableBlind` is implemented as follows.
+
+~~~
+Input:
+
+  ClientInput input
+  Element blindedGenerator
+
+Output:
+
+  SerializedElement blindedElement
+
+def VerifiableBlind(input, blindedGenerator):
+  P = GG.HashToGroup(input)
+  blindedElement = GG.SerializeElement(P + blindedGenerator)
+
+  return blindedElement
+~~~
+
+The inverse `VerifiableUnblind` is implemented as follows. If the public
+key is available at the time of blinding, the blinded public key can be
+precomputed in `VerifiablePreprocess` as a further optimization.
 
 ~~~
 Input:
@@ -936,18 +982,37 @@ Input:
 
 Output:
 
-  SerializedElement unblindedElement
+ SerializedElement unblindedElement
 
-def Unblind(blind, evaluatedElement, blindedElement, pkS, proof):
+def VerifiableUnblind(blind, evaluatedElement, blindedElement, pkS, proof):
   Z = GG.DeserializeElement(evaluatedElement)
   R = GG.DeserializeElement(blindedElement)
   if VerifyProof(G, pkS, R, Z, proof) == false:
     ABORT()
 
-  N = (blind^(-1)) * Z
+  blindedPublicKey = blind * pkS
+  N := Z - blindedPublicKey
   unblindedElement = GG.SerializeElement(N)
 
   return unblindedElement
+~~~
+
+The internal `VerifiablePreprocess` function computes a blind and the corresponding
+blinded version of the group generator. By default, it takes no inputs. If the server
+public key is available when invoked, it can be supplied here to produce a blinded
+representation of the public key. This avoids computing it in `VerifiableUnblind`.
+
+~~~
+Output:
+
+  Element blindedGenerator
+  Scalar blind
+
+def Preprocess():
+  blind = GG.RandomScalar()
+  blindedGenerator = ScalarBaseMult(blind)
+
+  return blindedGenerator, blind
 ~~~
 
 #### Verifiable Finalize {#verifiable-finalize}
@@ -967,7 +1032,7 @@ Output:
   opaque output[Nh]
 
 def Finalize(input, blind, evaluatedElement, blindedElement, pkS, proof):
-  unblindedElement = Unblind(blind, evaluatedElement, blindedElement, pkS, proof)
+  unblindedElement = VerifiableUnblind(blind, evaluatedElement, blindedElement, pkS, proof)
 
   finalizeDST = "Finalize-" || contextString
   hashInput = I2OSP(len(input), 2) || input ||
@@ -1278,6 +1343,34 @@ instantiations of this functionality based on the functions described in
 must adhere to the implementation and security considerations discussed
 in {{!I-D.irtf-cfrg-hash-to-curve}} when instantiating the function.
 
+## Blinding Considerations {#blind-considerations}
+
+This document makes use of two types of blinding variants: multiplicative and
+additive. The advantage of additive blinding is that it allows the client to
+pre-process tables of blinded scalar multiplications for the group generator.
+This may give it a computational efficiency advantage (due to the fact that a
+fixed-base multiplication can be calculated faster than a variable-base
+multiplication). Pre-processing also reduces the amount of computation that
+needs to be done in the online exchange.
+
+However, the choice of blinding mechanism has security implications. {{JKX21}}
+analyze the security properties of both blinding mechanisms used in this
+document. The results can be summarized as follows:
+
+- Multiplicative is safe for all applications.
+- Additive blinding is possibly unsafe, unless one of the following conditions
+  is met: The client has a certified copy of the server public key, as is the
+  case in verifiable mode, the client input has high entropy, or the client mixes
+  the public key into the OPRF evaluation.
+
+To avoid security issues with the base mode, this specification RECOMMENDS use of
+multiplicative blinding. This is because it is not known if the server public key
+is available or if the client input has high entropy. Applications wherein either
+of these conditions are true MAY use additive blinding.
+
+The verifiable mode always makes use of the more optimal additive blinding variant,
+as the public key is available by necessity for verifying the proof.
+
 ## Timing Leaks
 
 To ensure no information is leaked during protocol execution, all
@@ -1297,111 +1390,6 @@ Q-sDH attacks from {{qsdh}}.
 To combat attacks of this nature, regular key rotation should be
 employed on the server-side. A suitable key-cycle for a key used to
 compute (V)OPRF evaluations would be between one week and six months.
-
-# Additive Blinding {#blinding}
-
-Let `H` refer to the function `GG.HashToGroup`, in {{pog}} we assume
-that the client-side blinding is carried out directly on the output of
-`H(x)`, i.e. computing `r * H(x)` for some `r` sampled uniformly at random
-from `GF(p)`. In the {{!I-D.irtf-cfrg-opaque}} document, it is noted that it
-may be more efficient to use additive blinding (rather than multiplicative)
-if the client can preprocess some values. For example, a valid way of
-computing additive blinding would be to instead compute `H(x) + (r * G)`,
-where `G` is the fixed generator for the group `GG`.
-
-The advantage of additive blinding is that it allows the client to
-pre-process tables of blinded scalar multiplications for `G`. This may
-give it a computational efficiency advantage (due to the fact that a
-fixed-base multiplication can be calculated faster than a variable-base
-multiplication). Pre-processing also reduces the amount of computation
-that needs to be done in the online exchange. Choosing one of these
-values `r * G` (where `r` is the scalar value that is used), then
-computing `H(x) + (r * G)` is more efficient than computing `r * H(x)`.
-Therefore, it may be advantageous to define the OPRF and VOPRF protocols
-using additive (rather than multiplicative) blinding. In fact,
-the only algorithms that need to change are `Blind` and `Unblind` (and
-similarly for the VOPRF variants).
-
-We define the variants of the algorithms in {{api}} for performing
-additive blinding below, called `AdditiveBlind` and `AdditiveUnblind`,
-along with a new algorithm `Preprocess`. The `Preprocess` algorithm can
-take place offline and before the rest of the OPRF protocol. `AdditiveBlind`
-takes the preprocessed values as inputs. `AdditiveUnblind` takes the
-preprocessed values and evaluated element from the server as inputs.
-
-## Preprocess
-
-~~~
-Input:
-
-  PublicKey pkS
-
-Output:
-
-  Element blindedGenerator
-  Element blindedPublicKey
-
-def Preprocess(pkS):
-  blind = GG.RandomScalar()
-  blindedGenerator = ScalarBaseMult(blind)
-  blindedPublicKey = blind * pkS
-
-  return blindedGenerator, blindedPublicKey
-~~~
-
-## AdditiveBlind
-
-~~~
-Input:
-
-  ClientInput input
-  Element blindedGenerator
-
-Output:
-
-  SerializedElement blindedElement
-
-def AdditiveBlind(input, blindedGenerator):
-  P = GG.HashToGroup(input)
-  blindedElement = GG.SerializeElement(P + blindedGenerator) /* P + ScalarBaseMult(r) */
-
-  return blindedElement
-~~~
-
-## AdditiveUnblind
-
-~~~
-Input:
-
-  Element blindedPublicKey
-  SerializedElement evaluatedElement
-
-Output:
-
- SerializedElement unblindedElement
-
-def AdditiveUnblind(blindedPublicKey, evaluatedElement):
-  Z = GG.DeserializeElement(evaluatedElement)
-  N := Z - blindedPublicKey
-
-  unblindedElement = GG.SerializeElement(N)
-
-  return unblindedElement
-~~~
-
-Let `P = GG.HashToGroup(input)`. Notice that AdditiveUnblind computes:
-
-~~~
-Z - blindedPublicKey = k * (P + r * G) - r * pkS
-                     = k * P + k * (r * G) - r * (k * G)
-                     = k * P
-~~~
-
-by the commutativity of the scalar field. This is the same
-output as in the `Unblind` algorithm for multiplicative blinding.
-
-Note that the verifiable variant of `AdditiveUnblind` works as above but
-includes the step to `VerifyProof`, as specified in {{verifiable-client}}.
 
 ### Parameter Commitments
 
