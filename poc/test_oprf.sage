@@ -11,7 +11,7 @@ try:
            SetupVerifiableClient, oprf_ciphersuites, _as_bytes, MODE_BASE,  \
            MODE_VERIFIABLE, \
            ciphersuite_ristretto255_sha512, \
-           ciphersuite_decaf448_sha512, \
+           ciphersuite_decaf448_shake256, \
            ciphersuite_p256_sha256, \
            ciphersuite_p384_sha512, \
            ciphersuite_p521_sha512
@@ -31,7 +31,7 @@ def to_hex(octet_string):
 
 test_suites = [
     ciphersuite_ristretto255_sha512,
-    ciphersuite_decaf448_sha512,
+    ciphersuite_decaf448_shake256,
     ciphersuite_p256_sha256,
     ciphersuite_p384_sha512,
     ciphersuite_p521_sha512

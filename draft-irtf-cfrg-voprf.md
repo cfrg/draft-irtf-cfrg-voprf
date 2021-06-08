@@ -355,11 +355,11 @@ prime-order group `GG`.
   representation of a scalar.
 
 Two functions can be used for generating a (V)OPRF key pair (`skS`, `pkS`)
-where `skS` is a non-zero integer less than `p` and `pkS = ScalarBaseMult(skS)`: 
-`GenerateKeyPair` and `DeriveKeyPair`. `GenerateKeyPair` is a randomized function 
-that outputs a fresh key pair (`skS`, `pkS`) upon ever invocation. `DeriveKeyPair` 
-is a  deterministic  function that generates private key `skS` from a random byte 
-string `seed` that  SHOULD have at least `Ns` bytes of entropy, and then 
+where `skS` is a non-zero integer less than `p` and `pkS = ScalarBaseMult(skS)`:
+`GenerateKeyPair` and `DeriveKeyPair`. `GenerateKeyPair` is a randomized function
+that outputs a fresh key pair (`skS`, `pkS`) upon ever invocation. `DeriveKeyPair`
+is a  deterministic  function that generates private key `skS` from a random byte
+string `seed` that  SHOULD have at least `Ns` bytes of entropy, and then
 computes `pkS = ScalarBaseMult(skS)`.
 
 It is convenient in cryptographic applications to instantiate such
@@ -997,6 +997,8 @@ instantiations of the following functionalities:
   specifies HashToGroup, HashToScalar, and serialization functionalities. For
   HashToGroup, the domain separation tag (DST) is constructed in accordance
   with the recommendations in {{!I-D.irtf-cfrg-hash-to-curve}}, Section 3.1.
+  For HashToScalar, each group specifies an integer order that is used in
+  reducing integer values to a member of the corresponding scalar field.
 - `Hash`: A cryptographic hash function that is indifferentiable from a
   Random Oracle, whose output length is Nh bytes long.
 
@@ -1017,7 +1019,7 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
   - HashToScalar(): Compute `uniform_bytes` using `expand_message` = `expand_message_xmd`,
     DST = "HashToScalar-" || contextString, and output length 64, interpret
     `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the integer
-    modulo `Order()`.
+    modulo 2^252 + 27742317777372353535851937790883648493.
   - Serialization: Both group elements and scalars are encoded in Ne = Ns = 32
     bytes. For group elements, use the 'Encode' and 'Decode' functions from
     {{!RISTRETTO}}. For scalars, ensure they are fully reduced modulo p and
@@ -1025,22 +1027,22 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 - Hash: SHA-512, and Nh = 64.
 - ID: 0x0001
 
-## OPRF(decaf448, SHA-512)
+## OPRF(decaf448, SHAKE-256)
 
 - Group: decaf448 {{!RISTRETTO}}
   - HashToGroup(): Use hash_to_decaf448
     {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
-    "HashToGroup-" || contextString, and `expand_message` = `expand_message_xmd`
-    using SHA-512.
-  - HashToScalar(): Compute `uniform_bytes` using `expand_message` = `expand_message_xmd`,
+    "HashToGroup-" || contextString, and `expand_message` = `expand_message_xof`
+    using SHAKE-256.
+  - HashToScalar(): Compute `uniform_bytes` using `expand_message` = `expand_message_xof`,
     DST = "HashToScalar-" || contextString, and output length 64, interpret
     `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the integer
-    modulo `Order()`.
+    modulo 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
   - Serialization: Both group elements and scalars are encoded in Ne = Ns = 56
     bytes. For group elements, use the 'Encode' and 'Decode' functions from
     {{!RISTRETTO}}. For scalars, ensure they are fully reduced modulo p and
     in little-endian order.
-- Hash: SHA-512, and Nh = 64.
+- Hash: SHAKE-256, and Nh = 56.
 - ID: 0x0002
 
 ## OPRF(P-256, SHA-256)
@@ -1050,8 +1052,9 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
     {{!I-D.irtf-cfrg-hash-to-curve}} and DST =
     "HashToGroup-" || contextString.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
-    using Order() as the prime modulus, L = 48, `expand_message_xmd`
-    with SHA-256, and DST = "HashToScalar-" || contextString.
+    using L = 48, `expand_message_xmd` with SHA-256,
+    DST = "HashToScalar-" || contextString, and
+    prime modulus 115792089210356248762697446949407573529996955224135760342422259061068512044369.
   - Serialization: Elements are serialized as Ne = 33 byte strings using
     compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
     Ns = 32 byte strings by fully reducing the value modulo p and in big-endian
@@ -1066,8 +1069,9 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
     {{!I-D.irtf-cfrg-hash-to-curve}} and DST =
     "HashToGroup-" || contextString.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
-    using Order() as the prime modulus, L = 72, `expand_message_xmd`
-    with SHA-512, and DST = "HashToScalar-" || contextString.
+    using L = 72, `expand_message_xmd` with SHA-512,
+    DST = "HashToScalar-" || contextString, and
+    prime modulus 39402006196394479212279040100143613805079739270465446667946905279627659399113263569398956308152294913554433653942643.
   - Serialization: Elements are serialized as Ne = 49 byte strings using
     compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
     Ns = 48 byte strings by fully reducing the value modulo p and in big-endian
@@ -1082,8 +1086,9 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
     {{!I-D.irtf-cfrg-hash-to-curve}} and DST =
     "HashToGroup-" || contextString.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
-    using Order() as the prime modulus, L = 98, `expand_message_xmd`
-    with SHA-512, and DST = "HashToScalar-" || contextString.
+    using L = 98, `expand_message_xmd` with SHA-512,
+    DST = "HashToScalar-" || contextString, and
+    prime modulus 6864797660130609714981900799081393217269435300143305409394463459185543183397655394245057746333217197532963996371363321113864768612440380340372808892707005449.
   - Serialization: Elements are serialized as Ne = 67 byte strings using
     compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
     Ns = 66 byte strings by fully reducing the value modulo p and in big-endian
