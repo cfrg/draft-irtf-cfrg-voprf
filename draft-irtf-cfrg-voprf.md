@@ -1377,7 +1377,7 @@ multiplicative blinding. This is because it is not known if the server public ke
 is available or if the client input has high entropy. Applications wherein either
 of these conditions are true MAY use additive blinding.
 
-The verifiable mode always makes use of the more optimal additive blinding variant,
+The verifiable mode always makes use of the more efficient additive blinding variant,
 as the public key is always available for verifying the proof.
 
 ## Timing Leaks
