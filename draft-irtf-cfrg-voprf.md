@@ -1357,7 +1357,7 @@ However, the choice of blinding mechanism has security implications. {{JKX21}}
 analyze the security properties of both blinding mechanisms used in this
 document. The results can be summarized as follows:
 
-- Multiplicative is safe for all applications.
+- Multiplicative blinding is safe for all applications.
 - Additive blinding is possibly unsafe, unless one of the following conditions
   is met: The client has a certified copy of the server public key (as is the
   case in verifiable mode), the client input has high entropy, or the client mixes
