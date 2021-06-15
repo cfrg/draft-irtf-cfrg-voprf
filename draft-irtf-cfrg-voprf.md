@@ -1369,7 +1369,7 @@ is available or if the client input has high entropy. Applications wherein eithe
 of these conditions are true MAY use additive blinding.
 
 The verifiable mode always makes use of the more optimal additive blinding variant,
-as the public key is available by necessity for verifying the proof.
+as the public key is always available for verifying the proof.
 
 ## Timing Leaks
 
@@ -2038,4 +2038,3 @@ Output = b34400c99f49ce09dcb72bff46f5847fe168c7c738cf2887ed101acf9a9
 7,2b5eb016c7dcd66b77826e2da167a69026adfc0927b6a3da869c4c73d3ae7873f0
 10ea8f1ad5f9f9a076928839ec25882cab7b66909a1187d9329fef71fd25bc
 ~~~
-
