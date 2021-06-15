@@ -1000,7 +1000,7 @@ def VerifiableUnblind(blind, evaluatedElement, blindedElement, pkS, proof):
 The internal `VerifiablePreprocess` function computes a blind and the corresponding
 blinded version of the group generator. By default, it takes no inputs. If the server
 public key is available when invoked, it can be supplied here to produce a blinded
-representation of the public key. This avoids computing it in `VerifiableUnblind`.
+representation of the public key. This avoids computing `blindedPublicKey` in `VerifiableUnblind`.
 
 ~~~
 Output:
