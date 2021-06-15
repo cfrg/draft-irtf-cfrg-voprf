@@ -1368,8 +1368,8 @@ document. The results can be summarized as follows:
 
 - Multiplicative is safe for all applications.
 - Additive blinding is possibly unsafe, unless one of the following conditions
-  is met: The client has a certified copy of the server public key, as is the
-  case in verifiable mode, the client input has high entropy, or the client mixes
+  is met: The client has a certified copy of the server public key (as is the
+  case in verifiable mode), the client input has high entropy, or the client mixes
   the public key into the OPRF evaluation.
 
 To avoid security issues with the base mode, this specification RECOMMENDS use of
