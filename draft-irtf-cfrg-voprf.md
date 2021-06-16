@@ -185,6 +185,7 @@ informative:
       -
         org: J. Xu
         name: Jiayu Xu
+  keyagreement: DOI.10.6028/NIST.SP.800-56Ar3
 
 --- abstract
 
@@ -364,12 +365,15 @@ prime-order group `GG`.
   to a unique byte array `buf` of fixed length `Ne`.
 - DeserializeElement(buf): A member function of `GG` that maps a byte array
   `buf` to a group element `A`, or fails if the input is not a valid
-  byte representation of an element.
+  byte representation of an element. This function can raise a
+  DeserializeError if deserialization fails or `A` is the identity element
+  of the group; see {{input-validation}}.
 - SerializeScalar(s): A member function of `GG` that maps a scalar element `s`
   to a unique byte array `buf` of fixed length `Ns`.
 - DeserializeScalar(buf): A member function of `GG` that maps a byte array
   `buf` to a scalar `s`, or fails if the input is not a valid byte
-  representation of a scalar.
+  representation of a scalar. This function can raise a
+  DeserializeError if deserialization fails; see {{input-validation}}.
 
 Two functions can be used for generating a (V)OPRF key pair (`skS`, `pkS`)
 where `skS` is a non-zero integer less than `p` and `pkS = ScalarBaseMult(skS)`:
@@ -401,9 +405,7 @@ specific definitions of elliptic curves.
   integer as described in {{!RFC8017}}. Note that these functions
   operate on byte arrays in big-endian byte order.
 
-All algorithm descriptions are written in a Python-like pseudocode. We
-use the `ABORT()` function for presentational clarity to denote the
-process of terminating the algorithm or returning an error accordingly.
+All algorithm descriptions are written in a Python-like pseudocode.
 We also use the `CT_EQUAL(a, b)` function to represent constant-time
 byte-wise equality between byte arrays `a` and `b`. This function
 returns `true` if `a` and `b` are equal, and `false` otherwise.
@@ -559,6 +561,8 @@ Output:
 
   SerializedElement evaluatedElement
 
+Errors: DeserializeError
+
 def Evaluate(skS, blindedElement):
   R = GG.DeserializeElement(blindedElement)
   Z = skS * R
@@ -641,6 +645,8 @@ Output:
 
   SerializedElement evaluatedElement
   Proof proof
+
+Errors: DeserializeError
 
 def Evaluate(skS, pkS, blindedElement):
   R = GG.DeserializeElement(blindedElement)
@@ -851,6 +857,8 @@ Output:
 
   SerializedElement unblindedElement
 
+Errors: DeserializeError
+
 def Unblind(blind, evaluatedElement, ...):
   Z = GG.DeserializeElement(evaluatedElement)
   N = (blind^(-1)) * Z
@@ -971,7 +979,9 @@ def VerifiableBlind(input, blindedGenerator):
   return blindedElement
 ~~~
 
-The inverse `VerifiableUnblind` is implemented as follows.
+The inverse `VerifiableUnblind` is implemented as follows. This function
+can raise an exception if element deserialization or proof verification
+fails.
 
 ~~~
 Input:
@@ -984,13 +994,15 @@ Input:
 
 Output:
 
- SerializedElement unblindedElement
+  SerializedElement unblindedElement
+
+Errors: DeserializeError, VerifyError
 
 def VerifiableUnblind(blindedPublicKey, evaluatedElement, blindedElement, pkS, proof):
   Z = GG.DeserializeElement(evaluatedElement)
   R = GG.DeserializeElement(blindedElement)
   if VerifyProof(G, pkS, R, Z, proof) == false:
-    ABORT()
+    raise VerifyError
 
   N := Z - blindedPublicKey
   unblindedElement = GG.SerializeElement(N)
@@ -1169,6 +1181,20 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 - Hash: SHA-512, and Nh = 64.
 - ID: 0x0005
 
+# API Considerations {#apis}
+
+Some VOPRF APIs specified in this document are fallible. For example, `Finalize`
+and `Evaluate` can fail if any element received from the peer fails deserialization.
+The explicit errors generated throughout this specification, along with the
+conditions that lead to each error, are as follows:
+
+- `VerifyError`: VOPRF proof verification failed; {{verifiable-blind}}.
+- `DeserializeError`: Group element or scalar deserialization failure; {{pog}}.
+
+The errors in this document are meant as a guide to implementors. They are not
+an exhaustive list of all the errors an implementation might emit. For example,
+implementations might run out of memory and return a corresponding error.
+
 # Security Considerations {#sec}
 
 This section discusses the cryptographic security of our protocol, along
@@ -1340,6 +1366,33 @@ tolerate discrete logarithm security of lower than 128 bits, we
 recommend only implementing ciphersuites with IDs: 0x0002, 0x0004, and
 0x0005.
 
+## Element and Scalar Validation {#input-validation}
+
+The DeserializeElement function recovers a group element from an arbitrary
+byte array. This function validates that the element is a proper member
+of the group and is not the identity element, and returns an error if either
+condition is not met.
+
+For P-256, P-384, and P-521 ciphersuites, this function performs partial
+public-key validation as defined in Section 5.6.2.3.4 of {{keyagreement}}.
+This includes checking that the coordinates are in the correct range, that
+the point is on the curve, and that the point is not the point at infinity.
+If these checks fail, deserialization returns an error.
+
+For ristretto255 and decaf448, elements are deserialized by invoking the Decode
+function from {{RISTRETTO, Section 4.3.1}} and {{RISTRETTO, 5.3.1}}, respectively,
+which returns false if the element is invalid. If this function returns false,
+deserialization returns an error.
+
+The DeserializeScalar function recovers a scalar field element from an arbitrary
+byte array. Like DeserializeElement, this function validates that the element
+is a member of the scalar field and returns an error if this condition is not met.
+
+For P-256, P-384, and P-521 ciphersuites, this function ensures that the input,
+when treated as a big-endian integer, is a value between 0 and `Order()`. For
+ristretto255 and decaf448, this function ensures that the input, when treated as
+a little-endian integer, is a valud between 0 and `Order()`.
+
 ## Hashing to Group
 
 A critical requirement of implementing the prime-order group using
@@ -1378,10 +1431,11 @@ document. The results can be summarized as follows:
     - The client input has high entropy; and
     - The client mixes the public key into the OPRF evaluation.
 
-To avoid security issues with the base mode, where some of the above conditions may not be met, this specification RECOMMENDS use of
-multiplicative blinding. This is because it is not known if the server public key
-is available or if the client input has high entropy. Applications wherein either
-of these conditions are true MAY use additive blinding.
+To avoid security issues with the base mode, where some of the above conditions
+may not be met, this specification RECOMMENDS use of multiplicative blinding.
+This is because it is not known if the server public key is available or if the
+client input has high entropy. Applications wherein either of these conditions
+are true MAY use additive blinding.
 
 The verifiable mode always makes use of the more efficient additive blinding variant,
 as the public key is always available for verifying the proof.
