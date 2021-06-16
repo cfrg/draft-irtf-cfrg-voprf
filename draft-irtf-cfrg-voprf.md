@@ -981,7 +981,7 @@ def VerifiableBlind(input, blindedGenerator):
 
 The inverse `VerifiableUnblind` is implemented as follows. This function
 can raise an exception if element deserialization or proof verification
-fals.
+fails.
 
 ~~~
 Input:
