@@ -175,6 +175,19 @@ class VerifiableClientContext(ClientContext,Verifiable):
         assert(c == proof[0])
         return c == proof[0]
 
+    def preprocess(self):
+        blind = ZZ(self.suite.group.random_scalar())
+        G = self.suite.group.generator()
+        blinded_generator = blind * G
+        return blinded_generator, blind
+
+    def blind(self, x):
+        blinded_generator, blind = self.preprocess()
+        P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
+        R = blinded_generator + P
+        blinded_element = self.suite.group.serialize(R)
+        return blind, blinded_element
+
     def unblind(self, blind, evaluated_element, blinded_element, proof):
         G = self.suite.group.generator()
         R = self.suite.group.deserialize(blinded_element)
@@ -183,7 +196,8 @@ class VerifiableClientContext(ClientContext,Verifiable):
             raise Exception("Proof verification failed")
 
         blind_inv = inverse_mod(blind, self.suite.group.order())
-        N = blind_inv * Z
+        blinded_public_key = self.pkS * blind
+        N = Z - blinded_public_key
         unblinded_element = self.suite.group.serialize(N)
         return unblinded_element
 
@@ -206,7 +220,8 @@ class VerifiableClientContext(ClientContext,Verifiable):
         for i, evaluated_element in enumerate(evaluated_elements):
             Z = self.suite.group.deserialize(evaluated_element)
             blind_inv = inverse_mod(blinds[i], self.suite.group.order())
-            N = blind_inv * Z
+            blinded_public_key = self.pkS * blinds[i]
+            N = Z  - blinded_public_key
             unblinded_element = self.suite.group.serialize(N)
             unblinded_elements.append(unblinded_element)
 
