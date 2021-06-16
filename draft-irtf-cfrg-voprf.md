@@ -436,30 +436,34 @@ The following one-byte values distinguish between these two modes:
 ## Overview {#protocol-overview}
 
 Both participants agree on the mode and a choice of ciphersuite that is
-used before the protocol exchange. Once established, the core protocol
-runs to compute `output = F(skS, input)` as follows:
+used before the protocol exchange. Once established, the base mode of
+the protocol runs to compute `output = F(skS, input)` as follows:
 
 ~~~
-   Client(pkS, input)                     Server(skS, pkS)
+     Client(input)                             Server(skS)
   ----------------------------------------------------------
     blind, blindedElement = Blind(input)
 
                        blindedElement
                         ---------->
 
-    evaluatedElement, proof = Evaluate(skS, pkS, blindedElement)
+    evaluatedElement, proof = Evaluate(skS, blindedElement)
 
-                  evaluatedElement, proof
+                      evaluatedElement
                         <----------
 
-    output = Finalize(input, blind, evaluatedElement, blindedElement, pkS, proof)
+    output = Finalize(input, blind, evaluatedElement, blindedElement)
 ~~~
 
 In `Blind` the client generates a token and blinding data. The server
 computes the (V)OPRF evaluation in `Evaluation` over the client's
-blinded token. In `Finalize` the client unblinds the server response,
-verifies the server's proof if verifiability is required, and produces
-a byte array corresponding to the output of the OPRF protocol.
+blinded token. In `Finalize` the client unblinds the server response
+and produces a byte array corresponding to the output of the OPRF protocol.
+
+In the verifiable mode of the protocol, the server additionally computes
+a proof in Evaluate. The client verifies this proof using the server's
+expected public key before completing the protocol and producing the
+protocol output.
 
 ## Context Setup
 
@@ -995,7 +999,7 @@ def VerifiableUnblind(blindedPublicKey, evaluatedElement, blindedElement, pkS, p
 ~~~
 
 The internal `VerifiablePreprocess` function computes a blind and uses it to
-compute a corresponding blinded version of the group generator and server 
+compute a corresponding blinded version of the group generator and server
 public key. This function can be used to pre-compute tables of values for
 future invocations of the protocol, or it can be computed only when needed
 for a single invocation of the protocol.
@@ -1357,9 +1361,9 @@ in {{!I-D.irtf-cfrg-hash-to-curve}} when instantiating the function.
 This document makes use of two types of blinding variants: multiplicative and
 additive. The advantage of additive blinding is that it allows the client to
 pre-process tables of blinded scalar multiplications for the group generator
-and server public key. This can provide a computational efficiency advantage 
-(due to the fact that a fixed-base multiplication can be calculated faster than 
-a variable-base multiplication). Pre-processing also reduces the amount of 
+and server public key. This can provide a computational efficiency advantage
+(due to the fact that a fixed-base multiplication can be calculated faster than
+a variable-base multiplication). Pre-processing also reduces the amount of
 computation that needs to be done in the online exchange.
 
 However, the choice of blinding mechanism has security implications. {{JKX21}}
@@ -1368,9 +1372,10 @@ document. The results can be summarized as follows:
 
 - Multiplicative blinding is safe for all applications.
 - Additive blinding is possibly unsafe, unless one of the following conditions
-  is met: 
-    - The client has a certified copy of the server public key (as is the case in the verifiable mode)
-    - The client input has high entropy
+  are met:
+    - The client has a certified copy of the server public key (as is the case
+      in the verifiable mode);
+    - The client input has high entropy; and
     - The client mixes the public key into the OPRF evaluation.
 
 To avoid security issues with the base mode, where some of the above conditions may not be met, this specification RECOMMENDS use of
