@@ -1183,7 +1183,7 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 
 # API Considerations {#apis}
 
-Some VOPRF APIs specified in this document are fallible. For example, `Finalize()`
+Some VOPRF APIs specified in this document are fallible. For example, `Finalize`
 and `Evaluate` can fail if any element received from the peer fails deserialization.
 The explicit errors generated throughout this specification, along with the
 conditions that lead to each error, are as follows:
