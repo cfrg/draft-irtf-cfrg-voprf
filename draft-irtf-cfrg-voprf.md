@@ -1348,7 +1348,7 @@ in {{!I-D.irtf-cfrg-hash-to-curve}} when instantiating the function.
 This document makes use of two types of blinding variants: multiplicative and
 additive. The advantage of additive blinding is that it allows the client to
 pre-process tables of multiples of the group generator.
-This gives computational efficiency advantage, due to the fact that, by
+This can provide a computational efficiency advantage due to the fact that, by
 using precomputation, fixed-base multiplications can be calculated faster
 than variable-base multiplications. Pre-processing also reduces the
 amount of computation that
