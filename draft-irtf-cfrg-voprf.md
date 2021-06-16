@@ -1357,7 +1357,7 @@ in {{!I-D.irtf-cfrg-hash-to-curve}} when instantiating the function.
 This document makes use of two types of blinding variants: multiplicative and
 additive. The advantage of additive blinding is that it allows the client to
 pre-process tables of blinded scalar multiplications for the group generator
-and server public key. This may give it a computational efficiency advantage 
+and server public key. This can provide a computational efficiency advantage 
 (due to the fact that a fixed-base multiplication can be calculated faster than 
 a variable-base multiplication). Pre-processing also reduces the amount of 
 computation that needs to be done in the online exchange.
