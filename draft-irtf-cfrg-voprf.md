@@ -1368,8 +1368,8 @@ recommend only implementing ciphersuites with IDs: 0x0002, 0x0004, and
 
 ## Element and Scalar Validation {#input-validation}
 
-The DeserializeElement function converts an arbitrary byte array to a
-group element. This function validates that the element is a proper member
+The DeserializeElement function recovers a group element from an arbitrary
+byte array. This function validates that the element is a proper member
 of the group and is not the identity element, and returns an error if either
 condition is not met.
 
@@ -1384,8 +1384,8 @@ function from {{RISTRETTO, Section 4.3.1}} and {{RISTRETTO, 5.3.1}}, respectivel
 which returns false if the element is invalid. If this function returns false,
 deserialization returns an error.
 
-The DeserializeScalar function converts an arbitrary byte array to a scalar
-field element. Like DeserializeElement, this function validates that the element
+The DeserializeScalar function recovers a scalar field element from an arbitrary
+byte array. Like DeserializeElement, this function validates that the element
 is a member of the scalar field and returns an error if this condition is not met.
 
 For P-256, P-384, and P-521 ciphersuites, this function ensures that the input,
