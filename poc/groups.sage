@@ -8,7 +8,7 @@ import hashlib
 import binascii
 import struct
 
-from hash_to_field import I2OSP, OS2IP, expand_message_xmd, hash_to_field
+from hash_to_field import I2OSP, OS2IP, expand_message_xmd, expand_message_xof, hash_to_field
 
 try:
     from sagelib.suite_p256 import p256_sswu_ro, p256_order, p256_p, p256_F, p256_A, p256_B
@@ -262,5 +262,5 @@ class GroupDecaf448(Group):
         return Ed448GoldilocksPoint().hash_to_group(msg, dst)
 
     def hash_to_scalar(self, msg, dst):
-        uniform_bytes = expand_message_xmd(msg, dst, 64, hashlib.sha512, self.k)
+        uniform_bytes = expand_message_xof(msg, dst, int(64), hashlib.shake_256, self.k)
         return OS2IP_le(uniform_bytes) % self.order()

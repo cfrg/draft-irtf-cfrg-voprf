@@ -4,7 +4,7 @@
 import binascii
 import random
 import hashlib
-from hash_to_field import hash_to_field, expand_message_xmd
+from hash_to_field import hash_to_field, expand_message_xmd, expand_message_xof
 
 class InvalidEncodingException(Exception): pass
 
@@ -187,7 +187,7 @@ class DecafPoint(QuotientEdwardsPoint):
         return cls.fromJacobiQuartic(s,t)
 
     def hash_to_group(self, msg, dst):
-        u = expand_message_xmd(msg, dst, int(112), hashlib.sha512, 224)
+        u = expand_message_xof(msg, dst, int(112), hashlib.shake_256, 224)
         P1 = self.map(u[0:56])
         P2 = self.map(u[56:112])
         P = P1 + P2
@@ -196,7 +196,7 @@ class DecafPoint(QuotientEdwardsPoint):
     def hash_to_scalar(self, msg, dst=""):
         # this is taking the edwards parameters defined in draft-irtf-cfrg-hash-to-curve
         # hash_to_field(msg, count, dst, modulus, degree (m), blen (l), expand_fn, hash_fn, security_param):
-        return hash_to_field(msg, 1, dst, self.order, 1, 84, expand_message_xmd, hashlib.sha512, 224)[0][0]
+        return hash_to_field(msg, 1, dst, self.order, 1, 64, expand_message_xof, hashlib.shake_256, 224)[0][0]
 
 class RistrettoPoint(QuotientEdwardsPoint):
     def encodeSpec(self):
