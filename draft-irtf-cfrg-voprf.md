@@ -1189,7 +1189,7 @@ The explicit errors generated throughout this specification, along with the
 conditions that lead to each error, are as follows:
 
 - `VerifyError`: VOPRF proof verification failed; {{verifiable-blind}}.
-- `DeserializeError`: Public element or secret scalar deserialization failure; {{pog}}.
+- `DeserializeError`: Group element or scalar deserialization failure; {{pog}}.
 
 The errors in this document are meant as a guide to implementors. They are not
 an exhaustive list of all the errors an implementation might emit. For example,
