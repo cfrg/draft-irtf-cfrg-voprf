@@ -128,6 +128,49 @@ normative:
       -
         ins: N. Saxena
         org: University of Alabama at Birmingham, USA
+  ECS15:
+    title: The pythia PRF service
+    target: https://eprint.iacr.org/2015/644.pdf
+    date: false
+    authors:
+      -
+        ins: A. Everspaugh
+        org: University of Wisconsin–Madison, USA
+      -
+        ins: R. Chatterjee
+        org: University of Wisconsin–Madison, USA
+      -
+        ins: S. Scott
+        org: Royal Holloway, University of London, UK
+      -
+        ins: A. Juels
+        org: Jacobs Institute, Cornell Tech, USA
+      -
+        ins: T. Ristenpart
+        org: Cornell Tech, USA
+  TCRSTW21:
+    title: A Fast and Simple Partially Oblivious PRF, with Applications
+    target: https://eprint.iacr.org/2021/864
+    date: false
+    authors:
+      -
+        ins: N. Tyagi
+        org: Cornell University, USA
+      -
+        ins: S. Celi
+        org: Cloudflare, Portugal
+      -
+        ins: T. Ristenpart
+        org: Cornell Tech, USA
+      -
+        ins: N. Sullivan
+        org: Cloudflare, USA
+      -
+        ins: S. Tessaro
+        org: University of Washington, UK
+      -
+        ins: C. Wood
+        org: Cloudflare, USA
   DGSTV18:
     title: Privacy Pass, Bypassing Internet Challenges Anonymously
     target: https://www.degruyter.com/view/j/popets.2018.2018.issue-3/popets-2018-0026/popets-2018-0026.xml
@@ -237,6 +280,11 @@ relations. This proof demonstrates correctness of the computation, using
 a known public key that serves as a commitment to the server's secret
 key. The document describes the protocol, the public-facing API, and its
 security properties.
+
+In some applications, there is the need to include an amount of public
+metadata into the OPRF protocol. Partially-Oblivious PRFs (POPRF) {{TCRSTW21}}
+are used to extend the OPRF functionality to include this public input
+(or metadata tag) t in the PRF evaluation.
 
 ## Change log
 
@@ -446,6 +494,12 @@ computing the VOPRF output and does not attempt to "tag" individual
 servers with select keys. This proof must not reveal the server's
 long-term private key to the client.
 
+In both modes, a public input (or metadata tag) t can be added to the PRF
+evaluation by using a PO-PRF: a client and server interact to compute y =
+F(skS, x, t), where x is the client's input, skS is the server's private
+key, t is a public metadata input and y is the OPRF output. The client learns
+y and the server learns nothing.
+
 The following one-byte values distinguish between these two modes:
 
 | Mode           | Value |
@@ -457,28 +511,32 @@ The following one-byte values distinguish between these two modes:
 
 Both participants agree on the mode and a choice of ciphersuite that is
 used before the protocol exchange. Once established, the base mode of
-the protocol runs to compute `output = F(skS, input)` as follows:
+the protocol runs to compute `output = F(skS, input, tag)` as follows
+(note that both the client or server can optionally add the public metadata
+input cTag or sTag):
 
 ~~~
-     Client(input)                             Server(skS)
-  ----------------------------------------------------------
-    blind, blindedElement = Blind(input)
+    Client(input, cTag)                             Server(skS, sTag)
+  -------------------------------------------------------------------
+    blind, blindedElement, cTag = Blind(input, cTag)
 
-                       blindedElement
+                        blindedElement, cTag
                         ---------->
 
-    evaluatedElement, proof = Evaluate(skS, blindedElement)
+    evaluatedElement, proof, stag = Evaluate(skS, blindedElement, sTag, cTag)
 
-                      evaluatedElement
+                      evaluatedElement, sTag
                         <----------
 
-    output = Finalize(input, blind, evaluatedElement, blindedElement)
+    output = Finalize(input, blind, evaluatedElement, blindedElement, cTag, sTag)
 ~~~
 
-In `Blind` the client generates a token and blinding data. The server
-computes the (V)OPRF evaluation in `Evaluation` over the client's
-blinded token. In `Finalize` the client unblinds the server response
-and produces a byte array corresponding to the output of the OPRF protocol.
+In `Blind` the client generates a token and blinding data optionally associated
+with the appropriate tag. The server computes the (V)OPRF evaluation
+in `Evaluation` over the client's blinded token, the optionally associated client
+tag and the optionally associated server tag. In `Finalize` the client unblinds
+the server response and produces a byte array corresponding to the output of the
+OPRF protocol.
 
 In the verifiable mode of the protocol, the server additionally computes
 a proof in Evaluate. The client verifies this proof using the server's
@@ -527,6 +585,9 @@ identify the suite.
 
 [[RFC editor: please change "VOPRF07" to "RFCXXXX", where XXXX is the final number, here and elsewhere before publication.]]
 
+`Tag` is an opaque byte string of arbitrary length representing the
+public metadata input optionally used by either Client and/or Server.
+
 ## Context APIs {#api}
 
 In this section, we detail the APIs available on the client and server
@@ -549,7 +610,9 @@ SerializedScalar Proof[2*Ns];
 The ServerContext encapsulates the context string constructed during
 setup and the (V)OPRF key pair. It has three functions, `Evaluate`,
 `FullEvaluate` and `VerifyFinalize` described below. `Evaluate` takes
-serialized representations of blinded group elements from the client as inputs.
+serialized representations of blinded group elements from the client as inputs
+and optionally the public metadata input as determined by the server and/or
+the public metadata input as sent by the client.
 
 `FullEvaluate` takes ClientInput values, and it is useful for applications
 that need to compute the whole OPRF protocol on the server side only.
@@ -567,19 +630,30 @@ Input:
 
   Scalar skS
   SerializedElement blindedElement
+  Tag serverMetadataTag
+  Tag clientMetadataTag
 
 Output:
 
   SerializedElement evaluatedElement
+  Tag serverMetadataTag
 
 Errors: DeserializeError
 
-def Evaluate(skS, blindedElement):
+def Evaluate(skS, blindedElement, serverMetadataTag, clientMetadataTag):
+  if !serverMetadataTag || !clientMetadataTag
+    R = GG.DeserializeElement(blindedElement)
+    metadata = "Metadata-" || contextString || I2OSP(len(serverMetadataTag), 2) || serverMetadataTag || I2OSP(len(clientMetadataTag), 2) || clientMetadataTag
+    tag = GG.HashToScalar(metadata)
+    t = skS + tag
+    Z = (tag^(-1)) * R
+    return evaluatedElement, serverMetadataTag
+
   R = GG.DeserializeElement(blindedElement)
   Z = skS * R
   evaluatedElement = GG.SerializeElement(Z)
 
-  return evaluatedElement
+  return evaluatedElement, ""
 ~~~
 
 #### FullEvaluate
@@ -615,19 +689,23 @@ Input:
   Scalar skS
   ClientInput input
   opaque output[Nh]
+  Tag serverMetadataTag
+  Tag clientMetadataTag
 
 Output:
 
   boolean valid
 
-def VerifyFinalize(skS, input, output):
+def VerifyFinalize(skS, input, output, serverMetadataTag, clientMetadataTag):
   T = GG.HashToGroup(input)
   element = GG.SerializeElement(T)
-  issuedElement = Evaluate(skS, [element])
+  issuedElement = Evaluate(skS, [element], serverMetadataTag, clientMetadataTag)
   E = GG.SerializeElement(issuedElement)
 
   finalizeDST = "Finalize-" || contextString
   hashInput = I2OSP(len(input), 2) || input ||
+              I2OSP(len(serverMetadataTag), 2) || serverMetadataTag ||
+              I2OSP(len(clientMetadataTag), 2) || clientMetadataTag ||
               I2OSP(len(E), 2) || E ||
               I2OSP(len(finalizeDST), 2) || finalizeDST
 
@@ -651,22 +729,34 @@ Input:
   Scalar skS
   Element pkS
   SerializedElement blindedElement
+  Tag serverMetadataTag
+  Tag clientMetadataTag SerializedElement blindedElement
 
 Output:
 
   SerializedElement evaluatedElement
   Proof proof
+  Tag serverMetadataTag
 
 Errors: DeserializeError
 
-def Evaluate(skS, pkS, blindedElement):
+def Evaluate(skS, pkS, blindedElement, serverMetadataTag, clientMetadataTag):
+  if serverMetadataTag != "" || clientMetadataTag != ""
+    R = GG.DeserializeElement(blindedElement)
+    metadata = "Metadata-" || contextString || I2OSP(len(serverMetadataTag), 2) || serverMetadataTag || I2OSP(len(clientMetadataTag), 2) || clientMetadataTag
+    tag = GG.HashToScalar(metadata)
+    t = skS + tag
+    Z = (tag^(-1)) * R
+    proof = GenerateProof(skS, t, pkS, R, Z)
+    return evaluatedElement, proof, serverMetadataTag
+
   R = GG.DeserializeElement(blindedElement)
   Z = skS * R
   evaluatedElement = GG.SerializeElement(Z)
 
-  proof = GenerateProof(skS, G, pkS, R, Z)
+  proof = GenerateProof(skS, nil, pkS, R, Z)
 
-  return evaluatedElement, proof
+  return evaluatedElement, proof, ""
 ~~~
 
 The helper functions `GenerateProof` and `ComputeComposites` are defined
@@ -678,7 +768,7 @@ below.
 Input:
 
   Scalar k
-  Element A
+  Scalar t
   Element B
   Element C
   Element D
@@ -687,15 +777,24 @@ Output:
 
   Proof proof
 
-def GenerateProof(k, A, B, C, D)
+def GenerateProof(k, t, B, C, D)
   Cs = [C]
   Ds = [D]
-  a = ComputeCompositesFast(k, B, Cs, Ds)
+  if t != nil
+    a = ComputeCompositesFast(t, B, Cs, Ds)
+  else
+    a = ComputeCompositesFast(k, B, Cs, Ds)
 
   r = GG.RandomScalar()
   M = a[0]
   Z = a[1]
-  t2 = r * A
+  uu = ""
+
+  if t != nil
+    U = ScalarBaseMult(t)
+    uu = GG.SerializeElement(U)
+
+  t2 = ScalarBaseMult(r)
   t3 = r * M
 
   Bm = GG.SerializeElement(B)
@@ -705,7 +804,8 @@ def GenerateProof(k, A, B, C, D)
   a3 = GG.SerializeElement(t3)
 
   challengeDST = "Challenge-" || contextString
-  h2Input = I2OSP(len(Bm), 2) || Bm ||
+  h2Input = I2OSP(len(uu), 2) || uu ||
+            I2OSP(len(Bm), 2) || Bm ||
             I2OSP(len(a0), 2) || a0 ||
             I2OSP(len(a1), 2) || a1 ||
             I2OSP(len(a2), 2) || a2 ||
@@ -713,7 +813,12 @@ def GenerateProof(k, A, B, C, D)
             I2OSP(len(challengeDST), 2) || challengeDST
 
   c = GG.HashToScalar(h2Input)
-  s = (r - c * k) mod p
+
+  if t != nil
+    s = (r - c * t) mod p
+  else
+    s = (r - c * k) mod p
+
   proof = [GG.SerializeScalar(c), GG.SerializeScalar(s)]
 
   return proof
@@ -836,24 +941,31 @@ circumstances, the more optimal additive blinding mechanism described in
 {{verifiable-blind}} can be used. See {{blind-considerations}} for more
 details.
 
-`Blind` is implemented as follows.
+`Blind` is implemented as follows (nota that the metadataTag, taken as an
+input, is an optional value. If no metadataTag is provided by the client, an
+empty string is sent as output).
 
 ~~~
 Input:
 
   ClientInput input
+  Tag metadataTag
 
 Output:
 
   Scalar blind
   SerializedElement blindedElement
+  Tag metadataTag
 
-def Blind(input):
+def Blind(input, metadataTag):
   blind = GG.RandomScalar()
   P = GG.HashToGroup(input)
   blindedElement = GG.SerializeElement(blind * P)
 
-  return blind, blindedElement
+  if !metadataTag
+    metadataTag = nil
+
+  return blind, blindedElement, metadataTag
 ~~~
 
 The inverse `Unblind` is implemented as follows.
@@ -890,16 +1002,20 @@ Input:
   ClientInput input
   Scalar blind
   SerializedElement evaluatedElement
+  Tag serverMetadataTag
+  Tag clientMetadataTag
 
 Output:
 
   opaque output[Nh]
 
-def Finalize(input, blind, evaluatedElement):
+def Finalize(input, blind, evaluatedElement, serverMetadataTag, clientMetadataTag):
   unblindedElement = Unblind(blind, evaluatedElement)
 
   finalizeDST = "Finalize-" || contextString
   hashInput = I2OSP(len(input), 2) || input ||
+              I2OSP(len(serverMetadataTag), 2) || serverMetadataTag ||
+              I2OSP(len(clientMetadataTag), 2) || clientMetadataTag ||
               I2OSP(len(unblindedElement), 2) || unblindedElement ||
               I2OSP(len(finalizeDST), 2) || finalizeDST
   return Hash(hashInput)
@@ -921,7 +1037,7 @@ proof inside of the evaluation verifies correctly, or not.
 ~~~
 Input:
 
-  Element A
+  Scalar t
   Element B
   Element C
   Element D
@@ -931,7 +1047,11 @@ Output:
 
   boolean verified
 
-def VerifyProof(A, B, C, D, proof):
+def VerifyProof(t, B, C, D, proof):
+  if t != nil
+    uT = ScalarBaseMult(t)
+    U = uT + B
+
   Cs = [C]
   Ds = [D]
 
@@ -941,7 +1061,14 @@ def VerifyProof(A, B, C, D, proof):
 
   M = a[0]
   Z = a[1]
-  t2 = ((s * A) + (c * B))
+  uu = ""
+
+  if t != nil
+    t2 = ((ScalarBaseMult(s)) + (c * B))
+    uu = GG.SerializeElement(U)
+  else
+    t2 = ((ScalarBaseMult(s)) + (c * U))
+
   t3 = ((s * M) + (c * Z))
 
   Bm = GG.SerializeElement(B)
@@ -951,7 +1078,8 @@ def VerifyProof(A, B, C, D, proof):
   a3 = GG.SerializeElement(t3)
 
   challengeDST = "Challenge-" || contextString
-  h2Input = I2OSP(len(Bm), 2) || Bm ||
+  h2Input = I2OSP(len(uu), 2) || uu ||
+            I2OSP(len(Bm), 2) || Bm ||
             I2OSP(len(a0), 2) || a0 ||
             I2OSP(len(a1), 2) || a1 ||
             I2OSP(len(a2), 2) || a2 ||
@@ -965,8 +1093,8 @@ def VerifyProof(A, B, C, D, proof):
 
 #### Verifiable Blind {#verifiable-blind}
 
-In this mode, where the server public key is available for proof verification,
-blinding is done additively. This variant is named `VerifiableBlind` and
+In this mode, where the server public key is available for proof verification
+without metadata, blinding is done additively. This variant is named `VerifiableBlind` and
 `VerifiableUnblind`. It takes two inputs: the client input and a blinded
 version of the group generator. The latter is computed using a function called
 `VerifiablePreprocess`, also described below.
@@ -978,16 +1106,24 @@ Input:
 
   ClientInput input
   Element blindedGenerator
+  Tag metadataTag
 
 Output:
 
+  Scalar blind
   SerializedElement blindedElement
+  Tag metadataTag
 
-def VerifiableBlind(input, blindedGenerator):
+def VerifiableBlind(input, blindedGenerator, metadataTag):
   P = GG.HashToGroup(input)
-  blindedElement = GG.SerializeElement(P + blindedGenerator)
 
-  return blindedElement
+  if !metadataTag
+    blindedElement = GG.SerializeElement(P + blindedGenerator)
+    return nil, blindedElement, ""
+  else
+    blind = GG.RandomScalar()
+    blindedElement = GG.SerializeElement(blind * P)
+    return blind, blindedElement, metadataTag
 ~~~
 
 The inverse `VerifiableUnblind` is implemented as follows. This function
@@ -997,11 +1133,13 @@ fails.
 ~~~
 Input:
 
+  Scalar blind
   Element blindedPublicKey
   SerializedElement evaluatedElement
   SerializedElement blindedElement
   Element pkS
   Scalar proof
+  Scalar tag
 
 Output:
 
@@ -1009,14 +1147,19 @@ Output:
 
 Errors: DeserializeError, VerifyError
 
-def VerifiableUnblind(blindedPublicKey, evaluatedElement,
-                      blindedElement, pkS, proof):
+def VerifiableUnblind(blind, blindedPublicKey, evaluatedElement, blindedElement, pkS, proof, tag):
+  if blindedPublicKey
+    R = GG.DeserializeElement(blindedElement)
+
   Z = GG.DeserializeElement(evaluatedElement)
-  R = GG.DeserializeElement(blindedElement)
-  if VerifyProof(G, pkS, R, Z, proof) == false:
+  if VerifyProof(tag, pkS, R, Z, proof) == false:
     raise VerifyError
 
-  N := Z - blindedPublicKey
+  if blindedPublicKey
+    N = Z - blindedPublicKey
+  else
+    N = (blind^(-1)) * Z
+
   unblindedElement = GG.SerializeElement(N)
 
   return unblindedElement
@@ -1039,7 +1182,7 @@ Output:
   Element blindedPublicKey
   Scalar blind
 
-def Preprocess(pkS):
+def VerifiablePreprocess(pkS):
   blind = GG.RandomScalar()
   blindedGenerator = ScalarBaseMult(blind)
   blindedPublicKey = pkS * blind
@@ -1058,19 +1201,26 @@ Input:
   SerializedElement blindedElement
   Element pkS
   Scalar proof
+  Tag serverMetadataTag
+  Tag clientMetadataTag
+
 
 Output:
 
   opaque output[Nh]
 
-def Finalize(input, blindedPublicKey, evaluatedElement,
-             blindedElement, pkS, proof):
-  unblindedElement =
-    VerifiableUnblind(blindedPublicKey, evaluatedElement,
-                      blindedElement, pkS, proof)
+def Finalize(input, blindedPublicKey, evaluatedElement, blindedElement, pkS, proof, serverMetadataTag, clientMetadataTag):
+  if serverMetadataTag != nil || clientMetadataTag != nil
+    metadata = "Metadata-" || contextString || I2OSP(len(serverMetadataTag), 2) || serverMetadataTag || I2OSP(len(clientMetadataTag), 2) || clientMetadataTag
+    tag = GG.HashToScalar(metadata)
+    unblindedElement = VerifiableUnblind(blindedPublicKey, evaluatedElement, blindedElement, pkS, proof, tag)
+  else
+    unblindedElement = VerifiableUnblind(blindedPublicKey, evaluatedElement, blindedElement, pkS, proof, "")
 
   finalizeDST = "Finalize-" || contextString
   hashInput = I2OSP(len(input), 2) || input ||
+              I2OSP(len(serverMetadataTag), 2) || serverMetadataTag ||
+              I2OSP(len(clientMetadataTag), 2) || clientMetadataTag ||
               I2OSP(len(unblindedElement), 2) || unblindedElement ||
               I2OSP(len(finalizeDST), 2) || finalizeDST
   return Hash(hashInput)
