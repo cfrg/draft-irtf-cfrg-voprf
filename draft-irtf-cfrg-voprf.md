@@ -1333,19 +1333,24 @@ The assumption that this problem is hard was first introduced in
 that have reduced the security of the assumption below that implied by
 the group instantiation (for example, {{BG04}} and {{Cheon06}}). In
 summary, the attacks reduce the security of the group instantiation by
-log_2(Q) bits.
+log_2(Q)/2 bits. Note that the attacks only work in situations where Q
+divides p-1 or p+1, where p is the order of the prime-order group used
+to instantiate the OPRF. 
 
 As an example, suppose that a group instantiation is used that provides
 128 bits of security against discrete log cryptanalysis. Then an
 adversary with access to a Q-sDH oracle and makes Q=2^20 queries can
-reduce the security of the instantiation by log_2(2^20) = 20 bits.
+reduce the security of the instantiation by log_2(2^20)/2 = 10 bits. It
+is worth highlighting that launching an attack would require
+2^{p/2-(log(Q)/2} bits of memory.
 
 Notice that it is easy to instantiate a Q-sDH oracle using the OPRF
 functionality that we provide. A client can just submit sequential
 queries of the form (G, k * G, (k^2)G, ..., (k^(Q-1))G), where each
 query is the output of the previous interaction. This means that any
 client that submits Q queries to the OPRF can use the aforementioned
-attacks to reduce the security of the group instantiation by log_2(Q) bits.
+attacks to reduce the security of the group instantiation by
+(log_2(Q)/2) bits.
 
 Recall that from a malicious client's perspective, the adversary wins if
 they can distinguish the OPRF interaction from a protocol that computes
@@ -1356,16 +1361,19 @@ the ideal functionality provided by the PRF.
 The OPRF instantiations that we recommend in this document are informed
 by the cryptanalytic discussion above. In particular, choosing elliptic
 curves configurations that describe 128-bit group instantiations would
-appear to in fact instantiate an OPRF with 128-log_2(Q) bits of
-security.
+appear to in fact instantiate an OPRF with 128-(log_2(Q)/2) bits of
+security. Moreover, such attacks are only possible for those certain
+applications where the adversary can query the OPRF directly.
+In applcations where such an oracle is not made available, such as in
+{{!I-D.irtf-cfrg-opaque}}, do not admit the same security loss.
 
 In most cases, it would require an informed and persistent attacker to
 launch a highly expensive attack to reduce security to anything much
 below 100 bits of security. We see this possibility as something that
-may result in problems in the future. For applications that cannot
-tolerate discrete logarithm security of lower than 128 bits, we
-recommend only implementing ciphersuites with IDs: 0x0002, 0x0004, and
-0x0005.
+may result in problems in the future. For applications that admit the
+aforementioned oracle functionality, and that cannot tolerate discrete logarithm
+security of lower than 128 bits, we recommend only implementing
+ciphersuites with IDs: 0x0002, 0x0004, and 0x0005.
 
 ## Element and Scalar Validation {#input-validation}
 
