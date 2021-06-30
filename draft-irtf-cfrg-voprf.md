@@ -1372,7 +1372,7 @@ below 100 bits of security. We see this possibility as something that
 may result in problems in the future. For applications that admit the
 aforementioned oracle functionality, and that cannot tolerate discrete logarithm
 security of lower than 128 bits, we recommend only implementing
-ciphersuites with IDs: 0x0002, 0x0004, and 0x0005.
+ciphersuites with IDs 0x0002, 0x0004, and 0x0005.
 
 ## Element and Scalar Validation {#input-validation}
 
