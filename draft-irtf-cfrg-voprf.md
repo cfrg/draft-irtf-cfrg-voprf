@@ -1363,9 +1363,7 @@ curves configurations that describe 128-bit group instantiations would
 appear to in fact instantiate an OPRF with 128-(log_2(Q)/2) bits of
 security. Moreover, such attacks are only possible for those certain
 applications where the adversary can query the OPRF directly.
-In applications where such an oracle is not made available, or where
-OPRF keys are derived on a per-client basis such as in
-{{!I-D.irtf-cfrg-opaque}}, the security loss does not apply.
+In applications where such an oracle is not made available this security loss does not apply.
 
 In most cases, it would require an informed and persistent attacker to
 launch a highly expensive attack to reduce security to anything much
