@@ -239,6 +239,19 @@ security properties.
 
 ## Change log
 
+[draft-07](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-07):
+
+- Bind blinding mechanism to mode (additive for verifiable mode and
+  multiplicative for base mode).
+- Add explicit errors for deserialization.
+- Document explicit errors and API considerations.
+- Adopt SHAKE-256 for decaf448 ciphersuite.
+- Normalize HashToScalar functionality for all ciphersuites.
+- Refactor and generalize DLEQ proof functionality and domain separation
+  tags for use in other protocols.
+- Update test vectors.
+- Apply various editorial changes.
+
 [draft-06](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-06):
 
 - Specify of group element and scalar serialization.
