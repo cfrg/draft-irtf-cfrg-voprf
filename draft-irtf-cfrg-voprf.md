@@ -479,11 +479,13 @@ The base mode setup functions for creating client and server contexts are below:
 
 ~~~
 def SetupBaseServer(suite, skS):
-  contextString = "VOPRF06-" || I2OSP(modeBase, 1) || I2OSP(suite.ID, 2)
+  contextString =
+    "VOPRF07-" || I2OSP(modeBase, 1) || I2OSP(suite.ID, 2)
   return ServerContext(contextString, skS)
 
 def SetupBaseClient(suite):
-  contextString = "VOPRF06-" || I2OSP(modeBase, 1) || I2OSP(suite.ID, 2)
+  contextString =
+    "VOPRF07-" || I2OSP(modeBase, 1) || I2OSP(suite.ID, 2)
   return ClientContext(contextString)
 ~~~
 
@@ -492,11 +494,13 @@ contexts are below:
 
 ~~~
 def SetupVerifiableServer(suite, skS, pkS):
-  contextString = "VOPRF06-" || I2OSP(modeVerifiable, 1) || I2OSP(suite.ID, 2)
+  contextString =
+    "VOPRF07-" || I2OSP(modeVerifiable, 1) || I2OSP(suite.ID, 2)
   return VerifiableServerContext(contextString, skS)
 
 def SetupVerifiableClient(suite, pkS):
-  contextString = "VOPRF06-" || I2OSP(modeVerifiable, 1) || I2OSP(suite.ID, 2)
+  contextString =
+    "VOPRF07-" || I2OSP(modeVerifiable, 1) || I2OSP(suite.ID, 2)
   return VerifiableClientContext(contextString, pkS)
 ~~~
 
@@ -504,7 +508,7 @@ Each setup function takes a ciphersuite from the list defined in
 {{ciphersuites}}. Each ciphersuite has a two-byte field ID used to
 identify the suite.
 
-[[RFC editor: please change "VOPRF06" to "RFCXXXX", where XXXX is the final number, here and elsewhere before publication.]]
+[[RFC editor: please change "VOPRF07" to "RFCXXXX", where XXXX is the final number, here and elsewhere before publication.]]
 
 ## Data Types {#structs}
 
@@ -999,7 +1003,8 @@ Output:
 
 Errors: DeserializeError, VerifyError
 
-def VerifiableUnblind(blindedPublicKey, evaluatedElement, blindedElement, pkS, proof):
+def VerifiableUnblind(blindedPublicKey, evaluatedElement,
+                      blindedElement, pkS, proof):
   Z = GG.DeserializeElement(evaluatedElement)
   R = GG.DeserializeElement(blindedElement)
   if VerifyProof(G, pkS, R, Z, proof) == false:
@@ -1052,8 +1057,11 @@ Output:
 
   opaque output[Nh]
 
-def Finalize(input, blindedPublicKey, evaluatedElement, blindedElement, pkS, proof):
-  unblindedElement = VerifiableUnblind(blindedPublicKey, evaluatedElement, blindedElement, pkS, proof)
+def Finalize(input, blindedPublicKey, evaluatedElement,
+             blindedElement, pkS, proof):
+  unblindedElement =
+    VerifiableUnblind(blindedPublicKey, evaluatedElement,
+                      blindedElement, pkS, proof)
 
   finalizeDST = "Finalize-" || contextString
   hashInput = I2OSP(len(input), 2) || input ||
@@ -1333,15 +1341,15 @@ The assumption that this problem is hard was first introduced in
 that have reduced the security of the assumption below that implied by
 the group instantiation (for example, {{BG04}} and {{Cheon06}}). In
 summary, the attacks reduce the security of the group instantiation by
-log_2(Q)/2 bits. Note that the attacks only work in situations where Q
+log\_2(Q)/2 bits. Note that the attacks only work in situations where Q
 divides p-1 or p+1, where p is the order of the prime-order group used
-to instantiate the OPRF. 
+to instantiate the OPRF.
 
 As an example, suppose that a group instantiation is used that provides
 128 bits of security against discrete log cryptanalysis. Then an
 adversary with access to a Q-sDH oracle and makes Q=2^20 queries can
-reduce the security of the instantiation by log_2(2^20)/2 = 10 bits. Launching an attack would require
-2^(p/2-log_2(Q)/2) bits of memory.
+reduce the security of the instantiation by log\_2(2^20)/2 = 10 bits. Launching an attack would require
+2^(p/2-log\_2(Q)/2) bits of memory.
 
 Notice that it is easy to instantiate a Q-sDH oracle using the OPRF
 functionality that we provide. A client can just submit sequential
@@ -1349,7 +1357,7 @@ queries of the form (G, k * G, (k^2)G, ..., (k^(Q-1))G), where each
 query is the output of the previous interaction. This means that any
 client that submits Q queries to the OPRF can use the aforementioned
 attacks to reduce the security of the group instantiation by
-(log_2(Q)/2) bits.
+(log\_2(Q)/2) bits.
 
 Recall that from a malicious client's perspective, the adversary wins if
 they can distinguish the OPRF interaction from a protocol that computes
@@ -1360,7 +1368,7 @@ the ideal functionality provided by the PRF.
 The OPRF instantiations that we recommend in this document are informed
 by the cryptanalytic discussion above. In particular, choosing elliptic
 curves configurations that describe 128-bit group instantiations would
-appear to in fact instantiate an OPRF with 128-(log_2(Q)/2) bits of
+appear to in fact instantiate an OPRF with 128-(log\_2(Q)/2) bits of
 security. Moreover, such attacks are only possible for those certain
 applications where the adversary can query the OPRF directly.
 In applications where such an oracle is not made available this security loss does not apply.
