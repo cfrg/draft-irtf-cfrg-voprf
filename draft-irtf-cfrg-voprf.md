@@ -1529,8 +1529,9 @@ Test vectors with batch size B > 1 have inputs separated by a comma
 "Input", "Blind", "BlindedElement", "EvaluationElement", and
 "Output" fields.
 
-Base and verifiable mode use multiplicative and additive blinding as
-described in {{base-client}} and {{verifiable-client}}, respectively.
+Base mode uses multiplicative blinding while verifiable mode 
+uses additive blinding, as described in {{base-client}} and 
+{{verifiable-client}}, respectively.
 
 The server key material, `pkSm` and `skSm`, are listed under the mode for
 each ciphersuite. Both `pkSm` and `skSm` are the serialized values of
@@ -2138,4 +2139,3 @@ Output = 64b90ccb524dc125290bda4f6102871a8580d9cb0dfe1c0e46ae87d70a1
 0,93d48a50859a56aabe4d19f4517eff37494959536381b8c072f7d968335dae63d6
 2b98b448160be9559c680a4bb2aee54acd8f26fd2ce6d6e7f714124a5c56b5
 ~~~
-
