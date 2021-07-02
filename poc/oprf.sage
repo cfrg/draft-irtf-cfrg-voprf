@@ -301,7 +301,7 @@ class VerifiableServerContext(ServerContext,Verifiable):
 
 MODE_BASE = 0x00
 MODE_VERIFIABLE = 0x01
-VERSION = "VOPRF06-"
+VERSION = "VOPRF07-"
 
 def GenerateKeyPair(suite):
     skS, pkS = suite.group.key_gen()
