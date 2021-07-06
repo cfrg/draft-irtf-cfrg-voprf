@@ -306,20 +306,6 @@ security properties.
   https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-04.
 - Made some necessary modular reductions more explicit.
 
-## Terminology {#terminology}
-
-The following terms are used throughout this document.
-
-- PRF: Pseudorandom Function.
-- OPRF: Oblivious Pseudorandom Function.
-- VOPRF: Verifiable Oblivious Pseudorandom Function.
-- Client: Protocol initiator. Learns pseudorandom function evaluation as
-  the output of the protocol.
-- Server: Computes the pseudorandom function over a secret key. Learns
-  nothing about the client's input.
-- NIZK: Non-interactive zero knowledge.
-- DLEQ: Discrete Logarithm Equality.
-
 ## Requirements
 
 {::boilerplate bcp14}
@@ -356,7 +342,8 @@ For any element `A`, `p*A=I`. We denote `G` as the fixed generator of
 the group. Scalar base multiplication is equivalent to the repeated
 application of the group operation `G` with itself `r-1` times, this
 is denoted as `ScalarBaseMult(r)`. The set of scalars corresponds to
-`GF(p)`.
+`GF(p)`. This document uses types `Element` and `Scalar` to denote elements
+of the group `GG` and its set of scalars, respectively.
 
 We now detail a number of member functions that can be invoked on a
 prime-order group `GG`.
@@ -366,24 +353,24 @@ prime-order group `GG`.
 - HashToGroup(x): A member function of `GG` that deterministically maps
   an array of bytes `x` to an element of `GG`. The map must ensure that,
   for any adversary receiving `R = HashToGroup(x)`, it is
-  computationally difficult to reverse the mapping. Examples of hash to
-  group functions satisfying this property are described for prime-order
-  (sub)groups of elliptic curves, see {{!I-D.irtf-cfrg-hash-to-curve}}.
+  computationally difficult to reverse the mapping. This function is optionally
+  parameterized by a domain separation tag (DST); see {{ciphersuites}}.
 - HashToScalar(x): A member function of `GG` that deterministically maps
-  an array of bytes `x` to an element in GF(p). A recommended method
-  for its implementation is instantiating the hash to field function,
-  defined in {{!I-D.irtf-cfrg-hash-to-curve}} setting the target field to GF(p).
+  an array of bytes `x` to an element in GF(p). This function is optionally
+  parameterized by a DST; see {{ciphersuites}}.
 - RandomScalar(): A member function of `GG` that chooses at random a
   non-zero element in GF(p).
 - SerializeElement(A): A member function of `GG` that maps a group element `A`
-  to a unique byte array `buf` of fixed length `Ne`.
+  to a unique byte array `buf` of fixed length `Ne`. The output type of
+  this function is `SerializedElement`.
 - DeserializeElement(buf): A member function of `GG` that maps a byte array
   `buf` to a group element `A`, or fails if the input is not a valid
   byte representation of an element. This function can raise a
   DeserializeError if deserialization fails or `A` is the identity element
   of the group; see {{input-validation}}.
 - SerializeScalar(s): A member function of `GG` that maps a scalar element `s`
-  to a unique byte array `buf` of fixed length `Ns`.
+  to a unique byte array `buf` of fixed length `Ns`. The output type of this
+  function is `SerializedScalar`.
 - DeserializeScalar(buf): A member function of `GG` that maps a byte array
   `buf` to a scalar `s`, or fails if the input is not a valid byte
   representation of a scalar. This function can raise a
@@ -394,7 +381,7 @@ where `skS` is a non-zero integer less than `p` and `pkS = ScalarBaseMult(skS)`:
 `GenerateKeyPair` and `DeriveKeyPair`. `GenerateKeyPair` is a randomized function
 that outputs a fresh key pair (`skS`, `pkS`) upon ever invocation. `DeriveKeyPair`
 is a  deterministic  function that generates private key `skS` from a random byte
-string `seed` that  SHOULD have at least `Ns` bytes of entropy, and then
+string `seed`, which SHOULD have at least `Ns` bytes of entropy, and then
 computes `pkS = ScalarBaseMult(skS)`.
 
 It is convenient in cryptographic applications to instantiate such
@@ -404,13 +391,15 @@ prime-order groups using elliptic curves, such as those detailed in
 implementation issues that introduce inherent discrepancies between
 standard prime-order groups and the elliptic curve instantiation. In
 this document, all algorithms that we detail assume that the group is a
-prime-order group, and this MUST be upheld by any implementer. That is,
+prime-order group, and this MUST be upheld by any implementation. That is,
 any curve instantiation should be written such that any discrepancies
 with a prime-order group instantiation are removed. See {{ciphersuites}}
 for advice corresponding to the implementation of this interface for
 specific definitions of elliptic curves.
 
-## Other Conventions
+## Conventions and Terminology
+
+The following conventions are used throughout the document.
 
 - For any object `x`, we write `len(x)` to denote its length in bytes.
 - For two byte arrays `x` and `y`, write `x || y` to denote their
@@ -419,12 +408,26 @@ specific definitions of elliptic curves.
   integer as described in {{!RFC8017}}. Note that these functions
   operate on byte arrays in big-endian byte order.
 
+Data structure descriptions use TLS notation {{?RFC8446, Section 3}}.
+
 All algorithm descriptions are written in a Python-like pseudocode.
 We also use the `CT_EQUAL(a, b)` function to represent constant-time
 byte-wise equality between byte arrays `a` and `b`. This function
 returns `true` if `a` and `b` are equal, and `false` otherwise.
 
-# OPRF Protocol {#protocol}
+The following terms are used throughout this document.
+
+- PRF: Pseudorandom Function.
+- OPRF: Oblivious Pseudorandom Function.
+- VOPRF: Verifiable Oblivious Pseudorandom Function.
+- Client: Protocol initiator. Learns pseudorandom function evaluation as
+  the output of the protocol.
+- Server: Computes the pseudorandom function over a secret key. Learns
+  nothing about the client's input.
+- NIZK: Non-interactive zero knowledge.
+- DLEQ: Discrete Logarithm Equality.
+
+# (V)OPRF Protocol {#protocol}
 
 In this section, we define two OPRF variants: a base mode and verifiable
 mode. In the base mode, a client and server interact to compute y =
@@ -523,25 +526,6 @@ identify the suite.
 
 [[RFC editor: please change "VOPRF07" to "RFCXXXX", where XXXX is the final number, here and elsewhere before publication.]]
 
-## Data Types {#structs}
-
-The following is a list of data structures that are defined for
-providing inputs and outputs for each of the context interfaces defined
-in {{api}}. Data structure description uses TLS notation (see {{?RFC8446}},
-Section 3).
-
-This document uses the types `Element` and `Scalar` to denote elements of the
-group `GG` and its underlying scalar field `GF(p)`, respectively. For notational
-clarity, `PublicKey` is an item of type `Element` and `PrivateKey` is an item
-of type `Scalar`. `SerializedElement` and `SerializedScalar` are serialized
-representations of `Element` and `Scalar` types of length `Ne` and `Ns`,
-respectively; see {{pog}}. `ClientInput` is an opaque byte string of arbitrary
-length. `Proof` is a sequence of two `SerializedScalar` elements, as shown below.
-
-~~~
-SerializedScalar Proof[2];
-~~~
-
 ## Context APIs {#api}
 
 In this section, we detail the APIs available on the client and server
@@ -550,6 +534,14 @@ In this section, we detail the APIs available on the client and server
 - GG, a prime-order group implementing the API described in {{pog}}.
 - contextString, a domain separation tag taken from the client or server
   context.
+
+The data type `ClientInput` is an opaque byte string of arbitrary length
+no larger than 2^13 octets. `Proof` is a concatenated sequence of two
+`SerializedScalar` values, as shown below.
+
+~~~
+SerializedScalar Proof[2*Ns];
+~~~
 
 ### Server Context
 
@@ -572,7 +564,7 @@ protocol. They are exposed as an API for building higher-level protocols.
 ~~~
 Input:
 
-  PrivateKey skS
+  Scalar skS
   SerializedElement blindedElement
 
 Output:
@@ -594,7 +586,7 @@ def Evaluate(skS, blindedElement):
 ~~~
 Input:
 
-  PrivateKey skS
+  Scalar skS
   ClientInput input
 
 Output:
@@ -619,7 +611,7 @@ def FullEvaluate(skS, input):
 ~~~
 Input:
 
-  PrivateKey skS
+  Scalar skS
   ClientInput input
   opaque output[Nh]
 
@@ -655,8 +647,8 @@ functions `GenerateProof` and `ComputeComposites`, described below.
 ~~~
 Input:
 
-  PrivateKey skS
-  PublicKey pkS
+  Scalar skS
+  Element pkS
   SerializedElement blindedElement
 
 Output:
@@ -828,7 +820,7 @@ def ComputeCompositesFast(k, B, Cs, Ds):
  return [M, Z]
 ~~~
 
-### Client Context
+### Client Context {#base-client}
 
 The ClientContext encapsulates the context string constructed during
 setup. It has two functions, `Blind()` and `Finalize()`, as described
@@ -1082,14 +1074,6 @@ def Finalize(input, blindedPublicKey, evaluatedElement,
               I2OSP(len(finalizeDST), 2) || finalizeDST
   return Hash(hashInput)
 ~~~
-
-# Domain Separation {#domain-separation}
-
-Applications SHOULD construct input to the protocol to provide domain
-separation. Any system which has multiple (V)OPRF applications should
-distinguish client inputs to ensure the OPRF results are separate.
-Guidance for constructing info can be found in
-{{!I-D.irtf-cfrg-hash-to-curve}}; Section 3.1.
 
 # Ciphersuites {#ciphersuites}
 
@@ -1394,6 +1378,14 @@ aforementioned oracle functionality, and that cannot tolerate discrete logarithm
 security of lower than 128 bits, we recommend only implementing
 ciphersuites with IDs 0x0002, 0x0004, and 0x0005.
 
+## Domain Separation {#domain-separation}
+
+Applications SHOULD construct input to the protocol to provide domain
+separation. Any system which has multiple (V)OPRF applications should
+distinguish client inputs to ensure the OPRF results are separate.
+Guidance for constructing info can be found in
+{{!I-D.irtf-cfrg-hash-to-curve}}; Section 3.1.
+
 ## Element and Scalar Validation {#input-validation}
 
 The DeserializeElement function recovers a group element from an arbitrary
@@ -1537,10 +1529,22 @@ Test vectors with batch size B > 1 have inputs separated by a comma
 "Input", "Blind", "BlindedElement", "EvaluationElement", and
 "Output" fields.
 
+Base mode uses multiplicative blinding while verifiable mode 
+uses additive blinding, as described in {{base-client}} and 
+{{verifiable-client}}, respectively.
+
 The server key material, `pkSm` and `skSm`, are listed under the mode for
 each ciphersuite. Both `pkSm` and `skSm` are the serialized values of
 `pkS` and `skS`, respectively, as used in the protocol. Each key pair
-is derived from a `seed`, which is listed as well.
+is derived from a `seed`, which is listed as well, using the following
+implementation of `DeriveKeyPair`:
+
+~~~
+def DeriveKeyPair(mode, suite, seed):
+  skS = GG.HashToScalar(seed, DST = "HashToScalar-" || contextString)
+  pkS = ScalarBaseMult(skS)
+  return skS, pkS
+~~~
 
 ## OPRF(ristretto255, SHA-512)
 
@@ -2135,4 +2139,3 @@ Output = 64b90ccb524dc125290bda4f6102871a8580d9cb0dfe1c0e46ae87d70a1
 0,93d48a50859a56aabe4d19f4517eff37494959536381b8c072f7d968335dae63d6
 2b98b448160be9559c680a4bb2aee54acd8f26fd2ce6d6e7f714124a5c56b5
 ~~~
-
