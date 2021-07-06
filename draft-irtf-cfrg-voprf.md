@@ -1400,7 +1400,7 @@ the point is on the curve, and that the point is not the point at infinity.
 If these checks fail, deserialization returns an error.
 
 For ristretto255 and decaf448, elements are deserialized by invoking the Decode
-function from {{RISTRETTO, Section 4.3.1}} and {{RISTRETTO, 5.3.1}}, respectively,
+function from {{RISTRETTO, Section 4.3.1}} and {{RISTRETTO, Section 5.3.1}}, respectively,
 which returns false if the element is invalid. If this function returns false,
 deserialization returns an error.
 
