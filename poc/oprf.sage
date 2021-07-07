@@ -92,7 +92,6 @@ class ServerContext(Context):
 
     def evaluate(self, blinded_element, cTag, sTag):
         if cTag is not None or sTag is not None:
-            print(sTag)
             R = self.suite.group.deserialize(blinded_element)
             metadataDST = _as_bytes("Metadata-") + self.context_string
             metadata_input = I2OSP(len(sTag), 2) + sTag \
