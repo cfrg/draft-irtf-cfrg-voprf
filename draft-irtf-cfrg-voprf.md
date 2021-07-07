@@ -647,6 +647,7 @@ def Evaluate(skS, blindedElement, serverMetadataTag, clientMetadataTag):
     tag = GG.HashToScalar(metadata)
     t = skS + tag
     Z = (tag^(-1)) * R
+    evaluatedElement = GG.SerializeElement(Z)
     return evaluatedElement, serverMetadataTag
 
   R = GG.DeserializeElement(blindedElement)
