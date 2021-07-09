@@ -52,12 +52,12 @@ class ClientContext(Context):
     def identifier(self):
         return self.identifier
 
-    def blind(self, x, tag):
+    def blind(self, x):
         blind = ZZ(self.suite.group.random_scalar())
         P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
         R = blind * P
         blinded_element = self.suite.group.serialize(R)
-        return blind, blinded_element, tag
+        return blind, blinded_element
 
     def unblind(self, blind, evaluated_element, blinded_element, proof):
         # Note: blinded_element and proof are unused in the base mode
@@ -102,17 +102,17 @@ class ServerContext(Context):
             tag_inv = inverse_mod(tag, self.suite.group.order())
             Z = tag_inv * R
             evaluated_element = self.suite.group.serialize(Z)
-            return evaluated_element, None, None, sTag
+            return evaluated_element, None, None
 
         R = self.suite.group.deserialize(blinded_element)
         Z = self.skS * R
         evaluated_element = self.suite.group.serialize(Z)
-        return evaluated_element, None, None, None
+        return evaluated_element, None, None
 
     def verify_finalize(self, x, expected_digest, cTag, sTag):
         P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
         input_element = self.suite.group.serialize(P)
-        issued_element, _, _, _ = self.evaluate(input_element, cTag, sTag) # Ignore the proof output
+        issued_element, _, _  = self.evaluate(input_element, cTag, sTag) # Ignore the proof output
 
         finalizeDST = _as_bytes("Finalize-") + self.context_string
 
@@ -210,12 +210,12 @@ class VerifiableClientContext(ClientContext,Verifiable):
         blinded_generator = blind * G
         return blinded_generator, blind
 
-    def blind(self, x, tag):
+    def blind(self, x):
         blinded_generator, blind = self.preprocess()
         P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
         R = blinded_generator + P
         blinded_element = self.suite.group.serialize(R)
-        return blind, blinded_element, tag
+        return blind, blinded_element
 
     def unblind(self, blind, evaluated_element, blinded_element, proof):
         G = self.suite.group.generator()
@@ -311,7 +311,7 @@ class VerifiableServerContext(ServerContext,Verifiable):
         Z = self.skS * R
         evaluated_element = self.suite.group.serialize(Z)
         proof, r = self.generate_proof(self.skS, self.suite.group.generator(), self.pkS, [R], [Z])
-        return evaluated_element, proof, r, None
+        return evaluated_element, proof, r
 
     def evaluate_batch(self, blinded_elements):
         Rs = []

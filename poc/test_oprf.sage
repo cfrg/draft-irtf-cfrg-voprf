@@ -61,11 +61,11 @@ class Protocol(object):
         server = self.server
 
         def create_test_vector_for_input(x, y):
-            blind, blinded_element, cTag = client.blind(x, y)
-            evaluated_element, proof, proof_randomness, sTag = server.evaluate(blinded_element, cTag, y)
-            output = client.finalize(x, blind, evaluated_element, blinded_element, proof, sTag, cTag)
+            blind, blinded_element = client.blind(x)
+            evaluated_element, proof, proof_randomness = server.evaluate(blinded_element, y, y)
+            output = client.finalize(x, blind, evaluated_element, blinded_element, proof, y, y)
 
-            assert(server.verify_finalize(x, output, cTag, sTag))
+            assert(server.verify_finalize(x, output, y, y))
 
             vector = {}
             vector["Blind"] = to_hex(group.serialize_scalar(blind))
@@ -89,7 +89,7 @@ class Protocol(object):
             blinds = []
             blinded_elements = []
             for x in xs:
-                blind, blinded_element, tag = client.blind(x, y)
+                blind, blinded_element = client.blind(x)
                 blinds.append(blind)
                 blinded_elements.append(blinded_element)
 
