@@ -916,7 +916,7 @@ on the mode.
 
 Blinding is done multiplicatively.
 
-`Blind` is implemented as follows (nota that the metadataTag, taken as an
+`Blind` is implemented as follows (note that the metadataTag, taken as an
 input, is an optional value. If no metadataTag is provided by the client, an
 empty string is sent as output).
 

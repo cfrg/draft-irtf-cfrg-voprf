@@ -89,13 +89,13 @@ class Protocol(object):
             blinds = []
             blinded_elements = []
             for x in xs:
-                blind, blinded_element = client.blind(x)
+                blind, blinded_element = client.blind(x, y)
                 blinds.append(blind)
                 blinded_elements.append(blinded_element)
 
-            evaluated_elements, proof, proof_randomness = server.evaluate_batch(blinded_elements)
+            evaluated_elements, proof, proof_randomness = server.evaluate_batch(blinded_elements, y)
 
-            outputs = client.finalize_batch(xs, blinds, evaluated_elements, blinded_elements, proof)
+            outputs = client.finalize_batch(xs, blinds, evaluated_elements, blinded_elements, proof, y, y)
             for i, output in enumerate(outputs):
                 assert(server.verify_finalize(xs[i], output, ys[0], ys[0]))
 
