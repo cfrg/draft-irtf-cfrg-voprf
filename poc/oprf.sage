@@ -150,7 +150,7 @@ class Verifiable(object):
         return [M, Z]
 
     def compute_composites_fast(self, k, B, Cs, Ds):
-        return self.compute_composites_inner(k, B, Cs, Ds)
+        return self.compute_composites_inner(None, B, Cs, Ds)
 
     def compute_composites(self, B, Cs, Ds):
         return self.compute_composites_inner(None, B, Cs, Ds)
