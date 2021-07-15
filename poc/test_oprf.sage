@@ -61,7 +61,7 @@ class Protocol(object):
         server = self.server
 
         def create_test_vector_for_input(x, y):
-            blind, blinded_element = client.blind(x, y)
+            blind, blinded_element = client.blind(x)
             evaluated_element, proof, proof_randomness = server.evaluate(blinded_element, y, y)
             output = client.finalize(x, blind, evaluated_element, blinded_element, proof, y, y)
 
@@ -85,17 +85,17 @@ class Protocol(object):
 
             return vector
 
-        def create_batched_test_vector_for_inputs(xs, y):
+        def create_batched_test_vector_for_inputs(xs, ys):
             blinds = []
             blinded_elements = []
             for x in xs:
-                blind, blinded_element = client.blind(x, y)
+                blind, blinded_element = client.blind(x)
                 blinds.append(blind)
                 blinded_elements.append(blinded_element)
 
-            evaluated_elements, proof, proof_randomness = server.evaluate_batch(blinded_elements, y)
+            evaluated_elements, proof, proof_randomness = server.evaluate_batch(blinded_elements, ys[0], ys[0])
 
-            outputs = client.finalize_batch(xs, blinds, evaluated_elements, blinded_elements, proof, y, y)
+            outputs = client.finalize_batch(xs, blinds, evaluated_elements, blinded_elements, proof, ys[0], ys[0])
             for i, output in enumerate(outputs):
                 assert(server.verify_finalize(xs[i], output, ys[0], ys[0]))
 

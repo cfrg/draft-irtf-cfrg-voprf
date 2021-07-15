@@ -150,7 +150,7 @@ class Verifiable(object):
         return [M, Z]
 
     def compute_composites_fast(self, k, B, Cs, Ds):
-        return self.compute_composites_inner(None, B, Cs, Ds)
+        return self.compute_composites_inner(k, B, Cs, Ds)
 
     def compute_composites(self, B, Cs, Ds):
         return self.compute_composites_inner(None, B, Cs, Ds)
@@ -225,7 +225,7 @@ class VerifiableClientContext(ClientContext,Verifiable):
             Zs.append(Z)
 
         gk = (G * tag) + self.pkS
-        if not self.verify_proof(G, gk, [Zs], [Rs], proof):
+        if not self.verify_proof(G, gk, Zs, Rs, proof):
             raise Exception("Proof verification failed")
 
         # if not self.verify_proof(tag, self.pkS, Rs, Zs, proof):
@@ -338,14 +338,15 @@ class VerifiableServerContext(ServerContext,Verifiable):
         Zs = []
         evaluated_elements = []
 
+        metadataDST = _as_bytes("Metadata-") + self.context_string
+        metadata_input = I2OSP(len(sTag), 2) + sTag \
+            + I2OSP(len(cTag), 2) + cTag \
+            + I2OSP(len(metadataDST), 2) + metadataDST
+        t = self.suite.group.hash_to_scalar(metadata_input, self.scalar_domain_separation_tag())
+
         for blinded_element in blinded_elements:
             R = self.suite.group.deserialize(blinded_element)
-            metadataDST = _as_bytes("Metadata-") + self.context_string
-            metadata_input = I2OSP(len(sTag), 2) + sTag \
-                + I2OSP(len(cTag), 2) + cTag \
-                + I2OSP(len(metadataDST), 2) + metadataDST
-            t = self.suite.group.hash_to_scalar(metadata_input, self.scalar_domain_separation_tag())
-            
+
             k = self.skS + t
             k_inv = inverse_mod(k, self.suite.group.order())
             Z = k_inv * R
@@ -356,8 +357,8 @@ class VerifiableServerContext(ServerContext,Verifiable):
 
         G = self.suite.group.generator()
         gk = k * G
-        proof, r = self.generate_proof(k, G, gk, [Zs], [Rs])
-        return evaluated_element, proof, r
+        proof, r = self.generate_proof(k, G, gk, Zs, Rs)
+        return evaluated_elements, proof, r
 
 MODE_BASE = 0x00
 MODE_VERIFIABLE = 0x01
