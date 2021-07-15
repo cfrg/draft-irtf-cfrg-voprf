@@ -160,28 +160,22 @@ class VerifiableClientContext(ClientContext,Verifiable):
         ClientContext.__init__(self, version, mode, suite)
         self.pkS = pkS
 
-    def verify_proof(self, k, B, Cs, Ds, proof):
-        uT = k * self.suite.group.generator()
-        U = uT + B
-
+    def verify_proof(self, A, B, Cs, Ds, proof):
         a = self.compute_composites(B, Cs, Ds)
 
         M = a[0]
         Z = a[1]
-
-        t2 = (proof[1] * self.suite.group.generator()) + (proof[0] * U)
-        t3 = (proof[0] * M) + (proof[1] * Z)
+        t2 = (proof[1] * A) + (proof[0] * B)
+        t3 = (proof[1] * M) + (proof[0] * Z)
 
         Bm = self.suite.group.serialize(B)
-        uu = self.suite.group.serialize(U)
         a0 = self.suite.group.serialize(M)
         a1 = self.suite.group.serialize(Z)
         a2 = self.suite.group.serialize(t2)
         a3 = self.suite.group.serialize(t3)
 
         challengeDST = _as_bytes("Challenge-") + self.context_string
-        h2s_input = I2OSP(len(uu), 2) + uu \
-            + I2OSP(len(Bm), 2) + Bm \
+        h2s_input = I2OSP(len(Bm), 2) + Bm \
             + I2OSP(len(a0), 2) + a0 \
             + I2OSP(len(a1), 2) + a1 \
             + I2OSP(len(a2), 2) + a2 \
@@ -203,8 +197,14 @@ class VerifiableClientContext(ClientContext,Verifiable):
     def unblind(self, blind, evaluated_element, blinded_element, proof, tag):
         R = self.suite.group.deserialize(blinded_element)
         Z = self.suite.group.deserialize(evaluated_element)
-        if not self.verify_proof(tag, self.pkS, [R], [Z], proof):
+
+        G = self.suite.group.generator()
+        gk = (G * tag) + self.pkS
+        if not self.verify_proof(G, gk, [Z], [R], proof):
             raise Exception("Proof verification failed")
+
+        # if not self.verify_proof(tag, self.pkS, [R], [Z], proof):
+        #     raise Exception("Proof verification failed")
 
         blind_inv = inverse_mod(blind, self.suite.group.order())
         N = blind_inv * Z
@@ -223,8 +223,13 @@ class VerifiableClientContext(ClientContext,Verifiable):
             Z = self.suite.group.deserialize(evaluated_elements[i])
             Rs.append(R)
             Zs.append(Z)
-        if not self.verify_proof(tag, self.pkS, Rs, Zs, proof):
+
+        gk = (G * tag) + self.pkS
+        if not self.verify_proof(G, gk, [Zs], [Rs], proof):
             raise Exception("Proof verification failed")
+
+        # if not self.verify_proof(tag, self.pkS, Rs, Zs, proof):
+        #     raise Exception("Proof verification failed")
 
         unblinded_elements = []
         for i, evaluated_element in enumerate(evaluated_elements):
@@ -281,18 +286,15 @@ class VerifiableServerContext(ServerContext,Verifiable):
     def __init__(self, version, mode, suite, skS, pkS):
         ServerContext.__init__(self, version, mode, suite, skS, pkS)
 
-    def generate_proof(self, k, B, Cs, Ds):
+    def generate_proof(self, k, A, B, Cs, Ds):
         a = self.compute_composites_fast(k, B, Cs, Ds)
 
         r = ZZ(self.suite.group.random_scalar())
         M = a[0]
         Z = a[1]
-
-        U = k * self.suite.group.generator()
-        t2 = r * self.suite.group.generator()
+        t2 = r * A
         t3 = r * M
 
-        uu = self.suite.group.serialize(U)
         Bm = self.suite.group.serialize(B)
         a0 = self.suite.group.serialize(M)
         a1 = self.suite.group.serialize(Z)
@@ -300,8 +302,7 @@ class VerifiableServerContext(ServerContext,Verifiable):
         a3 = self.suite.group.serialize(t3)
 
         challengeDST = _as_bytes("Challenge-") + self.context_string
-        h2s_input = I2OSP(len(uu), 2) + uu \
-            + I2OSP(len(Bm), 2) + Bm \
+        h2s_input = I2OSP(len(Bm), 2) + Bm \
             + I2OSP(len(a0), 2) + a0 \
             + I2OSP(len(a1), 2) + a1 \
             + I2OSP(len(a2), 2) + a2 \
@@ -319,12 +320,16 @@ class VerifiableServerContext(ServerContext,Verifiable):
         metadata_input = I2OSP(len(sTag), 2) + sTag \
             + I2OSP(len(cTag), 2) + cTag \
             + I2OSP(len(metadataDST), 2) + metadataDST
-        tag = self.suite.group.hash_to_scalar(metadata_input, self.scalar_domain_separation_tag())
-        t = self.skS + tag
-        tag_inv = inverse_mod(tag, self.suite.group.order())
-        Z = tag_inv * R
+        t = self.suite.group.hash_to_scalar(metadata_input, self.scalar_domain_separation_tag())
+
+        k = self.skS + t
+        k_inv = inverse_mod(k, self.suite.group.order())
+        Z = k_inv * R
         evaluated_element = self.suite.group.serialize(Z)
-        proof, r = self.generate_proof(t, self.pkS, [R], [Z])
+
+        G = self.suite.group.generator()
+        gk = k * G
+        proof, r = self.generate_proof(k, G, gk, [Z], [R])
         return evaluated_element, proof, r
 
 
@@ -339,16 +344,19 @@ class VerifiableServerContext(ServerContext,Verifiable):
             metadata_input = I2OSP(len(sTag), 2) + sTag \
                 + I2OSP(len(cTag), 2) + cTag \
                 + I2OSP(len(metadataDST), 2) + metadataDST
-            tag = self.suite.group.hash_to_scalar(metadata_input, self.scalar_domain_separation_tag())
-            t = self.skS + tag
-            tag_inv = inverse_mod(tag, self.suite.group.order())
-            Z = tag_inv * R
+            t = self.suite.group.hash_to_scalar(metadata_input, self.scalar_domain_separation_tag())
+            
+            k = self.skS + t
+            k_inv = inverse_mod(k, self.suite.group.order())
+            Z = k_inv * R
             Rs.append(R)
             Zs.append(Z)
             evaluated_element = self.suite.group.serialize(Z)
             evaluated_elements.append(evaluated_element)
 
-        proof, r = self.generate_proof(t, self.pkS, Rs, Zs)
+        G = self.suite.group.generator()
+        gk = k * G
+        proof, r = self.generate_proof(k, G, gk, [Zs], [Rs])
         return evaluated_element, proof, r
 
 MODE_BASE = 0x00
