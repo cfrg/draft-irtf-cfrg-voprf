@@ -916,9 +916,7 @@ on the mode.
 
 Blinding is done multiplicatively.
 
-`Blind` is implemented as follows (note that the metadataTag, taken as an
-input, is an optional value. If no metadataTag is provided by the client, an
-empty string is sent as output).
+`Blind` is implemented as follows:
 
 ~~~
 Input:
@@ -930,7 +928,7 @@ Output:
   Scalar blind
   SerializedElement blindedElement
 
-def Blind(input, metadataTag):
+def Blind(input):
   blind = GG.RandomScalar()
   P = GG.HashToGroup(input)
   blindedElement = GG.SerializeElement(blind * P)
@@ -1574,9 +1572,7 @@ Test vectors with batch size B > 1 have inputs separated by a comma
 "Input", "Blind", "BlindedElement", "EvaluationElement", and
 "Output" fields.
 
-Base mode uses multiplicative blinding while verifiable mode
-uses additive blinding, as described in {{base-client}} and
-{{verifiable-client}}, respectively.
+Base mode and verifiable mode uses multiplicative blinding.
 
 The server key material, `pkSm` and `skSm`, are listed under the mode for
 each ciphersuite. Both `pkSm` and `skSm` are the serialized values of
