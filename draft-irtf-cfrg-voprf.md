@@ -523,12 +523,12 @@ input cMetadata or sMetadata):
                         blindedElement
                         ---------->
 
-    evaluatedElement, proof  = Evaluate(skS, blindedElement)
+    evaluatedElement, proof  = Evaluate(skS, blindedElement, cMetadata, sMetadata)
 
                       evaluatedElement
                         <----------
 
-    output = Finalize(input, blind, evaluatedElement, blindedElement)
+    output = Finalize(input, blind, evaluatedElement, blindedElement, cMetadata, sMetadata)
 ~~~
 
 In `Blind` the client generates a token and blinding data optionally associated
@@ -950,7 +950,7 @@ Output:
 
 Errors: DeserializeError
 
-def Unblind(blind, evaluatedElement, ...):
+def Unblind(blind, evaluatedElement):
   Z = GG.DeserializeElement(evaluatedElement)
   N = (blind^(-1)) * Z
   unblindedElement = GG.SerializeElement(N)
@@ -1067,7 +1067,8 @@ Input:
   SerializedElement blindedElement
   Element pkS
   Scalar proof
-  Scalar metadata
+  Metadata serverMetadata
+  Metadata clientMetadata
 
 Output:
 
@@ -1075,11 +1076,14 @@ Output:
 
 Errors: DeserializeError, VerifyError
 
-def VerifiableUnblind(blind, evaluatedElement, blindedElement, pkS, proof, matadata):
+def VerifiableUnblind(blind, evaluatedElement, blindedElement, pkS, proof, serverMetadata, clientMetadata):
+  metadata = "Metadata-" || contextString || I2OSP(len(serverMetadata), 2) || serverMetadata || I2OSP(len(clientMetadata), 2) || clientMetadata
+  m = GG.HashToScalar(metadata)
+
   R = GG.DeserializeElement(blindedElement)
   Z = GG.DeserializeElement(evaluatedElement)
 
-  if VerifyProof(metadata, pkS, R, Z, proof) == false:
+  if VerifyProof(m, pkS, R, Z, proof) == false:
     raise VerifyError
 
   N = (blind^(-1)) * Z
@@ -1107,10 +1111,8 @@ Output:
 
   opaque output[Nh]
 
-def Finalize(blind, blindedPublicKey, evaluatedElement, blindedElement, pkS, proof, serverMetadata, clientMetadata):
-  metadata = "Metadata-" || contextString || I2OSP(len(serverMetadata), 2) || serverMetadata || I2OSP(len(clientMetadata), 2) || clientMetadata
-  m = GG.HashToScalar(metadata)
-  unblindedElement = VerifiableUnblind(blind, evaluatedElement, blindedElement, pkS, proof, m)
+def VerifiableFinalize(blind, blindedPublicKey, evaluatedElement, blindedElement, pkS, proof, serverMetadata, clientMetadata):
+  unblindedElement = VerifiableUnblind(blind, evaluatedElement, blindedElement, pkS, proof, serverMetadata, clientMetadata)
 
   finalizeDST = "Finalize-" || contextString
   hashInput = I2OSP(len(input), 2) || input ||
