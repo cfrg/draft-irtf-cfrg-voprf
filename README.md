@@ -22,7 +22,7 @@ This requires that you have the necessary software installed.  See
 | Implementation                                                            | Language | Version  | Modes  |
 | ------------------------------------------------------------------------- |:---------|:---------|:-------|
 | [**Reference**](https://github.com/cfrg/draft-irtf-cfrg-voprf/tree/master/poc)        | Sage/Python | draft-06 | All |
-| [voprf](https://github.com/bytemare/voprf/)                               | Go       | draft-06 | All    |
+| [voprf](https://github.com/bytemare/voprf)                               | Go       | draft-07 | All    |
 | [CIRCL](https://github.com/cloudflare/circl)                              | Go       | draft-07 | All    |
 | [BoringSSL](https://boringssl.googlesource.com/boringssl/+/refs/heads/master/crypto/trust_token/) | C       | draft-04 | All    |
 | [voprf-poc-go](https://github.com/alxdavids/voprf-poc/tree/master/go)     | Go       | draft-03 | All    |
@@ -33,6 +33,7 @@ This requires that you have the necessary software installed.  See
 | Implementation                                                            | Language | Version  | Modes  | Notes |
 | ------------------------------------------------------------------------- |:---------|:---------|:-------|:------|
 | [opaque-ke](https://github.com/novifinancial/opaque-ke/)                  | Rust     | draft-06 | Base   | As a component for OPAQUE |
+| [opaque](https://github.com/bytemare/opaque)                              | GO       | draft-07 | Base   | As a component for OPAQUE |
 
 Submit a PR if you have a compliant implementation!
 
