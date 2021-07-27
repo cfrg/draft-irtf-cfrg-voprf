@@ -197,7 +197,7 @@ secret key, and the other (the client) holds the PRF input. The
 'obliviousness' property ensures that the server does not learn anything
 about the client's input during the evaluation. The client should also
 not learn anything about the server's secret PRF key. Optionally, OPRFs
-can also satisfy a notion 'verifiability' (VOPRF). In this setting, the
+can also satisfy a notion of 'verifiability' (VOPRF). In this setting, the
 client can verify that the server's output is indeed the result of
 evaluating the underlying PRF with just a public key. This document
 specifies OPRF and VOPRF constructions instantiated within prime-order
