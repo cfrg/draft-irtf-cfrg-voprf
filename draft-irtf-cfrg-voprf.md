@@ -747,7 +747,7 @@ def Evaluate(skS, pkS, blindedElement, serverInfo, clientInfo):
   Z = (t^(-1)) * R
 
   U = ScalarBaseMult(t)
-  proof = GenerateProof(t, G, U, R, Z)
+  proof = GenerateProof(t, G, U, Z, R)
   evaluatedElement = GG.SerializeElement(Z)
   return evaluatedElement, proof
 ~~~
