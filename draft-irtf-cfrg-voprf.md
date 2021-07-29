@@ -978,7 +978,7 @@ Output:
 
   opaque output[Nh]
 
-def Finalize(x, blind, evaluatedElement, serverInfo, clientInfo):
+def Finalize(input, blind, evaluatedElement, serverInfo, clientInfo):
   unblindedElement = Unblind(blind, evaluatedElement)
 
   finalizeDST = "Finalize-" || contextString
@@ -1081,9 +1081,9 @@ def VerifiableUnblind(blind, evaluatedElement, blindedElement, pkS, proof, serve
   R = GG.DeserializeElement(blindedElement)
   Z = GG.DeserializeElement(evaluatedElement)
 
-  uT = ScalarBaseMult(m)
-  U = uT + pkS
-  if VerifyProof(A, U, Z, R, proof) == false:
+  T = ScalarBaseMult(m)
+  U = T + pkS
+  if VerifyProof(G, U, Z, R, proof) == false:
     raise VerifyError
 
   N = (blind^(-1)) * Z
