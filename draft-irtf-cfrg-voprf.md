@@ -380,7 +380,7 @@ prime-order group `GG`.
 Two functions can be used for generating a (V)OPRF key pair (`skS`, `pkS`)
 where `skS` is a non-zero integer less than `p` and `pkS = ScalarBaseMult(skS)`:
 `GenerateKeyPair` and `DeriveKeyPair`. `GenerateKeyPair` is a randomized function
-that outputs a fresh key pair (`skS`, `pkS`) upon ever invocation. `DeriveKeyPair`
+that outputs a fresh key pair (`skS`, `pkS`) upon every invocation. `DeriveKeyPair`
 is a  deterministic  function that generates private key `skS` from a random byte
 string `seed`, which SHOULD have at least `Ns` bytes of entropy, and then
 computes `pkS = ScalarBaseMult(skS)`.
@@ -443,7 +443,7 @@ server in the `Evaluate` function is the same key as it used to produce
 their public key. As an example of the nature of attacks that this
 prevents, this ensures that the server uses the same private key for
 computing the VOPRF output and does not attempt to "tag" individual
-servers with select keys. This proof must not reveal the server's
+clients with select keys. This proof must not reveal the server's
 long-term private key to the client.
 
 The following one-byte values distinguish between these two modes:
