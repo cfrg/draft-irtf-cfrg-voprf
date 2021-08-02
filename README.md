@@ -21,7 +21,7 @@ This requires that you have the necessary software installed.  See
 
 | Implementation                                                            | Language | Version  | Modes  |
 | ------------------------------------------------------------------------- |:---------|:---------|:-------|
-| [**Reference**](https://github.com/cfrg/draft-irtf-cfrg-voprf/tree/master/poc)        | Sage/Python | draft-06 | All |
+| [**Reference**](https://github.com/cfrg/draft-irtf-cfrg-voprf/tree/draft-irtf-cfrg-voprf-07/poc)        | Sage/Python | draft-07 | All |
 | [voprf](https://github.com/bytemare/voprf)                               | Go       | draft-07 | All    |
 | [CIRCL](https://github.com/cloudflare/circl)                              | Go       | draft-07 | All    |
 | [BoringSSL](https://boringssl.googlesource.com/boringssl/+/refs/heads/master/crypto/trust_token/) | C       | draft-04 | All    |
