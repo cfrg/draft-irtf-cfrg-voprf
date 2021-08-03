@@ -40,6 +40,7 @@ test_suites = [
 class Protocol(object):
     def __init__(self, suite, mode):
         self.inputs = [b'\x00', b'\x5A'*17]
+        self.tags = [b'\x00', b'\x5A'*17]
         self.suite = suite
         self.mode = mode
 
@@ -59,12 +60,12 @@ class Protocol(object):
         client = self.client
         server = self.server
 
-        def create_test_vector_for_input(x):
+        def create_test_vector_for_input(x, y):
             blind, blinded_element = client.blind(x)
-            evaluated_element, proof, proof_randomness = server.evaluate(blinded_element)
-            output = client.finalize(x, blind, evaluated_element, blinded_element, proof)
+            evaluated_element, proof, proof_randomness = server.evaluate(blinded_element, y, y)
+            output = client.finalize(x, blind, evaluated_element, blinded_element, proof, y, y)
 
-            assert(server.verify_finalize(x, output))
+            assert(server.verify_finalize(x, output, y, y))
 
             vector = {}
             vector["Blind"] = to_hex(group.serialize_scalar(blind))
@@ -84,7 +85,7 @@ class Protocol(object):
 
             return vector
 
-        def create_batched_test_vector_for_inputs(xs):
+        def create_batched_test_vector_for_inputs(xs, ys):
             blinds = []
             blinded_elements = []
             for x in xs:
@@ -92,11 +93,11 @@ class Protocol(object):
                 blinds.append(blind)
                 blinded_elements.append(blinded_element)
 
-            evaluated_elements, proof, proof_randomness = server.evaluate_batch(blinded_elements)
+            evaluated_elements, proof, proof_randomness = server.evaluate_batch(blinded_elements, ys[0], ys[0])
 
-            outputs = client.finalize_batch(xs, blinds, evaluated_elements, blinded_elements, proof)
+            outputs = client.finalize_batch(xs, blinds, evaluated_elements, blinded_elements, proof, ys[0], ys[0])
             for i, output in enumerate(outputs):
-                assert(server.verify_finalize(xs[i], output)) 
+                assert(server.verify_finalize(xs[i], output, ys[0], ys[0]))
 
             vector = {}
             vector["Blind"] = ",".join([to_hex(group.serialize_scalar(blind)) for blind in blinds])
@@ -116,9 +117,9 @@ class Protocol(object):
 
             return vector
 
-        vectors = [create_test_vector_for_input(x) for x in self.inputs]
+        vectors = [create_test_vector_for_input(x, y) for x in self.inputs for y in self.tags]
         if self.mode == MODE_VERIFIABLE:
-            vectors.append(create_batched_test_vector_for_inputs(self.inputs))
+            vectors.append(create_batched_test_vector_for_inputs(self.inputs, self.tags))
 
         vecSuite = {}
         vecSuite["suiteName"] = self.suite.name

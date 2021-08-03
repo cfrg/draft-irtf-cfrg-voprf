@@ -60,17 +60,18 @@ class ClientContext(Context):
         return blind, blinded_element
 
     def unblind(self, blind, evaluated_element, blinded_element, proof):
-        # Note: blinded_element and proof are unused in the base mode
         Z = self.suite.group.deserialize(evaluated_element)
         blind_inv = inverse_mod(blind, self.suite.group.order())
         N = blind_inv * Z
         unblinded_element = self.suite.group.serialize(N)
         return unblinded_element
 
-    def finalize(self, x, blind, evaluated_element, blinded_element, proof):
+    def finalize(self, x, blind, evaluated_element, blinded_element, proof, cTag, sTag):
         unblinded_element = self.unblind(blind, evaluated_element, blinded_element, proof)
         finalizeDST = _as_bytes("Finalize-") + self.context_string
         finalize_input = I2OSP(len(x), 2) + x \
+            + I2OSP(len(sTag), 2) + sTag \
+            + I2OSP(len(cTag), 2) + cTag \
             + I2OSP(len(unblinded_element), 2) + unblinded_element \
             + I2OSP(len(finalizeDST), 2) + finalizeDST
 
@@ -82,19 +83,30 @@ class ServerContext(Context):
         self.skS = skS
         self.pkS = pkS
 
-    def evaluate(self, blinded_element):
+    def evaluate(self, blinded_element, cTag, sTag):
         R = self.suite.group.deserialize(blinded_element)
-        Z = self.skS * R
+        metadataDST = _as_bytes("Metadata-") + self.context_string
+        metadata_input = I2OSP(len(sTag), 2) + sTag \
+            + I2OSP(len(cTag), 2) + cTag \
+            + I2OSP(len(metadataDST), 2) + metadataDST
+        tag = self.suite.group.hash_to_scalar(metadata_input, self.scalar_domain_separation_tag())
+
+        t = self.skS + tag
+        tag_inv = inverse_mod(tag, self.suite.group.order())
+        Z = tag_inv * R
         evaluated_element = self.suite.group.serialize(Z)
         return evaluated_element, None, None
 
-    def verify_finalize(self, x, expected_digest):
+
+    def verify_finalize(self, x, expected_digest, cTag, sTag):
         P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
         input_element = self.suite.group.serialize(P)
-        issued_element, _, _ = self.evaluate(input_element) # Ignore the proof output
+        issued_element, _, _  = self.evaluate(input_element, cTag, sTag) # Ignore the proof output
 
         finalizeDST = _as_bytes("Finalize-") + self.context_string
         finalize_input = I2OSP(len(x), 2) + x \
+            + I2OSP(len(sTag), 2) + sTag \
+            + I2OSP(len(cTag), 2) + cTag \
             + I2OSP(len(issued_element), 2) + issued_element \
             + I2OSP(len(finalizeDST), 2) + finalizeDST
 
@@ -175,33 +187,31 @@ class VerifiableClientContext(ClientContext,Verifiable):
         assert(c == proof[0])
         return c == proof[0]
 
-    def preprocess(self):
-        blind = ZZ(self.suite.group.random_scalar())
-        G = self.suite.group.generator()
-        blinded_generator = blind * G
-        return blinded_generator, blind
-
     def blind(self, x):
-        blinded_generator, blind = self.preprocess()
+        blind = ZZ(self.suite.group.random_scalar())
         P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
-        R = blinded_generator + P
+        R = blind * P
         blinded_element = self.suite.group.serialize(R)
         return blind, blinded_element
 
-    def unblind(self, blind, evaluated_element, blinded_element, proof):
-        G = self.suite.group.generator()
+    def unblind(self, blind, evaluated_element, blinded_element, proof, tag):
         R = self.suite.group.deserialize(blinded_element)
         Z = self.suite.group.deserialize(evaluated_element)
-        if not self.verify_proof(G, self.pkS, [R], [Z], proof):
+
+        G = self.suite.group.generator()
+        gk = (G * tag) + self.pkS
+        if not self.verify_proof(G, gk, [Z], [R], proof):
             raise Exception("Proof verification failed")
 
+        # if not self.verify_proof(tag, self.pkS, [R], [Z], proof):
+        #     raise Exception("Proof verification failed")
+
         blind_inv = inverse_mod(blind, self.suite.group.order())
-        blinded_public_key = self.pkS * blind
-        N = Z - blinded_public_key
+        N = blind_inv * Z
         unblinded_element = self.suite.group.serialize(N)
         return unblinded_element
 
-    def unblind_batch(self, blinds, evaluated_elements, blinded_elements, proof):
+    def unblind_batch(self, blinds, evaluated_elements, blinded_elements, proof, tag):
         assert(len(blinds) == len(evaluated_elements))
         assert(len(evaluated_elements) == len(blinded_elements))
 
@@ -213,30 +223,57 @@ class VerifiableClientContext(ClientContext,Verifiable):
             Z = self.suite.group.deserialize(evaluated_elements[i])
             Rs.append(R)
             Zs.append(Z)
-        if not self.verify_proof(G, self.pkS, Rs, Zs, proof):
+
+        gk = (G * tag) + self.pkS
+        if not self.verify_proof(G, gk, Zs, Rs, proof):
             raise Exception("Proof verification failed")
+
+        # if not self.verify_proof(tag, self.pkS, Rs, Zs, proof):
+        #     raise Exception("Proof verification failed")
 
         unblinded_elements = []
         for i, evaluated_element in enumerate(evaluated_elements):
             Z = self.suite.group.deserialize(evaluated_element)
             blind_inv = inverse_mod(blinds[i], self.suite.group.order())
-            blinded_public_key = self.pkS * blinds[i]
-            N = Z  - blinded_public_key
+            N = blind_inv * Z
             unblinded_element = self.suite.group.serialize(N)
             unblinded_elements.append(unblinded_element)
 
         return unblinded_elements
 
-    def finalize_batch(self, xs, blinds, evaluated_elements, blinded_elements, proof):
+    def finalize(self, x, blind, evaluated_element, blinded_element, proof, cTag, sTag):
+        metadataDST = _as_bytes("Metadata-") + self.context_string
+        metadata_input = I2OSP(len(sTag), 2) + sTag \
+            + I2OSP(len(cTag), 2) + cTag \
+            + I2OSP(len(metadataDST), 2) + metadataDST
+        tag = self.suite.group.hash_to_scalar(metadata_input, self.scalar_domain_separation_tag())
+        unblinded_element = self.unblind(blind, evaluated_element, blinded_element, proof, tag)
+        finalizeDST = _as_bytes("Finalize-") + self.context_string
+        finalize_input = I2OSP(len(x), 2) + x \
+            + I2OSP(len(sTag), 2) + sTag \
+            + I2OSP(len(cTag), 2) + cTag \
+            + I2OSP(len(unblinded_element), 2) + unblinded_element \
+            + I2OSP(len(finalizeDST), 2) + finalizeDST
+
+        return self.suite.hash(finalize_input)
+
+    def finalize_batch(self, xs, blinds, evaluated_elements, blinded_elements, proof, cTag, sTag):
         assert(len(blinds) == len(evaluated_elements))
         assert(len(evaluated_elements) == len(blinded_elements))
 
-        unblinded_elements = self.unblind_batch(blinds, evaluated_elements, blinded_elements, proof)
+        metadataDST = _as_bytes("Metadata-") + self.context_string
+        metadata_input = I2OSP(len(sTag), 2) + sTag \
+            + I2OSP(len(cTag), 2) + cTag \
+            + I2OSP(len(metadataDST), 2) + metadataDST
+        tag = self.suite.group.hash_to_scalar(metadata_input, self.scalar_domain_separation_tag())
+        unblinded_elements = self.unblind_batch(blinds, evaluated_elements, blinded_elements, proof, tag)
 
         outputs = []
         finalizeDST = _as_bytes("Finalize-") + self.context_string
         for i, unblinded_element in enumerate(unblinded_elements):
             finalize_input = I2OSP(len(xs[i]), 2) + xs[i] \
+                + I2OSP(len(sTag), 2) + sTag \
+                + I2OSP(len(cTag), 2) + cTag \
                 + I2OSP(len(unblinded_element), 2) + unblinded_element \
                 + I2OSP(len(finalizeDST), 2) + finalizeDST
 
@@ -277,26 +314,50 @@ class VerifiableServerContext(ServerContext,Verifiable):
 
         return [c, s], r
 
-    def evaluate(self, blinded_element):
+    def evaluate(self, blinded_element, cTag, sTag):
         R = self.suite.group.deserialize(blinded_element)
-        Z = self.skS * R
+        metadataDST = _as_bytes("Metadata-") + self.context_string
+        metadata_input = I2OSP(len(sTag), 2) + sTag \
+            + I2OSP(len(cTag), 2) + cTag \
+            + I2OSP(len(metadataDST), 2) + metadataDST
+        t = self.suite.group.hash_to_scalar(metadata_input, self.scalar_domain_separation_tag())
+
+        k = self.skS + t
+        k_inv = inverse_mod(k, self.suite.group.order())
+        Z = k_inv * R
         evaluated_element = self.suite.group.serialize(Z)
-        proof, r = self.generate_proof(self.skS, self.suite.group.generator(), self.pkS, [R], [Z])
+
+        G = self.suite.group.generator()
+        gk = k * G
+        proof, r = self.generate_proof(k, G, gk, [Z], [R])
         return evaluated_element, proof, r
 
-    def evaluate_batch(self, blinded_elements):
+
+    def evaluate_batch(self, blinded_elements, cTag, sTag):
         Rs = []
         Zs = []
         evaluated_elements = []
+
+        metadataDST = _as_bytes("Metadata-") + self.context_string
+        metadata_input = I2OSP(len(sTag), 2) + sTag \
+            + I2OSP(len(cTag), 2) + cTag \
+            + I2OSP(len(metadataDST), 2) + metadataDST
+        t = self.suite.group.hash_to_scalar(metadata_input, self.scalar_domain_separation_tag())
+
         for blinded_element in blinded_elements:
             R = self.suite.group.deserialize(blinded_element)
-            Z = self.skS * R
+
+            k = self.skS + t
+            k_inv = inverse_mod(k, self.suite.group.order())
+            Z = k_inv * R
             Rs.append(R)
             Zs.append(Z)
             evaluated_element = self.suite.group.serialize(Z)
             evaluated_elements.append(evaluated_element)
 
-        proof, r = self.generate_proof(self.skS, self.suite.group.generator(), self.pkS, Rs, Zs)
+        G = self.suite.group.generator()
+        gk = k * G
+        proof, r = self.generate_proof(k, G, gk, Zs, Rs)
         return evaluated_elements, proof, r
 
 MODE_BASE = 0x00

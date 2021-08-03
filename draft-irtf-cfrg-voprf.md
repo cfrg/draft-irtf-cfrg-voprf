@@ -128,6 +128,49 @@ normative:
       -
         ins: N. Saxena
         org: University of Alabama at Birmingham, USA
+  ECS15:
+    title: The pythia PRF service
+    target: https://eprint.iacr.org/2015/644.pdf
+    date: false
+    authors:
+      -
+        ins: A. Everspaugh
+        org: University of Wisconsin–Madison, USA
+      -
+        ins: R. Chatterjee
+        org: University of Wisconsin–Madison, USA
+      -
+        ins: S. Scott
+        org: Royal Holloway, University of London, UK
+      -
+        ins: A. Juels
+        org: Jacobs Institute, Cornell Tech, USA
+      -
+        ins: T. Ristenpart
+        org: Cornell Tech, USA
+  TCRSTW21:
+    title: A Fast and Simple Partially Oblivious PRF, with Applications
+    target: https://eprint.iacr.org/2021/864
+    date: false
+    authors:
+      -
+        ins: N. Tyagi
+        org: Cornell University, USA
+      -
+        ins: S. Celi
+        org: Cloudflare, Portugal
+      -
+        ins: T. Ristenpart
+        org: Cornell Tech, USA
+      -
+        ins: N. Sullivan
+        org: Cloudflare, USA
+      -
+        ins: S. Tessaro
+        org: University of Washington, UK
+      -
+        ins: C. Wood
+        org: Cloudflare, USA
   DGSTV18:
     title: Privacy Pass, Bypassing Internet Challenges Anonymously
     target: https://www.degruyter.com/view/j/popets.2018.2018.issue-3/popets-2018-0026/popets-2018-0026.xml
@@ -237,6 +280,11 @@ relations. This proof demonstrates correctness of the computation, using
 a known public key that serves as a commitment to the server's secret
 key. The document describes the protocol, the public-facing API, and its
 security properties.
+
+In some applications, there is the need to include an amount of public
+metadata into the OPRF protocol. Partially-Oblivious PRFs (POPRF) {{TCRSTW21}}
+are used to extend the OPRF functionality to include this public input
+(or metadata) in the PRF evaluation.
 
 ## Change log
 
@@ -432,9 +480,10 @@ The following terms are used throughout this document.
 
 In this section, we define two OPRF variants: a base mode and verifiable
 mode. In the base mode, a client and server interact to compute y =
-F(skS, x), where x is the client's input, skS is the server's private
-key, and y is the OPRF output. The client learns y and the server learns
-nothing. In the verifiable mode, the client also gets proof that the
+F(skS, input, pubT), where input is the client's private input, skS is the
+server's private key, pubT is the optional public input (or metadata)
+and y is  the OPRF output. The client learns y and the server learns
+nothing. In the  verifiable mode, the client also gets proof that the
 server used skS in computing the function.
 
 To achieve verifiability, as in the original work of {{JKK14}}, we
@@ -457,28 +506,32 @@ The following one-byte values distinguish between these two modes:
 
 Both participants agree on the mode and a choice of ciphersuite that is
 used before the protocol exchange. Once established, the base mode of
-the protocol runs to compute `output = F(skS, input)` as follows:
+the protocol runs to compute `y = F(skS, input, pubT)` as follows
+(note that both the client or server can optionally add the public metadata
+input pubT):
 
 ~~~
-     Client(input)                             Server(skS)
-  ----------------------------------------------------------
+    Client(input, clientInfo)                               Server(skS, serverInfo)
+  ------------------------------------------------------------------------------------------
     blind, blindedElement = Blind(input)
 
-                       blindedElement
-                        ---------->
+                               blindedElement
+                               ---------->
 
-    evaluatedElement, proof = Evaluate(skS, blindedElement)
+    evaluatedElement, proof  = Evaluate(skS, blindedElement, serverInfo, clientInfo)
 
-                      evaluatedElement
-                        <----------
+                               evaluatedElement
+                               <----------
 
-    output = Finalize(input, blind, evaluatedElement, blindedElement)
+    output = Finalize(input, blind, evaluatedElement, blindedElement, serverInfo, clientInfo)
 ~~~
 
-In `Blind` the client generates a token and blinding data. The server
-computes the (V)OPRF evaluation in `Evaluation` over the client's
-blinded token. In `Finalize` the client unblinds the server response
-and produces a byte array corresponding to the output of the OPRF protocol.
+In `Blind` the client generates a token and blinding data optionally associated
+with the appropriate `clientInfo`. The server computes the (V)OPRF evaluation
+in `Evaluation` over the client's blinded token, the optionally associated client
+`clientInfo` and the optionally associated server `serverInfo`. In `Finalize` the client
+unblinds the server response and produces a byte array corresponding to the
+output of the OPRF protocol.
 
 In the verifiable mode of the protocol, the server additionally computes
 a proof in Evaluate. The client verifies this proof using the server's
@@ -536,9 +589,10 @@ In this section, we detail the APIs available on the client and server
 - contextString, a domain separation tag taken from the client or server
   context.
 
-The data type `ClientInput` is an opaque byte string of arbitrary length
-no larger than 2^13 octets. `Proof` is a concatenated sequence of two
-`SerializedScalar` values, as shown below.
+
+The data types `PrivateInput` and `PublicInput` are opaque byte strings
+of arbitrary length no larger than 2^13 octets. `Proof` is a concatenated
+sequence of two `SerializedScalar` values, as shown below.
 
 ~~~
 SerializedScalar Proof[2*Ns];
@@ -549,12 +603,14 @@ SerializedScalar Proof[2*Ns];
 The ServerContext encapsulates the context string constructed during
 setup and the (V)OPRF key pair. It has three functions, `Evaluate`,
 `FullEvaluate` and `VerifyFinalize` described below. `Evaluate` takes
-serialized representations of blinded group elements from the client as inputs.
+serialized representations of blinded group elements from the client as inputs
+and optionally the public metadata input as determined by the server and/or
+the public metadata input as sent by the client.
 
-`FullEvaluate` takes ClientInput values, and it is useful for applications
+`FullEvaluate` takes PrivateInput values, and it is useful for applications
 that need to compute the whole OPRF protocol on the server side only.
 
-`VerifyFinalize` takes ClientInput values and their corresponding output
+`VerifyFinalize` takes PrivateInput values and their corresponding output
 digests from `Finalize` as input, and returns true if the inputs match the outputs.
 
 Note that `VerifyFinalize` and `FullEvaluate` are not used in the main OPRF
@@ -567,6 +623,8 @@ Input:
 
   Scalar skS
   SerializedElement blindedElement
+  PublicInput serverInfo
+  PublicInput clientInfo
 
 Output:
 
@@ -574,9 +632,14 @@ Output:
 
 Errors: DeserializeError
 
-def Evaluate(skS, blindedElement):
+def Evaluate(skS, blindedElement, serverInfo, clientInfo):
   R = GG.DeserializeElement(blindedElement)
-  Z = skS * R
+  context = "Context-" || contextString ||
+            I2OSP(len(serverInfo), 2) || serverInfo ||
+            I2OSP(len(clientInfo), 2) || clientInfo
+  m = GG.HashToScalar(context)
+  t = skS + m
+  Z = (t^(-1)) * R
   evaluatedElement = GG.SerializeElement(Z)
 
   return evaluatedElement
@@ -588,7 +651,9 @@ def Evaluate(skS, blindedElement):
 Input:
 
   Scalar skS
-  ClientInput input
+  PrivateInput input
+  PublicInput serverInfo
+  PublicInput clientInfo
 
 Output:
 
@@ -596,11 +661,18 @@ Output:
 
 def FullEvaluate(skS, input):
   P = GG.HashToGroup(input)
-  T = skS * P
+  context = "Context-" || contextString ||
+            I2OSP(len(serverInfo), 2) || serverInfo ||
+            I2OSP(len(clientInfo), 2) || clientInfo
+  m = GG.HashToScalar(context)
+  t = skS + m
+  T = (t^(-1)) * P
   issuedElement = GG.SerializeElement(T)
 
   finalizeDST = "Finalize-" || contextString
   hashInput = I2OSP(len(input), 2) || input ||
+              I2OSP(len(serverInfo), 2) || serverInfo ||
+              I2OSP(len(clientInfo), 2) || clientInfo ||
               I2OSP(len(issuedElement), 2) || issuedElement ||
               I2OSP(len(finalizeDST), 2) || finalizeDST
 
@@ -613,21 +685,25 @@ def FullEvaluate(skS, input):
 Input:
 
   Scalar skS
-  ClientInput input
+  PrivateInput input
   opaque output[Nh]
+  PublicInput serverInfo
+  PublicInput clientInfo
 
 Output:
 
   boolean valid
 
-def VerifyFinalize(skS, input, output):
+def VerifyFinalize(skS, input, output, serverInfo, clientInfo):
   T = GG.HashToGroup(input)
   element = GG.SerializeElement(T)
-  issuedElement = Evaluate(skS, [element])
+  issuedElement = Evaluate(skS, [element], serverInfo, clientInfo)
   E = GG.SerializeElement(issuedElement)
 
   finalizeDST = "Finalize-" || contextString
   hashInput = I2OSP(len(input), 2) || input ||
+              I2OSP(len(serverInfo), 2) || serverInfo ||
+              I2OSP(len(clientInfo), 2) || clientInfo ||
               I2OSP(len(E), 2) || E ||
               I2OSP(len(finalizeDST), 2) || finalizeDST
 
@@ -651,6 +727,8 @@ Input:
   Scalar skS
   Element pkS
   SerializedElement blindedElement
+  PublicInput serverInfo
+  PublicInput clientInfo
 
 Output:
 
@@ -659,13 +737,18 @@ Output:
 
 Errors: DeserializeError
 
-def Evaluate(skS, pkS, blindedElement):
+def Evaluate(skS, pkS, blindedElement, serverInfo, clientInfo):
   R = GG.DeserializeElement(blindedElement)
-  Z = skS * R
+  context = "Context-" || contextString ||
+            I2OSP(len(serverInfo), 2) || serverInfo ||
+            I2OSP(len(clientInfo), 2) || clientInfo
+  m = GG.HashToScalar(context)
+  t = skS + m
+  Z = (t^(-1)) * R
+
+  U = ScalarBaseMult(t)
+  proof = GenerateProof(t, G, U, Z, R)
   evaluatedElement = GG.SerializeElement(Z)
-
-  proof = GenerateProof(skS, G, pkS, R, Z)
-
   return evaluatedElement, proof
 ~~~
 
@@ -695,6 +778,7 @@ def GenerateProof(k, A, B, C, D)
   r = GG.RandomScalar()
   M = a[0]
   Z = a[1]
+
   t2 = r * A
   t3 = r * M
 
@@ -831,17 +915,14 @@ on the mode.
 
 #### Blind
 
-In this mode, blinding is done multiplicatively. Under certain application
-circumstances, the more optimal additive blinding mechanism described in
-{{verifiable-blind}} can be used. See {{blind-considerations}} for more
-details.
+Blinding is done multiplicatively.
 
-`Blind` is implemented as follows.
+`Blind` is implemented as follows:
 
 ~~~
 Input:
 
-  ClientInput input
+  PrivateInput input
 
 Output:
 
@@ -870,7 +951,7 @@ Output:
 
 Errors: DeserializeError
 
-def Unblind(blind, evaluatedElement, ...):
+def Unblind(blind, evaluatedElement):
   Z = GG.DeserializeElement(evaluatedElement)
   N = (blind^(-1)) * Z
   unblindedElement = GG.SerializeElement(N)
@@ -881,25 +962,29 @@ def Unblind(blind, evaluatedElement, ...):
 #### Finalize
 
 `Finalize` depends on the internal `Unblind` function. In this mode, `Finalize`
-and does not include all inputs listed in {{protocol-overview}}. These additional
+does not include all inputs listed in {{protocol-overview}}. These additional
 inputs are only useful for the verifiable mode, described in {{verifiable-finalize}}.
 
 ~~~
 Input:
 
-  ClientInput input
+  PrivateInput input
   Scalar blind
   SerializedElement evaluatedElement
+  PublicInput serverInfo
+  PublicInput clientInfo
 
 Output:
 
   opaque output[Nh]
 
-def Finalize(input, blind, evaluatedElement):
+def Finalize(input, blind, evaluatedElement, serverInfo, clientInfo):
   unblindedElement = Unblind(blind, evaluatedElement)
 
   finalizeDST = "Finalize-" || contextString
   hashInput = I2OSP(len(input), 2) || input ||
+              I2OSP(len(serverInfo), 2) || serverInfo ||
+              I2OSP(len(clientInfo), 2) || clientInfo ||
               I2OSP(len(unblindedElement), 2) || unblindedElement ||
               I2OSP(len(finalizeDST), 2) || finalizeDST
   return Hash(hashInput)
@@ -941,6 +1026,7 @@ def VerifyProof(A, B, C, D, proof):
 
   M = a[0]
   Z = a[1]
+
   t2 = ((s * A) + (c * B))
   t3 = ((s * M) + (c * Z))
 
@@ -963,32 +1049,7 @@ def VerifyProof(A, B, C, D, proof):
   return CT_EQUAL(expectedC, c)
 ~~~
 
-#### Verifiable Blind {#verifiable-blind}
-
-In this mode, where the server public key is available for proof verification,
-blinding is done additively. This variant is named `VerifiableBlind` and
-`VerifiableUnblind`. It takes two inputs: the client input and a blinded
-version of the group generator. The latter is computed using a function called
-`VerifiablePreprocess`, also described below.
-
-`VerifiableBlind` is implemented as follows.
-
-~~~
-Input:
-
-  ClientInput input
-  Element blindedGenerator
-
-Output:
-
-  SerializedElement blindedElement
-
-def VerifiableBlind(input, blindedGenerator):
-  P = GG.HashToGroup(input)
-  blindedElement = GG.SerializeElement(P + blindedGenerator)
-
-  return blindedElement
-~~~
+#### Verifiable Unblind {#verifiable-unblind}
 
 The inverse `VerifiableUnblind` is implemented as follows. This function
 can raise an exception if element deserialization or proof verification
@@ -997,11 +1058,13 @@ fails.
 ~~~
 Input:
 
-  Element blindedPublicKey
+  Scalar blind
   SerializedElement evaluatedElement
   SerializedElement blindedElement
   Element pkS
   Scalar proof
+  PublicInput serverInfo
+  PublicInput clientInfo
 
 Output:
 
@@ -1009,42 +1072,24 @@ Output:
 
 Errors: DeserializeError, VerifyError
 
-def VerifiableUnblind(blindedPublicKey, evaluatedElement,
-                      blindedElement, pkS, proof):
-  Z = GG.DeserializeElement(evaluatedElement)
+def VerifiableUnblind(blind, evaluatedElement, blindedElement, pkS, proof, serverInfo, clientInfo):
+  context = "Context-" || contextString ||
+            I2OSP(len(serverInfo), 2) || serverInfo ||
+            I2OSP(len(clientInfo), 2) || clientInfo
+  m = GG.HashToScalar(context)
+
   R = GG.DeserializeElement(blindedElement)
-  if VerifyProof(G, pkS, R, Z, proof) == false:
+  Z = GG.DeserializeElement(evaluatedElement)
+
+  T = ScalarBaseMult(m)
+  U = T + pkS
+  if VerifyProof(G, U, Z, R, proof) == false:
     raise VerifyError
 
-  N := Z - blindedPublicKey
+  N = (blind^(-1)) * Z
   unblindedElement = GG.SerializeElement(N)
 
   return unblindedElement
-~~~
-
-The internal `VerifiablePreprocess` function computes a blind and uses it to
-compute a corresponding blinded version of the group generator and server
-public key. This function can be used to pre-compute tables of values for
-future invocations of the protocol, or it can be computed only when needed
-for a single invocation of the protocol.
-
-~~~
-Input:
-
-  Element pkS
-
-Output:
-
-  Element blindedGenerator
-  Element blindedPublicKey
-  Scalar blind
-
-def Preprocess(pkS):
-  blind = GG.RandomScalar()
-  blindedGenerator = ScalarBaseMult(blind)
-  blindedPublicKey = pkS * blind
-
-  return blindedGenerator, blindedPublicKey, blind
 ~~~
 
 #### Verifiable Finalize {#verifiable-finalize}
@@ -1052,25 +1097,27 @@ def Preprocess(pkS):
 ~~~
 Input:
 
-  ClientInput input
-  Element blindedPublicKey
+  PrivateInput input
+  Scalar blind
   SerializedElement evaluatedElement
   SerializedElement blindedElement
   Element pkS
   Scalar proof
+  PublicInput serverInfo
+  PublicInput clientInfo
+
 
 Output:
 
   opaque output[Nh]
 
-def Finalize(input, blindedPublicKey, evaluatedElement,
-             blindedElement, pkS, proof):
-  unblindedElement =
-    VerifiableUnblind(blindedPublicKey, evaluatedElement,
-                      blindedElement, pkS, proof)
+def VerifiableFinalize(input, blind, blindedPublicKey, evaluatedElement, blindedElement, pkS, proof, serverInfo, clientInfo):
+  unblindedElement = VerifiableUnblind(blind, evaluatedElement, blindedElement, pkS, proof, serverInfo, clientInfo)
 
   finalizeDST = "Finalize-" || contextString
   hashInput = I2OSP(len(input), 2) || input ||
+              I2OSP(len(serverInfo), 2) || serverInfo ||
+              I2OSP(len(clientInfo), 2) || clientInfo ||
               I2OSP(len(unblindedElement), 2) || unblindedElement ||
               I2OSP(len(finalizeDST), 2) || finalizeDST
   return Hash(hashInput)
@@ -1211,15 +1258,15 @@ of an OPRF.
 ## Security Properties {#properties}
 
 The security properties of an OPRF protocol with functionality y = F(k,
-x) include those of a standard PRF. Specifically:
+x, t) include those of a standard PRF. Specifically:
 
-- Pseudorandomness: F is pseudorandom if the output y = F(k,x) on any
+- Pseudorandomness: F is pseudorandom if the output y = F(k,x, t) on any
   input x is indistinguishable from uniformly sampling any element in
   F's range, for a random sampling of k.
 
 In other words, consider an adversary that picks inputs x from the
-domain of F and evaluates F on (k,x) (without knowledge of randomly
-sampled k). Then the output distribution F(k,x) is indistinguishable
+domain of F and evaluates F on (k,x, t) (without knowledge of randomly
+sampled k). Then the output distribution F(k,x, t) is indistinguishable
 from the output distribution of a randomly chosen function with the same
 domain and range.
 
@@ -1432,17 +1479,11 @@ in {{!I-D.irtf-cfrg-hash-to-curve}} when instantiating the function.
 
 ## Blinding Considerations {#blind-considerations}
 
-This document makes use of two types of blinding variants: multiplicative and
-additive. The advantage of additive blinding is that it allows the client to
-pre-process tables of blinded scalar multiplications for the group generator
-and server public key. This can provide a computational efficiency advantage
-(due to the fact that a fixed-base multiplication can be calculated faster than
-a variable-base multiplication). Pre-processing also reduces the amount of
-computation that needs to be done in the online exchange.
-
-However, the choice of blinding mechanism has security implications. {{JKX21}}
-analyze the security properties of both blinding mechanisms used in this
-document. The results can be summarized as follows:
+This document makes use of one type of blinding variants: multiplicative.
+Blinding may also be done additively. However, the choice of blinding
+mechanism has security implications. {{JKX21}} analyze the security
+properties of different blinding mechanisms. The results can be
+summarized as follows:
 
 - Multiplicative blinding is safe for all applications.
 - Additive blinding is possibly unsafe, unless one of the following conditions
@@ -1452,14 +1493,10 @@ document. The results can be summarized as follows:
     - The client input has high entropy; and
     - The client mixes the public key into the OPRF evaluation.
 
-To avoid security issues with the base mode, where some of the above conditions
-may not be met, this specification RECOMMENDS use of multiplicative blinding.
-This is because it is not known if the server public key is available or if the
-client input has high entropy. Applications wherein either of these conditions
-are true MAY use additive blinding.
-
-The verifiable mode always makes use of the more efficient additive blinding variant,
-as the public key is always available for verifying the proof.
+To avoid security issues, where some of the above conditions may not be met,
+this specification use of multiplicative blinding. This is because it is
+not known if the server public key is available or if the client input has
+high entropy.
 
 ## Timing Leaks
 
@@ -1530,9 +1567,7 @@ Test vectors with batch size B > 1 have inputs separated by a comma
 "Input", "Blind", "BlindedElement", "EvaluationElement", and
 "Output" fields.
 
-Base mode uses multiplicative blinding while verifiable mode
-uses additive blinding, as described in {{base-client}} and
-{{verifiable-client}}, respectively.
+Base mode and verifiable mode uses multiplicative blinding.
 
 The server key material, `pkSm` and `skSm`, are listed under the mode for
 each ciphersuite. Both `pkSm` and `skSm` are the serialized values of
