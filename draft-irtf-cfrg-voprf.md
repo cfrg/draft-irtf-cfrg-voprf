@@ -480,9 +480,9 @@ The following terms are used throughout this document.
 
 In this section, we define two OPRF variants: a base mode and verifiable
 mode. In the base mode, a client and server interact to compute y =
-F(skS, input, pubT), where input is the client's private input, skS is the
-server's private key, pubT is the optional public input (or metadata)
-and y is  the OPRF output. The client learns y and the server learns
+F(skS, input, info), where input is the client's private input, skS is the
+server's private key, info is the optional public input (or metadata)
+and y is the OPRF output. The client learns y and the server learns
 nothing. In the  verifiable mode, the client also gets proof that the
 server used skS in computing the function.
 
@@ -506,32 +506,29 @@ The following one-byte values distinguish between these two modes:
 
 Both participants agree on the mode and a choice of ciphersuite that is
 used before the protocol exchange. Once established, the base mode of
-the protocol runs to compute `y = F(skS, input, pubT)` as follows
-(note that both the client or server can optionally add the public metadata
-input pubT):
+the protocol runs to compute `y = F(skS, input, info)` as follows:
 
 ~~~
-    Client(input, clientInfo)                               Server(skS, serverInfo)
-  ------------------------------------------------------------------------------------------
+    Client(input, info)                               Server(skS, info)
+  ----------------------------------------------------------------------
     blind, blindedElement = Blind(input)
 
-                               blindedElement
+                              blindedElement
                                ---------->
 
-    evaluatedElement, proof  = Evaluate(skS, blindedElement, serverInfo, clientInfo)
+    evaluatedElement, proof  = Evaluate(skS, blindedElement, info)
 
-                               evaluatedElement
+                             evaluatedElement
                                <----------
 
-    output = Finalize(input, blind, evaluatedElement, blindedElement, serverInfo, clientInfo)
+  output = Finalize(input, blind, evaluatedElement, blindedElement, info)
 ~~~
 
-In `Blind` the client generates a token and blinding data optionally associated
-with the appropriate `clientInfo`. The server computes the (V)OPRF evaluation
-in `Evaluation` over the client's blinded token, the optionally associated client
-`clientInfo` and the optionally associated server `serverInfo`. In `Finalize` the client
-unblinds the server response and produces a byte array corresponding to the
-output of the OPRF protocol.
+In `Blind` the client generates a blinded element and blinding data. The server
+computes the (V)OPRF evaluation in `Evaluation` over the client's blinded token,
+and optional public information `info`. In `Finalize` the client unblinds the
+server response and produces a byte array corresponding to the output of the OPRF
+protocol.
 
 In the verifiable mode of the protocol, the server additionally computes
 a proof in Evaluate. The client verifies this proof using the server's
@@ -623,8 +620,7 @@ Input:
 
   Scalar skS
   SerializedElement blindedElement
-  PublicInput serverInfo
-  PublicInput clientInfo
+  PublicInput info
 
 Output:
 
@@ -632,11 +628,10 @@ Output:
 
 Errors: DeserializeError
 
-def Evaluate(skS, blindedElement, serverInfo, clientInfo):
+def Evaluate(skS, blindedElement, info):
   R = GG.DeserializeElement(blindedElement)
   context = "Context-" || contextString ||
-            I2OSP(len(serverInfo), 2) || serverInfo ||
-            I2OSP(len(clientInfo), 2) || clientInfo
+            I2OSP(len(info), 2) || info
   m = GG.HashToScalar(context)
   t = skS + m
   Z = (t^(-1)) * R
@@ -652,8 +647,7 @@ Input:
 
   Scalar skS
   PrivateInput input
-  PublicInput serverInfo
-  PublicInput clientInfo
+  PublicInput info
 
 Output:
 
@@ -662,8 +656,7 @@ Output:
 def FullEvaluate(skS, input):
   P = GG.HashToGroup(input)
   context = "Context-" || contextString ||
-            I2OSP(len(serverInfo), 2) || serverInfo ||
-            I2OSP(len(clientInfo), 2) || clientInfo
+            I2OSP(len(info), 2) || info
   m = GG.HashToScalar(context)
   t = skS + m
   T = (t^(-1)) * P
@@ -671,8 +664,7 @@ def FullEvaluate(skS, input):
 
   finalizeDST = "Finalize-" || contextString
   hashInput = I2OSP(len(input), 2) || input ||
-              I2OSP(len(serverInfo), 2) || serverInfo ||
-              I2OSP(len(clientInfo), 2) || clientInfo ||
+              I2OSP(len(info), 2) || info ||
               I2OSP(len(issuedElement), 2) || issuedElement ||
               I2OSP(len(finalizeDST), 2) || finalizeDST
 
@@ -687,23 +679,21 @@ Input:
   Scalar skS
   PrivateInput input
   opaque output[Nh]
-  PublicInput serverInfo
-  PublicInput clientInfo
+  PublicInput info
 
 Output:
 
   boolean valid
 
-def VerifyFinalize(skS, input, output, serverInfo, clientInfo):
+def VerifyFinalize(skS, input, output, info):
   T = GG.HashToGroup(input)
   element = GG.SerializeElement(T)
-  issuedElement = Evaluate(skS, [element], serverInfo, clientInfo)
+  issuedElement = Evaluate(skS, [element], info)
   E = GG.SerializeElement(issuedElement)
 
   finalizeDST = "Finalize-" || contextString
   hashInput = I2OSP(len(input), 2) || input ||
-              I2OSP(len(serverInfo), 2) || serverInfo ||
-              I2OSP(len(clientInfo), 2) || clientInfo ||
+              I2OSP(len(info), 2) || info ||
               I2OSP(len(E), 2) || E ||
               I2OSP(len(finalizeDST), 2) || finalizeDST
 
@@ -727,8 +717,7 @@ Input:
   Scalar skS
   Element pkS
   SerializedElement blindedElement
-  PublicInput serverInfo
-  PublicInput clientInfo
+  PublicInput info
 
 Output:
 
@@ -737,11 +726,10 @@ Output:
 
 Errors: DeserializeError
 
-def Evaluate(skS, pkS, blindedElement, serverInfo, clientInfo):
+def Evaluate(skS, pkS, blindedElement, info):
   R = GG.DeserializeElement(blindedElement)
   context = "Context-" || contextString ||
-            I2OSP(len(serverInfo), 2) || serverInfo ||
-            I2OSP(len(clientInfo), 2) || clientInfo
+            I2OSP(len(info), 2) || info ||
   m = GG.HashToScalar(context)
   t = skS + m
   Z = (t^(-1)) * R
@@ -971,20 +959,18 @@ Input:
   PrivateInput input
   Scalar blind
   SerializedElement evaluatedElement
-  PublicInput serverInfo
-  PublicInput clientInfo
+  PublicInput info
 
 Output:
 
   opaque output[Nh]
 
-def Finalize(input, blind, evaluatedElement, serverInfo, clientInfo):
+def Finalize(input, blind, evaluatedElement, info):
   unblindedElement = Unblind(blind, evaluatedElement)
 
   finalizeDST = "Finalize-" || contextString
   hashInput = I2OSP(len(input), 2) || input ||
-              I2OSP(len(serverInfo), 2) || serverInfo ||
-              I2OSP(len(clientInfo), 2) || clientInfo ||
+              I2OSP(len(info), 2) || info ||
               I2OSP(len(unblindedElement), 2) || unblindedElement ||
               I2OSP(len(finalizeDST), 2) || finalizeDST
   return Hash(hashInput)
@@ -1063,8 +1049,7 @@ Input:
   SerializedElement blindedElement
   Element pkS
   Scalar proof
-  PublicInput serverInfo
-  PublicInput clientInfo
+  PublicInput info
 
 Output:
 
@@ -1072,10 +1057,9 @@ Output:
 
 Errors: DeserializeError, VerifyError
 
-def VerifiableUnblind(blind, evaluatedElement, blindedElement, pkS, proof, serverInfo, clientInfo):
+def VerifiableUnblind(blind, evaluatedElement, blindedElement, pkS, proof, info):
   context = "Context-" || contextString ||
-            I2OSP(len(serverInfo), 2) || serverInfo ||
-            I2OSP(len(clientInfo), 2) || clientInfo
+            I2OSP(len(info), 2) || info
   m = GG.HashToScalar(context)
 
   R = GG.DeserializeElement(blindedElement)
@@ -1103,21 +1087,19 @@ Input:
   SerializedElement blindedElement
   Element pkS
   Scalar proof
-  PublicInput serverInfo
-  PublicInput clientInfo
+  PublicInput info
 
 
 Output:
 
   opaque output[Nh]
 
-def VerifiableFinalize(input, blind, blindedPublicKey, evaluatedElement, blindedElement, pkS, proof, serverInfo, clientInfo):
-  unblindedElement = VerifiableUnblind(blind, evaluatedElement, blindedElement, pkS, proof, serverInfo, clientInfo)
+def VerifiableFinalize(input, blind, blindedPublicKey, evaluatedElement, blindedElement, pkS, proof, info):
+  unblindedElement = VerifiableUnblind(blind, evaluatedElement, blindedElement, pkS, proof, info)
 
   finalizeDST = "Finalize-" || contextString
   hashInput = I2OSP(len(input), 2) || input ||
-              I2OSP(len(serverInfo), 2) || serverInfo ||
-              I2OSP(len(clientInfo), 2) || clientInfo ||
+              I2OSP(len(info), 2) || info ||
               I2OSP(len(unblindedElement), 2) || unblindedElement ||
               I2OSP(len(finalizeDST), 2) || finalizeDST
   return Hash(hashInput)
@@ -1235,19 +1217,35 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 - Hash: SHA-512, and Nh = 64.
 - ID: 0x0005
 
-# API Considerations {#apis}
+# Application Considerations {#apis}
+
+This section describes considerations for applications, including explicit error
+treatment and public metadata representation.
+
+## Error Considerations
 
 Some VOPRF APIs specified in this document are fallible. For example, `Finalize`
 and `Evaluate` can fail if any element received from the peer fails deserialization.
 The explicit errors generated throughout this specification, along with the
 conditions that lead to each error, are as follows:
 
-- `VerifyError`: VOPRF proof verification failed; {{verifiable-blind}}.
+- `VerifyError`: VOPRF proof verification failed; {{verifiable-unblind}}.
 - `DeserializeError`: Group element or scalar deserialization failure; {{pog}}.
 
 The errors in this document are meant as a guide to implementors. They are not
 an exhaustive list of all the errors an implementation might emit. For example,
 implementations might run out of memory and return a corresponding error.
+
+## Public Metadata
+
+The optional and public `info` string included in the protocol allows clients
+and servers to cryptographically bind additional data to the VOPRF output. This
+metadata is known to both parties at the start of the protocol. It is RECOMMENDED
+that this metadata be constructed with some type of higher-level domain separation
+to avoid cross protocol attacks or related issues. For example, protocols using
+this construction might ensure that the metadata uses a unique, prefix-free encoding.
+See {{I-D.irtf-cfrg-hash-to-curve, Section 10.4}} for further discussion on
+constructing domain separation values.
 
 # Security Considerations {#sec}
 
