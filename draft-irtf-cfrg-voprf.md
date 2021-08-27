@@ -251,7 +251,7 @@ groups, including elliptic curves.
 # Introduction
 
 A pseudorandom function (PRF) F(k, x) is an efficiently computable
-function taking a private key k and a value x as input. This function is
+function taking a secret key k and a value x as input. This function is
 pseudorandom if the keyed function K(\_) = F(K, \_) is indistinguishable
 from a randomly sampled function acting on the same domain and range as
 K(). An oblivious PRF (OPRF) is a two-party protocol between a server
@@ -429,7 +429,7 @@ Two functions can be used for generating a (V)OPRF key pair (`skS`, `pkS`)
 where `skS` is a non-zero integer less than `p` and `pkS = ScalarBaseMult(skS)`:
 `GenerateKeyPair` and `DeriveKeyPair`. `GenerateKeyPair` is a randomized function
 that outputs a fresh key pair (`skS`, `pkS`) upon every invocation. `DeriveKeyPair`
-is a  deterministic  function that generates private key `skS` from a random byte
+is a  deterministic  function that generates secret key `skS` from a random byte
 string `seed`, which SHOULD have at least `Ns` bytes of entropy, and then
 computes `pkS = ScalarBaseMult(skS)`.
 
@@ -481,7 +481,7 @@ The following terms are used throughout this document.
 In this section, we define two OPRF variants: a base mode and verifiable
 mode. In the base mode, a client and server interact to compute y =
 F(skS, input, info), where input is the client's private input, skS is the
-server's private key, info is the optional public input (or metadata)
+server's secret key, info is the optional public input (or metadata)
 and y is the OPRF output. The client learns y and the server learns
 nothing. In the  verifiable mode, the client also gets proof that the
 server used skS in computing the function.
@@ -490,10 +490,10 @@ To achieve verifiability, as in the original work of {{JKK14}}, we
 provide a zero-knowledge proof that the key provided as input by the
 server in the `Evaluate` function is the same key as it used to produce
 their public key. As an example of the nature of attacks that this
-prevents, this ensures that the server uses the same private key for
+prevents, this ensures that the server uses the same secret key for
 computing the VOPRF output and does not attempt to "tag" individual
 clients with select keys. This proof must not reveal the server's
-long-term private key to the client.
+long-term secret key to the client.
 
 The following one-byte values distinguish between these two modes:
 
@@ -506,26 +506,26 @@ The following one-byte values distinguish between these two modes:
 
 Both participants agree on the mode and a choice of ciphersuite that is
 used before the protocol exchange. Once established, the base mode of
-the protocol runs to compute `y = F(skS, input, info)` as follows:
+the protocol runs to compute `output = F(skS, input, info)` as follows:
 
 ~~~
     Client(input, info)                               Server(skS, info)
   ----------------------------------------------------------------------
     blind, blindedElement = Blind(input)
 
-                              blindedElement
+                             blindedElement
                                ---------->
 
-    evaluatedElement, proof  = Evaluate(skS, blindedElement, info)
+                 evaluatedElement = Evaluate(skS, blindedElement, info)
 
                              evaluatedElement
                                <----------
 
-  output = Finalize(input, blind, evaluatedElement, blindedElement, info)
+    output = Finalize(input, blind, evaluatedElement, blindedElement, info)
 ~~~
 
 In `Blind` the client generates a blinded element and blinding data. The server
-computes the (V)OPRF evaluation in `Evaluation` over the client's blinded token,
+computes the (V)OPRF evaluation in `Evaluate` over the client's blinded element,
 and optional public information `info`. In `Finalize` the client unblinds the
 server response and produces a byte array corresponding to the output of the OPRF
 protocol.
@@ -853,7 +853,7 @@ def ComputeComposites(B, Cs, Ds):
  return [M, Z]
 ~~~
 
-If the private key is known, as is the case for the server, this function
+If the secret key is known, as is the case for the server, this function
 can be optimized as shown in `ComputeCompositesFast` below.
 
 ~~~
@@ -1278,7 +1278,7 @@ An OPRF protocol must also satisfy the following property:
 
 - Oblivious: The server must learn nothing about the client's input or
   the output of the function. In addition, the client must learn nothing
-  about the server's private key.
+  about the server's secret key.
 
 Essentially, obliviousness tells us that, even if the server learns the
 client's input x at some point in the future, then the server will not
@@ -1515,15 +1515,6 @@ Q-sDH attacks from {{qsdh}}.
 To combat attacks of this nature, regular key rotation should be
 employed on the server-side. A suitable key-cycle for a key used to
 compute (V)OPRF evaluations would be between one week and six months.
-
-### Parameter Commitments
-
-For some applications, it may be desirable for the server to bind tokens to
-certain parameters, e.g., protocol versions, ciphersuites, etc. To
-accomplish this, the server should use a distinct scalar for each parameter
-combination. Upon redemption of a token T from the client, the server can
-later verify that T was generated using the scalar associated with the
-corresponding parameters.
 
 # Acknowledgements
 
