@@ -236,10 +236,10 @@ informative:
 
 An Oblivious Pseudorandom Function (OPRF) is a two-party protocol for
 computing the output of a PRF. One party (the server) holds the PRF
-secret key, and the other (the client) holds the PRF input. The
+private key, and the other (the client) holds the PRF input. The
 'obliviousness' property ensures that the server does not learn anything
 about the client's input during the evaluation. The client should also
-not learn anything about the server's secret PRF key. Optionally, OPRFs
+not learn anything about the server's private PRF key. Optionally, OPRFs
 can also satisfy a notion of 'verifiability' (VOPRF). In this setting, the
 client can verify that the server's output is indeed the result of
 evaluating the underlying PRF with just a public key. This document
@@ -251,7 +251,7 @@ groups, including elliptic curves.
 # Introduction
 
 A pseudorandom function (PRF) F(k, x) is an efficiently computable
-function taking a secret key k and a value x as input. This function is
+function taking a private key k and a value x as input. This function is
 pseudorandom if the keyed function K(\_) = F(K, \_) is indistinguishable
 from a randomly sampled function acting on the same domain and range as
 K(). An oblivious PRF (OPRF) is a two-party protocol between a server
@@ -277,7 +277,7 @@ applying to finite fields of prime-order and also elliptic curve (EC)
 groups. The protocol has the option of being extended to a VOPRF with
 the addition of a NIZK proof for proving discrete log equality
 relations. This proof demonstrates correctness of the computation, using
-a known public key that serves as a commitment to the server's secret
+a known public key that serves as a commitment to the server's private
 key. The document describes the protocol, the public-facing API, and its
 security properties.
 
@@ -429,7 +429,7 @@ Two functions can be used for generating a (V)OPRF key pair (`skS`, `pkS`)
 where `skS` is a non-zero integer less than `p` and `pkS = ScalarBaseMult(skS)`:
 `GenerateKeyPair` and `DeriveKeyPair`. `GenerateKeyPair` is a randomized function
 that outputs a fresh key pair (`skS`, `pkS`) upon every invocation. `DeriveKeyPair`
-is a  deterministic  function that generates secret key `skS` from a random byte
+is a  deterministic  function that generates private key `skS` from a random byte
 string `seed`, which SHOULD have at least `Ns` bytes of entropy, and then
 computes `pkS = ScalarBaseMult(skS)`.
 
@@ -471,7 +471,7 @@ The following terms are used throughout this document.
 - VOPRF: Verifiable Oblivious Pseudorandom Function.
 - Client: Protocol initiator. Learns pseudorandom function evaluation as
   the output of the protocol.
-- Server: Computes the pseudorandom function over a secret key. Learns
+- Server: Computes the pseudorandom function over a private key. Learns
   nothing about the client's input.
 - NIZK: Non-interactive zero knowledge.
 - DLEQ: Discrete Logarithm Equality.
@@ -481,7 +481,7 @@ The following terms are used throughout this document.
 In this section, we define two OPRF variants: a base mode and verifiable
 mode. In the base mode, a client and server interact to compute y =
 F(skS, input, info), where input is the client's private input, skS is the
-server's secret key, info is the optional public input (or metadata)
+server's private key, info is the optional public input (or metadata)
 and y is the OPRF output. The client learns y and the server learns
 nothing. In the  verifiable mode, the client also gets proof that the
 server used skS in computing the function.
@@ -490,10 +490,10 @@ To achieve verifiability, as in the original work of {{JKK14}}, we
 provide a zero-knowledge proof that the key provided as input by the
 server in the `Evaluate` function is the same key as it used to produce
 their public key. As an example of the nature of attacks that this
-prevents, this ensures that the server uses the same secret key for
+prevents, this ensures that the server uses the same private key for
 computing the VOPRF output and does not attempt to "tag" individual
 clients with select keys. This proof must not reveal the server's
-long-term secret key to the client.
+long-term private key to the client.
 
 The following one-byte values distinguish between these two modes:
 
@@ -853,7 +853,7 @@ def ComputeComposites(B, Cs, Ds):
  return [M, Z]
 ~~~
 
-If the secret key is known, as is the case for the server, this function
+If the private key is known, as is the case for the server, this function
 can be optimized as shown in `ComputeCompositesFast` below.
 
 ~~~
@@ -1278,7 +1278,7 @@ An OPRF protocol must also satisfy the following property:
 
 - Oblivious: The server must learn nothing about the client's input or
   the output of the function. In addition, the client must learn nothing
-  about the server's secret key.
+  about the server's private key.
 
 Essentially, obliviousness tells us that, even if the server learns the
 client's input x at some point in the future, then the server will not
@@ -1536,7 +1536,7 @@ mode and verifiable mode. Each test vector lists the batch size for
 the evaluation. Each test vector value is encoded as a hexadecimal
 byte string. The label for each test vector value is described below.
 
-- "Input": The secret client input, an opaque byte string.
+- "Input": The private client input, an opaque byte string.
 - "Info": The public info, an opaque byte string.
 - "Blind": The blind value output by `Blind()`, a serialized `Scalar`
   of `Ns` bytes long.
