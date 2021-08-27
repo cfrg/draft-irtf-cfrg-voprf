@@ -38,11 +38,11 @@ test_suites = [
 ]
 
 class Protocol(object):
-    def __init__(self, suite, mode):
+    def __init__(self, suite, mode, info):
         self.inputs = [b'\x00', b'\x5A'*17]
-        self.tags = [b'\x00', b'\x5A'*17]
         self.suite = suite
         self.mode = mode
+        self.info = info
 
         self.seed = b'\xA3' * suite.group.scalar_byte_length()
         skS, pkS = DeriveKeyPair(self.mode, self.suite, self.seed)
@@ -60,12 +60,12 @@ class Protocol(object):
         client = self.client
         server = self.server
 
-        def create_test_vector_for_input(x, y):
+        def create_test_vector_for_input(x, info):
             blind, blinded_element = client.blind(x)
-            evaluated_element, proof, proof_randomness = server.evaluate(blinded_element, y, y)
-            output = client.finalize(x, blind, evaluated_element, blinded_element, proof, y, y)
+            evaluated_element, proof, proof_randomness = server.evaluate(blinded_element, info)
+            output = client.finalize(x, blind, evaluated_element, blinded_element, proof, info)
 
-            assert(server.verify_finalize(x, output, y, y))
+            assert(server.verify_finalize(x, output, info))
 
             vector = {}
             vector["Blind"] = to_hex(group.serialize_scalar(blind))
@@ -80,12 +80,13 @@ class Protocol(object):
                 }
 
             vector["Input"] = to_hex(x)
+            vector["Info"] = to_hex(info)
             vector["Output"] = to_hex(output)
             vector["Batch"] = int(1)
 
             return vector
 
-        def create_batched_test_vector_for_inputs(xs, ys):
+        def create_batched_test_vector_for_inputs(xs, info):
             blinds = []
             blinded_elements = []
             for x in xs:
@@ -93,11 +94,11 @@ class Protocol(object):
                 blinds.append(blind)
                 blinded_elements.append(blinded_element)
 
-            evaluated_elements, proof, proof_randomness = server.evaluate_batch(blinded_elements, ys[0], ys[0])
+            evaluated_elements, proof, proof_randomness = server.evaluate_batch(blinded_elements, info)
 
-            outputs = client.finalize_batch(xs, blinds, evaluated_elements, blinded_elements, proof, ys[0], ys[0])
+            outputs = client.finalize_batch(xs, blinds, evaluated_elements, blinded_elements, proof, info)
             for i, output in enumerate(outputs):
-                assert(server.verify_finalize(xs[i], output, ys[0], ys[0]))
+                assert(server.verify_finalize(xs[i], output, info))
 
             vector = {}
             vector["Blind"] = ",".join([to_hex(group.serialize_scalar(blind)) for blind in blinds])
@@ -112,14 +113,15 @@ class Protocol(object):
                 }
 
             vector["Input"] = to_hex(xs)
+            vector["Info"] = to_hex(info)
             vector["Output"] = to_hex(outputs)
             vector["Batch"] = int(len(xs))
 
             return vector
 
-        vectors = [create_test_vector_for_input(x, y) for x in self.inputs for y in self.tags]
+        vectors = [create_test_vector_for_input(x, self.info) for x in self.inputs]
         if self.mode == MODE_VERIFIABLE:
-            vectors.append(create_batched_test_vector_for_inputs(self.inputs, self.tags))
+            vectors.append(create_batched_test_vector_for_inputs(self.inputs, self.info))
 
         vecSuite = {}
         vecSuite["suiteName"] = self.suite.name
@@ -159,6 +161,7 @@ def write_base_vector(fh, vector):
         fh.write("\n")
         fh.write("~~~\n")
         write_value(fh, "Input", v["Input"])
+        write_value(fh, "Info", v["Info"])
         write_value(fh, "Blind", v["Blind"])
         write_value(fh, "BlindedElement", v["BlindedElement"])
         write_value(fh, "EvaluationElement", v["EvaluationElement"])
@@ -178,6 +181,7 @@ def write_verifiable_vector(fh, vector):
         fh.write("\n")
         fh.write("~~~\n")
         write_value(fh, "Input", v["Input"])
+        write_value(fh, "Info", v["Info"])
         write_value(fh, "Blind", v["Blind"])
         write_value(fh, "BlindedElement", v["BlindedElement"])
         write_value(fh, "EvaluationElement", v["EvaluationElement"])
@@ -193,7 +197,7 @@ def main(path="vectors"):
         suite = oprf_ciphersuites[suite_id]
         suiteVectors = {}
         for mode in [MODE_BASE, MODE_VERIFIABLE]:
-            protocol = Protocol(suite, mode)
+            protocol = Protocol(suite, mode, _as_bytes("test info"))
             suiteVectors[str(mode)] = protocol.run()
         allVectors[suite.name] = suiteVectors
 
