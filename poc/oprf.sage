@@ -84,10 +84,10 @@ class ServerContext(Context):
 
     def evaluate(self, blinded_element, info):
         R = self.suite.group.deserialize(blinded_element)
-        metadataDST = _as_bytes("Metadata-") + self.context_string
-        metadata_input = I2OSP(len(info), 2) + info \
-            + I2OSP(len(metadataDST), 2) + metadataDST
-        tag = self.suite.group.hash_to_scalar(metadata_input, self.scalar_domain_separation_tag())
+        context_DST = _as_bytes("Context-") + self.context_string
+        context = I2OSP(len(info), 2) + info \
+            + I2OSP(len(context_DST), 2) + context_DST
+        tag = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
 
         t = self.skS + tag
         tag_inv = inverse_mod(tag, self.suite.group.order())
@@ -239,10 +239,10 @@ class VerifiableClientContext(ClientContext,Verifiable):
         return unblinded_elements
 
     def finalize(self, x, blind, evaluated_element, blinded_element, proof, info):
-        metadataDST = _as_bytes("Metadata-") + self.context_string
-        metadata_input = I2OSP(len(info), 2) + info \
-            + I2OSP(len(metadataDST), 2) + metadataDST
-        tag = self.suite.group.hash_to_scalar(metadata_input, self.scalar_domain_separation_tag())
+        context_DST = _as_bytes("Context-") + self.context_string
+        context = I2OSP(len(info), 2) + info \
+            + I2OSP(len(context_DST), 2) + context_DST
+        tag = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
         unblinded_element = self.unblind(blind, evaluated_element, blinded_element, proof, tag)
         finalizeDST = _as_bytes("Finalize-") + self.context_string
         finalize_input = I2OSP(len(x), 2) + x \
@@ -256,10 +256,10 @@ class VerifiableClientContext(ClientContext,Verifiable):
         assert(len(blinds) == len(evaluated_elements))
         assert(len(evaluated_elements) == len(blinded_elements))
 
-        metadataDST = _as_bytes("Metadata-") + self.context_string
-        metadata_input = I2OSP(len(info), 2) + info \
-            + I2OSP(len(metadataDST), 2) + metadataDST
-        tag = self.suite.group.hash_to_scalar(metadata_input, self.scalar_domain_separation_tag())
+        context_DST = _as_bytes("Context-") + self.context_string
+        context = I2OSP(len(info), 2) + info \
+            + I2OSP(len(context_DST), 2) + context_DST
+        tag = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
         unblinded_elements = self.unblind_batch(blinds, evaluated_elements, blinded_elements, proof, tag)
 
         outputs = []
@@ -309,10 +309,10 @@ class VerifiableServerContext(ServerContext,Verifiable):
 
     def evaluate(self, blinded_element, info):
         R = self.suite.group.deserialize(blinded_element)
-        metadataDST = _as_bytes("Metadata-") + self.context_string
-        metadata_input = I2OSP(len(info), 2) + info \
-            + I2OSP(len(metadataDST), 2) + metadataDST
-        t = self.suite.group.hash_to_scalar(metadata_input, self.scalar_domain_separation_tag())
+        context_DST = _as_bytes("Context-") + self.context_string
+        context = I2OSP(len(info), 2) + info \
+            + I2OSP(len(context_DST), 2) + context_DST
+        t = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
 
         k = self.skS + t
         k_inv = inverse_mod(k, self.suite.group.order())
@@ -330,10 +330,10 @@ class VerifiableServerContext(ServerContext,Verifiable):
         Zs = []
         evaluated_elements = []
 
-        metadataDST = _as_bytes("Metadata-") + self.context_string
-        metadata_input = I2OSP(len(info), 2) + info \
-            + I2OSP(len(metadataDST), 2) + metadataDST
-        t = self.suite.group.hash_to_scalar(metadata_input, self.scalar_domain_separation_tag())
+        context_DST = _as_bytes("Context-") + self.context_string
+        context = I2OSP(len(info), 2) + info \
+            + I2OSP(len(context_DST), 2) + context_DST
+        t = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
 
         for blinded_element in blinded_elements:
             R = self.suite.group.deserialize(blinded_element)
