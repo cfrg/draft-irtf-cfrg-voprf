@@ -87,14 +87,13 @@ class ServerContext(Context):
         context_DST = _as_bytes("Context-") + self.context_string
         context = I2OSP(len(info), 2) + info \
             + I2OSP(len(context_DST), 2) + context_DST
-        tag = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
+        t = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
 
-        t = self.skS + tag
-        tag_inv = inverse_mod(tag, self.suite.group.order())
-        Z = tag_inv * R
+        k = self.skS + t
+        k_inv = inverse_mod(k, self.suite.group.order())
+        Z = k_inv * R
         evaluated_element = self.suite.group.serialize(Z)
         return evaluated_element, None, None
-
 
     def verify_finalize(self, x, expected_digest, info):
         P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
