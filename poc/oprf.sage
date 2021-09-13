@@ -85,8 +85,7 @@ class ServerContext(Context):
     def evaluate(self, blinded_element, info):
         R = self.suite.group.deserialize(blinded_element)
         context_DST = _as_bytes("Context-") + self.context_string
-        context = I2OSP(len(info), 2) + info \
-            + I2OSP(len(context_DST), 2) + context_DST
+        context = context_DST + I2OSP(len(info), 2) + info
         t = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
 
         k = self.skS + t
@@ -239,8 +238,7 @@ class VerifiableClientContext(ClientContext,Verifiable):
 
     def finalize(self, x, blind, evaluated_element, blinded_element, proof, info):
         context_DST = _as_bytes("Context-") + self.context_string
-        context = I2OSP(len(info), 2) + info \
-            + I2OSP(len(context_DST), 2) + context_DST
+        context = context_DST + I2OSP(len(info), 2) + info
         tag = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
         unblinded_element = self.unblind(blind, evaluated_element, blinded_element, proof, tag)
         finalizeDST = _as_bytes("Finalize-") + self.context_string
@@ -256,8 +254,7 @@ class VerifiableClientContext(ClientContext,Verifiable):
         assert(len(evaluated_elements) == len(blinded_elements))
 
         context_DST = _as_bytes("Context-") + self.context_string
-        context = I2OSP(len(info), 2) + info \
-            + I2OSP(len(context_DST), 2) + context_DST
+        context = context_DST + I2OSP(len(info), 2) + info
         tag = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
         unblinded_elements = self.unblind_batch(blinds, evaluated_elements, blinded_elements, proof, tag)
 
@@ -309,8 +306,7 @@ class VerifiableServerContext(ServerContext,Verifiable):
     def evaluate(self, blinded_element, info):
         R = self.suite.group.deserialize(blinded_element)
         context_DST = _as_bytes("Context-") + self.context_string
-        context = I2OSP(len(info), 2) + info \
-            + I2OSP(len(context_DST), 2) + context_DST
+        context = context_DST + I2OSP(len(info), 2) + info
         t = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
 
         k = self.skS + t
@@ -330,8 +326,7 @@ class VerifiableServerContext(ServerContext,Verifiable):
         evaluated_elements = []
 
         context_DST = _as_bytes("Context-") + self.context_string
-        context = I2OSP(len(info), 2) + info \
-            + I2OSP(len(context_DST), 2) + context_DST
+        context = context_DST + I2OSP(len(info), 2) + info
         t = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
 
         for blinded_element in blinded_elements:
