@@ -729,7 +729,7 @@ Errors: DeserializeError
 def Evaluate(skS, pkS, blindedElement, info):
   R = GG.DeserializeElement(blindedElement)
   context = "Context-" || contextString ||
-            I2OSP(len(info), 2) || info ||
+            I2OSP(len(info), 2) || info
   m = GG.HashToScalar(context)
   t = skS + m
   Z = (t^(-1)) * R
