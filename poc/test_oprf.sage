@@ -73,9 +73,8 @@ class Protocol(object):
             vector["EvaluationElement"] = to_hex(evaluated_element)
 
             if self.mode == MODE_VERIFIABLE:
-                vector["EvaluationProof"] = {
-                    "c": to_hex(group.serialize_scalar(proof[0])),
-                    "s": to_hex(group.serialize_scalar(proof[1])),
+                vector["Proof"] = {
+                    "proof": to_hex(group.serialize_scalar(proof[0]) + group.serialize_scalar(proof[1])),
                     "r": to_hex(group.serialize_scalar(proof_randomness)),
                 }
 
@@ -106,9 +105,8 @@ class Protocol(object):
             vector["EvaluationElement"] = to_hex(evaluated_elements)
 
             if self.mode == MODE_VERIFIABLE:
-                vector["EvaluationProof"] = {
-                    "c": to_hex(group.serialize_scalar(proof[0])),
-                    "s": to_hex(group.serialize_scalar(proof[1])),
+                vector["Proof"] = {
+                    "proof": to_hex(group.serialize_scalar(proof[0]) + group.serialize_scalar(proof[1])),
                     "r": to_hex(group.serialize_scalar(proof_randomness)),
                 }
 
@@ -185,8 +183,8 @@ def write_verifiable_vector(fh, vector):
         write_value(fh, "Blind", v["Blind"])
         write_value(fh, "BlindedElement", v["BlindedElement"])
         write_value(fh, "EvaluationElement", v["EvaluationElement"])
-        write_value(fh, "EvaluationProofC", v["EvaluationProof"]["c"])
-        write_value(fh, "EvaluationProofS", v["EvaluationProof"]["s"])
+        write_value(fh, "Proof", v["Proof"]["proof"])
+        write_value(fh, "ProofRandomScalar", v["Proof"]["r"])
         write_value(fh, "Output", v["Output"])
         fh.write("~~~\n")
         fh.write("\n")
