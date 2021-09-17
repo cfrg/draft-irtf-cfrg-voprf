@@ -27,6 +27,8 @@ suite_p384.sage
 suite_p521.sage
 suite_secp256k1.sage
 svdw_generic.sage
+sqrt.sage
+sswu_optimized.sage
 test.sage
 test_vectors.sage
 z_selection.sage

@@ -13,7 +13,7 @@ try:
            ciphersuite_ristretto255_sha512, \
            ciphersuite_decaf448_shake256, \
            ciphersuite_p256_sha256, \
-           ciphersuite_p384_sha512, \
+           ciphersuite_p384_sha384, \
            ciphersuite_p521_sha512
 except ImportError as e:
     sys.exit("Error loading preprocessed sage files. Try running `make setup && make clean pyfiles`. Full error: " + e)
@@ -33,7 +33,7 @@ test_suites = [
     ciphersuite_ristretto255_sha512,
     ciphersuite_decaf448_shake256,
     ciphersuite_p256_sha256,
-    ciphersuite_p384_sha512,
+    ciphersuite_p384_sha384,
     ciphersuite_p521_sha512
 ]
 
