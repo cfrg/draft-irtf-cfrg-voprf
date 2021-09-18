@@ -446,9 +446,9 @@ with a prime-order group instantiation are removed. See {{ciphersuites}}
 for advice corresponding to the implementation of this interface for
 specific definitions of elliptic curves.
 
-## Conventions and Terminology
+## Notation and Terminology
 
-The following conventions are used throughout the document.
+The following functions and notation are used throughout the document.
 
 - For any object `x`, we write `len(x)` to denote its length in bytes.
 - For two byte arrays `x` and `y`, write `x || y` to denote their
@@ -456,13 +456,13 @@ The following conventions are used throughout the document.
 - I2OSP and OS2IP: Convert a byte array to and from a non-negative
   integer as described in {{!RFC8017}}. Note that these functions
   operate on byte arrays in big-endian byte order.
+- For any two byte strings `a` and `b`, `CT_EQUAL(a, b)` represents
+  constant-time equality between `a` and `b` which returns `true` if
+  `a` and `b` are equal and `false` otherwise.
 
 Data structure descriptions use TLS notation {{RFC8446, Section 3}}.
 
-All algorithm descriptions are written in a Python-like pseudocode.
-We also use the `CT_EQUAL(a, b)` function to represent constant-time
-byte-wise equality between byte arrays `a` and `b`. This function
-returns `true` if `a` and `b` are equal, and `false` otherwise.
+String values such as "Context-" are ASCII string literals.
 
 The following terms are used throughout this document.
 
