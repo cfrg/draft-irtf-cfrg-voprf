@@ -8,7 +8,7 @@ import binascii
 
 from collections import namedtuple
 
-from hash_to_field import I2OSP, OS2IP, expand_message_xmd, hash_to_field
+from hash_to_field import I2OSP
 
 try:
     from sagelib.groups import GroupP256, GroupP384, GroupP521, GroupRistretto255, GroupDecaf448
@@ -376,13 +376,13 @@ Ciphersuite = namedtuple("Ciphersuite", ["name", "identifier", "group", "H", "ha
 ciphersuite_ristretto255_sha512 = 0x0001
 ciphersuite_decaf448_shake256 = 0x0002
 ciphersuite_p256_sha256 = 0x0003
-ciphersuite_p384_sha512 = 0x0004
+ciphersuite_p384_sha384 = 0x0004
 ciphersuite_p521_sha512 = 0x0005
 
 oprf_ciphersuites = {
     ciphersuite_ristretto255_sha512: Ciphersuite("OPRF(ristretto255, SHA-512)", ciphersuite_ristretto255_sha512, GroupRistretto255(), hashlib.sha512, lambda x : hashlib.sha512(x).digest()),
     ciphersuite_decaf448_shake256: Ciphersuite("OPRF(decaf448, SHAKE-256)", ciphersuite_decaf448_shake256, GroupDecaf448(), hashlib.shake_256, lambda x : hashlib.shake_256(x).digest(int(64))),
     ciphersuite_p256_sha256: Ciphersuite("OPRF(P-256, SHA-256)", ciphersuite_p256_sha256, GroupP256(), hashlib.sha256, lambda x : hashlib.sha256(x).digest()),
-    ciphersuite_p384_sha512: Ciphersuite("OPRF(P-384, SHA-512)", ciphersuite_p384_sha512, GroupP384(), hashlib.sha512, lambda x : hashlib.sha512(x).digest()),
+    ciphersuite_p384_sha384: Ciphersuite("OPRF(P-384, SHA-384)", ciphersuite_p384_sha384, GroupP384(), hashlib.sha384, lambda x : hashlib.sha384(x).digest()),
     ciphersuite_p521_sha512: Ciphersuite("OPRF(P-521, SHA-512)", ciphersuite_p521_sha512, GroupP521(), hashlib.sha512, lambda x : hashlib.sha512(x).digest()),
 }
