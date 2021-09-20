@@ -162,7 +162,7 @@ class GroupNISTCurve(Group):
         return int(self.field_bytes_length)
 
     def hash_to_group(self, msg, dst):
-        self.h2c_suite.dst = dst
+        self.h2c_suite.expand._dst = dst
         return self.h2c_suite(msg)
 
     def hash_to_scalar(self, msg, dst):
