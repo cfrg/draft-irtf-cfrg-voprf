@@ -1304,45 +1304,30 @@ in the algebraic group model, for some q number of `Evaluate` queries.
 evaluate the 2HashDH-NIZK construction from {{JKK14}}, which is a predecessor
 to the design in this specification.)
 
-### Static Diffie-Hellman Oracle {#qsdh}
+### Static q-DL Assumption
 
-A side-effect of the POPRF design is that it allows instantiation of a
-oracle for constructing Q-strong-DH (Q-sDH) samples. The Q-Strong-DH
-problem asks the following.
+A side-effect of the POPRF design is that it allows instantiation of an oracle for
+retrieving "strong-DH" evaluations, in which an adversary can query a group element
+B and scalar c, and receive evaluation output 1/(k+c)\*B. This type of oracle allows
+an adversary to form elements of "repeated powers" of the server-side secret. This
+"repeated powers" structure has been studied in terms of the q-DL problem which
+asks the following: Given G1, G2, h\*G2, (h^2)\*G2, ..., (h^Q)\*G2; for G1 and G2
+generators of GG. Output h where h is an element of GF(p)
 
-~~~
-    Given G1, G2, h*G2, (h^2)*G2, ..., (h^Q)*G2; for G1 and G2
-    generators of GG.
+For example, consider an adversary that queries the strong-DH oracle provided by the
+POPRF on a fixed scalar c starting with group element G2, then passes the received
+evaluation group element back as input for the next evaluation. If we set h = 1/(k+c),
+such an adversary would receive exactly the evaluations given in the q-DL problem: h\*G2,
+(h^2)\*G2, ..., (h^Q)\*G2.
 
-    Output ( (1/(k+c))*G1, c ) where c is an element of GF(p)
-~~~
+{{TCRSTW21}} capture the power of the strong-DH oracle in the One-More Gap SDHI assumption
+and show, in the algebraic group model, the security of this assumption can be reduced to
+the security of the q-DL problem, where q is the number of queries made to the blind
+evaluation oracle.
 
-The assumption that this problem is hard was first introduced in
-{{BB04}}. Since then, there have been a number of cryptanalytic studies
-that have reduced the security of the assumption below that implied by
-the group instantiation (for example, {{BG04}} and {{Cheon06}}). In
-summary, the attacks reduce the security of the group instantiation by
-log\_2(Q)/2 bits. Note that the attacks only work in situations where Q
-divides p-1 or p+1, where p is the order of the prime-order group used
-to instantiate the OPRF.
-
-As an example, suppose that a group instantiation is used that provides
-128 bits of security against discrete log cryptanalysis. Then an
-adversary with access to a Q-sDH oracle and makes Q=2^20 queries can
-reduce the security of the instantiation by log\_2(2^20)/2 = 10 bits.
-Launching an attack would require 2^(p/2-log\_2(Q)/2) bits of memory.
-
-Notice that it is easy to instantiate a Q-sDH oracle using the OPRF
-functionality that we provide. A client can just submit sequential
-queries of the form (G, k * G, (k^2)G, ..., (k^(Q-1))G), where each
-query is the output of the previous interaction. This means that any
-client that submits Q queries to the POPRF can use the aforementioned
-attacks to reduce the security of the group instantiation by
-(log\_2(Q)/2) bits.
-
-Recall that from a malicious client's perspective, the adversary wins if
-they can distinguish the POPRF interaction from a protocol that computes
-the ideal functionality provided by the PRF.
+The q-DL assumption has been well studied in the literature, and there exist a number of
+cryptanalytic studies to inform parameter choice and group instantiation (for example,
+{{BG04}} and {{Cheon06}}).
 
 ### Implications for Ciphersuite Choices
 
