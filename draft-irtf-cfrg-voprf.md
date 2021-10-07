@@ -1094,7 +1094,7 @@ Output:
 
   opaque output[Nh]
 
-def VerifiableFinalize(input, blind, blindedPublicKey, evaluatedElement, blindedElement, pkS, proof, info):
+def VerifiableFinalize(input, blind, pkS, evaluatedElement, blindedElement, pkS, proof, info):
   unblindedElement = VerifiableUnblind(blind, evaluatedElement, blindedElement, pkS, proof, info)
 
   finalizeDST = "Finalize-" || contextString
