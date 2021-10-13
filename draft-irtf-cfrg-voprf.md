@@ -1235,7 +1235,7 @@ of a POPRF.
 
 ## Security Properties {#properties}
 
-The security properties of an OPRF protocol with functionality
+The security properties of a POPRF protocol with functionality
 y = F(k, x, t) include those of a standard PRF. Specifically:
 
 - Pseudorandomness: F is pseudorandom if the output y = F(k, x, t) on any
