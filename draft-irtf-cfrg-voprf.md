@@ -526,7 +526,7 @@ the protocol runs to compute `output = F(skS, input, info)` as follows:
 In `Blind` the client generates a blinded element and blinding data. The server
 computes the POPRF evaluation in `Evaluate` over the client's blinded element,
 and public information `info`. In `Finalize` the client unblinds the server
-response and produces a byte array corresponding to POPRF output.
+response and produces the POPRF output.
 
 In the verifiable mode of the protocol, the server additionally computes
 a proof in Evaluate. The client verifies this proof using the server's
