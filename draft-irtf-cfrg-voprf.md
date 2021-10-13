@@ -262,7 +262,7 @@ F(k, x) such that the client learns F(k, x) without learning anything
 about k; and the server does not learn anything about x or F(k, x).
 A Partially-Oblivious PRF (POPRF) is a variant of an OPRF wherein client
 and server interact in computing F(k, x, y), for some PRF F with
-server-provided key k, client-provied input x, and public input y {{TCRSTW21}}.
+server-provided key k, client-provided input x, and public input y {{TCRSTW21}}.
 A POPRF with empty input y is functionally equivalent to an OPRF.
 A POPRF is said to be 'verifiable' if the server can prove to the client
 that F(k, x, y) was computed using key k, without revealing k to the client.
