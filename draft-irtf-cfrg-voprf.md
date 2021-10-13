@@ -277,7 +277,7 @@ password-protected secret sharing schemes such as that of {{JKK14}}.
 This document introduces a POPRF protocol built upon prime-order groups.
 The protocol supports optional verifiability with the addition of a non-interactive
 zero knowledge proof (NIZK). This proof demonstrates correctness of the computation,
-using a known public key that serves as a commitment to the server's secret
+using a known public key that serves as a commitment to the server's private
 key. The document describes the protocol, application considerations, and its
 security properties.
 
