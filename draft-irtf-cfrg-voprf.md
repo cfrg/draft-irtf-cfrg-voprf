@@ -240,7 +240,7 @@ The server provides the PRF secret key, and the client provides the PRF
 input. At the end of the protocol, the client learns the PRF output without
 learning anything about the PRF secret key, and the server learns neither
 the PRF input nor output. A Partially-Oblivious PRF (POPRF) is an OPRF
-wherein both client and server also agree on some public input to the
+that allows client and server to provide public input to the
 PRF. OPRFs and POPRFs can also satisfy a notion of 'verifiability'.
 In this setting, clients verify that the server's output is the result of
 evaluating the underlying PRF with an expected a public key. This document
