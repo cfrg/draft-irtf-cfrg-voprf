@@ -242,8 +242,8 @@ learning anything about the PRF secret key, and the server learns neither
 the PRF input nor output. A Partially-Oblivious PRF (POPRF) is an OPRF
 that allows client and server to provide public input to the
 PRF. OPRFs and POPRFs can also satisfy a notion of 'verifiability'.
-In this setting, clients verify that the server's output is the result of
-evaluating the underlying PRF with an expected a public key. This document
+In this setting, clients can verify that the server used a specific
+private key during the execution of the protocol. This document
 specifies a POPRF protocol with optional verifiability instantiated within
 standard prime-order groups, including elliptic curves.
 
@@ -263,7 +263,7 @@ about k; and the server does not learn anything about x or F(k, x).
 A Partially-Oblivious PRF (POPRF) is a variant of an OPRF wherein client
 and server interact in computing F(k, x, y), for some PRF F with
 server-provided key k, client-provided input x, and public input y {{TCRSTW21}}.
-A POPRF with empty input y is functionally equivalent to an OPRF.
+A POPRF with fixed input y is functionally equivalent to an OPRF.
 A POPRF is said to be 'verifiable' if the server can prove to the client
 that F(k, x, y) was computed using key k, without revealing k to the client.
 
@@ -274,7 +274,7 @@ Verifiable POPRFs are necessary in some applications such as Privacy Pass
 {{!I-D.davidson-pp-protocol}}. Verifiable POPRFs have also been used for
 password-protected secret sharing schemes such as that of {{JKK14}}.
 
-This document introduces a POPRF protocol built upon prime-order groups.
+This document introduces a POPRF protocol built upon prime-order groups based on {{TCRSTW21}}.
 The protocol supports optional verifiability with the addition of a non-interactive
 zero knowledge proof (NIZK). This proof demonstrates correctness of the computation,
 using a known public key that serves as a commitment to the server's private
@@ -471,7 +471,7 @@ The following terms are used throughout this document.
 - Client: Protocol initiator. Learns pseudorandom function evaluation as
   the output of the protocol.
 - Server: Computes the pseudorandom function over a private key. Learns
-  nothing about the client's input.
+  nothing about the client's input or output.
 - NIZK: Non-interactive zero knowledge.
 - DLEQ: Discrete Logarithm Equality.
 
@@ -492,7 +492,7 @@ their public key. As an example of the nature of attacks that this
 prevents, this ensures that the server uses the same private key for
 computing the verifiable POPRF output and does not attempt to "tag"
 individual clients with select keys. This proof does not reveal the
-server's long-term private key to the client.
+server's private key to the client.
 
 The following one-byte values distinguish between these two modes:
 
@@ -584,8 +584,8 @@ POPRF contexts. Each API has the following implicit parameters:
 - contextString, a domain separation tag constructed during context setup.
 
 The data types `PrivateInput` and `PublicInput` are opaque byte strings
-of arbitrary length no larger than 2^13 octets. `Proof` is a concatenated
-sequence of two `SerializedScalar` values, as shown below.
+of arbitrary length no larger than 2^13 octets. `Proof` is a sequence
+of two `SerializedScalar` values, as shown below.
 
 ~~~
 struct {
@@ -600,7 +600,7 @@ The ServerContext encapsulates the context string constructed during
 setup and the POPRF key pair. It has three functions, `Evaluate`,
 `FullEvaluate` and `VerifyFinalize` described below. `Evaluate` takes
 serialized representations of blinded group elements from the client
-as inputs along with public metadata input.
+as inputs along with public input `info`.
 
 `FullEvaluate` takes PrivateInput values, and it is useful for applications
 that need to compute the whole POPRF protocol on the server side only.
@@ -1296,8 +1296,9 @@ evaluations in one go, whilst only constructing one NIZK proof object.
 This is enabled using an established batching technique.
 
 The cryptographic security of the construction is based on the assumption
-that the One-More Gap SDHI assumption from {{TCRSTW21}} is computationally
-difficult to solve. {{TCRSTW21}} show that both the One-More Gap CDH
+that the One-More Gap Strong Diffie-Hellman Inversion (SDHI) assumption from
+{{TCRSTW21}} is computationally difficult to solve. {{TCRSTW21}} show that
+both the One-More Gap Computational Diffie Hellman (CDH)
 assumption and the One-More Gap SDHI assumption reduce to the q-DL assumption
 in the algebraic group model, for some q number of `Evaluate` queries.
 (The One-More Gap CDH assumption was the hardness assumption used to
