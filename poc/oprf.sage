@@ -57,7 +57,8 @@ class ClientContext(Context):
         P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
         R = blind * P
         blinded_element = self.suite.group.serialize(R)
-        return blind, blinded_element
+        input_element = self.suite.group.serialize(P)
+        return blind, blinded_element, input_element
 
     def unblind(self, blind, evaluated_element, blinded_element, proof):
         Z = self.suite.group.deserialize(evaluated_element)
@@ -66,10 +67,10 @@ class ClientContext(Context):
         unblinded_element = self.suite.group.serialize(N)
         return unblinded_element
 
-    def finalize(self, x, blind, evaluated_element, blinded_element, proof, info):
+    def finalize(self, input_element, blind, evaluated_element, blinded_element, proof, info):
         unblinded_element = self.unblind(blind, evaluated_element, blinded_element, proof)
         finalizeDST = _as_bytes("Finalize-") + self.context_string
-        finalize_input = I2OSP(len(x), 2) + x \
+        finalize_input = I2OSP(len(input_element), 2) + input_element \
             + I2OSP(len(info), 2) + info \
             + I2OSP(len(unblinded_element), 2) + unblinded_element \
             + I2OSP(len(finalizeDST), 2) + finalizeDST
@@ -100,7 +101,7 @@ class ServerContext(Context):
         issued_element, _, _  = self.evaluate(input_element, info) # Ignore the proof output
 
         finalizeDST = _as_bytes("Finalize-") + self.context_string
-        finalize_input = I2OSP(len(x), 2) + x \
+        finalize_input = I2OSP(len(input_element), 2) + input_element \
             + I2OSP(len(info), 2) + info \
             + I2OSP(len(issued_element), 2) + issued_element \
             + I2OSP(len(finalizeDST), 2) + finalizeDST
@@ -187,7 +188,8 @@ class VerifiableClientContext(ClientContext,Verifiable):
         P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
         R = blind * P
         blinded_element = self.suite.group.serialize(R)
-        return blind, blinded_element
+        input_element = self.suite.group.serialize(P)
+        return blind, blinded_element, input_element
 
     def unblind(self, blind, evaluated_element, blinded_element, proof, tag):
         R = self.suite.group.deserialize(blinded_element)
@@ -236,20 +238,20 @@ class VerifiableClientContext(ClientContext,Verifiable):
 
         return unblinded_elements
 
-    def finalize(self, x, blind, evaluated_element, blinded_element, proof, info):
+    def finalize(self, input_element, blind, evaluated_element, blinded_element, proof, info):
         context_DST = _as_bytes("Context-") + self.context_string
         context = context_DST + I2OSP(len(info), 2) + info
         tag = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
         unblinded_element = self.unblind(blind, evaluated_element, blinded_element, proof, tag)
         finalizeDST = _as_bytes("Finalize-") + self.context_string
-        finalize_input = I2OSP(len(x), 2) + x \
+        finalize_input = I2OSP(len(input_element), 2) + input_element \
             + I2OSP(len(info), 2) + info \
             + I2OSP(len(unblinded_element), 2) + unblinded_element \
             + I2OSP(len(finalizeDST), 2) + finalizeDST
 
         return self.suite.hash(finalize_input)
 
-    def finalize_batch(self, xs, blinds, evaluated_elements, blinded_elements, proof, info):
+    def finalize_batch(self, input_elements, blinds, evaluated_elements, blinded_elements, proof, info):
         assert(len(blinds) == len(evaluated_elements))
         assert(len(evaluated_elements) == len(blinded_elements))
 
@@ -261,7 +263,7 @@ class VerifiableClientContext(ClientContext,Verifiable):
         outputs = []
         finalizeDST = _as_bytes("Finalize-") + self.context_string
         for i, unblinded_element in enumerate(unblinded_elements):
-            finalize_input = I2OSP(len(xs[i]), 2) + xs[i] \
+            finalize_input = I2OSP(len(input_elements[i]), 2) + input_elements[i] \
                 + I2OSP(len(info), 2) + info \
                 + I2OSP(len(unblinded_element), 2) + unblinded_element \
                 + I2OSP(len(finalizeDST), 2) + finalizeDST
