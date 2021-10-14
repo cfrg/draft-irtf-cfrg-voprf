@@ -234,57 +234,52 @@ informative:
 
 --- abstract
 
-An Oblivious Pseudorandom Function (OPRF) is a two-party protocol for
-computing the output of a PRF. One party (the server) holds the PRF
-private key, and the other (the client) holds the PRF input. The
-'obliviousness' property ensures that the server does not learn anything
-about the client's input during the evaluation. The client should also
-not learn anything about the server's private PRF key. Optionally, OPRFs
-can also satisfy a notion of 'verifiability' (VOPRF). In this setting, the
-client can verify that the server's output is indeed the result of
-evaluating the underlying PRF with just a public key. This document
-specifies OPRF and VOPRF constructions instantiated within prime-order
-groups, including elliptic curves.
+An Oblivious Pseudorandom Function (OPRF) is a two-party protocol between
+client and server for computing the output of a Pseudorandom Function (PRF).
+The server provides the PRF secret key, and the client provides the PRF
+input. At the end of the protocol, the client learns the PRF output without
+learning anything about the PRF secret key, and the server learns neither
+the PRF input nor output. A Partially-Oblivious PRF (POPRF) is an OPRF
+that allows client and server to provide public input to the
+PRF. OPRFs and POPRFs can also satisfy a notion of 'verifiability'.
+In this setting, clients can verify that the server used a specific
+private key during the execution of the protocol. This document
+specifies a POPRF protocol with optional verifiability instantiated within
+standard prime-order groups, including elliptic curves.
 
 --- middle
 
 # Introduction
 
-A pseudorandom function (PRF) F(k, x) is an efficiently computable
+A Pseudorandom Function (PRF) F(k, x) is an efficiently computable
 function taking a private key k and a value x as input. This function is
-pseudorandom if the keyed function K(\_) = F(K, \_) is indistinguishable
+pseudorandom if the keyed function K(\_) = F(k, \_) is indistinguishable
 from a randomly sampled function acting on the same domain and range as
-K(). An oblivious PRF (OPRF) is a two-party protocol between a server
+K(). An Oblivious PRF (OPRF) is a two-party protocol between a server
 and a client, where the server holds a PRF key k and the client holds
 some input x. The protocol allows both parties to cooperate in computing
-F(k, x) such that: the client learns F(k, x) without learning anything
+F(k, x) such that the client learns F(k, x) without learning anything
 about k; and the server does not learn anything about x or F(k, x).
-A Verifiable OPRF (VOPRF) is an OPRF wherein the server can prove to the
-client that F(k, x) was computed using the key k.
+A Partially-Oblivious PRF (POPRF) is a variant of an OPRF wherein client
+and server interact in computing F(k, x, y), for some PRF F with
+server-provided key k, client-provided input x, and public input y {{TCRSTW21}}.
+A POPRF with fixed input y is functionally equivalent to an OPRF.
+A POPRF is said to be 'verifiable' if the server can prove to the client
+that F(k, x, y) was computed using key k, without revealing k to the client.
 
-The usage of OPRFs has been demonstrated in constructing a number of
-applications: password-protected secret sharing schemes {{JKKX16}};
-privacy-preserving password stores {{SJKS17}}; and
-password-authenticated key exchange or PAKE {{!I-D.irtf-cfrg-opaque}}. A VOPRF is
-necessary in some applications, e.g., the Privacy Pass protocol
-{{!I-D.davidson-pp-protocol}}, wherein this VOPRF is used to generate
-one-time authentication tokens to bypass CAPTCHA challenges. VOPRFs have
-also been used for password-protected secret sharing schemes e.g.
-{{JKK14}}.
+POPRFs have a variety of applications, including: password-protected secret
+sharing schemes {{JKKX16}}, privacy-preserving password stores {{SJKS17}}, and
+password-authenticated key exchange or PAKE {{!I-D.irtf-cfrg-opaque}}.
+Verifiable POPRFs are necessary in some applications such as Privacy Pass
+{{!I-D.davidson-pp-protocol}}. Verifiable POPRFs have also been used for
+password-protected secret sharing schemes such as that of {{JKK14}}.
 
-This document introduces an OPRF protocol built in prime-order groups,
-applying to finite fields of prime-order and also elliptic curve (EC)
-groups. The protocol has the option of being extended to a VOPRF with
-the addition of a NIZK proof for proving discrete log equality
-relations. This proof demonstrates correctness of the computation, using
-a known public key that serves as a commitment to the server's private
-key. The document describes the protocol, the public-facing API, and its
+This document introduces a POPRF protocol built upon prime-order groups based on {{TCRSTW21}}.
+The protocol supports optional verifiability with the addition of a non-interactive
+zero knowledge proof (NIZK). This proof demonstrates correctness of the computation,
+using a known public key that serves as a commitment to the server's private
+key. The document describes the protocol, application considerations, and its
 security properties.
-
-In some applications, there is the need to include an amount of public
-metadata into the OPRF protocol. Partially-Oblivious PRFs (POPRF) {{TCRSTW21}}
-are used to extend the OPRF functionality to include this public input
-(or metadata) in the PRF evaluation.
 
 ## Change log
 
@@ -462,6 +457,9 @@ The following functions and notation are used throughout the document.
 
 Data structure descriptions use TLS notation {{RFC8446, Section 3}}.
 
+All algorithms and procedures described in this document are laid out
+in a Python-like pseudocode.
+
 String values such as "Context-" are ASCII string literals.
 
 The following terms are used throughout this document.
@@ -469,31 +467,32 @@ The following terms are used throughout this document.
 - PRF: Pseudorandom Function.
 - OPRF: Oblivious Pseudorandom Function.
 - VOPRF: Verifiable Oblivious Pseudorandom Function.
+- POPRF: Partially Oblivious Pseudorandom Function.
 - Client: Protocol initiator. Learns pseudorandom function evaluation as
   the output of the protocol.
 - Server: Computes the pseudorandom function over a private key. Learns
-  nothing about the client's input.
+  nothing about the client's input or output.
 - NIZK: Non-interactive zero knowledge.
 - DLEQ: Discrete Logarithm Equality.
 
-# (V)OPRF Protocol {#protocol}
+# POPRF Protocol {#protocol}
 
-In this section, we define two OPRF variants: a base mode and verifiable
-mode. In the base mode, a client and server interact to compute y =
-F(skS, input, info), where input is the client's private input, skS is the
-server's private key, info is the optional public input (or metadata)
-and y is the OPRF output. The client learns y and the server learns
-nothing. In the  verifiable mode, the client also gets proof that the
-server used skS in computing the function.
+In this section, we define two POPRF variants: a base mode and verifiable
+mode. In the base mode, a client and server interact to compute
+`output = F(skS, input, info)`, where `input` is the client's private input,
+`skS` is the server's private key, `info` is the public input (or metadata),
+and `output` is the POPRF output. The client learns `output` and the server
+learns nothing. In the verifiable mode, the client also receives proof that
+the server used `skS` in computing the function.
 
 To achieve verifiability, as in the original work of {{JKK14}}, we
 provide a zero-knowledge proof that the key provided as input by the
 server in the `Evaluate` function is the same key as it used to produce
 their public key. As an example of the nature of attacks that this
 prevents, this ensures that the server uses the same private key for
-computing the VOPRF output and does not attempt to "tag" individual
-clients with select keys. This proof must not reveal the server's
-long-term private key to the client.
+computing the verifiable POPRF output and does not attempt to "tag"
+individual clients with select keys. This proof does not reveal the
+server's private key to the client.
 
 The following one-byte values distinguish between these two modes:
 
@@ -511,7 +510,7 @@ the protocol runs to compute `output = F(skS, input, info)` as follows:
 ~~~
     Client(input, info)                               Server(skS, info)
   ----------------------------------------------------------------------
-    blind, blindedElement = Blind(input)
+  blind, blindedElement = Blind(input)
 
                              blindedElement
                                ---------->
@@ -521,14 +520,13 @@ the protocol runs to compute `output = F(skS, input, info)` as follows:
                              evaluatedElement
                                <----------
 
-    output = Finalize(input, blind, evaluatedElement, blindedElement, info)
+  output = Finalize(input, blind, evaluatedElement, blindedElement, info)
 ~~~
 
 In `Blind` the client generates a blinded element and blinding data. The server
-computes the (V)OPRF evaluation in `Evaluate` over the client's blinded element,
-and optional public information `info`. In `Finalize` the client unblinds the
-server response and produces a byte array corresponding to the output of the OPRF
-protocol.
+computes the POPRF evaluation in `Evaluate` over the client's blinded element,
+and public information `info`. In `Finalize` the client unblinds the server
+response and produces the POPRF output.
 
 In the verifiable mode of the protocol, the server additionally computes
 a proof in Evaluate. The client verifies this proof using the server's
@@ -537,7 +535,7 @@ protocol output.
 
 ## Context Setup
 
-Both modes of the OPRF involve an offline setup phase. In this phase,
+Both modes of the POPRF involve an offline setup phase. In this phase,
 both the client and server create a context used for executing the
 online phase of the protocol. The key pair (`skS`, `pkS`) should be
 generated by calling either `GenerateKeyPair` or `DeriveKeyPair`.
@@ -580,37 +578,37 @@ identify the suite.
 ## Context APIs {#api}
 
 In this section, we detail the APIs available on the client and server
-(V)OPRF contexts. Each API has the following implicit parameters:
+POPRF contexts. Each API has the following implicit parameters:
 
 - GG, a prime-order group implementing the API described in {{pog}}.
-- contextString, a domain separation tag taken from the client or server
-  context.
-
+- contextString, a domain separation tag constructed during context setup.
 
 The data types `PrivateInput` and `PublicInput` are opaque byte strings
-of arbitrary length no larger than 2^13 octets. `Proof` is a concatenated
-sequence of two `SerializedScalar` values, as shown below.
+of arbitrary length no larger than 2^13 octets. `Proof` is a sequence
+of two `SerializedScalar` values, as shown below.
 
 ~~~
-SerializedScalar Proof[2*Ns];
+struct {
+  SerializedScalar c;
+  SerializedScalar s;
+} Proof;
 ~~~
 
 ### Server Context
 
 The ServerContext encapsulates the context string constructed during
-setup and the (V)OPRF key pair. It has three functions, `Evaluate`,
+setup and the POPRF key pair. It has three functions, `Evaluate`,
 `FullEvaluate` and `VerifyFinalize` described below. `Evaluate` takes
-serialized representations of blinded group elements from the client as inputs
-and optionally the public metadata input as determined by the server and/or
-the public metadata input as sent by the client.
+serialized representations of blinded group elements from the client
+as inputs along with public input `info`.
 
 `FullEvaluate` takes PrivateInput values, and it is useful for applications
-that need to compute the whole OPRF protocol on the server side only.
+that need to compute the whole POPRF protocol on the server side only.
 
 `VerifyFinalize` takes PrivateInput values and their corresponding output
 digests from `Finalize` as input, and returns true if the inputs match the outputs.
 
-Note that `VerifyFinalize` and `FullEvaluate` are not used in the main OPRF
+Note that `VerifyFinalize` and `FullEvaluate` are not used in the main POPRF
 protocol. They are exposed as an API for building higher-level protocols.
 
 #### Evaluate
@@ -634,7 +632,7 @@ def Evaluate(skS, blindedElement, info):
             I2OSP(len(info), 2) || info
   m = GG.HashToScalar(context)
   t = skS + m
-  Z = (t^(-1)) * R
+  Z = t^(-1) * R
   evaluatedElement = GG.SerializeElement(Z)
 
   return evaluatedElement
@@ -659,7 +657,7 @@ def FullEvaluate(skS, input):
             I2OSP(len(info), 2) || info
   m = GG.HashToScalar(context)
   t = skS + m
-  T = (t^(-1)) * P
+  T = t^(-1) * P
   issuedElement = GG.SerializeElement(T)
 
   finalizeDST = "Finalize-" || contextString
@@ -688,8 +686,7 @@ Output:
 def VerifyFinalize(skS, input, output, info):
   T = GG.HashToGroup(input)
   element = GG.SerializeElement(T)
-  issuedElement = Evaluate(skS, [element], info)
-  E = GG.SerializeElement(issuedElement)
+  E = Evaluate(skS, [element], info)
 
   finalizeDST = "Finalize-" || contextString
   hashInput = I2OSP(len(input), 2) || input ||
@@ -715,7 +712,6 @@ functions `GenerateProof` and `ComputeComposites`, described below.
 Input:
 
   Scalar skS
-  Element pkS
   SerializedElement blindedElement
   PublicInput info
 
@@ -726,13 +722,13 @@ Output:
 
 Errors: DeserializeError
 
-def Evaluate(skS, pkS, blindedElement, info):
+def Evaluate(skS, blindedElement, info):
   R = GG.DeserializeElement(blindedElement)
   context = "Context-" || contextString ||
             I2OSP(len(info), 2) || info
   m = GG.HashToScalar(context)
   t = skS + m
-  Z = (t^(-1)) * R
+  Z = t^(-1) * R
 
   U = ScalarBaseMult(t)
   proof = GenerateProof(t, G, U, Z, R)
@@ -761,12 +757,9 @@ Output:
 def GenerateProof(k, A, B, C, D)
   Cs = [C]
   Ds = [D]
-  a = ComputeCompositesFast(k, B, Cs, Ds)
+  (M, Z) = ComputeCompositesFast(k, B, Cs, Ds)
 
   r = GG.RandomScalar()
-  M = a[0]
-  Z = a[1]
-
   t2 = r * A
   t3 = r * M
 
@@ -786,8 +779,8 @@ def GenerateProof(k, A, B, C, D)
 
   c = GG.HashToScalar(h2Input)
   s = (r - c * k) mod p
-  proof = [GG.SerializeScalar(c), GG.SerializeScalar(s)]
 
+  proof = GG.SerializeScalar(c) || GG.SerializeScalar(s)
   return proof
 ~~~
 
@@ -797,20 +790,13 @@ Unlike other functions, `ComputeComposites` takes lists of inputs,
 rather than a single input. Applications can take advantage of this
 functionality by invoking `GenerateProof` on batches of inputs to
 produce a combined, constant-size proof. (In the pseudocode above,
-the single inputs `blindedElement` and `evaluatedElement` are passed as
-one-item lists to `ComputeComposites`.)
+the single inputs `blindedElement` and `evaluatedElement` are passed
+as single-item lists to `ComputeComposites`.)
 
 In particular, servers can produce a single, constant-sized proof for N
 client inputs sent in a single request, rather than one proof per client
 input. This optimization benefits clients and servers since it amortizes
 the cost of proof generation and bandwidth across multiple requests.
-
-##### Fresh Randomness
-
-We note here that it is essential that a different `r` value is used for
-every invocation. If this is not done, then this may leak `skS` as is
-possible in Schnorr or (EC)DSA scenarios where fresh randomness is not
-used.
 
 #### ComputeComposites
 
@@ -826,7 +812,8 @@ Input:
 
 Output:
 
-  Element composites[2]
+  Element M
+  Element Z
 
 def ComputeComposites(B, Cs, Ds):
   Bm = GG.SerializeElement(B)
@@ -850,7 +837,7 @@ def ComputeComposites(B, Cs, Ds):
     M = di * Cs[i] + M
     Z = di * Ds[i] + Z
 
- return [M, Z]
+ return (M, Z)
 ~~~
 
 If the private key is known, as is the case for the server, this function
@@ -866,7 +853,8 @@ Input:
 
 Output:
 
-  Element composites[2]
+  Element M
+  Element Z
 
 def ComputeCompositesFast(k, B, Cs, Ds):
   Bm = GG.SerializeElement(B)
@@ -890,7 +878,7 @@ def ComputeCompositesFast(k, B, Cs, Ds):
 
   Z = k * M
 
- return [M, Z]
+ return (M, Z)
 ~~~
 
 ### Client Context {#base-client}
@@ -901,11 +889,7 @@ below. It also has an internal function, `Unblind()`, which is used
 by `Finalize`. The implementation of these functions varies depending
 on the mode.
 
-#### Blind
-
-Blinding is done multiplicatively.
-
-`Blind` is implemented as follows:
+#### Blind and Unblind
 
 ~~~
 Input:
@@ -941,7 +925,7 @@ Errors: DeserializeError
 
 def Unblind(blind, evaluatedElement):
   Z = GG.DeserializeElement(evaluatedElement)
-  N = (blind^(-1)) * Z
+  N = blind^(-1) * Z
   unblindedElement = GG.SerializeElement(N)
 
   return unblindedElement
@@ -1006,12 +990,9 @@ def VerifyProof(A, B, C, D, proof):
   Cs = [C]
   Ds = [D]
 
-  a = ComputeComposites(B, Cs, Ds)
-  c = GG.DeserializeScalar(proof[0])
-  s = GG.DeserializeScalar(proof[1])
-
-  M = a[0]
-  Z = a[1]
+  (M, Z) = ComputeComposites(B, Cs, Ds)
+  c = GG.DeserializeScalar(proof.c)
+  s = GG.DeserializeScalar(proof.s)
 
   t2 = ((s * A) + (c * B))
   t3 = ((s * M) + (c * Z))
@@ -1030,7 +1011,7 @@ def VerifyProof(A, B, C, D, proof):
             I2OSP(len(a3), 2) || a3 ||
             I2OSP(len(challengeDST), 2) || challengeDST
 
-  expectedC  = GG.HashToScalar(h2Input)
+  expectedC = GG.HashToScalar(h2Input)
 
   return CT_EQUAL(expectedC, c)
 ~~~
@@ -1070,7 +1051,7 @@ def VerifiableUnblind(blind, evaluatedElement, blindedElement, pkS, proof, info)
   if VerifyProof(G, U, Z, R, proof) == false:
     raise VerifyError
 
-  N = (blind^(-1)) * Z
+  N = blind^(-1) * Z
   unblindedElement = GG.SerializeElement(N)
 
   return unblindedElement
@@ -1088,7 +1069,6 @@ Input:
   Element pkS
   Scalar proof
   PublicInput info
-
 
 Output:
 
@@ -1224,12 +1204,12 @@ treatment and public metadata representation.
 
 ## Error Considerations
 
-Some VOPRF APIs specified in this document are fallible. For example, `Finalize`
+Some POPRF APIs specified in this document are fallible. For example, `Finalize`
 and `Evaluate` can fail if any element received from the peer fails deserialization.
 The explicit errors generated throughout this specification, along with the
 conditions that lead to each error, are as follows:
 
-- `VerifyError`: VOPRF proof verification failed; {{verifiable-unblind}}.
+- `VerifyError`: Verifiable POPRF proof verification failed; {{verifiable-unblind}}.
 - `DeserializeError`: Group element or scalar deserialization failure; {{pog}}.
 
 The errors in this document are meant as a guide to implementors. They are not
@@ -1239,7 +1219,7 @@ implementations might run out of memory and return a corresponding error.
 ## Public Metadata
 
 The optional and public `info` string included in the protocol allows clients
-and servers to cryptographically bind additional data to the VOPRF output. This
+and servers to cryptographically bind additional data to the POPRF output. This
 metadata is known to both parties at the start of the protocol. It is RECOMMENDED
 that this metadata be constructed with some type of higher-level domain separation
 to avoid cross protocol attacks or related issues. For example, protocols using
@@ -1251,20 +1231,20 @@ constructing domain separation values.
 
 This section discusses the cryptographic security of our protocol, along
 with some suggestions and trade-offs that arise from the implementation
-of an OPRF.
+of a POPRF.
 
 ## Security Properties {#properties}
 
-The security properties of an OPRF protocol with functionality y = F(k,
-x, t) include those of a standard PRF. Specifically:
+The security properties of a POPRF protocol with functionality
+y = F(k, x, t) include those of a standard PRF. Specifically:
 
-- Pseudorandomness: F is pseudorandom if the output y = F(k,x, t) on any
+- Pseudorandomness: F is pseudorandom if the output y = F(k, x, t) on any
   input x is indistinguishable from uniformly sampling any element in
   F's range, for a random sampling of k.
 
 In other words, consider an adversary that picks inputs x from the
-domain of F and evaluates F on (k,x, t) (without knowledge of randomly
-sampled k). Then the output distribution F(k,x, t) is indistinguishable
+domain of F and evaluates F on (k, x, t) (without knowledge of randomly
+sampled k). Then the output distribution F(k, x, t) is indistinguishable
 from the output distribution of a randomly chosen function with the same
 domain and range.
 
@@ -1274,163 +1254,112 @@ from an existing evaluation). A genuinely random function will be
 non-malleable with high probability, and so a pseudorandom function must
 be non-malleable to maintain indistinguishability.
 
-An OPRF protocol must also satisfy the following property:
+A POPRF protocol must also satisfy the following property:
 
-- Oblivious: The server must learn nothing about the client's input or
-  the output of the function. In addition, the client must learn nothing
-  about the server's private key.
+- Partial obliviousness: The server must learn nothing about the client's
+  private input or the output of the function. In addition, the client must
+  learn nothing about the server's private key. Both client and server learn
+  the public input (info).
 
-Essentially, obliviousness tells us that, even if the server learns the
-client's input x at some point in the future, then the server will not
-be able to link any particular OPRF evaluation to x. This property is
+Essentially, partial obliviousness tells us that, even if the server learns
+the client's private input x at some point in the future, then the server will
+not be able to link any particular POPRF evaluation to x. This property is
 also known as unlinkability {{DGSTV18}}.
 
 Optionally, for any protocol that satisfies the above properties, there
 is an additional security property:
 
 - Verifiable: The client must only complete execution of the protocol if
-  it can successfully assert that the OPRF output it computes is
-  correct. This is taken with respect to the OPRF key held by the
+  it can successfully assert that the POPRF output it computes is
+  correct. This is taken with respect to the POPRF key held by the
   server.
 
-Any OPRF that satisfies the 'verifiable' security property is known as a
-verifiable OPRF, or VOPRF for short. In practice, the notion of
-verifiability requires that the server commits to the key before the
-actual protocol execution takes place. Then the client verifies that the
-server has used the key in the protocol using this commitment. In the
-following, we may also refer to this commitment as a public key.
+Any POPRF that satisfies the 'verifiable' security property is known as a
+verifiable POPRF. In practice, the notion of verifiability requires that
+the server commits to the key before the actual protocol execution takes
+place. Then the client verifies that the server has used the key in the
+protocol using this commitment. In the following, we may also refer to this
+commitment as a public key.
 
 ## Cryptographic Security {#cryptanalysis}
 
-Below, we discuss the cryptographic security of the (V)OPRF protocol
-from {{protocol}}, relative to the necessary cryptographic assumptions
-that need to be made.
+Below, we discuss the cryptographic security of the verifiable POPRF
+protocol from {{protocol}}, relative to the necessary cryptographic
+assumptions that need to be made.
 
-### Computational Hardness Assumptions {#assumptions}
+### Protocol Security and Computational Hardness Assumptions {#assumptions}
 
-Each assumption states that the problems specified below are
-computationally difficult to solve in relation to a particular choice of
-security parameter `sp`.
+The POPRF construction in this document is based on the construction known
+as 3HashSDHI given by {{TCRSTW21}}. The construction is identical to
+3HashSDHI, except that this design can optionally perform multiple POPRF
+evaluations in one go, whilst only constructing one NIZK proof object.
+This is enabled using an established batching technique.
 
-Let GG = GG(sp) be a group with prime-order p, and let GF(p) be a finite
-field of order p.
+The cryptographic security of the construction is based on the assumption
+that the One-More Gap Strong Diffie-Hellman Inversion (SDHI) assumption from
+{{TCRSTW21}} is computationally difficult to solve. {{TCRSTW21}} show that
+both the One-More Gap Computational Diffie Hellman (CDH)
+assumption and the One-More Gap SDHI assumption reduce to the q-DL assumption
+in the algebraic group model, for some q number of `Evaluate` queries.
+(The One-More Gap CDH assumption was the hardness assumption used to
+evaluate the 2HashDH-NIZK construction from {{JKK14}}, which is a predecessor
+to the design in this specification.)
 
-#### Discrete-log (DL) Problem {#dl}
+### Static q-DL Assumption
 
-Given G, a generator of GG, and H = hG for some h in GF(p); output h.
+A side-effect of the POPRF design is that it allows instantiation of an oracle for
+retrieving "strong-DH" evaluations, in which an adversary can query a group element
+B and scalar c, and receive evaluation output 1/(k+c)\*B. This type of oracle allows
+an adversary to form elements of "repeated powers" of the server-side secret. This
+"repeated powers" structure has been studied in terms of the q-DL problem which
+asks the following: Given G1, G2, h\*G2, (h^2)\*G2, ..., (h^Q)\*G2; for G1 and G2
+generators of GG. Output h where h is an element of GF(p)
 
-#### Decisional Diffie-Hellman (DDH) Problem {#ddh}
+For example, consider an adversary that queries the strong-DH oracle provided by the
+POPRF on a fixed scalar c starting with group element G2, then passes the received
+evaluation group element back as input for the next evaluation. If we set h = 1/(k+c),
+such an adversary would receive exactly the evaluations given in the q-DL problem: h\*G2,
+(h^2)\*G2, ..., (h^Q)\*G2.
 
-Sample uniformly at random d in {0,1}. Given (G, aG, bG, C), where
+{{TCRSTW21}} capture the power of the strong-DH oracle in the One-More Gap SDHI assumption
+and show, in the algebraic group model, the security of this assumption can be reduced to
+the security of the q-DL problem, where q is the number of queries made to the blind
+evaluation oracle.
 
-- G is a generator of GG;
-- a,b are elements of GF(p);
-- if d == 0: C = abG; else: C is sampled uniformly at random from GG.
-
-Output d' == d.
-
-### Protocol Security {#protocol-sec}
-
-Our OPRF construction is based on the VOPRF construction known as
-2HashDH-NIZK given by {{JKK14}}; essentially without providing
-zero-knowledge proofs that verify that the output is correct. Our VOPRF
-construction is identical to the {{JKK14}} construction, except that we
-can optionally perform multiple VOPRF evaluations in one go, whilst only
-constructing one NIZK proof object. This is enabled using an established
-batching technique.
-
-Consequently, the cryptographic security of our construction is based on
-the assumption that the One-More Gap DH is computationally difficult to
-solve.
-
-The (N,Q)-One-More Gap DH (OMDH) problem asks the following.
-
-~~~
-    Given:
-    - G, k * G, and (G_1, ... , G_N), all elements of GG;
-    - oracle access to an OPRF functionality using the key k;
-    - oracle access to DDH solvers.
-
-    Find Q+1 pairs of the form below:
-
-    (G_{j_s}, k * G_{j_s})
-
-    where the following conditions hold:
-      - s is a number between 1 and Q+1;
-      - j_s is a number between 1 and N for each s;
-      - Q is the number of allowed queries.
-~~~
-
-The original paper {{JKK14}} gives a security proof that the
-2HashDH-NIZK construction satisfies the security guarantees of a VOPRF
-protocol {{properties}} under the OMDH assumption in the universal
-composability (UC) security model.
-
-### Q-Strong-DH Oracle {#qsdh}
-
-A side-effect of our OPRF design is that it allows instantiation of a
-oracle for constructing Q-strong-DH (Q-sDH) samples. The Q-Strong-DH
-problem asks the following.
-
-~~~
-    Given G1, G2, h*G2, (h^2)*G2, ..., (h^Q)*G2; for G1 and G2
-    generators of GG.
-
-    Output ( (1/(k+c))*G1, c ) where c is an element of GF(p)
-~~~
-
-The assumption that this problem is hard was first introduced in
-{{BB04}}. Since then, there have been a number of cryptanalytic studies
-that have reduced the security of the assumption below that implied by
-the group instantiation (for example, {{BG04}} and {{Cheon06}}). In
-summary, the attacks reduce the security of the group instantiation by
-log\_2(Q)/2 bits. Note that the attacks only work in situations where Q
-divides p-1 or p+1, where p is the order of the prime-order group used
-to instantiate the OPRF.
-
-As an example, suppose that a group instantiation is used that provides
-128 bits of security against discrete log cryptanalysis. Then an
-adversary with access to a Q-sDH oracle and makes Q=2^20 queries can
-reduce the security of the instantiation by log\_2(2^20)/2 = 10 bits. Launching an attack would require
-2^(p/2-log\_2(Q)/2) bits of memory.
-
-Notice that it is easy to instantiate a Q-sDH oracle using the OPRF
-functionality that we provide. A client can just submit sequential
-queries of the form (G, k * G, (k^2)G, ..., (k^(Q-1))G), where each
-query is the output of the previous interaction. This means that any
-client that submits Q queries to the OPRF can use the aforementioned
-attacks to reduce the security of the group instantiation by
-(log\_2(Q)/2) bits.
-
-Recall that from a malicious client's perspective, the adversary wins if
-they can distinguish the OPRF interaction from a protocol that computes
-the ideal functionality provided by the PRF.
+The q-DL assumption has been well studied in the literature, and there exist a number of
+cryptanalytic studies to inform parameter choice and group instantiation (for example,
+{{BG04}} and {{Cheon06}}).
 
 ### Implications for Ciphersuite Choices
 
-The OPRF instantiations that we recommend in this document are informed
+The POPRF instantiations that we recommend in this document are informed
 by the cryptanalytic discussion above. In particular, choosing elliptic
 curves configurations that describe 128-bit group instantiations would
-appear to in fact instantiate an OPRF with 128-(log\_2(Q)/2) bits of
+appear to in fact instantiate a POPRF with 128-(log\_2(Q)/2) bits of
 security. Moreover, such attacks are only possible for those certain
-applications where the adversary can query the OPRF directly.
+applications where the adversary can query the POPRF directly.
 In applications where such an oracle is not made available this security loss does not apply.
 
 In most cases, it would require an informed and persistent attacker to
 launch a highly expensive attack to reduce security to anything much
 below 100 bits of security. We see this possibility as something that
-may result in problems in the future. For applications that admit the
-aforementioned oracle functionality, and that cannot tolerate discrete logarithm
-security of lower than 128 bits, we recommend only implementing
-ciphersuites with IDs 0x0002, 0x0004, and 0x0005.
+may result in problems in the future. Applications that admit the
+aforementioned oracle functionality, and that cannot tolerate discrete
+logarithm security of lower than 128 bits, are RECOMMENDED to only
+implement ciphersuites 0x0002, 0x0004, and 0x0005.
+
+## Proof Randomness
+
+It is essential that a different `r` value is used for every invocation
+of GenerateProof. Failure to do so may leak `skS` as is possible in Schnorr
+or (EC)DSA scenarios where fresh randomness is not used.
 
 ## Domain Separation {#domain-separation}
 
 Applications SHOULD construct input to the protocol to provide domain
-separation. Any system which has multiple (V)OPRF applications should
-distinguish client inputs to ensure the OPRF results are separate.
-Guidance for constructing info can be found in
-{{!I-D.irtf-cfrg-hash-to-curve}}; Section 3.1.
+separation. Any system which has multiple POPRF applications should
+distinguish client inputs to ensure the POPRF results are separate.
+Guidance for constructing info can be found in {{!I-D.irtf-cfrg-hash-to-curve, Section 3.1}}.
 
 ## Element and Scalar Validation {#input-validation}
 
@@ -1475,46 +1404,12 @@ instantiations of this functionality based on the functions described in
 must adhere to the implementation and security considerations discussed
 in {{!I-D.irtf-cfrg-hash-to-curve}} when instantiating the function.
 
-## Blinding Considerations {#blind-considerations}
-
-This document makes use of one type of blinding variants: multiplicative.
-Blinding may also be done additively. However, the choice of blinding
-mechanism has security implications. {{JKX21}} analyze the security
-properties of different blinding mechanisms. The results can be
-summarized as follows:
-
-- Multiplicative blinding is safe for all applications.
-- Additive blinding is possibly unsafe, unless one of the following conditions
-  are met:
-    - The client has a certified copy of the server public key (as is the case
-      in the verifiable mode);
-    - The client input has high entropy; and
-    - The client mixes the public key into the OPRF evaluation.
-
-To avoid security issues, where some of the above conditions may not be met,
-this specification use of multiplicative blinding. This is because it is
-not known if the server public key is available or if the client input has
-high entropy.
-
 ## Timing Leaks
 
 To ensure no information is leaked during protocol execution, all
 operations that use secret data MUST run in constant time. Operations that
 SHOULD run in constant time include all prime-order group operations and
 proof-specific operations (`GenerateProof()` and `VerifyProof()`).
-
-## Key Rotation {#key-rotation}
-
-Since the server's key is critical to security, the longer it is exposed
-by performing (V)OPRF operations on client inputs, the longer it is
-possible that the key can be compromised. For example, if the key is kept
-in circulation for a long period of time, then it also allows the
-clients to make enough queries to launch more powerful variants of the
-Q-sDH attacks from {{qsdh}}.
-
-To combat attacks of this nature, regular key rotation should be
-employed on the server-side. A suitable key-cycle for a key used to
-compute (V)OPRF evaluations would be between one week and six months.
 
 # Acknowledgements
 
