@@ -44,23 +44,14 @@ author:
 
 normative:
   RFC2119:
+
+informative:
   RFC7748:
   RFC8446:
   PrivacyPass:
     title: Privacy Pass
     target: https://github.com/privacypass/challenge-bypass-server
     date: false
-  BB04:
-    title: Short Signatures Without Random Oracles
-    target: http://ai.stanford.edu/~xb/eurocrypt04a/bbsigs.pdf
-    date: false
-    authors:
-      -
-        ins: D. Boneh
-        org: Stanford University, CA, USA
-      -
-        ins: X. Boyen
-        org: Voltage Security, Palo Alto, CA, USA
   BG04:
     title: The Static Diffie-Hellman Problem
     target: https://eprint.iacr.org/2004/306
@@ -128,26 +119,6 @@ normative:
       -
         ins: N. Saxena
         org: University of Alabama at Birmingham, USA
-  ECS15:
-    title: The pythia PRF service
-    target: https://eprint.iacr.org/2015/644.pdf
-    date: false
-    authors:
-      -
-        ins: A. Everspaugh
-        org: University of Wisconsin–Madison, USA
-      -
-        ins: R. Chatterjee
-        org: University of Wisconsin–Madison, USA
-      -
-        ins: S. Scott
-        org: Royal Holloway, University of London, UK
-      -
-        ins: A. Juels
-        org: Jacobs Institute, Cornell Tech, USA
-      -
-        ins: T. Ristenpart
-        org: Cornell Tech, USA
   TCRSTW21:
     title: A Fast and Simple Partially Oblivious PRF, with Applications
     target: https://eprint.iacr.org/2021/864
@@ -213,23 +184,6 @@ normative:
     author:
       -
         org: ANSI
-
-informative:
-  JKX21:
-    title: "On the (In)Security of the Diffie-Hellman Oblivious PRF with Multiplicative Blinding"
-    target: https://eprint.iacr.org/2021/273
-    date: March, 2021
-    seriesinfo: PKC'21
-    author:
-      -
-        org: S. Jarecki
-        name: Stanislaw Jarecki
-      -
-        org: H. Krawczyk
-        name: Hugo Krawczyk
-      -
-        org: J. Xu
-        name: Jiayu Xu
   keyagreement: DOI.10.6028/NIST.SP.800-56Ar3
 
 --- abstract
@@ -282,6 +236,13 @@ key. The document describes the protocol, application considerations, and its
 security properties.
 
 ## Change log
+
+[draft-08](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-08):
+
+- Adopt partially-oblivious PRF construction from {{TCRSTW21}}.
+- Update P-384 suite to use SHA-384 instead of SHA-512.
+- Update test vectors.
+- Apply various editorial changes.
 
 [draft-07](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-07):
 
