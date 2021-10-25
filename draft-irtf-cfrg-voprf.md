@@ -20,7 +20,7 @@ author:
  -
     ins: A. Faz-Hernandez
     name: Armando Faz-Hernandez
-    org: Cloudflare
+    org: Cloudflare, Inc.
     street: 101 Townsend St
     city: San Francisco
     country: United States of America
@@ -28,7 +28,7 @@ author:
  -
     ins: N. Sullivan
     name: Nick Sullivan
-    org: Cloudflare
+    org: Cloudflare, Inc.
     street: 101 Townsend St
     city: San Francisco
     country: United States of America
@@ -36,7 +36,7 @@ author:
  -
     ins: C. A. Wood
     name: Christopher A. Wood
-    org: Cloudflare
+    org: Cloudflare, Inc.
     street: 101 Townsend St
     city: San Francisco
     country: United States of America
