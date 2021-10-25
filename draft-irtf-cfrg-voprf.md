@@ -624,7 +624,7 @@ Output:
 
   SerializedElement evaluatedElement
 
-Errors: DeserializeError
+Errors: DeserializeError, InverseError
 
 def Evaluate(skS, blindedElement, info):
   R = GG.DeserializeElement(blindedElement)
@@ -632,6 +632,8 @@ def Evaluate(skS, blindedElement, info):
             I2OSP(len(info), 2) || info
   m = GG.HashToScalar(context)
   t = skS + m
+  if t == 0:
+      raise InverseError
   Z = t^(-1) * R
   evaluatedElement = GG.SerializeElement(Z)
 
@@ -651,12 +653,16 @@ Output:
 
   opaque output[Nh]
 
+Errors: InverseError
+
 def FullEvaluate(skS, input):
   P = GG.HashToGroup(input)
   context = "Context-" || contextString ||
             I2OSP(len(info), 2) || info
   m = GG.HashToScalar(context)
   t = skS + m
+  if t == 0:
+      raise InverseError
   T = t^(-1) * P
   issuedElement = GG.SerializeElement(T)
 
@@ -720,7 +726,7 @@ Output:
   SerializedElement evaluatedElement
   Proof proof
 
-Errors: DeserializeError
+Errors: DeserializeError, InverseError
 
 def Evaluate(skS, blindedElement, info):
   R = GG.DeserializeElement(blindedElement)
@@ -728,6 +734,8 @@ def Evaluate(skS, blindedElement, info):
             I2OSP(len(info), 2) || info
   m = GG.HashToScalar(context)
   t = skS + m
+  if t == 0:
+      raise InverseError
   Z = t^(-1) * R
 
   U = ScalarBaseMult(t)
@@ -986,6 +994,8 @@ Output:
 
   boolean verified
 
+Errors: DeserializeError
+
 def VerifyProof(A, B, C, D, proof):
   Cs = [C]
   Ds = [D]
@@ -1211,6 +1221,7 @@ conditions that lead to each error, are as follows:
 
 - `VerifyError`: Verifiable POPRF proof verification failed; {{verifiable-unblind}}.
 - `DeserializeError`: Group element or scalar deserialization failure; {{pog}}.
+- `InverseError`: A scalar is zero and has no inverse; {{pog}}.
 
 The errors in this document are meant as a guide to implementors. They are not
 an exhaustive list of all the errors an implementation might emit. For example,
