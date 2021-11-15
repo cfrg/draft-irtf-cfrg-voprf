@@ -1199,6 +1199,13 @@ this construction might ensure that the metadata uses a unique, prefix-free enco
 See {{I-D.irtf-cfrg-hash-to-curve, Section 10.4}} for further discussion on
 constructing domain separation values.
 
+Implementations may choose to not let applications control `info` in cases where
+this value is fixed or otherwise not useful to the application. In this case,
+the resulting protocol is functionally equivalent to an OPRF without public
+input. See {{equiv-2hashdh}} for discussion about repurposing existing non-verifiable
+OPRF implementations, i.e., those without the `info` parameter, using the construction
+in this specification.
+
 # Security Considerations {#sec}
 
 This section discusses the cryptographic security of our protocol, along
@@ -1301,6 +1308,35 @@ evaluation oracle.
 The q-DL assumption has been well studied in the literature, and there exist a number of
 cryptanalytic studies to inform parameter choice and group instantiation (for example,
 {{BG04}} and {{Cheon06}}).
+
+### 2HashDH OPRF Equivalence {#equiv-2hashdh}
+
+The non-verifiable 3HashSDHI POPRF construction in this specification is equivalent
+to the non-verifiable 2HashDH OPRF from {{JKK14}} when the input `info` is fixed.
+In particular, the 3HashSDHI POPRF computes the following given private key `k`,
+private input `x`, and public input `t`, where H1, H2, and H3 are GG.HashToGroup,
+GG.HashToScalar, and Hash, respectively:
+
+~~~
+H3(x, H1(x)^(1 / (k + H2(t))))
+~~~
+
+Similarly, the 2HashDH OPRF computes the following given private key `k'` and
+private input `x`:
+
+~~~
+H3(x, H1(x)^k')
+~~~
+
+Given a fixed public input `t`, one can transform a 3HashSDHI private key
+into an equivalent 2HashDH OPRF key as follows:
+
+~~~
+k' = 1 / (k + H2(t))
+~~~
+
+The distribution of `k'` through this transformation is statistically close
+to the distribution of a randomly sampled `k'` as output from `GG.GenerateKeyPair`.
 
 ### Implications for Ciphersuite Choices
 
