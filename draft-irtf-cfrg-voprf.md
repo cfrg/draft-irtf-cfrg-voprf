@@ -1328,15 +1328,24 @@ private input `x`:
 H3(x, H1(x)^k')
 ~~~
 
-Given a fixed public input `t`, one can transform a 3HashSDHI private key
-into an equivalent 2HashDH OPRF key as follows:
+Given a fixed public input `t`, one can transform a 3HashSDHI private key `k`
+into an equivalent 2HashDH private key `k'` as follows:
 
 ~~~
 k' = 1 / (k + H2(t))
 ~~~
 
-The distribution of `k'` through this transformation is statistically close
-to the distribution of a randomly sampled `k'` as output from `GG.GenerateKeyPair`.
+This transformation is undefined for values of `k` and `t` such that
+`k + H2(t) = 0`. For all other values, the distribution of `k'` through
+this transformation is statistically close to the distribution of a
+randomly sampled `k'` as output from `GG.GenerateKeyPair`.
+
+Note that one can also transform any non-zero 2HashDH private key `k'` into
+an equivalent 3HashSDHI private key `k` as follows:
+
+~~~
+k = (1 - (k' * H2(t))) / k'
+~~~
 
 ### Implications for Ciphersuite Choices
 
