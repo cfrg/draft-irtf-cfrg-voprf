@@ -1336,9 +1336,10 @@ k' = 1 / (k + H2(t))
 ~~~
 
 This transformation is undefined for values of `k` and `t` such that
-`k + H2(t) = 0`. For all other values, the distribution of `k'` through
-this transformation is statistically close to the distribution of a
-randomly sampled `k'` as output from `GG.GenerateKeyPair`.
+`k + H2(t) = 0`. Because only a single choice of `k` leads to this 
+undefined case, the distribution of `k'` defined via this transformation
+is statistically close to the distribution of a randomly sampled `k'`
+as output from `GG.GenerateKeyPair`.
 
 Note that one can also transform any non-zero 2HashDH private key `k'` into
 an equivalent 3HashSDHI private key `k` as follows:
