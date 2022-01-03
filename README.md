@@ -30,6 +30,7 @@ This requires that you have the necessary software installed.  See
 | [BoringSSL](https://boringssl.googlesource.com/boringssl/+/refs/heads/master/crypto/trust_token/) | C      | draft-04 | All    |
 | [voprf-poc-go](https://github.com/alxdavids/voprf-poc/tree/master/go)     | Go         | draft-03 | All    |
 | [voprf-poc-rust](https://github.com/alxdavids/voprf-poc/tree/master/rust) | Rust       | draft-03 | All    |
+| [ecc](https://github.com/aldenml/ecc)                                     | C          | draft-08 | All    |
 
 ### Other Integrations
 
