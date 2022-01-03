@@ -1000,7 +1000,7 @@ Input:
   SerializedElement evaluatedElement
   SerializedElement blindedElement
   Element pkS
-  Scalar proof
+  Proof proof
   PublicInput info
 
 Output:
@@ -1038,7 +1038,7 @@ Input:
   SerializedElement evaluatedElement
   SerializedElement blindedElement
   Element pkS
-  Scalar proof
+  Proof proof
   PublicInput info
 
 Output:
