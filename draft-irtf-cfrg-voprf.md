@@ -945,7 +945,7 @@ Input:
   Scalar blind
   SerializedElement evaluatedElement
   SerializedElement blindedElement
-  Scalar proof
+  Proof proof
 
 Output:
 
@@ -1021,7 +1021,7 @@ Input:
   Scalar blind
   SerializedElement evaluatedElement
   SerializedElement blindedElement
-  Scalar proof
+  Proof proof
   PublicInput info
 
 Output:
