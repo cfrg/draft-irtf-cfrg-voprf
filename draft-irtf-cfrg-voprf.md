@@ -619,6 +619,7 @@ ComputeComposites
 
 Input:
 
+  Scalar k
   Element B
   Element Cs[m]
   Element Ds[m]
@@ -628,7 +629,7 @@ Output:
   Element M
   Element Z
 
-def ComputeComposites(B, Cs, Ds):
+def ComputeCompositesFast(k, B, Cs, Ds):
   Bm = GG.SerializeElement(B)
   seedDST = "Seed-" || contextString
   h1Input = I2OSP(len(Bm), 2) || Bm ||
@@ -636,7 +637,6 @@ def ComputeComposites(B, Cs, Ds):
   seed = Hash(h1Input)
 
   M = GG.Identity()
-  Z = GG.Identity()
   for i = 0 to m-1:
     Ci = GG.SerializeElement(Cs[i])
     Di = GG.SerializeElement(Ds[i])
@@ -646,7 +646,8 @@ def ComputeComposites(B, Cs, Ds):
               "Composite"
     di = GG.HashToScalar(h2Input)
     M = di * Cs[i] + M
-    Z = di * Ds[i] + Z
+
+  Z = k * M
 
  return (M, Z)
 ~~~
@@ -1043,7 +1044,7 @@ Output:
 
   opaque output[Nh]
 
-Errors: DeserializeError, VerifyError
+Errors: DeserializeError, InverseError
 
 def Finalize(input, blind, evaluatedElement, blindedElement, proof, info):
   context = "Info" || I2OSP(len(info), 2) || info
