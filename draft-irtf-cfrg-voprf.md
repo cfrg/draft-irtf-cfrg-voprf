@@ -52,6 +52,17 @@ informative:
     title: Privacy Pass
     target: https://github.com/privacypass/challenge-bypass-server
     date: false
+  BB04:
+    title: Short Signatures Without Random Oracles
+    target: http://ai.stanford.edu/~xb/eurocrypt04a/bbsigs.pdf
+    date: false
+    authors:
+      -
+        ins: D. Boneh
+        org: Stanford University, CA, USA
+      -
+        ins: X. Boyen
+        org: Voltage Security, Palo Alto, CA, USA
   BG04:
     title: The Static Diffie-Hellman Problem
     target: https://eprint.iacr.org/2004/306
@@ -63,6 +74,9 @@ informative:
       -
         ins: R. Gallant
         org: Certicom Research
+  ChaumPedersen:
+    title: "Wallet Databases with Observers"
+    target: https://chaum.com/publications/Wallet_Databases.pdf
   Cheon06:
     title: Security Analysis of the Strong Diffie-Hellman Problem
     target: https://www.iacr.org/archive/eurocrypt2006/40040001/40040001.pdf
@@ -193,13 +207,13 @@ client and server for computing the output of a Pseudorandom Function (PRF).
 The server provides the PRF secret key, and the client provides the PRF
 input. At the end of the protocol, the client learns the PRF output without
 learning anything about the PRF secret key, and the server learns neither
-the PRF input nor output. A Partially-Oblivious PRF (POPRF) is an OPRF
-that allows client and server to provide public input to the
-PRF. OPRFs and POPRFs can also satisfy a notion of 'verifiability'.
-In this setting, clients can verify that the server used a specific
-private key during the execution of the protocol. This document
-specifies a POPRF protocol with optional verifiability instantiated within
-standard prime-order groups, including elliptic curves.
+the PRF input nor output. An OPRF can also satisfy a notion of 'verifiability',
+called a VOPRF. A VOPRF ensures clients can verify that the server used a
+specific private key during the execution of the protocol. A VOPRF can also
+be partially-oblivious, called a POPRF. A POPRF allows clients and servers
+to provide public input to the PRF computation. This document an OPRF,
+VOPRF, and POPRF instantiated within standard prime-order groups, including
+elliptic curves.
 
 --- middle
 
@@ -214,26 +228,25 @@ and a client, where the server holds a PRF key k and the client holds
 some input x. The protocol allows both parties to cooperate in computing
 F(k, x) such that the client learns F(k, x) without learning anything
 about k; and the server does not learn anything about x or F(k, x).
-A Partially-Oblivious PRF (POPRF) is a variant of an OPRF wherein client
-and server interact in computing F(k, x, y), for some PRF F with
-server-provided key k, client-provided input x, and public input y {{TCRSTW21}}.
-A POPRF with fixed input y is functionally equivalent to an OPRF.
-A POPRF is said to be 'verifiable' if the server can prove to the client
-that F(k, x, y) was computed using key k, without revealing k to the client.
+A Verifiable OPRF (VOPRF) is an OPRF wherein the server can prove to
+the client that F(k, x) was computed using the key k. A Partially-Oblivious
+PRF (POPRF) is a variant of a VOPRF wherein client and server interact
+in computing F(k, x, y), for some PRF F with server-provided key k,
+client-provided input x, and public input y {{TCRSTW21}}, and client
+receives proof that F(k, x, y) was computed using k. A POPRF with fixed
+input y is functionally equivalent to a VOPRF.
 
-POPRFs have a variety of applications, including: password-protected secret
+OPRFs have a variety of applications, including: password-protected secret
 sharing schemes {{JKKX16}}, privacy-preserving password stores {{SJKS17}}, and
 password-authenticated key exchange or PAKE {{!I-D.irtf-cfrg-opaque}}.
 Verifiable POPRFs are necessary in some applications such as Privacy Pass
 {{!I-D.davidson-pp-protocol}}. Verifiable POPRFs have also been used for
 password-protected secret sharing schemes such as that of {{JKK14}}.
 
-This document introduces a POPRF protocol built upon prime-order groups based on {{TCRSTW21}}.
-The protocol supports optional verifiability with the addition of a non-interactive
-zero knowledge proof (NIZK). This proof demonstrates correctness of the computation,
-using a known public key that serves as a commitment to the server's private
-key. The document describes the protocol, application considerations, and its
-security properties.
+This document specifies OPRF, VOPRF, and POPRF protocols built upon
+prime-order groups based on {{JKKX16}} and {{TCRSTW21}}. The document
+describes each protocol, application considerations, and their security
+properties.
 
 ## Change log
 
@@ -315,9 +328,41 @@ security properties.
 
 {::boilerplate bcp14}
 
+## Notation and Terminology
+
+The following functions and notation are used throughout the document.
+
+- For any object `x`, we write `len(x)` to denote its length in bytes.
+- For two byte arrays `x` and `y`, write `x || y` to denote their
+  concatenation.
+- I2OSP and OS2IP: Convert a byte array to and from a non-negative
+  integer as described in {{!RFC8017}}. Note that these functions
+  operate on byte arrays in big-endian byte order.
+- For any two byte strings `a` and `b`, `CT_EQUAL(a, b)` represents
+  constant-time equality between `a` and `b` which returns `true` if
+  `a` and `b` are equal and `false` otherwise.
+
+Data structure descriptions use TLS notation {{RFC8446, Section 3}}.
+
+All algorithms and procedures described in this document are laid out
+in a Python-like pseudocode.
+
+String values such as "Context-" are ASCII string literals.
+
+The following terms are used throughout this document.
+
+- PRF: Pseudorandom Function.
+- OPRF: Oblivious Pseudorandom Function.
+- VOPRF: Verifiable Oblivious Pseudorandom Function.
+- POPRF: Partially Oblivious Pseudorandom Function.
+- Client: Protocol initiator. Learns pseudorandom function evaluation as
+  the output of the protocol.
+- Server: Computes the pseudorandom function over a private key. Learns
+  nothing about the client's input or output.
+
 # Preliminaries
 
-The (V)OPRF protocol in this document has two primary dependencies:
+The protocols in this document have two primary dependencies:
 
 - `GG`: A prime-order group implementing the API described below in {{pog}},
   with base point defined in the corresponding reference for each group.
@@ -381,7 +426,7 @@ prime-order group `GG`.
   representation of a scalar. This function can raise a
   DeserializeError if deserialization fails; see {{input-validation}}.
 
-Two functions can be used for generating a (V)OPRF key pair (`skS`, `pkS`)
+Two functions can be used for generating a key pair (`skS`, `pkS`)
 where `skS` is a non-zero integer less than `p` and `pkS = ScalarBaseMult(skS)`:
 `GenerateKeyPair` and `DeriveKeyPair`. `GenerateKeyPair` is a randomized function
 that outputs a fresh key pair (`skS`, `pkS`) upon every invocation. `DeriveKeyPair`
@@ -402,315 +447,29 @@ with a prime-order group instantiation are removed. See {{ciphersuites}}
 for advice corresponding to the implementation of this interface for
 specific definitions of elliptic curves.
 
-## Notation and Terminology
+## Discrete Log Equivalence Proofs {#dleq}
 
-The following functions and notation are used throughout the document.
+Another important piece of the OPRF protocols in this document is proving
+that the discrete log of two values is identical in zero knowledge, i.e.,
+without revealing the discrete logarithm. This is referred to as a discrete
+log equivalence (DLEQ) proof. This section describes functions
+for non-interactively proving and verifying this type of statement,
+built on a Chaum-Pedersen {{ChaumPedersen}} proof. It is split into
+two sub-sections: one for generating the proof, which is done by servers
+in the OPRF protocol, and another for verifying the proof, which is
+done by clients in the protocol.
 
-- For any object `x`, we write `len(x)` to denote its length in bytes.
-- For two byte arrays `x` and `y`, write `x || y` to denote their
-  concatenation.
-- I2OSP and OS2IP: Convert a byte array to and from a non-negative
-  integer as described in {{!RFC8017}}. Note that these functions
-  operate on byte arrays in big-endian byte order.
-- For any two byte strings `a` and `b`, `CT_EQUAL(a, b)` represents
-  constant-time equality between `a` and `b` which returns `true` if
-  `a` and `b` are equal and `false` otherwise.
+### DLEQ Proof Generation
 
-Data structure descriptions use TLS notation {{RFC8446, Section 3}}.
-
-All algorithms and procedures described in this document are laid out
-in a Python-like pseudocode.
-
-String values such as "Context-" are ASCII string literals.
-
-The following terms are used throughout this document.
-
-- PRF: Pseudorandom Function.
-- OPRF: Oblivious Pseudorandom Function.
-- VOPRF: Verifiable Oblivious Pseudorandom Function.
-- POPRF: Partially Oblivious Pseudorandom Function.
-- Client: Protocol initiator. Learns pseudorandom function evaluation as
-  the output of the protocol.
-- Server: Computes the pseudorandom function over a private key. Learns
-  nothing about the client's input or output.
-- NIZK: Non-interactive zero knowledge.
-- DLEQ: Discrete Logarithm Equality.
-
-# POPRF Protocol {#protocol}
-
-In this section, we define two POPRF variants: a base mode and verifiable
-mode. In the base mode, a client and server interact to compute
-`output = F(skS, input, info)`, where `input` is the client's private input,
-`skS` is the server's private key, `info` is the public input (or metadata),
-and `output` is the POPRF output. The client learns `output` and the server
-learns nothing. In the verifiable mode, the client also receives proof that
-the server used `skS` in computing the function.
-
-To achieve verifiability, as in the original work of {{JKK14}}, we
-provide a zero-knowledge proof that the key provided as input by the
-server in the `Evaluate` function is the same key as it used to produce
-their public key. As an example of the nature of attacks that this
-prevents, this ensures that the server uses the same private key for
-computing the verifiable POPRF output and does not attempt to "tag"
-individual clients with select keys. This proof does not reveal the
-server's private key to the client.
-
-The following one-byte values distinguish between these two modes:
-
-| Mode           | Value |
-|:===============|:======|
-| modeBase       | 0x00  |
-| modeVerifiable | 0x01  |
-
-## Overview {#protocol-overview}
-
-Both participants agree on the mode and a choice of ciphersuite that is
-used before the protocol exchange. Once established, the base mode of
-the protocol runs to compute `output = F(skS, input, info)` as follows:
+Generating a proof is done with the `GenerateProof` function, defined below.
+This function takes four Elements, A, B, C, and D, and a single
+group Scalar k, and produces a proof that `k*A == B` and `k*C == D`.
+The output is a pair of serialized Scalars concatenated together,
+denoted as type `Proof`.
 
 ~~~
-    Client(input, info)                               Server(skS, info)
-  ----------------------------------------------------------------------
-  blind, blindedElement = Blind(input)
+GenerateProof
 
-                             blindedElement
-                               ---------->
-
-                 evaluatedElement = Evaluate(skS, blindedElement, info)
-
-                             evaluatedElement
-                               <----------
-
-  output = Finalize(input, blind, evaluatedElement, blindedElement, info)
-~~~
-
-In `Blind` the client generates a blinded element and blinding data. The server
-computes the POPRF evaluation in `Evaluate` over the client's blinded element,
-and public information `info`. In `Finalize` the client unblinds the server
-response and produces the POPRF output.
-
-In the verifiable mode of the protocol, the server additionally computes
-a proof in Evaluate. The client verifies this proof using the server's
-expected public key before completing the protocol and producing the
-protocol output.
-
-## Context Setup
-
-Both modes of the POPRF involve an offline setup phase. In this phase,
-both the client and server create a context used for executing the
-online phase of the protocol. The key pair (`skS`, `pkS`) should be
-generated by calling either `GenerateKeyPair` or `DeriveKeyPair`.
-
-The base mode setup functions for creating client and server contexts are below:
-
-~~~
-def SetupBaseServer(suite, skS):
-  contextString =
-    "VOPRF08-" || I2OSP(modeBase, 1) || I2OSP(suite.ID, 2)
-  return ServerContext(contextString, skS)
-
-def SetupBaseClient(suite):
-  contextString =
-    "VOPRF08-" || I2OSP(modeBase, 1) || I2OSP(suite.ID, 2)
-  return ClientContext(contextString)
-~~~
-
-The verifiable mode setup functions for creating client and server
-contexts are below:
-
-~~~
-def SetupVerifiableServer(suite, skS, pkS):
-  contextString =
-    "VOPRF08-" || I2OSP(modeVerifiable, 1) || I2OSP(suite.ID, 2)
-  return VerifiableServerContext(contextString, skS)
-
-def SetupVerifiableClient(suite, pkS):
-  contextString =
-    "VOPRF08-" || I2OSP(modeVerifiable, 1) || I2OSP(suite.ID, 2)
-  return VerifiableClientContext(contextString, pkS)
-~~~
-
-Each setup function takes a ciphersuite from the list defined in
-{{ciphersuites}}. Each ciphersuite has a two-byte field ID used to
-identify the suite.
-
-[[RFC editor: please change "VOPRF08" to "RFCXXXX", where XXXX is the final number, here and elsewhere before publication.]]
-
-## Context APIs {#api}
-
-In this section, we detail the APIs available on the client and server
-POPRF contexts. Each API has the following implicit parameters:
-
-- GG, a prime-order group implementing the API described in {{pog}}.
-- contextString, a domain separation tag constructed during context setup.
-
-The data types `PrivateInput` and `PublicInput` are opaque byte strings
-of arbitrary length no larger than 2^13 octets. `Proof` is a sequence
-of two `SerializedScalar` values, as shown below.
-
-~~~
-struct {
-  SerializedScalar c;
-  SerializedScalar s;
-} Proof;
-~~~
-
-### Server Context
-
-The ServerContext encapsulates the context string constructed during
-setup and the POPRF key pair. It has three functions, `Evaluate`,
-`FullEvaluate` and `VerifyFinalize` described below. `Evaluate` takes
-serialized representations of blinded group elements from the client
-as inputs along with public input `info`.
-
-`FullEvaluate` takes PrivateInput values, and it is useful for applications
-that need to compute the whole POPRF protocol on the server side only.
-
-`VerifyFinalize` takes PrivateInput values and their corresponding output
-digests from `Finalize` as input, and returns true if the inputs match the outputs.
-
-Note that `VerifyFinalize` and `FullEvaluate` are not used in the main POPRF
-protocol. They are exposed as an API for building higher-level protocols.
-
-#### Evaluate
-
-~~~
-Input:
-
-  Scalar skS
-  SerializedElement blindedElement
-  PublicInput info
-
-Output:
-
-  SerializedElement evaluatedElement
-
-Errors: DeserializeError, InverseError
-
-def Evaluate(skS, blindedElement, info):
-  R = GG.DeserializeElement(blindedElement)
-  context = "Context-" || contextString ||
-            I2OSP(len(info), 2) || info
-  m = GG.HashToScalar(context)
-  t = skS + m
-  if t == 0:
-      raise InverseError
-  Z = t^(-1) * R
-  evaluatedElement = GG.SerializeElement(Z)
-
-  return evaluatedElement
-~~~
-
-#### FullEvaluate
-
-~~~
-Input:
-
-  Scalar skS
-  PrivateInput input
-  PublicInput info
-
-Output:
-
-  opaque output[Nh]
-
-Errors: InverseError
-
-def FullEvaluate(skS, input):
-  P = GG.HashToGroup(input)
-  context = "Context-" || contextString ||
-            I2OSP(len(info), 2) || info
-  m = GG.HashToScalar(context)
-  t = skS + m
-  if t == 0:
-      raise InverseError
-  T = t^(-1) * P
-  issuedElement = GG.SerializeElement(T)
-
-  finalizeDST = "Finalize-" || contextString
-  hashInput = I2OSP(len(input), 2) || input ||
-              I2OSP(len(info), 2) || info ||
-              I2OSP(len(issuedElement), 2) || issuedElement ||
-              I2OSP(len(finalizeDST), 2) || finalizeDST
-
-  return Hash(hashInput)
-~~~
-
-#### VerifyFinalize
-
-~~~
-Input:
-
-  Scalar skS
-  PrivateInput input
-  opaque output[Nh]
-  PublicInput info
-
-Output:
-
-  boolean valid
-
-def VerifyFinalize(skS, input, output, info):
-  T = GG.HashToGroup(input)
-  element = GG.SerializeElement(T)
-  E = Evaluate(skS, [element], info)
-
-  finalizeDST = "Finalize-" || contextString
-  hashInput = I2OSP(len(input), 2) || input ||
-              I2OSP(len(info), 2) || info ||
-              I2OSP(len(E), 2) || E ||
-              I2OSP(len(finalizeDST), 2) || finalizeDST
-
-  digest = Hash(hashInput)
-
-  return CT_EQUAL(digest, output)
-~~~
-
-### VerifiableServerContext
-
-The VerifiableServerContext extends the base ServerContext with an
-augmented `Evaluate()` function. This function produces a proof that
-`skS` was used in computing the result. It makes use of the helper
-functions `GenerateProof` and `ComputeComposites`, described below.
-
-#### Evaluate
-
-~~~
-Input:
-
-  Scalar skS
-  SerializedElement blindedElement
-  PublicInput info
-
-Output:
-
-  SerializedElement evaluatedElement
-  Proof proof
-
-Errors: DeserializeError, InverseError
-
-def Evaluate(skS, blindedElement, info):
-  R = GG.DeserializeElement(blindedElement)
-  context = "Context-" || contextString ||
-            I2OSP(len(info), 2) || info
-  m = GG.HashToScalar(context)
-  t = skS + m
-  if t == 0:
-      raise InverseError
-  Z = t^(-1) * R
-
-  U = ScalarBaseMult(t)
-  proof = GenerateProof(t, G, U, Z, R)
-  evaluatedElement = GG.SerializeElement(Z)
-  return evaluatedElement, proof
-~~~
-
-The helper functions `GenerateProof` and `ComputeComposites` are defined
-below.
-
-#### GenerateProof
-
-~~~
 Input:
 
   Scalar k
@@ -753,66 +512,11 @@ def GenerateProof(k, A, B, C, D)
   return proof
 ~~~
 
-##### Batching inputs
-
-Unlike other functions, `ComputeComposites` takes lists of inputs,
-rather than a single input. Applications can take advantage of this
-functionality by invoking `GenerateProof` on batches of inputs to
-produce a combined, constant-size proof. (In the pseudocode above,
-the single inputs `blindedElement` and `evaluatedElement` are passed
-as single-item lists to `ComputeComposites`.)
-
-In particular, servers can produce a single, constant-sized proof for N
-client inputs sent in a single request, rather than one proof per client
-input. This optimization benefits clients and servers since it amortizes
-the cost of proof generation and bandwidth across multiple requests.
-
-#### ComputeComposites
-
-The definition of `ComputeComposites` is given below. This function is
-used both on generation and verification of the proof.
+The helper function ComputeCompositesFast is as defined below.
 
 ~~~
-Input:
+ComputeCompositesFast
 
-  Element B
-  Element Cs[m]
-  Element Ds[m]
-
-Output:
-
-  Element M
-  Element Z
-
-def ComputeComposites(B, Cs, Ds):
-  Bm = GG.SerializeElement(B)
-  seedDST = "Seed-" || contextString
-  compositeDST = "Composite-" || contextString
-
-  h1Input = I2OSP(len(Bm), 2) || Bm ||
-            I2OSP(len(seedDST), 2) || seedDST
-  seed = Hash(h1Input)
-
-  M = GG.Identity()
-  Z = GG.Identity()
-  for i = 0 to m-1:
-    Ci = GG.SerializeElement(Cs[i])
-    Di = GG.SerializeElement(Ds[i])
-    h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
-              I2OSP(len(Ci), 2) || Ci ||
-              I2OSP(len(Di), 2) || Di ||
-              I2OSP(len(compositeDST), 2) || compositeDST
-    di = GG.HashToScalar(h2Input)
-    M = di * Cs[i] + M
-    Z = di * Ds[i] + Z
-
- return (M, Z)
-~~~
-
-If the private key is known, as is the case for the server, this function
-can be optimized as shown in `ComputeCompositesFast` below.
-
-~~~
 Input:
 
   Scalar k
@@ -850,99 +554,24 @@ def ComputeCompositesFast(k, B, Cs, Ds):
  return (M, Z)
 ~~~
 
-### Client Context {#base-client}
+`ComputeCompositesFast` takes lists of inputs, rather than a single input.
+Applications can take advantage of this functionality by invoking `GenerateProof`
+on batches of inputs to produce a combined, constant-size proof.
+In particular, servers can produce a single, constant-sized proof for N DLEQ inputs,
+rather than one proof per DLEQ input. This optimization benefits
+clients and servers since it amortizes the cost of proof generation
+and bandwidth across multiple requests.
 
-The ClientContext encapsulates the context string constructed during
-setup. It has two functions, `Blind()` and `Finalize()`, as described
-below. It also has an internal function, `Unblind()`, which is used
-by `Finalize`. The implementation of these functions varies depending
-on the mode.
+### DLEQ Proof Verification
 
-#### Blind and Unblind
-
-~~~
-Input:
-
-  PrivateInput input
-
-Output:
-
-  Scalar blind
-  SerializedElement blindedElement
-
-def Blind(input):
-  blind = GG.RandomScalar()
-  P = GG.HashToGroup(input)
-  blindedElement = GG.SerializeElement(blind * P)
-
-  return blind, blindedElement
-~~~
-
-The inverse `Unblind` is implemented as follows.
+Verifying a proof is done with the `VerifyProof` function, defined below.
+This function takes four Elements, A, B, C, and D, along with a Proof value
+output from `GenerateProof`. It outputs a single boolean value indicating whether
+or not the proof is valid for the given DLEQ inputs.
 
 ~~~
-Input:
+VerifyProof
 
-  Scalar blind
-  SerializedElement evaluatedElement
-
-Output:
-
-  SerializedElement unblindedElement
-
-Errors: DeserializeError
-
-def Unblind(blind, evaluatedElement):
-  Z = GG.DeserializeElement(evaluatedElement)
-  N = blind^(-1) * Z
-  unblindedElement = GG.SerializeElement(N)
-
-  return unblindedElement
-~~~
-
-#### Finalize
-
-`Finalize` depends on the internal `Unblind` function. In this mode, `Finalize`
-does not include all inputs listed in {{protocol-overview}}. These additional
-inputs are only useful for the verifiable mode, described in {{verifiable-finalize}}.
-
-~~~
-Input:
-
-  PrivateInput input
-  Scalar blind
-  SerializedElement evaluatedElement
-  PublicInput info
-
-Output:
-
-  opaque output[Nh]
-
-def Finalize(input, blind, evaluatedElement, info):
-  unblindedElement = Unblind(blind, evaluatedElement)
-
-  finalizeDST = "Finalize-" || contextString
-  hashInput = I2OSP(len(input), 2) || input ||
-              I2OSP(len(info), 2) || info ||
-              I2OSP(len(unblindedElement), 2) || unblindedElement ||
-              I2OSP(len(finalizeDST), 2) || finalizeDST
-  return Hash(hashInput)
-~~~
-
-### VerifiableClientContext {#verifiable-client}
-
-The VerifiableClientContext extends the base ClientContext with the
-desired server public key `pkS` with an augmented `Unblind()` function.
-This function verifies an evaluation proof using `pkS`. It makes use of
-the helper function `ComputeComposites` described above. It has one
-helper function, `VerifyProof()`, defined below.
-
-#### VerifyProof
-
-This algorithm outputs a boolean `verified` which indicates whether the
-proof inside of the evaluation verifies correctly, or not.
-
-~~~
 Input:
 
   Element A
@@ -987,29 +616,421 @@ def VerifyProof(A, B, C, D, proof):
   return CT_EQUAL(expectedC, c)
 ~~~
 
-#### Verifiable Unblind {#verifiable-unblind}
-
-The inverse `VerifiableUnblind` is implemented as follows. This function
-can raise an exception if element deserialization or proof verification
-fails.
+The definition of `ComputeComposites` is given below. This function is
+used both on generation and verification of the proof.
 
 ~~~
+ComputeComposites
+
 Input:
 
+  Element B
+  Element Cs[m]
+  Element Ds[m]
+
+Output:
+
+  Element M
+  Element Z
+
+def ComputeComposites(B, Cs, Ds):
+  Bm = GG.SerializeElement(B)
+  seedDST = "Seed-" || contextString
+  compositeDST = "Composite-" || contextString
+
+  h1Input = I2OSP(len(Bm), 2) || Bm ||
+            I2OSP(len(seedDST), 2) || seedDST
+  seed = Hash(h1Input)
+
+  M = GG.Identity()
+  Z = GG.Identity()
+  for i = 0 to m-1:
+    Ci = GG.SerializeElement(Cs[i])
+    Di = GG.SerializeElement(Ds[i])
+    h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
+              I2OSP(len(Ci), 2) || Ci ||
+              I2OSP(len(Di), 2) || Di ||
+              I2OSP(len(compositeDST), 2) || compositeDST
+    di = GG.HashToScalar(h2Input)
+    M = di * Cs[i] + M
+    Z = di * Ds[i] + Z
+
+ return (M, Z)
+~~~
+
+As with the proof generation case, proof verification can be batched. `ComputeComposites`
+is defined in terms of a batch of inputs. Implementations can take advantage of this
+behavior by also batching inputs to `VerifyProof`, respectively.
+
+# Protocol {#protocol}
+
+In this section, we define three OPRF protocol variants -- a base mode,
+verifiable mode, and partially-oblivious mode -- with the following properties.
+
+In the base mode, a client and server interact to compute `output = F(skS, input)`,
+where `input` is the client's private input, `skS` is the server's private key,
+and `output` is the OPRF output. The client learns `output` and the server learns nothing.
+This interaction is shown below.
+
+~~~
+    Client                                              Server(skS)
+  ---------------------------------------------------------------------
+  blind, blindedElement = Blind(input)
+
+                             blindedElement
+                               ---------->
+
+                      evaluatedElement = Evaluate(blindedElement)
+
+                             evaluatedElement
+                               <----------
+
+  output = Finalize(input, blind, evaluatedElement, blindedElement)
+~~~
+{: #fig-oprf title="OPRF protocol overview"}
+
+In the verifiable mode, the client additionally receives proof that the server used `skS` in
+computing the function. To achieve verifiability, as in the original work of {{JKK14}}, the
+server provides a zero-knowledge proof that the key provided as input by the server in
+the `Evaluate` function is the same key as it used to produce their public key.
+This proof does not reveal the server's private key to the client. This interaction
+is shown below.
+
+~~~
+    Client(pkS)                                     Server(skS, pkS)
+  ---------------------------------------------------------------------
+  blind, blindedElement = Blind(input)
+
+                             blindedElement
+                               ---------->
+
+               evaluatedElement, proof = Evaluate(blindedElement)
+
+                             evaluatedElement
+                               <----------
+
+  output = Finalize(input, blind, evaluatedElement, blindedElement, proof)
+~~~
+{: #fig-voprf title="VOPRF protocol overview with additional proof"}
+
+In the partially-oblivious mode, the client and server can additionally provide a public
+input `info` that is used in computing the function. That is, the client and server
+interact to compute `output = F(skS, input, info)`. To support additional public input,
+the client and server augment the `pkS` and `skS`, respectively, using the `info` value,
+as in {{TCRSTW21}}.
+
+~~~
+    Client(pkS, info)                          Server(skS, pkS, info)
+  ---------------------------------------------------------------------
+  blind, blindedElement = Blind(input)
+
+                             blindedElement
+                               ---------->
+
+               evaluatedElement, proof = Evaluate(blindedElement, info)
+
+                             evaluatedElement
+                               <----------
+
+  output = Finalize(input, blind, evaluatedElement, blindedElement, proof, info)
+~~~
+{: #fig-poprf title="POPRF protocol overview with additional public input"}
+
+Each protocol consists of an offline setup phase and an online setup phase,
+described in {{offline}} and {{online}}, respectively. Configuration details
+for the offline phase are described in {{configuration}}.
+
+## Configuration
+
+Each of the three protocol variants are identified with a one-byte value:
+
+| Mode           | Value |
+|:===============|:======|
+| modeOPRF       | 0x00  |
+| modeVOPRF      | 0x01  |
+| modePOPRF      | 0x02  |
+
+Additionally, each protocol variant is instantiated with a ciphersuite,
+or suite. Each ciphersuite is identified with a two-byte value, referred
+to as `suiteID`; see {{ciphersuites}} for the registry of initial values.
+
+## Offline Context Setup {#offline}
+
+In the offline setup phase, both the client and server create a context used
+for executing the online phase of the protocol. The key pair (`skS`, `pkS`)
+should be generated by calling either `GenerateKeyPair` or `DeriveKeyPair`.
+Additionally, they agree on a ciphersuite value `suiteID`.
+
+The OPRF variant server and client contexts are created as follows:
+
+~~~
+def SetupOPRFServer(suiteID, skS):
+  contextString =
+    "VOPRF08-" || I2OSP(modeOPRF, 1) || I2OSP(suiteID, 2)
+  return OPRFServerContext(contextString, skS)
+
+def SetupOPRFClient(suiteID):
+  contextString =
+    "VOPRF08-" || I2OSP(modeOPRF, 1) || I2OSP(suiteID, 2)
+  return OPRFClientContext(contextString)
+~~~
+
+The VOPRF variant server and client contexts are created as follows:
+
+~~~
+def SetupVOPRFServer(suiteID, skS, pkS):
+  contextString =
+    "VOPRF08-" || I2OSP(modeVOPRF, 1) || I2OSP(suiteID, 2)
+  return VOPRFServerContext(contextString, skS)
+
+def SetupVOPRFClient(suiteID, pkS):
+  contextString =
+    "VOPRF08-" || I2OSP(modeVOPRF, 1) || I2OSP(suiteID, 2)
+  return VOPRFClientContext(contextString, pkS)
+~~~
+
+The POPRF variant server and client contexts are created as follows:
+
+~~~
+def SetupPOPRFServer(suiteID, skS, pkS):
+  contextString =
+    "VOPRF08-" || I2OSP(modePOPRF, 1) || I2OSP(suiteID, 2)
+  return POPRFServerContext(contextString, skS)
+
+def SetupPOPRFClient(suiteID, pkS):
+  contextString =
+    "VOPRF08-" || I2OSP(modePOPRF, 1) || I2OSP(suiteID, 2)
+  return POPRFClientContext(contextString, pkS)
+~~~
+
+[[RFC editor: please change "VOPRF08" to "RFCXXXX", where XXXX is the final number, here and elsewhere before publication.]]
+
+## Online Protocol {#online}
+
+In the online phase, the client and server engage in a two message protocol
+to compute the protocol output. This section describes the protocol details
+for each protocol variant. Throughout each description the following implicit
+parameters are assumed to exist:
+
+- GG, a prime-order group implementing the API described in {{pog}}.
+- contextString, a domain separation tag constructed during context setup as created in {{offline}}.
+- skS and pkS, the private and public keys configured for client and server in {{offline}}.
+
+Moreover, the data types `PrivateInput` and `PublicInput` are opaque byte
+strings of arbitrary length no larger than 2^13 octets.
+
+### OPRF Protocol {#oprf}
+
+The OPRF protocol begins with the client blinding its input, as described
+by the `Blind` function below.
+
+~~~
+Blind
+
+Input:
+
+  PrivateInput input
+
+Output:
+
+  Scalar blind
+  SerializedElement blindedElement
+
+def Blind(input):
+  blind = GG.RandomScalar()
+  P = GG.HashToGroup(input)
+  blindedElement = GG.SerializeElement(blind * P)
+
+  return blind, blindedElement
+~~~
+
+Clients store `blind` locally, and send `blindedElement` to the server for evaluation.
+Upon receipt, servers evaluate `blindedElement` using the `Evaluate` function
+described below.
+
+~~~
+Evaluate
+
+Input:
+
+  SerializedElement blindedElement
+
+Output:
+
+  SerializedElement evaluatedElement
+
+Errors: DeserializeError
+
+def Evaluate(blindedElement):
+  R = GG.DeserializeElement(blindedElement)
+  Z = skS * R
+  evaluatedElement = GG.SerializeElement(Z)
+
+  return evaluatedElement
+~~~
+
+Servers send the output `evaluatedElement` to clients for processing. Recall that
+servers may batch multiple client inputs to `Evaluate`.
+
+Upon receipt of `evaluatedElement`, clients complete the OPRF evaluation
+using the `Finalize` function described below.
+
+~~~
+Finalize
+
+Input:
+
+  PrivateInput input
+  Scalar blind
+  SerializedElement evaluatedElement
+
+Output:
+
+  opaque output[Nh]
+
+Errors: DeserializeError
+
+def Finalize(input, blind, evaluatedElement):
+  Z = GG.DeserializeElement(evaluatedElement)
+  N = blind^(-1) * Z
+  unblindedElement = GG.SerializeElement(N)
+
+  finalizeDST = "Finalize-" || contextString
+  hashInput = I2OSP(len(input), 2) || input ||
+              I2OSP(len(unblindedElement), 2) || unblindedElement ||
+              I2OSP(len(finalizeDST), 2) || finalizeDST
+  return Hash(hashInput)
+~~~
+
+### VOPRF Protocol {#voprf}
+
+The VOPRF protocol begins with the client blinding its input, using the same
+`Blind` function as in {{oprf}}. Clients store the output `blind` locally
+and send `blindedElement` to the server for evaluation. Upon receipt,
+servers compute an evaluated element and DLEQ proof using the following
+`Evaluate` function.
+
+~~~
+Evaluate
+
+Input:
+
+  SerializedElement blindedElement
+
+Output:
+
+  SerializedElement evaluatedElement
+  Proof proof
+
+Errors: DeserializeError, InverseError
+
+def Evaluate(blindedElement):
+  R = GG.DeserializeElement(blindedElement)
+  Z = skS * R
+  proof = GenerateProof(skS, G, pkS, R, Z)
+  evaluatedElement = GG.SerializeElement(Z)
+  return evaluatedElement, proof
+~~~
+
+The server sends both `evaluatedElement` and `proof` back to the client.
+Upon receipt, the client completes the VOPRF computation using the
+`Finalize` function below.
+
+~~~
+Finalize
+
+Input:
+
+  PrivateInput input
   Scalar blind
   SerializedElement evaluatedElement
   SerializedElement blindedElement
-  Element pkS
+  Scalar proof
+
+Output:
+
+  opaque output[Nh]
+
+Errors: DeserializeError, VerifyError
+
+def Finalize(input, blind, evaluatedElement, blindedElement, proof):
+  R = GG.DeserializeElement(blindedElement)
+  Z = GG.DeserializeElement(evaluatedElement)
+  if VerifyProof(G, pkS, R, Z, proof) == false:
+    raise VerifyError
+
+  N = blind^(-1) * Z
+  unblindedElement = GG.SerializeElement(N)
+
+  finalizeDST = "Finalize-" || contextString
+  hashInput = I2OSP(len(input), 2) || input ||
+              I2OSP(len(unblindedElement), 2) || unblindedElement ||
+              I2OSP(len(finalizeDST), 2) || finalizeDST
+  return Hash(hashInput)
+~~~
+
+### POPRF Protocol {#poprf}
+
+The VOPRF protocol begins with the client blinding its input, using the same
+`Blind` function as in {{oprf}}. Clients store the output `blind` locally
+and send `blindedElement` to the server for evaluation. Upon receipt,
+servers compute an evaluated element and DLEQ proof using the following
+`Evaluate` function.
+
+~~~
+Evaluate
+
+Input:
+
+  SerializedElement blindedElement
+  PublicInput info
+
+Output:
+
+  SerializedElement evaluatedElement
+  Proof proof
+
+Errors: DeserializeError, InverseError
+
+def Evaluate(blindedElement, info):
+  R = GG.DeserializeElement(blindedElement)
+  context = "Context-" || contextString ||
+            I2OSP(len(info), 2) || info
+  m = GG.HashToScalar(context)
+  t = skS + m
+  if t == 0:
+      raise InverseError
+  Z = t^(-1) * R
+
+  U = ScalarBaseMult(t)
+  proof = GenerateProof(t, G, U, Z, R)
+  evaluatedElement = GG.SerializeElement(Z)
+  return evaluatedElement, proof
+~~~
+
+The server sends both `evaluatedElement` and `proof` back to the client.
+Upon receipt, the client completes the VOPRF computation using the
+`Finalize` function below.
+
+~~~
+Finalize
+
+Input:
+
+  PrivateInput input
+  Scalar blind
+  SerializedElement evaluatedElement
+  SerializedElement blindedElement
   Scalar proof
   PublicInput info
 
 Output:
 
-  SerializedElement unblindedElement
+  opaque output[Nh]
 
 Errors: DeserializeError, VerifyError
 
-def VerifiableUnblind(blind, evaluatedElement, blindedElement, pkS, proof, info):
+def VerifiableFinalize(input, blind, evaluatedElement, blindedElement, proof, info):
   context = "Context-" || contextString ||
             I2OSP(len(info), 2) || info
   m = GG.HashToScalar(context)
@@ -1024,29 +1045,6 @@ def VerifiableUnblind(blind, evaluatedElement, blindedElement, pkS, proof, info)
 
   N = blind^(-1) * Z
   unblindedElement = GG.SerializeElement(N)
-
-  return unblindedElement
-~~~
-
-#### Verifiable Finalize {#verifiable-finalize}
-
-~~~
-Input:
-
-  PrivateInput input
-  Scalar blind
-  SerializedElement evaluatedElement
-  SerializedElement blindedElement
-  Element pkS
-  Scalar proof
-  PublicInput info
-
-Output:
-
-  opaque output[Nh]
-
-def VerifiableFinalize(input, blind, pkS, evaluatedElement, blindedElement, pkS, proof, info):
-  unblindedElement = VerifiableUnblind(blind, evaluatedElement, blindedElement, pkS, proof, info)
 
   finalizeDST = "Finalize-" || contextString
   hashInput = I2OSP(len(input), 2) || input ||
@@ -1180,7 +1178,7 @@ and `Evaluate` can fail if any element received from the peer fails deserializat
 The explicit errors generated throughout this specification, along with the
 conditions that lead to each error, are as follows:
 
-- `VerifyError`: Verifiable POPRF proof verification failed; {{verifiable-unblind}}.
+- `VerifyError`: Verifiable POPRF proof verification failed; {{voprf}} and {{poprf}}.
 - `DeserializeError`: Group element or scalar deserialization failure; {{pog}}.
 - `InverseError`: A scalar is zero and has no inverse; {{pog}}.
 
@@ -1245,16 +1243,16 @@ the client's private input x at some point in the future, then the server will
 not be able to link any particular POPRF evaluation to x. This property is
 also known as unlinkability {{DGSTV18}}.
 
-Optionally, for any protocol that satisfies the above properties, there
-is an additional security property:
+Additionally, for the VOPRF and POPRF protocol variants, there is an additional
+security property:
 
 - Verifiable: The client must only complete execution of the protocol if
   it can successfully assert that the POPRF output it computes is
   correct. This is taken with respect to the POPRF key held by the
   server.
 
-Any POPRF that satisfies the 'verifiable' security property is known as a
-verifiable POPRF. In practice, the notion of verifiability requires that
+Any VOPRF or POPRF that satisfies the 'verifiable' security property is known
+as 'verifiable'. In practice, the notion of verifiability requires that
 the server commits to the key before the actual protocol execution takes
 place. Then the client verifies that the server has used the key in the
 protocol using this commitment. In the following, we may also refer to this
@@ -1262,11 +1260,84 @@ commitment as a public key.
 
 ## Cryptographic Security {#cryptanalysis}
 
-Below, we discuss the cryptographic security of the verifiable POPRF
-protocol from {{protocol}}, relative to the necessary cryptographic
-assumptions that need to be made.
+Below, we discuss the cryptographic security of each protocol variant
+from {{protocol}}, relative to the necessary cryptographic assumptions
+that need to be made.
 
-### Protocol Security and Computational Hardness Assumptions {#assumptions}
+### OPRF and VOPRF Assumptions
+
+The OPRF and VOPRF protocol variants in this document are based on {{JKK14}}.
+In fact, the VOPRF construction is identical to the {{JKK14}} construction, except
+that this document supports batching so that multiple evaluations can happen
+at once whilst only constructing one NIZK proof object. This is enabled using
+an established batching technique.
+
+Consequently, the cryptographic security of the OPRF and VOPRF variants is based on
+the assumption that the One-More Gap DH is computationally difficult to solve.
+
+The (N,Q)-One-More Gap DH (OMDH) problem asks the following.
+
+~~~
+    Given:
+    - G, k * G, and (G_1, ... , G_N), all elements of GG;
+    - oracle access to an OPRF functionality using the key k;
+    - oracle access to DDH solvers.
+
+    Find Q+1 pairs of the form below:
+
+    (G_{j_s}, k * G_{j_s})
+
+    where the following conditions hold:
+      - s is a number between 1 and Q+1;
+      - j_s is a number between 1 and N for each s;
+      - Q is the number of allowed queries.
+~~~
+
+The original paper {{JKK14}} gives a security proof that the 2HashDH-NIZK
+construction satisfies the security guarantees of a VOPRF protocol {{properties}}
+under the OMDH assumption in the universal composability (UC) security model.
+
+### Q-Strong-DH Oracle {#qsdh}
+
+A side-effect of the OPRF and VOPRF protocols is that it allows instantiation of
+a oracle for constructing Q-strong-DH (Q-sDH) samples. The Q-Strong-DH
+problem asks the following.
+
+~~~
+    Given G1, G2, h*G2, (h^2)*G2, ..., (h^Q)*G2; for G1 and G2
+    generators of GG.
+
+    Output ( (1/(k+c))*G1, c ) where c is an element of GF(p)
+~~~
+
+The assumption that this problem is hard was first introduced in
+{{BB04}}. Since then, there have been a number of cryptanalytic studies
+that have reduced the security of the assumption below that implied by
+the group instantiation (for example, {{BG04}} and {{Cheon06}}). In
+summary, the attacks reduce the security of the group instantiation by
+log\_2(Q)/2 bits. Note that the attacks only work in situations where Q
+divides p-1 or p+1, where p is the order of the prime-order group used
+to instantiate the OPRF.
+
+As an example, suppose that a group instantiation is used that provides
+128 bits of security against discrete log cryptanalysis. Then an
+adversary with access to a Q-sDH oracle and makes Q=2^20 queries can
+reduce the security of the instantiation by log\_2(2^20)/2 = 10 bits.
+Launching an attack would require 2^(p/2-log\_2(Q)/2) bits of memory.
+
+Notice that it is easy to instantiate a Q-sDH oracle using the OPRF
+functionality that we provide. A client can just submit sequential
+queries of the form (G, k * G, (k^2)G, ..., (k^(Q-1))G), where each
+query is the output of the previous interaction. This means that any
+client that submits Q queries to the OPRF can use the aforementioned
+attacks to reduce the security of the group instantiation by
+(log\_2(Q)/2) bits.
+
+Recall that from a malicious client's perspective, the adversary wins if
+they can distinguish the OPRF interaction from a protocol that computes
+the ideal functionality provided by the PRF.
+
+### POPRF Assumptions
 
 The POPRF construction in this document is based on the construction known
 as 3HashSDHI given by {{TCRSTW21}}. The construction is identical to
@@ -1284,10 +1355,11 @@ in the algebraic group model, for some q number of `Evaluate` queries.
 evaluate the 2HashDH-NIZK construction from {{JKK14}}, which is a predecessor
 to the design in this specification.)
 
-### Static q-DL Assumption
+#### Static q-DL Assumption
 
-A side-effect of the POPRF design is that it allows instantiation of an oracle for
-retrieving "strong-DH" evaluations, in which an adversary can query a group element
+As with the OPRF and VOPRF variants, a side-effect of the POPRF design is
+that it allows instantiation of an oracle for retrieving "strong-DH"
+evaluations, in which an adversary can query a group element
 B and scalar c, and receive evaluation output 1/(k+c)\*B. This type of oracle allows
 an adversary to form elements of "repeated powers" of the server-side secret. This
 "repeated powers" structure has been studied in terms of the q-DL problem which
@@ -1336,7 +1408,7 @@ k' = 1 / (k + H2(t))
 ~~~
 
 This transformation is undefined for values of `k` and `t` such that
-`k + H2(t) = 0`. Because only a single choice of `k` leads to this 
+`k + H2(t) = 0`. Because only a single choice of `k` leads to this
 undefined case, the distribution of `k'` defined via this transformation
 is statistically close to the distribution of a randomly sampled `k'`
 as output from `GG.GenerateKeyPair`.
