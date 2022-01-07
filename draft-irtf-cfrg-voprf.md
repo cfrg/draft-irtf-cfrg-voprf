@@ -232,9 +232,9 @@ A Verifiable OPRF (VOPRF) is an OPRF wherein the server can prove to
 the client that F(k, x) was computed using the key k. A Partially-Oblivious
 PRF (POPRF) is a variant of a VOPRF wherein client and server interact
 in computing F(k, x, y), for some PRF F with server-provided key k,
-client-provided input x, and public input y {{TCRSTW21}}, and client
-receives proof that F(k, x, y) was computed using k. A POPRF with fixed
-input y is functionally equivalent to a VOPRF.
+client-provided input x, and public input y, and client receives proof
+that F(k, x, y) was computed using k. A POPRF with fixed input y is
+functionally equivalent to a VOPRF.
 
 OPRFs have a variety of applications, including: password-protected secret
 sharing schemes {{JKKX16}}, privacy-preserving password stores {{SJKS17}}, and
@@ -244,9 +244,9 @@ Verifiable POPRFs are necessary in some applications such as Privacy Pass
 password-protected secret sharing schemes such as that of {{JKK14}}.
 
 This document specifies OPRF, VOPRF, and POPRF protocols built upon
-prime-order groups based on {{JKKX16}} and {{TCRSTW21}}. The document
-describes each protocol, application considerations, and their security
-properties.
+prime-order groups based on the 2HashDH {{JKKX16}} and 3HashSDHI {{TCRSTW21}}
+designs, respectively. The document describes each protocol variant,
+along with application considerations, and their security properties.
 
 ## Change log
 
@@ -459,7 +459,7 @@ two sub-sections: one for generating the proof, which is done by servers
 in the OPRF protocol, and another for verifying the proof, which is
 done by clients in the protocol.
 
-### DLEQ Proof Generation
+### Proof Generation
 
 Generating a proof is done with the `GenerateProof` function, defined below.
 This function takes four Elements, A, B, C, and D, and a single
@@ -562,7 +562,7 @@ rather than one proof per DLEQ input. This optimization benefits
 clients and servers since it amortizes the cost of proof generation
 and bandwidth across multiple requests.
 
-### DLEQ Proof Verification
+### Proof Verification
 
 Verifying a proof is done with the `VerifyProof` function, defined below.
 This function takes four Elements, A, B, C, and D, along with a Proof value
@@ -706,7 +706,7 @@ is shown below.
 
                evaluatedElement, proof = Evaluate(blindedElement)
 
-                             evaluatedElement
+                         evaluatedElement, proof
                                <----------
 
   output = Finalize(input, blind, evaluatedElement, blindedElement, proof)
@@ -729,7 +729,7 @@ as in {{TCRSTW21}}.
 
                evaluatedElement, proof = Evaluate(blindedElement, info)
 
-                             evaluatedElement
+                         evaluatedElement, proof
                                <----------
 
   output = Finalize(input, blind, evaluatedElement, blindedElement, proof, info)
@@ -1169,11 +1169,11 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 # Application Considerations {#apis}
 
 This section describes considerations for applications, including explicit error
-treatment and public metadata representation.
+treatment and public input representation for the POPRF protocol variant.
 
 ## Error Considerations
 
-Some POPRF APIs specified in this document are fallible. For example, `Finalize`
+Some OPRF variants specified in this document have fallible operations. For example, `Finalize`
 and `Evaluate` can fail if any element received from the peer fails deserialization.
 The explicit errors generated throughout this specification, along with the
 conditions that lead to each error, are as follows:
@@ -1186,14 +1186,19 @@ The errors in this document are meant as a guide to implementors. They are not
 an exhaustive list of all the errors an implementation might emit. For example,
 implementations might run out of memory and return a corresponding error.
 
-## Public Metadata
+## POPRF Public Input
 
-The optional and public `info` string included in the protocol allows clients
-and servers to cryptographically bind additional data to the POPRF output. This
-metadata is known to both parties at the start of the protocol. It is RECOMMENDED
-that this metadata be constructed with some type of higher-level domain separation
+Functionally, the VOPRF and POPRF variants differ in that the POPRF variant
+admits public input, whereas the VOPRF variant does not. Public input allows
+clients and servers to cryptographically bind additional data to the POPRF output.
+A POPRF with fixed public input is functionally equivalent to a VOPRF. However, there
+are differences in the underlying security assumptions made about each variant;
+see {{cryptanalysis}} for more details.
+
+This public input is known to both parties at the start of the protocol. It is RECOMMENDED
+that this public input be constructed with some type of higher-level domain separation
 to avoid cross protocol attacks or related issues. For example, protocols using
-this construction might ensure that the metadata uses a unique, prefix-free encoding.
+this construction might ensure that the public input uses a unique, prefix-free encoding.
 See {{I-D.irtf-cfrg-hash-to-curve, Section 10.4}} for further discussion on
 constructing domain separation values.
 
