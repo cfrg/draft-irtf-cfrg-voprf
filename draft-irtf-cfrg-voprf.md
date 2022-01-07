@@ -211,7 +211,7 @@ the PRF input nor output. An OPRF can also satisfy a notion of 'verifiability',
 called a VOPRF. A VOPRF ensures clients can verify that the server used a
 specific private key during the execution of the protocol. A VOPRF can also
 be partially-oblivious, called a POPRF. A POPRF allows clients and servers
-to provide public input to the PRF computation. This document an OPRF,
+to provide public input to the PRF computation. This document specifies an OPRF,
 VOPRF, and POPRF instantiated within standard prime-order groups, including
 elliptic curves.
 
