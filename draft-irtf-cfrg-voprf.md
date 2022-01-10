@@ -616,8 +616,7 @@ def VerifyProof(A, B, C, D, proof):
   return expectedC == c
 ~~~
 
-The definition of `ComputeComposites` is given below. This function is
-used both on generation and verification of the proof.
+The definition of `ComputeComposites` is given below.
 
 ~~~
 ComputeComposites
