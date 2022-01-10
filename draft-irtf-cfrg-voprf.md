@@ -539,6 +539,7 @@ def ComputeCompositesFast(k, B, Cs, Ds):
   for i = 0 to m-1:
     Ci = GG.SerializeElement(Cs[i])
     Di = GG.SerializeElement(Ds[i])
+    compositeDST = "Composite"
     h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
               I2OSP(len(Ci), 2) || Ci ||
               I2OSP(len(Di), 2) || Di ||
@@ -640,6 +641,7 @@ def ComputeCompositesFast(k, B, Cs, Ds):
   for i = 0 to m-1:
     Ci = GG.SerializeElement(Cs[i])
     Di = GG.SerializeElement(Ds[i])
+    compositeDST = "Composite"
     h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
               I2OSP(len(Ci), 2) || Ci ||
               I2OSP(len(Di), 2) || Di ||
