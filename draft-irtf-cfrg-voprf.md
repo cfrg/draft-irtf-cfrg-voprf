@@ -713,7 +713,7 @@ is shown below.
 {: #fig-voprf title="VOPRF protocol overview with additional proof"}
 
 In the partially-oblivious mode, the client and server can additionally provide a public
-input `info` that is used in computing the function. That is, the client and server
+input `info` that is used in computing the pseudorandom function. That is, the client and server
 interact to compute `output = F(skS, input, info)`. To support additional public input,
 the client and server augment the `pkS` and `skS`, respectively, using the `info` value,
 as in {{TCRSTW21}}.
