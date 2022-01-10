@@ -456,7 +456,7 @@ log equivalence (DLEQ) proof. This section describes functions
 for non-interactively proving and verifying this type of statement,
 built on a Chaum-Pedersen {{ChaumPedersen}} proof. It is split into
 two sub-sections: one for generating the proof, which is done by servers
-in the OPRF protocol, and another for verifying the proof, which is
+in the verifiable protocols, and another for verifying the proof, which is
 done by clients in the protocol.
 
 ### Proof Generation
