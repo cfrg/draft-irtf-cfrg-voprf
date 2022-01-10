@@ -735,7 +735,7 @@ as in {{TCRSTW21}}.
 ~~~
 {: #fig-poprf title="POPRF protocol overview with additional public input"}
 
-Each protocol consists of an offline setup phase and an online setup phase,
+Each protocol consists of an offline setup phase and an online phase,
 described in {{offline}} and {{online}}, respectively. Configuration details
 for the offline phase are described in {{configuration}}.
 
