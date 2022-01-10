@@ -342,7 +342,7 @@ The following functions and notation are used throughout the document.
   constant-time equality between `a` and `b` which returns `true` if
   `a` and `b` are equal and `false` otherwise.
 
-Data structure descriptions use TLS notation {{RFC8446, Section 3}}.
+For serialization, all data structure descriptions use TLS notation {{RFC8446, Section 3}}.
 
 All algorithms and procedures described in this document are laid out
 in a Python-like pseudocode.
