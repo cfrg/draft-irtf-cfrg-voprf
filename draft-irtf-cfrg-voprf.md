@@ -1177,7 +1177,7 @@ and `Evaluate` can fail if any element received from the peer fails deserializat
 The explicit errors generated throughout this specification, along with the
 conditions that lead to each error, are as follows:
 
-- `VerifyError`: Verifiable POPRF proof verification failed; {{voprf}} and {{poprf}}.
+- `VerifyError`: Verifiable OPRF proof verification failed; {{voprf}} and {{poprf}}.
 - `DeserializeError`: Group element or scalar deserialization failure; {{pog}}.
 - `InverseError`: A scalar is zero and has no inverse; {{pog}}.
 
