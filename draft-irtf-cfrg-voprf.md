@@ -1029,7 +1029,7 @@ Output:
 
 Errors: DeserializeError, VerifyError
 
-def VerifiableFinalize(input, blind, evaluatedElement, blindedElement, proof, info):
+def Finalize(input, blind, evaluatedElement, blindedElement, proof, info):
   context = "Context-" || contextString ||
             I2OSP(len(info), 2) || info
   m = GG.HashToScalar(context)
