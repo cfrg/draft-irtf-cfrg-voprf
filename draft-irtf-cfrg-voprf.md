@@ -1273,7 +1273,7 @@ that need to be made.
 The OPRF and VOPRF protocol variants in this document are based on {{JKK14}}.
 In fact, the VOPRF construction is identical to the {{JKK14}} construction, except
 that this document supports batching so that multiple evaluations can happen
-at once whilst only constructing one NIZK proof object. This is enabled using
+at once whilst only constructing one proof object. This is enabled using
 an established batching technique.
 
 Consequently, the cryptographic security of the OPRF and VOPRF variants is based on
