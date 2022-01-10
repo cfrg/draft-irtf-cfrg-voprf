@@ -613,7 +613,7 @@ def VerifyProof(A, B, C, D, proof):
 
   expectedC = GG.HashToScalar(h2Input)
 
-  return CT_EQUAL(expectedC, c)
+  return expectedC == c
 ~~~
 
 The definition of `ComputeComposites` is given below. This function is
