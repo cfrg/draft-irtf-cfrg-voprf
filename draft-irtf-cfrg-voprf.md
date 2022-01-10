@@ -497,7 +497,7 @@ def GenerateProof(k, A, B, C, D)
   a2 = GG.SerializeElement(t2)
   a3 = GG.SerializeElement(t3)
 
-  challengeDST = "Challenge-" || contextString
+  challengeDST = "Challenge"
   h2Input = I2OSP(len(Bm), 2) || Bm ||
             I2OSP(len(a0), 2) || a0 ||
             I2OSP(len(a1), 2) || a1 ||
@@ -532,8 +532,6 @@ Output:
 def ComputeCompositesFast(k, B, Cs, Ds):
   Bm = GG.SerializeElement(B)
   seedDST = "Seed-" || contextString
-  compositeDST = "Composite-" || contextString
-
   h1Input = I2OSP(len(Bm), 2) || Bm ||
             I2OSP(len(seedDST), 2) || seedDST
   seed = Hash(h1Input)
@@ -542,6 +540,7 @@ def ComputeCompositesFast(k, B, Cs, Ds):
   for i = 0 to m-1:
     Ci = GG.SerializeElement(Cs[i])
     Di = GG.SerializeElement(Ds[i])
+    compositeDST = "Composite"
     h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
               I2OSP(len(Ci), 2) || Ci ||
               I2OSP(len(Di), 2) || Di ||
@@ -603,7 +602,7 @@ def VerifyProof(A, B, C, D, proof):
   a2 = GG.SerializeElement(t2)
   a3 = GG.SerializeElement(t3)
 
-  challengeDST = "Challenge-" || contextString
+  challengeDST = "Challenge"
   h2Input = I2OSP(len(Bm), 2) || Bm ||
             I2OSP(len(a0), 2) || a0 ||
             I2OSP(len(a1), 2) || a1 ||
@@ -635,8 +634,6 @@ Output:
 def ComputeComposites(B, Cs, Ds):
   Bm = GG.SerializeElement(B)
   seedDST = "Seed-" || contextString
-  compositeDST = "Composite-" || contextString
-
   h1Input = I2OSP(len(Bm), 2) || Bm ||
             I2OSP(len(seedDST), 2) || seedDST
   seed = Hash(h1Input)
@@ -646,6 +643,7 @@ def ComputeComposites(B, Cs, Ds):
   for i = 0 to m-1:
     Ci = GG.SerializeElement(Cs[i])
     Di = GG.SerializeElement(Ds[i])
+    compositeDST = "Composite"
     h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
               I2OSP(len(Ci), 2) || Ci ||
               I2OSP(len(Di), 2) || Di ||
@@ -894,7 +892,7 @@ def Finalize(input, blind, evaluatedElement):
   N = blind^(-1) * Z
   unblindedElement = GG.SerializeElement(N)
 
-  finalizeDST = "Finalize-" || contextString
+  finalizeDST = "Finalize"
   hashInput = I2OSP(len(input), 2) || input ||
               I2OSP(len(unblindedElement), 2) || unblindedElement ||
               I2OSP(len(finalizeDST), 2) || finalizeDST
@@ -961,7 +959,7 @@ def Finalize(input, blind, evaluatedElement, blindedElement, proof):
   N = blind^(-1) * Z
   unblindedElement = GG.SerializeElement(N)
 
-  finalizeDST = "Finalize-" || contextString
+  finalizeDST = "Finalize"
   hashInput = I2OSP(len(input), 2) || input ||
               I2OSP(len(unblindedElement), 2) || unblindedElement ||
               I2OSP(len(finalizeDST), 2) || finalizeDST
@@ -993,8 +991,7 @@ Errors: DeserializeError, InverseError
 
 def Evaluate(blindedElement, info):
   R = GG.DeserializeElement(blindedElement)
-  context = "Context-" || contextString ||
-            I2OSP(len(info), 2) || info
+  context = "Info" || I2OSP(len(info), 2) || info
   m = GG.HashToScalar(context)
   t = skS + m
   if t == 0:
@@ -1030,8 +1027,7 @@ Output:
 Errors: DeserializeError, VerifyError
 
 def Finalize(input, blind, evaluatedElement, blindedElement, proof, info):
-  context = "Context-" || contextString ||
-            I2OSP(len(info), 2) || info
+  context = "Info" || I2OSP(len(info), 2) || info
   m = GG.HashToScalar(context)
 
   R = GG.DeserializeElement(blindedElement)
@@ -1045,7 +1041,7 @@ def Finalize(input, blind, evaluatedElement, blindedElement, proof, info):
   N = blind^(-1) * Z
   unblindedElement = GG.SerializeElement(N)
 
-  finalizeDST = "Finalize-" || contextString
+  finalizeDST = "Finalize"
   hashInput = I2OSP(len(input), 2) || input ||
               I2OSP(len(info), 2) || info ||
               I2OSP(len(unblindedElement), 2) || unblindedElement ||
