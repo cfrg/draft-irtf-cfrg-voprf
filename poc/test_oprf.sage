@@ -7,9 +7,11 @@ import binascii
 
 try:
     from sagelib.oprf \
-    import DeriveKeyPair, SetupBaseServer, SetupBaseClient, SetupVerifiableServer, \
-           SetupVerifiableClient, oprf_ciphersuites, _as_bytes, MODE_BASE,  \
-           MODE_VERIFIABLE, \
+    import DeriveKeyPair, \
+           SetupOPRFServer, SetupOPRFClient, MODE_OPRF, \
+           SetupVOPRFServer, SetupVOPRFClient, MODE_VOPRF, \
+           SetupPOPRFServer, SetupPOPRFClient, MODE_POPRF, \
+           oprf_ciphersuites, _as_bytes, \
            ciphersuite_ristretto255_sha512, \
            ciphersuite_decaf448_shake256, \
            ciphersuite_p256_sha256, \
@@ -46,12 +48,15 @@ class Protocol(object):
 
         self.seed = b'\xA3' * suite.group.scalar_byte_length()
         skS, pkS = DeriveKeyPair(self.mode, self.suite, self.seed)
-        if mode == MODE_BASE:
-            self.server = SetupBaseServer(suite, skS)
-            self.client = SetupBaseClient(suite)
-        elif mode == MODE_VERIFIABLE:
-            self.server = SetupVerifiableServer(suite, skS, pkS)
-            self.client = SetupVerifiableClient(suite, pkS)
+        if mode == MODE_OPRF:
+            self.server = SetupOPRFServer(suite, skS)
+            self.client = SetupOPRFClient(suite)
+        elif mode == MODE_VOPRF:
+            self.server = SetupVOPRFServer(suite, skS, pkS)
+            self.client = SetupVOPRFClient(suite, pkS)
+        elif mode == MODE_POPRF:
+            self.server = SetupPOPRFServer(suite, skS, pkS)
+            self.client = SetupPOPRFClient(suite, pkS)
         else:
             raise Exception("bad mode")
 
@@ -72,14 +77,15 @@ class Protocol(object):
             vector["BlindedElement"] = to_hex(blinded_element)
             vector["EvaluationElement"] = to_hex(evaluated_element)
 
-            if self.mode == MODE_VERIFIABLE:
+            if self.mode == MODE_VOPRF or self.mode == MODE_POPRF:
                 vector["Proof"] = {
                     "proof": to_hex(group.serialize_scalar(proof[0]) + group.serialize_scalar(proof[1])),
                     "r": to_hex(group.serialize_scalar(proof_randomness)),
                 }
 
             vector["Input"] = to_hex(x)
-            vector["Info"] = to_hex(info)
+            if self.mode == MODE_POPRF:
+                vector["Info"] = to_hex(info)
             vector["Output"] = to_hex(output)
             vector["Batch"] = int(1)
 
@@ -104,21 +110,22 @@ class Protocol(object):
             vector["BlindedElement"] = to_hex(blinded_elements)
             vector["EvaluationElement"] = to_hex(evaluated_elements)
 
-            if self.mode == MODE_VERIFIABLE:
+            if self.mode == MODE_VOPRF or self.mode == MODE_POPRF:
                 vector["Proof"] = {
                     "proof": to_hex(group.serialize_scalar(proof[0]) + group.serialize_scalar(proof[1])),
                     "r": to_hex(group.serialize_scalar(proof_randomness)),
                 }
 
             vector["Input"] = to_hex(xs)
-            vector["Info"] = to_hex(info)
+            if self.mode == MODE_POPRF:
+                vector["Info"] = to_hex(info)
             vector["Output"] = to_hex(outputs)
             vector["Batch"] = int(len(xs))
 
             return vector
 
         vectors = [create_test_vector_for_input(x, self.info) for x in self.inputs]
-        if self.mode == MODE_VERIFIABLE:
+        if self.mode == MODE_VOPRF:
             vectors.append(create_batched_test_vector_for_inputs(self.inputs, self.info))
 
         vecSuite = {}
@@ -129,7 +136,7 @@ class Protocol(object):
         vecSuite["seed"] = to_hex(self.seed)
         vecSuite["skSm"] = to_hex(group.serialize_scalar(server.skS))
         vecSuite["groupDST"] = to_hex(client.group_domain_separation_tag())
-        if self.mode == MODE_VERIFIABLE:
+        if self.mode == MODE_VOPRF or self.mode == MODE_POPRF:
             vecSuite["pkSm"] = to_hex(group.serialize(server.pkS))
         vecSuite["vectors"] = vectors
 
@@ -148,7 +155,7 @@ def write_blob(fh, name, blob):
 def write_value(fh, name, value):
     wrap_write(fh, name + ' = ' + value)
 
-def write_base_vector(fh, vector):
+def write_oprf_vector(fh, vector):
     fh.write("~~~\n")
     write_value(fh, "seed", vector["seed"])
     write_value(fh, "skSm", vector["skSm"])
@@ -159,7 +166,6 @@ def write_base_vector(fh, vector):
         fh.write("\n")
         fh.write("~~~\n")
         write_value(fh, "Input", v["Input"])
-        write_value(fh, "Info", v["Info"])
         write_value(fh, "Blind", v["Blind"])
         write_value(fh, "BlindedElement", v["BlindedElement"])
         write_value(fh, "EvaluationElement", v["EvaluationElement"])
@@ -167,7 +173,28 @@ def write_base_vector(fh, vector):
         fh.write("~~~\n")
         fh.write("\n")
 
-def write_verifiable_vector(fh, vector):
+def write_voprf_vector(fh, vector):
+    fh.write("~~~\n")
+    write_value(fh, "seed", vector["seed"])
+    write_value(fh, "skSm", vector["skSm"])
+    write_value(fh, "pkSm", vector["pkSm"])
+    fh.write("~~~\n")
+    fh.write("\n")
+    for i, v in enumerate(vector["vectors"]):
+        fh.write("#### Test Vector " + str(i+1) + ", Batch Size " + str(v["Batch"]) + "\n")
+        fh.write("\n")
+        fh.write("~~~\n")
+        write_value(fh, "Input", v["Input"])
+        write_value(fh, "Blind", v["Blind"])
+        write_value(fh, "BlindedElement", v["BlindedElement"])
+        write_value(fh, "EvaluationElement", v["EvaluationElement"])
+        write_value(fh, "Proof", v["Proof"]["proof"])
+        write_value(fh, "ProofRandomScalar", v["Proof"]["r"])
+        write_value(fh, "Output", v["Output"])
+        fh.write("~~~\n")
+        fh.write("\n")
+
+def write_poprf_vector(fh, vector):
     fh.write("~~~\n")
     write_value(fh, "seed", vector["seed"])
     write_value(fh, "skSm", vector["skSm"])
@@ -189,12 +216,18 @@ def write_verifiable_vector(fh, vector):
         fh.write("~~~\n")
         fh.write("\n")
 
+mode_map = {
+    MODE_OPRF: "OPRF",
+    MODE_VOPRF: "VOPRF",
+    MODE_POPRF: "POPRF",
+}
+
 def main(path="vectors"):
     allVectors = {}
     for suite_id in test_suites:
         suite = oprf_ciphersuites[suite_id]
         suiteVectors = {}
-        for mode in [MODE_BASE, MODE_VERIFIABLE]:
+        for mode in [MODE_OPRF, MODE_VOPRF, MODE_POPRF]:
             protocol = Protocol(suite, mode, _as_bytes("test info"))
             suiteVectors[str(mode)] = protocol.run()
         allVectors[suite.name] = suiteVectors
@@ -212,14 +245,18 @@ def main(path="vectors"):
             f.write("## " + suite + "\n")
             f.write("\n")
             for mode in allVectors[suite]:
-                if mode == str(MODE_BASE):
-                    f.write("### Base Mode\n")
+                if mode == str(MODE_OPRF):
+                    f.write("### OPRF Mode\n")
                     f.write("\n")
-                    write_base_vector(f, allVectors[suite][mode])
+                    write_oprf_vector(f, allVectors[suite][mode])
+                elif mode == str(MODE_VOPRF):
+                    f.write("### VOPRF Mode\n")
+                    f.write("\n")
+                    write_voprf_vector(f, allVectors[suite][mode])
                 else:
-                    f.write("### Verifiable Mode\n")
+                    f.write("### POPRF Mode\n")
                     f.write("\n")
-                    write_verifiable_vector(f, allVectors[suite][mode])
+                    write_poprf_vector(f, allVectors[suite][mode])
 
 if __name__ == "__main__":
     main()
