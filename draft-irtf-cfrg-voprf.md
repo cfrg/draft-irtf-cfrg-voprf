@@ -1327,7 +1327,7 @@ As an example, suppose that a group instantiation is used that provides
 128 bits of security against discrete log cryptanalysis. Then an
 adversary with access to a Q-sDH oracle and makes Q=2^20 queries can
 reduce the security of the instantiation by log\_2(2^20)/2 = 10 bits.
-Launching an attack would require 2^(p/2-log\_2(Q)/2) bits of memory.
+Launching this attack would require 2^(p/2-log\_2(Q)/2) bits of memory.
 
 Notice that it is easy to instantiate a Q-sDH oracle using the OPRF
 functionality that we provide. A client can just submit sequential
