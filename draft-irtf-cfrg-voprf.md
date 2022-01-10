@@ -970,7 +970,7 @@ def Finalize(input, blind, evaluatedElement, blindedElement, proof):
 
 ### POPRF Protocol {#poprf}
 
-The VOPRF protocol begins with the client blinding its input, using the same
+The POPRF protocol begins with the client blinding its input, using the same
 `Blind` function as in {{oprf}}. Clients store the output `blind` locally
 and send `blindedElement` to the server for evaluation. Upon receipt,
 servers compute an evaluated element and DLEQ proof using the following
