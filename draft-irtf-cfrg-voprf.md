@@ -691,7 +691,7 @@ This interaction is shown below.
 In the verifiable mode, the client additionally receives proof that the server used `skS` in
 computing the function. To achieve verifiability, as in the original work of {{JKK14}}, the
 server provides a zero-knowledge proof that the key provided as input by the server in
-the `Evaluate` function is the same key as it used to produce their public key.
+the `Evaluate` function is the same key as it used to produce the server's public key.
 This proof does not reveal the server's private key to the client. This interaction
 is shown below.
 
