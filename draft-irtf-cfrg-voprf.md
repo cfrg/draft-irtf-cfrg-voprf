@@ -921,7 +921,7 @@ Output:
   SerializedElement evaluatedElement
   Proof proof
 
-Errors: DeserializeError, InverseError
+Errors: DeserializeError
 
 def Evaluate(blindedElement):
   R = GG.DeserializeElement(blindedElement)
