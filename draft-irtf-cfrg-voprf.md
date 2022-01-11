@@ -497,13 +497,12 @@ def GenerateProof(k, A, B, C, D)
   a2 = GG.SerializeElement(t2)
   a3 = GG.SerializeElement(t3)
 
-  challengeDST = "Challenge"
   h2Input = I2OSP(len(Bm), 2) || Bm ||
             I2OSP(len(a0), 2) || a0 ||
             I2OSP(len(a1), 2) || a1 ||
             I2OSP(len(a2), 2) || a2 ||
             I2OSP(len(a3), 2) || a3 ||
-            I2OSP(len(challengeDST), 2) || challengeDST
+            "Challenge"
 
   c = GG.HashToScalar(h2Input)
   s = (r - c * k) mod p
@@ -601,13 +600,12 @@ def VerifyProof(A, B, C, D, proof):
   a2 = GG.SerializeElement(t2)
   a3 = GG.SerializeElement(t3)
 
-  challengeDST = "Challenge"
   h2Input = I2OSP(len(Bm), 2) || Bm ||
             I2OSP(len(a0), 2) || a0 ||
             I2OSP(len(a1), 2) || a1 ||
             I2OSP(len(a2), 2) || a2 ||
             I2OSP(len(a3), 2) || a3 ||
-            I2OSP(len(challengeDST), 2) || challengeDST
+            "Challenge"
 
   expectedC = GG.HashToScalar(h2Input)
 
