@@ -539,11 +539,14 @@ def ComputeCompositesFast(k, B, Cs, Ds):
   for i = 0 to m-1:
     Ci = GG.SerializeElement(Cs[i])
     Di = GG.SerializeElement(Ds[i])
-    compositeDST = "Composite"
     h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
               I2OSP(len(Ci), 2) || Ci ||
               I2OSP(len(Di), 2) || Di ||
+<<<<<<< HEAD
               "Composite"
+=======
+              "Challenge"
+>>>>>>> 20ce48e (Make hash DSTs constants (dropping length). Update test vectors.)
     di = GG.HashToScalar(h2Input)
     M = di * Cs[i] + M
 
@@ -641,11 +644,14 @@ def ComputeCompositesFast(k, B, Cs, Ds):
   for i = 0 to m-1:
     Ci = GG.SerializeElement(Cs[i])
     Di = GG.SerializeElement(Ds[i])
-    compositeDST = "Composite"
     h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
               I2OSP(len(Ci), 2) || Ci ||
               I2OSP(len(Di), 2) || Di ||
+<<<<<<< HEAD
               "Composite"
+=======
+              "Challenge"
+>>>>>>> 20ce48e (Make hash DSTs constants (dropping length). Update test vectors.)
     di = GG.HashToScalar(h2Input)
     M = di * Cs[i] + M
 
@@ -2471,8 +2477,7 @@ Proof = 0159601e267dca78265188a393cc0dd337451fb1bc530b2f8bf5a47f0ff8
 ProofRandomScalar = 008c15ac9ea0f8380dcce04b4c70b85f82bd8d1806c3f85d
 aa0e690689a7ed6faa65712283a076c4eaee988dcf39d6775f3feee6a4376b45efbc
 57c5f087181c9f04
-Output = 815428eebcd92bcbff8d4fbe87f3f279c73a7db234b35dc3a582aaccd2a
-f1fdbb3a28c149fa1df3b87f02805cf0d72d6dccd63feef0021ac90b70523251ad05
-4
+Output = 34ec5a12c07a35a9f6acbcbd991a2552444c9255c30f63b0537e1d6ed07
+1b736b732a88e40c368d8978e475ba0391865f608db1169c655697550f109589283c
+3
 ~~~
-
