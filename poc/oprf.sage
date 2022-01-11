@@ -68,11 +68,9 @@ class OPRFClientContext(Context):
 
     def finalize(self, x, blind, evaluated_element, blinded_element, proof, info):
         unblinded_element = self.unblind(blind, evaluated_element, blinded_element, proof)
-        finalizeDST = _as_bytes("Finalize")
         finalize_input = I2OSP(len(x), 2) + x \
-            + I2OSP(len(info), 2) + info \
             + I2OSP(len(unblinded_element), 2) + unblinded_element \
-            + I2OSP(len(finalizeDST), 2) + finalizeDST
+            + _as_bytes("Finalize")
 
         return self.suite.hash(finalize_input)
 
@@ -91,13 +89,11 @@ class OPRFServerContext(Context):
     def verify_finalize(self, x, expected_digest, info):
         P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
         input_element = self.suite.group.serialize(P)
-        issued_element, _, _  = self.evaluate(input_element, info) # Ignore the proof output
+        issued_element, _, _ = self.evaluate(input_element, info) # Ignore proof output
 
-        finalizeDST = _as_bytes("Finalize")
         finalize_input = I2OSP(len(x), 2) + x \
-            + I2OSP(len(info), 2) + info \
             + I2OSP(len(issued_element), 2) + issued_element \
-            + I2OSP(len(finalizeDST), 2) + finalizeDST
+            + _as_bytes("Finalize")
 
         digest = self.suite.hash(finalize_input)
 
@@ -108,7 +104,6 @@ class Verifiable(object):
         assert(len(Cs) == len(Ds))
 
         seedDST = _as_bytes("Seed-") + self.context_string
-        compositeDST = _as_bytes("Composite")
         Bm = self.suite.group.serialize(B)
 
         h1_input = I2OSP(len(Bm), 2) + Bm \
@@ -125,7 +120,7 @@ class Verifiable(object):
                 + I2OSP(i, 2) \
                 + I2OSP(len(Ci), 2) + Ci \
                 + I2OSP(len(Di), 2) + Di \
-                + I2OSP(len(compositeDST), 2) + compositeDST
+                + _as_bytes("Composite")
 
             di = self.suite.group.hash_to_scalar(h2_input, self.scalar_domain_separation_tag())
             M = (di * Cs[i]) + M
@@ -163,20 +158,19 @@ class VOPRFClientContext(OPRFClientContext,Verifiable):
         a2 = self.suite.group.serialize(t2)
         a3 = self.suite.group.serialize(t3)
 
-        challengeDST = _as_bytes("Challenge")
         h2s_input = I2OSP(len(Bm), 2) + Bm \
             + I2OSP(len(a0), 2) + a0 \
             + I2OSP(len(a1), 2) + a1 \
             + I2OSP(len(a2), 2) + a2 \
             + I2OSP(len(a3), 2) + a3 \
-            + I2OSP(len(challengeDST), 2) + challengeDST
+            + _as_bytes("Challenge")
 
         c = self.suite.group.hash_to_scalar(h2s_input, self.scalar_domain_separation_tag())
 
         assert(c == proof[0])
         return c == proof[0]
 
-    def unblind(self, blind, evaluated_element, blinded_element, proof, tag):
+    def unblind(self, blind, evaluated_element, blinded_element, proof):
         R = self.suite.group.deserialize(blinded_element)
         Z = self.suite.group.deserialize(evaluated_element)
         G = self.suite.group.generator()
@@ -188,7 +182,7 @@ class VOPRFClientContext(OPRFClientContext,Verifiable):
         unblinded_element = self.suite.group.serialize(N)
         return unblinded_element
 
-    def unblind_batch(self, blinds, evaluated_elements, blinded_elements, proof, tag):
+    def unblind_batch(self, blinds, evaluated_elements, blinded_elements, proof):
         assert(len(blinds) == len(evaluated_elements))
         assert(len(evaluated_elements) == len(blinded_elements))
 
@@ -215,14 +209,10 @@ class VOPRFClientContext(OPRFClientContext,Verifiable):
         return unblinded_elements
 
     def finalize(self, x, blind, evaluated_element, blinded_element, proof, info):
-        context = _as_bytes("Context") + I2OSP(len(info), 2) + info
-        tag = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
-        unblinded_element = self.unblind(blind, evaluated_element, blinded_element, proof, tag)
-        finalizeDST = _as_bytes("Finalize")
+        unblinded_element = self.unblind(blind, evaluated_element, blinded_element, proof)
         finalize_input = I2OSP(len(x), 2) + x \
-            + I2OSP(len(info), 2) + info \
             + I2OSP(len(unblinded_element), 2) + unblinded_element \
-            + I2OSP(len(finalizeDST), 2) + finalizeDST
+            + _as_bytes("Finalize")
 
         return self.suite.hash(finalize_input)
 
@@ -230,17 +220,13 @@ class VOPRFClientContext(OPRFClientContext,Verifiable):
         assert(len(blinds) == len(evaluated_elements))
         assert(len(evaluated_elements) == len(blinded_elements))
 
-        context = _as_bytes("Context") + I2OSP(len(info), 2) + info
-        tag = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
-        unblinded_elements = self.unblind_batch(blinds, evaluated_elements, blinded_elements, proof, tag)
+        unblinded_elements = self.unblind_batch(blinds, evaluated_elements, blinded_elements, proof)
 
         outputs = []
-        finalizeDST = _as_bytes("Finalize")
         for i, unblinded_element in enumerate(unblinded_elements):
             finalize_input = I2OSP(len(xs[i]), 2) + xs[i] \
-                + I2OSP(len(info), 2) + info \
                 + I2OSP(len(unblinded_element), 2) + unblinded_element \
-                + I2OSP(len(finalizeDST), 2) + finalizeDST
+                + _as_bytes("Finalize")
 
             digest = self.suite.hash(finalize_input)
             outputs.append(digest)
@@ -266,13 +252,12 @@ class VOPRFServerContext(OPRFServerContext,Verifiable):
         a2 = self.suite.group.serialize(t2)
         a3 = self.suite.group.serialize(t3)
 
-        challengeDST = _as_bytes("Challenge")
         h2s_input = I2OSP(len(Bm), 2) + Bm \
             + I2OSP(len(a0), 2) + a0 \
             + I2OSP(len(a1), 2) + a1 \
             + I2OSP(len(a2), 2) + a2 \
             + I2OSP(len(a3), 2) + a3 \
-            + I2OSP(len(challengeDST), 2) + challengeDST
+            + _as_bytes("Challenge")
 
         c = self.suite.group.hash_to_scalar(h2s_input, self.scalar_domain_separation_tag())
         s = (r - c * k) % self.suite.group.order()
@@ -348,14 +333,13 @@ class POPRFClientContext(VOPRFClientContext):
         return unblinded_elements
 
     def finalize(self, x, blind, evaluated_element, blinded_element, proof, info):
-        context = _as_bytes("Context") + I2OSP(len(info), 2) + info
+        context = _as_bytes("Info") + I2OSP(len(info), 2) + info
         tag = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
         unblinded_element = self.unblind(blind, evaluated_element, blinded_element, proof, tag)
-        finalizeDST = _as_bytes("Finalize")
         finalize_input = I2OSP(len(x), 2) + x \
             + I2OSP(len(info), 2) + info \
             + I2OSP(len(unblinded_element), 2) + unblinded_element \
-            + I2OSP(len(finalizeDST), 2) + finalizeDST
+            + _as_bytes("Finalize")
 
         return self.suite.hash(finalize_input)
 
@@ -363,17 +347,16 @@ class POPRFClientContext(VOPRFClientContext):
         assert(len(blinds) == len(evaluated_elements))
         assert(len(evaluated_elements) == len(blinded_elements))
 
-        context = _as_bytes("Context") + I2OSP(len(info), 2) + info
+        context = _as_bytes("Info") + I2OSP(len(info), 2) + info
         tag = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
         unblinded_elements = self.unblind_batch(blinds, evaluated_elements, blinded_elements, proof, tag)
 
         outputs = []
-        finalizeDST = _as_bytes("Finalize")
         for i, unblinded_element in enumerate(unblinded_elements):
             finalize_input = I2OSP(len(xs[i]), 2) + xs[i] \
                 + I2OSP(len(info), 2) + info \
                 + I2OSP(len(unblinded_element), 2) + unblinded_element \
-                + I2OSP(len(finalizeDST), 2) + finalizeDST
+                + _as_bytes("Finalize")
 
             digest = self.suite.hash(finalize_input)
             outputs.append(digest)
@@ -386,7 +369,7 @@ class POPRFServerContext(VOPRFServerContext):
 
     def evaluate(self, blinded_element, info):
         R = self.suite.group.deserialize(blinded_element)
-        context = _as_bytes("Context") + I2OSP(len(info), 2) + info
+        context = _as_bytes("Info") + I2OSP(len(info), 2) + info
         t = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
 
         k = self.skS + t
@@ -404,7 +387,7 @@ class POPRFServerContext(VOPRFServerContext):
         Zs = []
         evaluated_elements = []
 
-        context = _as_bytes("Context") + I2OSP(len(info), 2) + info
+        context = _as_bytes("Info") + I2OSP(len(info), 2) + info
         t = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
 
         for blinded_element in blinded_elements:
@@ -422,6 +405,20 @@ class POPRFServerContext(VOPRFServerContext):
         gk = k * G
         proof, r = self.generate_proof(k, G, gk, Zs, Rs)
         return evaluated_elements, proof, r
+
+    def verify_finalize(self, x, expected_digest, info):
+        P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
+        input_element = self.suite.group.serialize(P)
+        issued_element, _, _ = self.evaluate(input_element, info) # Ignore proof output
+
+        finalize_input = I2OSP(len(x), 2) + x \
+            + I2OSP(len(info), 2) + info \
+            + I2OSP(len(issued_element), 2) + issued_element \
+            + _as_bytes("Finalize")
+
+        digest = self.suite.hash(finalize_input)
+
+        return (digest == expected_digest)
 
 MODE_OPRF = 0x00
 MODE_VOPRF = 0x01
