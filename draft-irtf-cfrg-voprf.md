@@ -542,11 +542,8 @@ def ComputeCompositesFast(k, B, Cs, Ds):
     h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
               I2OSP(len(Ci), 2) || Ci ||
               I2OSP(len(Di), 2) || Di ||
-<<<<<<< HEAD
               "Composite"
-=======
-              "Challenge"
->>>>>>> 20ce48e (Make hash DSTs constants (dropping length). Update test vectors.)
+
     di = GG.HashToScalar(h2Input)
     M = di * Cs[i] + M
 
@@ -647,11 +644,8 @@ def ComputeCompositesFast(k, B, Cs, Ds):
     h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
               I2OSP(len(Ci), 2) || Ci ||
               I2OSP(len(Di), 2) || Di ||
-<<<<<<< HEAD
               "Composite"
-=======
-              "Challenge"
->>>>>>> 20ce48e (Make hash DSTs constants (dropping length). Update test vectors.)
+
     di = GG.HashToScalar(h2Input)
     M = di * Cs[i] + M
 
