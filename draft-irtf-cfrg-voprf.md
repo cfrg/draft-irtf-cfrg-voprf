@@ -345,7 +345,8 @@ The following functions and notation are used throughout the document.
 For serialization, all data structure descriptions use TLS notation {{RFC8446, Section 3}}.
 
 All algorithms and procedures described in this document are laid out
-in a Python-like pseudocode.
+in a Python-like pseudocode. The data types `PrivateInput` and `PublicInput`
+are opaque byte strings of arbitrary length no larger than 2^13 octets.
 
 String values such as "Context-" are ASCII string literals.
 
@@ -464,8 +465,8 @@ done by clients in the protocol.
 Generating a proof is done with the `GenerateProof` function, defined below.
 This function takes four Elements, A, B, C, and D, and a single
 group Scalar k, and produces a proof that `k*A == B` and `k*C == D`.
-The output is a pair of serialized Scalars concatenated together,
-denoted as type `Proof`.
+The output is a value of type Proof, which is a tuple of two Scalar
+values.
 
 ~~~
 GenerateProof
@@ -507,8 +508,7 @@ def GenerateProof(k, A, B, C, D)
   c = GG.HashToScalar(h2Input)
   s = (r - c * k) mod p
 
-  proof = GG.SerializeScalar(c) || GG.SerializeScalar(s)
-  return proof
+  return [c, s]
 ~~~
 
 The helper function ComputeCompositesFast is as defined below.
@@ -588,8 +588,8 @@ def VerifyProof(A, B, C, D, proof):
   Ds = [D]
 
   (M, Z) = ComputeComposites(B, Cs, Ds)
-  c = GG.DeserializeScalar(proof.c)
-  s = GG.DeserializeScalar(proof.s)
+  c = proof[0]
+  s = proof[1]
 
   t2 = ((s * A) + (c * B))
   t3 = ((s * M) + (c * Z))
@@ -666,14 +666,14 @@ and `output` is the OPRF output. The client learns `output` and the server learn
 This interaction is shown below.
 
 ~~~
-    Client                                              Server(skS)
+    Client                                                  Server(skS)
   ---------------------------------------------------------------------
   blind, blindedElement = Blind(input)
 
                              blindedElement
                                ---------->
 
-                      evaluatedElement = Evaluate(blindedElement)
+                           evaluatedElement = Evaluate(blindedElement)
 
                              evaluatedElement
                                <----------
@@ -685,35 +685,37 @@ This interaction is shown below.
 In the verifiable mode, the client additionally receives proof that the server used `skS` in
 computing the function. To achieve verifiability, as in the original work of {{JKK14}}, the
 server provides a zero-knowledge proof that the key provided as input by the server in
-the `Evaluate` function is the same key as it used to produce the server's public key.
-This proof does not reveal the server's private key to the client. This interaction
-is shown below.
+the `Evaluate` function is the same key as it used to produce the server's public key, `pkS`,
+which the client receives as input to the protocol. This proof does not reveal the server's
+private key to the client. This interaction is shown below.
 
 ~~~
-    Client(pkS)                                     Server(skS, pkS)
+    Client(pkS)            <---- pkS ------                 Server(skS)
   ---------------------------------------------------------------------
   blind, blindedElement = Blind(input)
 
                              blindedElement
                                ---------->
 
-               evaluatedElement, proof = Evaluate(blindedElement)
+                     evaluatedElement, proof = Evaluate(blindedElement)
 
                          evaluatedElement, proof
                                <----------
 
-  output = Finalize(input, blind, evaluatedElement, blindedElement, proof)
+  output = Finalize(input, blind, evaluatedElement,
+                    blindedElement, proof)
 ~~~
 {: #fig-voprf title="VOPRF protocol overview with additional proof"}
 
-The partially-oblivious mode extends the VOPRF mode such that the client and server can additionally provide a public
-input `info` that is used in computing the pseudorandom function. That is, the client and server
-interact to compute `output = F(skS, input, info)`. To support additional public input,
-the client and server augment the `pkS` and `skS`, respectively, using the `info` value,
+The partially-oblivious mode extends the VOPRF mode such that the client and
+server can additionally provide a public input `info` that is used in computing
+the pseudorandom function. That is, the client and server interact to compute
+`output = F(skS, input, info)`. To support additional public input, the client
+and server augment the `pkS` and `skS`, respectively, using the `info` value,
 as in {{TCRSTW21}}.
 
 ~~~
-    Client(pkS, info)                          Server(skS, pkS, info)
+    Client(pkS, info)        <---- pkS ------        Server(skS, info)
   ---------------------------------------------------------------------
   blind, blindedElement = Blind(input)
 
@@ -725,7 +727,8 @@ as in {{TCRSTW21}}.
                          evaluatedElement, proof
                                <----------
 
-  output = Finalize(input, blind, evaluatedElement, blindedElement, proof, info)
+  output = Finalize(input, blind, evaluatedElement,
+                    blindedElement, proof, info)
 ~~~
 {: #fig-poprf title="POPRF protocol overview with additional public input"}
 
@@ -747,13 +750,8 @@ Additionally, each protocol variant is instantiated with a ciphersuite,
 or suite. Each ciphersuite is identified with a two-byte value, referred
 to as `suiteID`; see {{ciphersuites}} for the registry of initial values.
 
-## Offline Context Setup {#offline}
-
-In the offline setup phase, both the client and server create a context used
-for executing the online phase of the protocol. The key pair (`skS`, `pkS`)
-should be generated by calling either `GenerateKeyPair` or `DeriveKeyPair`.
-Additionally, they agree on a ciphersuite value `suiteID`. These values are
-combined to create a "context string" using the following function:
+The mode and ciphersuite ID values are combined to create a "context string"
+used throughout the protocol with the following function:
 
 ~~~
 def CreateContextString(mode, suiteID):
@@ -761,6 +759,42 @@ def CreateContextString(mode, suiteID):
 ~~~
 
 [[RFC editor: please change "VOPRF08" to "RFCXXXX", where XXXX is the final number, here and elsewhere before publication.]]
+
+## Key Generation and Context Setup {#offline}
+
+In the offline setup phase, both the client and server create a context used
+for executing the online phase of the protocol after agreeing on a mode and
+ciphersuite value suiteID. The server key pair (`skS`, `pkS`) is generated
+using the following function, which accepts a randmly generated seed of length
+`Ns` and optional public info string:
+
+~~~
+Input:
+
+  opaque seed[Ns]
+  PublicInput info
+
+Output:
+
+  Scalar skS
+  Element pkS
+
+Errors: DeriveKeyPairError
+
+def DeriveKeyPair(seed, info):
+  contextString = CreateContextString(mode, suiteID)
+  deriveInput = seed || I2OSP(len(info), 2) || info
+  counter = 0
+  skS = 0
+  while skS == 0:
+    if counter > 255:
+      raise DeriveKeyPairError
+    skS = GG.HashToScalar(deriveInput || I2OSP(counter, 1),
+                          DST = "DeriveKeyPair" || contextString)
+    counter = counter + 1
+  pkS = ScalarBaseMult(skS)
+  return skS, pkS
+~~~
 
 The OPRF variant server and client contexts are created as follows:
 
@@ -809,8 +843,11 @@ parameters are assumed to exist:
 - contextString, a domain separation tag constructed during context setup as created in {{offline}}.
 - skS and pkS, the private and public keys configured for client and server in {{offline}}.
 
-Moreover, the data types `PrivateInput` and `PublicInput` are opaque byte
-strings of arbitrary length no larger than 2^13 octets.
+All protocol elements are serialized between client and server for transmission.
+Specifically, values of type Element are transmitted as SerializedElement values,
+and values of type Proof are serialized as the concatenation of two SerializedScalar
+values. Deserializing these values may fail, in which case the protocol participant
+MUST abort the protocol.
 
 ### OPRF Protocol {#oprf}
 
@@ -818,8 +855,6 @@ The OPRF protocol begins with the client blinding its input, as described
 by the `Blind` function below.
 
 ~~~
-Blind
-
 Input:
 
   PrivateInput input
@@ -827,55 +862,48 @@ Input:
 Output:
 
   Scalar blind
-  SerializedElement blindedElement
+  Element blindedElement
 
 def Blind(input):
   blind = GG.RandomScalar()
   P = GG.HashToGroup(input)
-  blindedElement = GG.SerializeElement(blind * P)
+  blindedElement = blind * P
 
   return blind, blindedElement
 ~~~
 
-Clients store `blind` locally, and send `blindedElement` to the server for evaluation.
-Upon receipt, servers evaluate `blindedElement` using the `Evaluate` function
-described below.
+Clients store `blind` locally, and sends `blindedElement` to the server for evaluation.
+Upon receipt, servers processs `blindedElement` using the `Evaluate` function described
+below.
 
 ~~~
-Evaluate
-
 Input:
 
-  SerializedElement blindedElement
+  Element blindedElement
 
 Output:
 
-  SerializedElement evaluatedElement
+  Element evaluatedElement
 
 Errors: DeserializeError
 
 def Evaluate(blindedElement):
-  R = GG.DeserializeElement(blindedElement)
-  Z = skS * R
-  evaluatedElement = GG.SerializeElement(Z)
-
+  evaluatedElement = skS * blindedElement
   return evaluatedElement
 ~~~
 
 Servers send the output `evaluatedElement` to clients for processing. Recall that
 servers may batch multiple client inputs to `Evaluate`.
 
-Upon receipt of `evaluatedElement`, clients complete the OPRF evaluation
-using the `Finalize` function described below.
+Upon receipt of `evaluatedElement`, clients complete the OPRF evaluation using the
+`Finalize` function described below.
 
 ~~~
-Finalize
-
 Input:
 
   PrivateInput input
   Scalar blind
-  SerializedElement evaluatedElement
+  Element evaluatedElement
 
 Output:
 
@@ -884,7 +912,6 @@ Output:
 Errors: DeserializeError
 
 def Finalize(input, blind, evaluatedElement):
-  Z = GG.DeserializeElement(evaluatedElement)
   N = blind^(-1) * Z
   unblindedElement = GG.SerializeElement(N)
 
@@ -903,24 +930,20 @@ servers compute an evaluated element and DLEQ proof using the following
 `Evaluate` function.
 
 ~~~
-Evaluate
-
 Input:
 
-  SerializedElement blindedElement
+  Element blindedElement
 
 Output:
 
-  SerializedElement evaluatedElement
+  Element evaluatedElement
   Proof proof
 
 Errors: DeserializeError
 
 def Evaluate(blindedElement):
-  R = GG.DeserializeElement(blindedElement)
-  Z = skS * R
-  proof = GenerateProof(skS, G, pkS, R, Z)
-  evaluatedElement = GG.SerializeElement(Z)
+  evaluatedElement = skS * blindedElement
+  proof = GenerateProof(skS, G, pkS, blindedElement, evaluatedElement)
   return evaluatedElement, proof
 ~~~
 
@@ -929,14 +952,12 @@ Upon receipt, the client completes the VOPRF computation using the
 `Finalize` function below.
 
 ~~~
-Finalize
-
 Input:
 
   PrivateInput input
   Scalar blind
-  SerializedElement evaluatedElement
-  SerializedElement blindedElement
+  Element evaluatedElement
+  Element blindedElement
   Proof proof
 
 Output:
@@ -946,12 +967,10 @@ Output:
 Errors: DeserializeError, VerifyError
 
 def Finalize(input, blind, evaluatedElement, blindedElement, proof):
-  R = GG.DeserializeElement(blindedElement)
-  Z = GG.DeserializeElement(evaluatedElement)
-  if VerifyProof(G, pkS, R, Z, proof) == false:
+  if VerifyProof(G, pkS, blindedElement, evaluatedElement, proof) == false:
     raise VerifyError
 
-  N = blind^(-1) * Z
+  N = blind^(-1) * evaluatedElement
   unblindedElement = GG.SerializeElement(N)
 
   hashInput = I2OSP(len(input), 2) || input ||
@@ -969,32 +988,30 @@ servers compute an evaluated element and DLEQ proof using the following
 `Evaluate` function.
 
 ~~~
-Evaluate
-
 Input:
 
-  SerializedElement blindedElement
+  Element blindedElement
   PublicInput info
 
 Output:
 
-  SerializedElement evaluatedElement
+  Element evaluatedElement
   Proof proof
 
 Errors: DeserializeError, InverseError
 
 def Evaluate(blindedElement, info):
-  R = GG.DeserializeElement(blindedElement)
   context = "Info" || I2OSP(len(info), 2) || info
   m = GG.HashToScalar(context)
   t = skS + m
   if t == 0:
-      raise InverseError
-  Z = t^(-1) * R
+    raise InverseError
+
+  evaluatedElement = t^(-1) * blindedElement
 
   U = ScalarBaseMult(t)
-  proof = GenerateProof(t, G, U, Z, R)
-  evaluatedElement = GG.SerializeElement(Z)
+  proof = GenerateProof(t, G, U, evaluatedElement, blindedElement)
+
   return evaluatedElement, proof
 ~~~
 
@@ -1003,14 +1020,12 @@ Upon receipt, the client completes the VOPRF computation using the
 `Finalize` function below.
 
 ~~~
-Finalize
-
 Input:
 
   PrivateInput input
   Scalar blind
-  SerializedElement evaluatedElement
-  SerializedElement blindedElement
+  Element evaluatedElement
+  Element blindedElement
   Proof proof
   PublicInput info
 
@@ -1023,16 +1038,12 @@ Errors: DeserializeError, VerifyError
 def Finalize(input, blind, evaluatedElement, blindedElement, proof, info):
   context = "Info" || I2OSP(len(info), 2) || info
   m = GG.HashToScalar(context)
-
-  R = GG.DeserializeElement(blindedElement)
-  Z = GG.DeserializeElement(evaluatedElement)
-
   T = ScalarBaseMult(m)
   U = T + pkS
-  if VerifyProof(G, U, Z, R, proof) == false:
+  if VerifyProof(G, U, evaluatedElement, blindedElement, proof) == false:
     raise VerifyError
 
-  N = blind^(-1) * Z
+  N = blind^(-1) * evaluatedElement
   unblindedElement = GG.SerializeElement(N)
 
   hashInput = I2OSP(len(input), 2) || input ||
@@ -1156,8 +1167,15 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 
 # Application Considerations {#apis}
 
-This section describes considerations for applications, including explicit error
-treatment and public input representation for the POPRF protocol variant.
+This section describes considerations for applications, including external interface
+recommendations, explicit error treatment, and public input representation for the
+POPRF protocol variant.
+
+## External Interface Recommendations
+
+The protocol functions in {{online}} are specified in terms of prime-order group
+Elements and Scalars. However, applications can treat these as internal functions,
+and instead expose interfaces that operate in terms of wire format messages.
 
 ## Error Considerations
 
