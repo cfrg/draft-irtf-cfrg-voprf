@@ -858,8 +858,6 @@ The OPRF protocol begins with the client blinding its input, as described
 by the `Blind` function below.
 
 ~~~
-Blind
-
 Input:
 
   PrivateInput input
@@ -906,8 +904,6 @@ Upon receipt of `evaluatedElement`, clients complete the OPRF evaluation using t
 `Finalize` function described below.
 
 ~~~
-Finalize
-
 Input:
 
   PrivateInput input
@@ -939,8 +935,6 @@ servers compute an evaluated element and DLEQ proof using the following
 `Evaluate` function.
 
 ~~~
-Evaluate
-
 Input:
 
   Element blindedElement
