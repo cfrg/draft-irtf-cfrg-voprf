@@ -873,7 +873,7 @@ def Blind(input):
 ~~~
 
 Clients store `blind` locally, and sends `blindedElement` to the server for evaluation.
-Upon receipt, servers processs `blindedElement` using the `Evaluate` function described
+Upon receipt, servers process `blindedElement` using the `Evaluate` function described
 below.
 
 ~~~
