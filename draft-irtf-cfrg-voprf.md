@@ -964,7 +964,7 @@ Output:
 
   opaque output[Nh]
 
-Errors: DeserializeError, VerifyError
+Errors: VerifyError
 
 def Finalize(input, blind, evaluatedElement, blindedElement, proof):
   if VerifyProof(G, pkS, blindedElement, evaluatedElement, proof) == false:
