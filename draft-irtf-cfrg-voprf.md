@@ -765,7 +765,7 @@ def CreateContextString(mode, suiteID):
 In the offline setup phase, both the client and server create a context used
 for executing the online phase of the protocol after agreeing on a mode and
 ciphersuite value suiteID. The server key pair (`skS`, `pkS`) is generated
-using the following function, which accepts a randmly generated seed of length
+using the following function, which accepts a randomly generated seed of length
 `Ns` and optional public info string:
 
 ~~~
