@@ -1290,7 +1290,7 @@ The original paper {{JKK14}} gives a security proof that the 2HashDH-NIZK
 construction satisfies the security guarantees of a VOPRF protocol {{properties}}
 under the OMDH assumption in the universal composability (UC) security model.
 
-### Q-Strong-DH Oracle {#qsdh}
+#### Q-Strong-DH Oracle {#qsdh}
 
 A side-effect of the OPRF and VOPRF protocols is that it allows instantiation of
 a oracle for constructing Q-strong-DH (Q-sDH) samples. The Q-Strong-DH
