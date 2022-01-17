@@ -52,6 +52,17 @@ informative:
     title: Privacy Pass
     target: https://github.com/privacypass/challenge-bypass-server
     date: false
+  BB04:
+    title: Short Signatures Without Random Oracles
+    target: http://ai.stanford.edu/~xb/eurocrypt04a/bbsigs.pdf
+    date: false
+    authors:
+      -
+        ins: D. Boneh
+        org: Stanford University, CA, USA
+      -
+        ins: X. Boyen
+        org: Voltage Security, Palo Alto, CA, USA
   BG04:
     title: The Static Diffie-Hellman Problem
     target: https://eprint.iacr.org/2004/306
@@ -63,6 +74,9 @@ informative:
       -
         ins: R. Gallant
         org: Certicom Research
+  ChaumPedersen:
+    title: "Wallet Databases with Observers"
+    target: https://chaum.com/publications/Wallet_Databases.pdf
   Cheon06:
     title: Security Analysis of the Strong Diffie-Hellman Problem
     target: https://www.iacr.org/archive/eurocrypt2006/40040001/40040001.pdf
@@ -193,13 +207,13 @@ client and server for computing the output of a Pseudorandom Function (PRF).
 The server provides the PRF secret key, and the client provides the PRF
 input. At the end of the protocol, the client learns the PRF output without
 learning anything about the PRF secret key, and the server learns neither
-the PRF input nor output. A Partially-Oblivious PRF (POPRF) is an OPRF
-that allows client and server to provide public input to the
-PRF. OPRFs and POPRFs can also satisfy a notion of 'verifiability'.
-In this setting, clients can verify that the server used a specific
-private key during the execution of the protocol. This document
-specifies a POPRF protocol with optional verifiability instantiated within
-standard prime-order groups, including elliptic curves.
+the PRF input nor output. An OPRF can also satisfy a notion of 'verifiability',
+called a VOPRF. A VOPRF ensures clients can verify that the server used a
+specific private key during the execution of the protocol. A VOPRF can also
+be partially-oblivious, called a POPRF. A POPRF allows clients and servers
+to provide public input to the PRF computation. This document specifies an OPRF,
+VOPRF, and POPRF instantiated within standard prime-order groups, including
+elliptic curves.
 
 --- middle
 
@@ -214,26 +228,25 @@ and a client, where the server holds a PRF key k and the client holds
 some input x. The protocol allows both parties to cooperate in computing
 F(k, x) such that the client learns F(k, x) without learning anything
 about k; and the server does not learn anything about x or F(k, x).
-A Partially-Oblivious PRF (POPRF) is a variant of an OPRF wherein client
-and server interact in computing F(k, x, y), for some PRF F with
-server-provided key k, client-provided input x, and public input y {{TCRSTW21}}.
-A POPRF with fixed input y is functionally equivalent to an OPRF.
-A POPRF is said to be 'verifiable' if the server can prove to the client
-that F(k, x, y) was computed using key k, without revealing k to the client.
+A Verifiable OPRF (VOPRF) is an OPRF wherein the server can prove to
+the client that F(k, x) was computed using the key k. A Partially-Oblivious
+PRF (POPRF) is a variant of a VOPRF wherein client and server interact
+in computing F(k, x, y), for some PRF F with server-provided key k,
+client-provided input x, and public input y, and client receives proof
+that F(k, x, y) was computed using k. A POPRF with fixed input y is
+functionally equivalent to a VOPRF.
 
-POPRFs have a variety of applications, including: password-protected secret
+OPRFs have a variety of applications, including: password-protected secret
 sharing schemes {{JKKX16}}, privacy-preserving password stores {{SJKS17}}, and
 password-authenticated key exchange or PAKE {{!I-D.irtf-cfrg-opaque}}.
 Verifiable POPRFs are necessary in some applications such as Privacy Pass
 {{!I-D.davidson-pp-protocol}}. Verifiable POPRFs have also been used for
 password-protected secret sharing schemes such as that of {{JKK14}}.
 
-This document introduces a POPRF protocol built upon prime-order groups based on {{TCRSTW21}}.
-The protocol supports optional verifiability with the addition of a non-interactive
-zero knowledge proof (NIZK). This proof demonstrates correctness of the computation,
-using a known public key that serves as a commitment to the server's private
-key. The document describes the protocol, application considerations, and its
-security properties.
+This document specifies OPRF, VOPRF, and POPRF protocols built upon
+prime-order groups based on the 2HashDH {{JKKX16}} and 3HashSDHI {{TCRSTW21}}
+designs, respectively. The document describes each protocol variant,
+along with application considerations, and their security properties.
 
 ## Change log
 
@@ -315,9 +328,41 @@ security properties.
 
 {::boilerplate bcp14}
 
+## Notation and Terminology
+
+The following functions and notation are used throughout the document.
+
+- For any object `x`, we write `len(x)` to denote its length in bytes.
+- For two byte arrays `x` and `y`, write `x || y` to denote their
+  concatenation.
+- I2OSP and OS2IP: Convert a byte array to and from a non-negative
+  integer as described in {{!RFC8017}}. Note that these functions
+  operate on byte arrays in big-endian byte order.
+- For any two byte strings `a` and `b`, `CT_EQUAL(a, b)` represents
+  constant-time equality between `a` and `b` which returns `true` if
+  `a` and `b` are equal and `false` otherwise.
+
+For serialization, all data structure descriptions use TLS notation {{RFC8446, Section 3}}.
+
+All algorithms and procedures described in this document are laid out
+in a Python-like pseudocode.
+
+String values such as "Context-" are ASCII string literals.
+
+The following terms are used throughout this document.
+
+- PRF: Pseudorandom Function.
+- OPRF: Oblivious Pseudorandom Function.
+- VOPRF: Verifiable Oblivious Pseudorandom Function.
+- POPRF: Partially Oblivious Pseudorandom Function.
+- Client: Protocol initiator. Learns pseudorandom function evaluation as
+  the output of the protocol.
+- Server: Computes the pseudorandom function over a private key. Learns
+  nothing about the client's input or output.
+
 # Preliminaries
 
-The (V)OPRF protocol in this document has two primary dependencies:
+The protocols in this document have two primary dependencies:
 
 - `GG`: A prime-order group implementing the API described below in {{pog}},
   with base point defined in the corresponding reference for each group.
@@ -381,7 +426,7 @@ prime-order group `GG`.
   representation of a scalar. This function can raise a
   DeserializeError if deserialization fails; see {{input-validation}}.
 
-Two functions can be used for generating a (V)OPRF key pair (`skS`, `pkS`)
+Two functions can be used for generating a key pair (`skS`, `pkS`)
 where `skS` is a non-zero integer less than `p` and `pkS = ScalarBaseMult(skS)`:
 `GenerateKeyPair` and `DeriveKeyPair`. `GenerateKeyPair` is a randomized function
 that outputs a fresh key pair (`skS`, `pkS`) upon every invocation. `DeriveKeyPair`
@@ -402,315 +447,29 @@ with a prime-order group instantiation are removed. See {{ciphersuites}}
 for advice corresponding to the implementation of this interface for
 specific definitions of elliptic curves.
 
-## Notation and Terminology
+## Discrete Log Equivalence Proofs {#dleq}
 
-The following functions and notation are used throughout the document.
+Another important piece of the OPRF protocols in this document is proving
+that the discrete log of two values is identical in zero knowledge, i.e.,
+without revealing the discrete logarithm. This is referred to as a discrete
+log equivalence (DLEQ) proof. This section describes functions
+for non-interactively proving and verifying this type of statement,
+built on a Chaum-Pedersen {{ChaumPedersen}} proof. It is split into
+two sub-sections: one for generating the proof, which is done by servers
+in the verifiable protocols, and another for verifying the proof, which is
+done by clients in the protocol.
 
-- For any object `x`, we write `len(x)` to denote its length in bytes.
-- For two byte arrays `x` and `y`, write `x || y` to denote their
-  concatenation.
-- I2OSP and OS2IP: Convert a byte array to and from a non-negative
-  integer as described in {{!RFC8017}}. Note that these functions
-  operate on byte arrays in big-endian byte order.
-- For any two byte strings `a` and `b`, `CT_EQUAL(a, b)` represents
-  constant-time equality between `a` and `b` which returns `true` if
-  `a` and `b` are equal and `false` otherwise.
+### Proof Generation
 
-Data structure descriptions use TLS notation {{RFC8446, Section 3}}.
-
-All algorithms and procedures described in this document are laid out
-in a Python-like pseudocode.
-
-String values such as "Context-" are ASCII string literals.
-
-The following terms are used throughout this document.
-
-- PRF: Pseudorandom Function.
-- OPRF: Oblivious Pseudorandom Function.
-- VOPRF: Verifiable Oblivious Pseudorandom Function.
-- POPRF: Partially Oblivious Pseudorandom Function.
-- Client: Protocol initiator. Learns pseudorandom function evaluation as
-  the output of the protocol.
-- Server: Computes the pseudorandom function over a private key. Learns
-  nothing about the client's input or output.
-- NIZK: Non-interactive zero knowledge.
-- DLEQ: Discrete Logarithm Equality.
-
-# POPRF Protocol {#protocol}
-
-In this section, we define two POPRF variants: a base mode and verifiable
-mode. In the base mode, a client and server interact to compute
-`output = F(skS, input, info)`, where `input` is the client's private input,
-`skS` is the server's private key, `info` is the public input (or metadata),
-and `output` is the POPRF output. The client learns `output` and the server
-learns nothing. In the verifiable mode, the client also receives proof that
-the server used `skS` in computing the function.
-
-To achieve verifiability, as in the original work of {{JKK14}}, we
-provide a zero-knowledge proof that the key provided as input by the
-server in the `Evaluate` function is the same key as it used to produce
-their public key. As an example of the nature of attacks that this
-prevents, this ensures that the server uses the same private key for
-computing the verifiable POPRF output and does not attempt to "tag"
-individual clients with select keys. This proof does not reveal the
-server's private key to the client.
-
-The following one-byte values distinguish between these two modes:
-
-| Mode           | Value |
-|:===============|:======|
-| modeBase       | 0x00  |
-| modeVerifiable | 0x01  |
-
-## Overview {#protocol-overview}
-
-Both participants agree on the mode and a choice of ciphersuite that is
-used before the protocol exchange. Once established, the base mode of
-the protocol runs to compute `output = F(skS, input, info)` as follows:
+Generating a proof is done with the `GenerateProof` function, defined below.
+This function takes four Elements, A, B, C, and D, and a single
+group Scalar k, and produces a proof that `k*A == B` and `k*C == D`.
+The output is a pair of serialized Scalars concatenated together,
+denoted as type `Proof`.
 
 ~~~
-    Client(input, info)                               Server(skS, info)
-  ----------------------------------------------------------------------
-  blind, blindedElement = Blind(input)
+GenerateProof
 
-                             blindedElement
-                               ---------->
-
-                 evaluatedElement = Evaluate(skS, blindedElement, info)
-
-                             evaluatedElement
-                               <----------
-
-  output = Finalize(input, blind, evaluatedElement, blindedElement, info)
-~~~
-
-In `Blind` the client generates a blinded element and blinding data. The server
-computes the POPRF evaluation in `Evaluate` over the client's blinded element,
-and public information `info`. In `Finalize` the client unblinds the server
-response and produces the POPRF output.
-
-In the verifiable mode of the protocol, the server additionally computes
-a proof in Evaluate. The client verifies this proof using the server's
-expected public key before completing the protocol and producing the
-protocol output.
-
-## Context Setup
-
-Both modes of the POPRF involve an offline setup phase. In this phase,
-both the client and server create a context used for executing the
-online phase of the protocol. The key pair (`skS`, `pkS`) should be
-generated by calling either `GenerateKeyPair` or `DeriveKeyPair`.
-
-The base mode setup functions for creating client and server contexts are below:
-
-~~~
-def SetupBaseServer(suite, skS):
-  contextString =
-    "VOPRF08-" || I2OSP(modeBase, 1) || I2OSP(suite.ID, 2)
-  return ServerContext(contextString, skS)
-
-def SetupBaseClient(suite):
-  contextString =
-    "VOPRF08-" || I2OSP(modeBase, 1) || I2OSP(suite.ID, 2)
-  return ClientContext(contextString)
-~~~
-
-The verifiable mode setup functions for creating client and server
-contexts are below:
-
-~~~
-def SetupVerifiableServer(suite, skS, pkS):
-  contextString =
-    "VOPRF08-" || I2OSP(modeVerifiable, 1) || I2OSP(suite.ID, 2)
-  return VerifiableServerContext(contextString, skS)
-
-def SetupVerifiableClient(suite, pkS):
-  contextString =
-    "VOPRF08-" || I2OSP(modeVerifiable, 1) || I2OSP(suite.ID, 2)
-  return VerifiableClientContext(contextString, pkS)
-~~~
-
-Each setup function takes a ciphersuite from the list defined in
-{{ciphersuites}}. Each ciphersuite has a two-byte field ID used to
-identify the suite.
-
-[[RFC editor: please change "VOPRF08" to "RFCXXXX", where XXXX is the final number, here and elsewhere before publication.]]
-
-## Context APIs {#api}
-
-In this section, we detail the APIs available on the client and server
-POPRF contexts. Each API has the following implicit parameters:
-
-- GG, a prime-order group implementing the API described in {{pog}}.
-- contextString, a domain separation tag constructed during context setup.
-
-The data types `PrivateInput` and `PublicInput` are opaque byte strings
-of arbitrary length no larger than 2^13 octets. `Proof` is a sequence
-of two `SerializedScalar` values, as shown below.
-
-~~~
-struct {
-  SerializedScalar c;
-  SerializedScalar s;
-} Proof;
-~~~
-
-### Server Context
-
-The ServerContext encapsulates the context string constructed during
-setup and the POPRF key pair. It has three functions, `Evaluate`,
-`FullEvaluate` and `VerifyFinalize` described below. `Evaluate` takes
-serialized representations of blinded group elements from the client
-as inputs along with public input `info`.
-
-`FullEvaluate` takes PrivateInput values, and it is useful for applications
-that need to compute the whole POPRF protocol on the server side only.
-
-`VerifyFinalize` takes PrivateInput values and their corresponding output
-digests from `Finalize` as input, and returns true if the inputs match the outputs.
-
-Note that `VerifyFinalize` and `FullEvaluate` are not used in the main POPRF
-protocol. They are exposed as an API for building higher-level protocols.
-
-#### Evaluate
-
-~~~
-Input:
-
-  Scalar skS
-  SerializedElement blindedElement
-  PublicInput info
-
-Output:
-
-  SerializedElement evaluatedElement
-
-Errors: DeserializeError, InverseError
-
-def Evaluate(skS, blindedElement, info):
-  R = GG.DeserializeElement(blindedElement)
-  context = "Context-" || contextString ||
-            I2OSP(len(info), 2) || info
-  m = GG.HashToScalar(context)
-  t = skS + m
-  if t == 0:
-      raise InverseError
-  Z = t^(-1) * R
-  evaluatedElement = GG.SerializeElement(Z)
-
-  return evaluatedElement
-~~~
-
-#### FullEvaluate
-
-~~~
-Input:
-
-  Scalar skS
-  PrivateInput input
-  PublicInput info
-
-Output:
-
-  opaque output[Nh]
-
-Errors: InverseError
-
-def FullEvaluate(skS, input):
-  P = GG.HashToGroup(input)
-  context = "Context-" || contextString ||
-            I2OSP(len(info), 2) || info
-  m = GG.HashToScalar(context)
-  t = skS + m
-  if t == 0:
-      raise InverseError
-  T = t^(-1) * P
-  issuedElement = GG.SerializeElement(T)
-
-  finalizeDST = "Finalize-" || contextString
-  hashInput = I2OSP(len(input), 2) || input ||
-              I2OSP(len(info), 2) || info ||
-              I2OSP(len(issuedElement), 2) || issuedElement ||
-              I2OSP(len(finalizeDST), 2) || finalizeDST
-
-  return Hash(hashInput)
-~~~
-
-#### VerifyFinalize
-
-~~~
-Input:
-
-  Scalar skS
-  PrivateInput input
-  opaque output[Nh]
-  PublicInput info
-
-Output:
-
-  boolean valid
-
-def VerifyFinalize(skS, input, output, info):
-  T = GG.HashToGroup(input)
-  element = GG.SerializeElement(T)
-  E = Evaluate(skS, [element], info)
-
-  finalizeDST = "Finalize-" || contextString
-  hashInput = I2OSP(len(input), 2) || input ||
-              I2OSP(len(info), 2) || info ||
-              I2OSP(len(E), 2) || E ||
-              I2OSP(len(finalizeDST), 2) || finalizeDST
-
-  digest = Hash(hashInput)
-
-  return CT_EQUAL(digest, output)
-~~~
-
-### VerifiableServerContext
-
-The VerifiableServerContext extends the base ServerContext with an
-augmented `Evaluate()` function. This function produces a proof that
-`skS` was used in computing the result. It makes use of the helper
-functions `GenerateProof` and `ComputeComposites`, described below.
-
-#### Evaluate
-
-~~~
-Input:
-
-  Scalar skS
-  SerializedElement blindedElement
-  PublicInput info
-
-Output:
-
-  SerializedElement evaluatedElement
-  Proof proof
-
-Errors: DeserializeError, InverseError
-
-def Evaluate(skS, blindedElement, info):
-  R = GG.DeserializeElement(blindedElement)
-  context = "Context-" || contextString ||
-            I2OSP(len(info), 2) || info
-  m = GG.HashToScalar(context)
-  t = skS + m
-  if t == 0:
-      raise InverseError
-  Z = t^(-1) * R
-
-  U = ScalarBaseMult(t)
-  proof = GenerateProof(t, G, U, Z, R)
-  evaluatedElement = GG.SerializeElement(Z)
-  return evaluatedElement, proof
-~~~
-
-The helper functions `GenerateProof` and `ComputeComposites` are defined
-below.
-
-#### GenerateProof
-
-~~~
 Input:
 
   Scalar k
@@ -738,13 +497,12 @@ def GenerateProof(k, A, B, C, D)
   a2 = GG.SerializeElement(t2)
   a3 = GG.SerializeElement(t3)
 
-  challengeDST = "Challenge-" || contextString
   h2Input = I2OSP(len(Bm), 2) || Bm ||
             I2OSP(len(a0), 2) || a0 ||
             I2OSP(len(a1), 2) || a1 ||
             I2OSP(len(a2), 2) || a2 ||
             I2OSP(len(a3), 2) || a3 ||
-            I2OSP(len(challengeDST), 2) || challengeDST
+            "Challenge"
 
   c = GG.HashToScalar(h2Input)
   s = (r - c * k) mod p
@@ -753,66 +511,11 @@ def GenerateProof(k, A, B, C, D)
   return proof
 ~~~
 
-##### Batching inputs
-
-Unlike other functions, `ComputeComposites` takes lists of inputs,
-rather than a single input. Applications can take advantage of this
-functionality by invoking `GenerateProof` on batches of inputs to
-produce a combined, constant-size proof. (In the pseudocode above,
-the single inputs `blindedElement` and `evaluatedElement` are passed
-as single-item lists to `ComputeComposites`.)
-
-In particular, servers can produce a single, constant-sized proof for N
-client inputs sent in a single request, rather than one proof per client
-input. This optimization benefits clients and servers since it amortizes
-the cost of proof generation and bandwidth across multiple requests.
-
-#### ComputeComposites
-
-The definition of `ComputeComposites` is given below. This function is
-used both on generation and verification of the proof.
+The helper function ComputeCompositesFast is as defined below.
 
 ~~~
-Input:
+ComputeCompositesFast
 
-  Element B
-  Element Cs[m]
-  Element Ds[m]
-
-Output:
-
-  Element M
-  Element Z
-
-def ComputeComposites(B, Cs, Ds):
-  Bm = GG.SerializeElement(B)
-  seedDST = "Seed-" || contextString
-  compositeDST = "Composite-" || contextString
-
-  h1Input = I2OSP(len(Bm), 2) || Bm ||
-            I2OSP(len(seedDST), 2) || seedDST
-  seed = Hash(h1Input)
-
-  M = GG.Identity()
-  Z = GG.Identity()
-  for i = 0 to m-1:
-    Ci = GG.SerializeElement(Cs[i])
-    Di = GG.SerializeElement(Ds[i])
-    h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
-              I2OSP(len(Ci), 2) || Ci ||
-              I2OSP(len(Di), 2) || Di ||
-              I2OSP(len(compositeDST), 2) || compositeDST
-    di = GG.HashToScalar(h2Input)
-    M = di * Cs[i] + M
-    Z = di * Ds[i] + Z
-
- return (M, Z)
-~~~
-
-If the private key is known, as is the case for the server, this function
-can be optimized as shown in `ComputeCompositesFast` below.
-
-~~~
 Input:
 
   Scalar k
@@ -828,8 +531,6 @@ Output:
 def ComputeCompositesFast(k, B, Cs, Ds):
   Bm = GG.SerializeElement(B)
   seedDST = "Seed-" || contextString
-  compositeDST = "Composite-" || contextString
-
   h1Input = I2OSP(len(Bm), 2) || Bm ||
             I2OSP(len(seedDST), 2) || seedDST
   seed = Hash(h1Input)
@@ -841,7 +542,7 @@ def ComputeCompositesFast(k, B, Cs, Ds):
     h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
               I2OSP(len(Ci), 2) || Ci ||
               I2OSP(len(Di), 2) || Di ||
-              I2OSP(len(compositeDST), 2) || compositeDST
+              "Composite"
     di = GG.HashToScalar(h2Input)
     M = di * Cs[i] + M
 
@@ -850,99 +551,24 @@ def ComputeCompositesFast(k, B, Cs, Ds):
  return (M, Z)
 ~~~
 
-### Client Context {#base-client}
+`ComputeCompositesFast` takes lists of inputs, rather than a single input.
+Applications can take advantage of this functionality by invoking `GenerateProof`
+on batches of inputs to produce a combined, constant-size proof.
+In particular, servers can produce a single, constant-sized proof for N DLEQ inputs,
+rather than one proof per DLEQ input. This optimization benefits
+clients and servers since it amortizes the cost of proof generation
+and bandwidth across multiple requests.
 
-The ClientContext encapsulates the context string constructed during
-setup. It has two functions, `Blind()` and `Finalize()`, as described
-below. It also has an internal function, `Unblind()`, which is used
-by `Finalize`. The implementation of these functions varies depending
-on the mode.
+### Proof Verification
 
-#### Blind and Unblind
-
-~~~
-Input:
-
-  PrivateInput input
-
-Output:
-
-  Scalar blind
-  SerializedElement blindedElement
-
-def Blind(input):
-  blind = GG.RandomScalar()
-  P = GG.HashToGroup(input)
-  blindedElement = GG.SerializeElement(blind * P)
-
-  return blind, blindedElement
-~~~
-
-The inverse `Unblind` is implemented as follows.
+Verifying a proof is done with the `VerifyProof` function, defined below.
+This function takes four Elements, A, B, C, and D, along with a Proof value
+output from `GenerateProof`. It outputs a single boolean value indicating whether
+or not the proof is valid for the given DLEQ inputs.
 
 ~~~
-Input:
+VerifyProof
 
-  Scalar blind
-  SerializedElement evaluatedElement
-
-Output:
-
-  SerializedElement unblindedElement
-
-Errors: DeserializeError
-
-def Unblind(blind, evaluatedElement):
-  Z = GG.DeserializeElement(evaluatedElement)
-  N = blind^(-1) * Z
-  unblindedElement = GG.SerializeElement(N)
-
-  return unblindedElement
-~~~
-
-#### Finalize
-
-`Finalize` depends on the internal `Unblind` function. In this mode, `Finalize`
-does not include all inputs listed in {{protocol-overview}}. These additional
-inputs are only useful for the verifiable mode, described in {{verifiable-finalize}}.
-
-~~~
-Input:
-
-  PrivateInput input
-  Scalar blind
-  SerializedElement evaluatedElement
-  PublicInput info
-
-Output:
-
-  opaque output[Nh]
-
-def Finalize(input, blind, evaluatedElement, info):
-  unblindedElement = Unblind(blind, evaluatedElement)
-
-  finalizeDST = "Finalize-" || contextString
-  hashInput = I2OSP(len(input), 2) || input ||
-              I2OSP(len(info), 2) || info ||
-              I2OSP(len(unblindedElement), 2) || unblindedElement ||
-              I2OSP(len(finalizeDST), 2) || finalizeDST
-  return Hash(hashInput)
-~~~
-
-### VerifiableClientContext {#verifiable-client}
-
-The VerifiableClientContext extends the base ClientContext with the
-desired server public key `pkS` with an augmented `Unblind()` function.
-This function verifies an evaluation proof using `pkS`. It makes use of
-the helper function `ComputeComposites` described above. It has one
-helper function, `VerifyProof()`, defined below.
-
-#### VerifyProof
-
-This algorithm outputs a boolean `verified` which indicates whether the
-proof inside of the evaluation verifies correctly, or not.
-
-~~~
 Input:
 
   Element A
@@ -974,44 +600,428 @@ def VerifyProof(A, B, C, D, proof):
   a2 = GG.SerializeElement(t2)
   a3 = GG.SerializeElement(t3)
 
-  challengeDST = "Challenge-" || contextString
   h2Input = I2OSP(len(Bm), 2) || Bm ||
             I2OSP(len(a0), 2) || a0 ||
             I2OSP(len(a1), 2) || a1 ||
             I2OSP(len(a2), 2) || a2 ||
             I2OSP(len(a3), 2) || a3 ||
-            I2OSP(len(challengeDST), 2) || challengeDST
+            "Challenge"
 
   expectedC = GG.HashToScalar(h2Input)
 
-  return CT_EQUAL(expectedC, c)
+  return expectedC == c
 ~~~
 
-#### Verifiable Unblind {#verifiable-unblind}
-
-The inverse `VerifiableUnblind` is implemented as follows. This function
-can raise an exception if element deserialization or proof verification
-fails.
+The definition of `ComputeComposites` is given below.
 
 ~~~
+ComputeComposites
+
 Input:
 
+  Element B
+  Element Cs[m]
+  Element Ds[m]
+
+Output:
+
+  Element M
+  Element Z
+
+def ComputeComposites(B, Cs, Ds):
+  Bm = GG.SerializeElement(B)
+  seedDST = "Seed-" || contextString
+  h1Input = I2OSP(len(Bm), 2) || Bm ||
+            I2OSP(len(seedDST), 2) || seedDST
+  seed = Hash(h1Input)
+
+  M = GG.Identity()
+  Z = GG.Identity()
+  for i = 0 to m-1:
+    Ci = GG.SerializeElement(Cs[i])
+    Di = GG.SerializeElement(Ds[i])
+    h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
+              I2OSP(len(Ci), 2) || Ci ||
+              I2OSP(len(Di), 2) || Di ||
+              "Composite"
+    di = GG.HashToScalar(h2Input)
+    M = di * Cs[i] + M
+    Z = di * Ds[i] + Z
+
+ return (M, Z)
+~~~
+
+As with the proof generation case, proof verification can be batched. `ComputeComposites`
+is defined in terms of a batch of inputs. Implementations can take advantage of this
+behavior by also batching inputs to `VerifyProof`, respectively.
+
+# Protocol {#protocol}
+
+In this section, we define three OPRF protocol variants -- a base mode,
+verifiable mode, and partially-oblivious mode -- with the following properties.
+
+In the base mode, a client and server interact to compute `output = F(skS, input)`,
+where `input` is the client's private input, `skS` is the server's private key,
+and `output` is the OPRF output. The client learns `output` and the server learns nothing.
+This interaction is shown below.
+
+~~~
+    Client                                              Server(skS)
+  ---------------------------------------------------------------------
+  blind, blindedElement = Blind(input)
+
+                             blindedElement
+                               ---------->
+
+                      evaluatedElement = Evaluate(blindedElement)
+
+                             evaluatedElement
+                               <----------
+
+  output = Finalize(input, blind, evaluatedElement, blindedElement)
+~~~
+{: #fig-oprf title="OPRF protocol overview"}
+
+In the verifiable mode, the client additionally receives proof that the server used `skS` in
+computing the function. To achieve verifiability, as in the original work of {{JKK14}}, the
+server provides a zero-knowledge proof that the key provided as input by the server in
+the `Evaluate` function is the same key as it used to produce the server's public key.
+This proof does not reveal the server's private key to the client. This interaction
+is shown below.
+
+~~~
+    Client(pkS)                                     Server(skS, pkS)
+  ---------------------------------------------------------------------
+  blind, blindedElement = Blind(input)
+
+                             blindedElement
+                               ---------->
+
+               evaluatedElement, proof = Evaluate(blindedElement)
+
+                         evaluatedElement, proof
+                               <----------
+
+  output = Finalize(input, blind, evaluatedElement, blindedElement, proof)
+~~~
+{: #fig-voprf title="VOPRF protocol overview with additional proof"}
+
+The partially-oblivious mode extends the VOPRF mode such that the client and server can additionally provide a public
+input `info` that is used in computing the pseudorandom function. That is, the client and server
+interact to compute `output = F(skS, input, info)`. To support additional public input,
+the client and server augment the `pkS` and `skS`, respectively, using the `info` value,
+as in {{TCRSTW21}}.
+
+~~~
+    Client(pkS, info)                          Server(skS, pkS, info)
+  ---------------------------------------------------------------------
+  blind, blindedElement = Blind(input)
+
+                             blindedElement
+                               ---------->
+
+               evaluatedElement, proof = Evaluate(blindedElement, info)
+
+                         evaluatedElement, proof
+                               <----------
+
+  output = Finalize(input, blind, evaluatedElement, blindedElement, proof, info)
+~~~
+{: #fig-poprf title="POPRF protocol overview with additional public input"}
+
+Each protocol consists of an offline setup phase and an online phase,
+described in {{offline}} and {{online}}, respectively. Configuration details
+for the offline phase are described in {{configuration}}.
+
+## Configuration
+
+Each of the three protocol variants are identified with a one-byte value:
+
+| Mode           | Value |
+|:===============|:======|
+| modeOPRF       | 0x00  |
+| modeVOPRF      | 0x01  |
+| modePOPRF      | 0x02  |
+
+Additionally, each protocol variant is instantiated with a ciphersuite,
+or suite. Each ciphersuite is identified with a two-byte value, referred
+to as `suiteID`; see {{ciphersuites}} for the registry of initial values.
+
+## Offline Context Setup {#offline}
+
+In the offline setup phase, both the client and server create a context used
+for executing the online phase of the protocol. The key pair (`skS`, `pkS`)
+should be generated by calling either `GenerateKeyPair` or `DeriveKeyPair`.
+Additionally, they agree on a ciphersuite value `suiteID`. These values are
+combined to create a "context string" using the following function:
+
+~~~
+def CreateContextString(mode, suiteID):
+  return "VOPRF08-" || I2OSP(mode, 1) || I2OSP(suiteID, 2)
+~~~
+
+[[RFC editor: please change "VOPRF08" to "RFCXXXX", where XXXX is the final number, here and elsewhere before publication.]]
+
+The OPRF variant server and client contexts are created as follows:
+
+~~~
+def SetupOPRFServer(suiteID, skS):
+  contextString = CreateContextString(modeOPRF, suiteID)
+  return OPRFServerContext(contextString, skS)
+
+def SetupOPRFClient(suiteID):
+  contextString = CreateContextString(modeOPRF, suiteID)
+  return OPRFClientContext(contextString)
+~~~
+
+The VOPRF variant server and client contexts are created as follows:
+
+~~~
+def SetupVOPRFServer(suiteID, skS, pkS):
+  contextString = CreateContextString(modeVOPRF, suiteID)
+  return VOPRFServerContext(contextString, skS)
+
+def SetupVOPRFClient(suiteID, pkS):
+  contextString = CreateContextString(modeVOPRF, suiteID)
+  return VOPRFClientContext(contextString, pkS)
+~~~
+
+The POPRF variant server and client contexts are created as follows:
+
+~~~
+def SetupPOPRFServer(suiteID, skS, pkS):
+  contextString = CreateContextString(modePOPRF, suiteID)
+  return POPRFServerContext(contextString, skS)
+
+def SetupPOPRFClient(suiteID, pkS):
+  contextString = CreateContextString(modePOPRF, suiteID)
+  return POPRFClientContext(contextString, pkS)
+~~~
+
+## Online Protocol {#online}
+
+In the online phase, the client and server engage in a two message protocol
+to compute the protocol output. This section describes the protocol details
+for each protocol variant. Throughout each description the following implicit
+parameters are assumed to exist:
+
+- GG, a prime-order group implementing the API described in {{pog}}.
+- contextString, a domain separation tag constructed during context setup as created in {{offline}}.
+- skS and pkS, the private and public keys configured for client and server in {{offline}}.
+
+Moreover, the data types `PrivateInput` and `PublicInput` are opaque byte
+strings of arbitrary length no larger than 2^13 octets.
+
+### OPRF Protocol {#oprf}
+
+The OPRF protocol begins with the client blinding its input, as described
+by the `Blind` function below.
+
+~~~
+Blind
+
+Input:
+
+  PrivateInput input
+
+Output:
+
+  Scalar blind
+  SerializedElement blindedElement
+
+def Blind(input):
+  blind = GG.RandomScalar()
+  P = GG.HashToGroup(input)
+  blindedElement = GG.SerializeElement(blind * P)
+
+  return blind, blindedElement
+~~~
+
+Clients store `blind` locally, and send `blindedElement` to the server for evaluation.
+Upon receipt, servers evaluate `blindedElement` using the `Evaluate` function
+described below.
+
+~~~
+Evaluate
+
+Input:
+
+  SerializedElement blindedElement
+
+Output:
+
+  SerializedElement evaluatedElement
+
+Errors: DeserializeError
+
+def Evaluate(blindedElement):
+  R = GG.DeserializeElement(blindedElement)
+  Z = skS * R
+  evaluatedElement = GG.SerializeElement(Z)
+
+  return evaluatedElement
+~~~
+
+Servers send the output `evaluatedElement` to clients for processing. Recall that
+servers may batch multiple client inputs to `Evaluate`.
+
+Upon receipt of `evaluatedElement`, clients complete the OPRF evaluation
+using the `Finalize` function described below.
+
+~~~
+Finalize
+
+Input:
+
+  PrivateInput input
+  Scalar blind
+  SerializedElement evaluatedElement
+
+Output:
+
+  opaque output[Nh]
+
+Errors: DeserializeError
+
+def Finalize(input, blind, evaluatedElement):
+  Z = GG.DeserializeElement(evaluatedElement)
+  N = blind^(-1) * Z
+  unblindedElement = GG.SerializeElement(N)
+
+  hashInput = I2OSP(len(input), 2) || input ||
+              I2OSP(len(unblindedElement), 2) || unblindedElement ||
+              "Finalize"
+  return Hash(hashInput)
+~~~
+
+### VOPRF Protocol {#voprf}
+
+The VOPRF protocol begins with the client blinding its input, using the same
+`Blind` function as in {{oprf}}. Clients store the output `blind` locally
+and send `blindedElement` to the server for evaluation. Upon receipt,
+servers compute an evaluated element and DLEQ proof using the following
+`Evaluate` function.
+
+~~~
+Evaluate
+
+Input:
+
+  SerializedElement blindedElement
+
+Output:
+
+  SerializedElement evaluatedElement
+  Proof proof
+
+Errors: DeserializeError
+
+def Evaluate(blindedElement):
+  R = GG.DeserializeElement(blindedElement)
+  Z = skS * R
+  proof = GenerateProof(skS, G, pkS, R, Z)
+  evaluatedElement = GG.SerializeElement(Z)
+  return evaluatedElement, proof
+~~~
+
+The server sends both `evaluatedElement` and `proof` back to the client.
+Upon receipt, the client completes the VOPRF computation using the
+`Finalize` function below.
+
+~~~
+Finalize
+
+Input:
+
+  PrivateInput input
   Scalar blind
   SerializedElement evaluatedElement
   SerializedElement blindedElement
-  Element pkS
+  Proof proof
+
+Output:
+
+  opaque output[Nh]
+
+Errors: DeserializeError, VerifyError
+
+def Finalize(input, blind, evaluatedElement, blindedElement, proof):
+  R = GG.DeserializeElement(blindedElement)
+  Z = GG.DeserializeElement(evaluatedElement)
+  if VerifyProof(G, pkS, R, Z, proof) == false:
+    raise VerifyError
+
+  N = blind^(-1) * Z
+  unblindedElement = GG.SerializeElement(N)
+
+  hashInput = I2OSP(len(input), 2) || input ||
+              I2OSP(len(unblindedElement), 2) || unblindedElement ||
+              "Finalize"
+  return Hash(hashInput)
+~~~
+
+### POPRF Protocol {#poprf}
+
+The POPRF protocol begins with the client blinding its input, using the same
+`Blind` function as in {{oprf}}. Clients store the output `blind` locally
+and send `blindedElement` to the server for evaluation. Upon receipt,
+servers compute an evaluated element and DLEQ proof using the following
+`Evaluate` function.
+
+~~~
+Evaluate
+
+Input:
+
+  SerializedElement blindedElement
+  PublicInput info
+
+Output:
+
+  SerializedElement evaluatedElement
+  Proof proof
+
+Errors: DeserializeError, InverseError
+
+def Evaluate(blindedElement, info):
+  R = GG.DeserializeElement(blindedElement)
+  context = "Info" || I2OSP(len(info), 2) || info
+  m = GG.HashToScalar(context)
+  t = skS + m
+  if t == 0:
+      raise InverseError
+  Z = t^(-1) * R
+
+  U = ScalarBaseMult(t)
+  proof = GenerateProof(t, G, U, Z, R)
+  evaluatedElement = GG.SerializeElement(Z)
+  return evaluatedElement, proof
+~~~
+
+The server sends both `evaluatedElement` and `proof` back to the client.
+Upon receipt, the client completes the VOPRF computation using the
+`Finalize` function below.
+
+~~~
+Finalize
+
+Input:
+
+  PrivateInput input
+  Scalar blind
+  SerializedElement evaluatedElement
+  SerializedElement blindedElement
   Proof proof
   PublicInput info
 
 Output:
 
-  SerializedElement unblindedElement
+  opaque output[Nh]
 
 Errors: DeserializeError, VerifyError
 
-def VerifiableUnblind(blind, evaluatedElement, blindedElement, pkS, proof, info):
-  context = "Context-" || contextString ||
-            I2OSP(len(info), 2) || info
+def Finalize(input, blind, evaluatedElement, blindedElement, proof, info):
+  context = "Info" || I2OSP(len(info), 2) || info
   m = GG.HashToScalar(context)
 
   R = GG.DeserializeElement(blindedElement)
@@ -1025,34 +1035,10 @@ def VerifiableUnblind(blind, evaluatedElement, blindedElement, pkS, proof, info)
   N = blind^(-1) * Z
   unblindedElement = GG.SerializeElement(N)
 
-  return unblindedElement
-~~~
-
-#### Verifiable Finalize {#verifiable-finalize}
-
-~~~
-Input:
-
-  PrivateInput input
-  Scalar blind
-  SerializedElement evaluatedElement
-  SerializedElement blindedElement
-  Element pkS
-  Proof proof
-  PublicInput info
-
-Output:
-
-  opaque output[Nh]
-
-def VerifiableFinalize(input, blind, pkS, evaluatedElement, blindedElement, pkS, proof, info):
-  unblindedElement = VerifiableUnblind(blind, evaluatedElement, blindedElement, pkS, proof, info)
-
-  finalizeDST = "Finalize-" || contextString
   hashInput = I2OSP(len(input), 2) || input ||
               I2OSP(len(info), 2) || info ||
               I2OSP(len(unblindedElement), 2) || unblindedElement ||
-              I2OSP(len(finalizeDST), 2) || finalizeDST
+              "Finalize"
   return Hash(hashInput)
 ~~~
 
@@ -1171,16 +1157,16 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 # Application Considerations {#apis}
 
 This section describes considerations for applications, including explicit error
-treatment and public metadata representation.
+treatment and public input representation for the POPRF protocol variant.
 
 ## Error Considerations
 
-Some POPRF APIs specified in this document are fallible. For example, `Finalize`
+Some OPRF variants specified in this document have fallible operations. For example, `Finalize`
 and `Evaluate` can fail if any element received from the peer fails deserialization.
 The explicit errors generated throughout this specification, along with the
 conditions that lead to each error, are as follows:
 
-- `VerifyError`: Verifiable POPRF proof verification failed; {{verifiable-unblind}}.
+- `VerifyError`: Verifiable OPRF proof verification failed; {{voprf}} and {{poprf}}.
 - `DeserializeError`: Group element or scalar deserialization failure; {{pog}}.
 - `InverseError`: A scalar is zero and has no inverse; {{pog}}.
 
@@ -1188,16 +1174,28 @@ The errors in this document are meant as a guide to implementors. They are not
 an exhaustive list of all the errors an implementation might emit. For example,
 implementations might run out of memory and return a corresponding error.
 
-## Public Metadata
+## POPRF Public Input
 
-The optional and public `info` string included in the protocol allows clients
-and servers to cryptographically bind additional data to the POPRF output. This
-metadata is known to both parties at the start of the protocol. It is RECOMMENDED
-that this metadata be constructed with some type of higher-level domain separation
+Functionally, the VOPRF and POPRF variants differ in that the POPRF variant
+admits public input, whereas the VOPRF variant does not. Public input allows
+clients and servers to cryptographically bind additional data to the POPRF output.
+A POPRF with fixed public input is functionally equivalent to a VOPRF. However, there
+are differences in the underlying security assumptions made about each variant;
+see {{cryptanalysis}} for more details.
+
+This public input is known to both parties at the start of the protocol. It is RECOMMENDED
+that this public input be constructed with some type of higher-level domain separation
 to avoid cross protocol attacks or related issues. For example, protocols using
-this construction might ensure that the metadata uses a unique, prefix-free encoding.
+this construction might ensure that the public input uses a unique, prefix-free encoding.
 See {{I-D.irtf-cfrg-hash-to-curve, Section 10.4}} for further discussion on
 constructing domain separation values.
+
+Implementations may choose to not let applications control `info` in cases where
+this value is fixed or otherwise not useful to the application. In this case,
+the resulting protocol is functionally equivalent to an OPRF without public
+input. See {{equiv-2hashdh}} for discussion about repurposing existing non-verifiable
+OPRF implementations, i.e., those without the `info` parameter, using the construction
+in this specification.
 
 # Security Considerations {#sec}
 
@@ -1238,16 +1236,16 @@ the client's private input x at some point in the future, then the server will
 not be able to link any particular POPRF evaluation to x. This property is
 also known as unlinkability {{DGSTV18}}.
 
-Optionally, for any protocol that satisfies the above properties, there
-is an additional security property:
+Additionally, for the VOPRF and POPRF protocol variants, there is an additional
+security property:
 
 - Verifiable: The client must only complete execution of the protocol if
   it can successfully assert that the POPRF output it computes is
   correct. This is taken with respect to the POPRF key held by the
   server.
 
-Any POPRF that satisfies the 'verifiable' security property is known as a
-verifiable POPRF. In practice, the notion of verifiability requires that
+Any VOPRF or POPRF that satisfies the 'verifiable' security property is known
+as 'verifiable'. In practice, the notion of verifiability requires that
 the server commits to the key before the actual protocol execution takes
 place. Then the client verifies that the server has used the key in the
 protocol using this commitment. In the following, we may also refer to this
@@ -1255,11 +1253,84 @@ commitment as a public key.
 
 ## Cryptographic Security {#cryptanalysis}
 
-Below, we discuss the cryptographic security of the verifiable POPRF
-protocol from {{protocol}}, relative to the necessary cryptographic
-assumptions that need to be made.
+Below, we discuss the cryptographic security of each protocol variant
+from {{protocol}}, relative to the necessary cryptographic assumptions
+that need to be made.
 
-### Protocol Security and Computational Hardness Assumptions {#assumptions}
+### OPRF and VOPRF Assumptions
+
+The OPRF and VOPRF protocol variants in this document are based on {{JKK14}}.
+In fact, the VOPRF construction is identical to the {{JKK14}} construction, except
+that this document supports batching so that multiple evaluations can happen
+at once whilst only constructing one proof object. This is enabled using
+an established batching technique.
+
+Consequently, the cryptographic security of the OPRF and VOPRF variants is based on
+the assumption that the One-More Gap DH is computationally difficult to solve.
+
+The (N,Q)-One-More Gap DH (OMDH) problem asks the following.
+
+~~~
+    Given:
+    - G, k * G, and (G_1, ... , G_N), all elements of GG;
+    - oracle access to an OPRF functionality using the key k;
+    - oracle access to DDH solvers.
+
+    Find Q+1 pairs of the form below:
+
+    (G_{j_s}, k * G_{j_s})
+
+    where the following conditions hold:
+      - s is a number between 1 and Q+1;
+      - j_s is a number between 1 and N for each s;
+      - Q is the number of allowed queries.
+~~~
+
+The original paper {{JKK14}} gives a security proof that the 2HashDH-NIZK
+construction satisfies the security guarantees of a VOPRF protocol {{properties}}
+under the OMDH assumption in the universal composability (UC) security model.
+
+### Q-Strong-DH Oracle {#qsdh}
+
+A side-effect of the OPRF and VOPRF protocols is that it allows instantiation of
+a oracle for constructing Q-strong-DH (Q-sDH) samples. The Q-Strong-DH
+problem asks the following.
+
+~~~
+    Given G1, G2, h*G2, (h^2)*G2, ..., (h^Q)*G2; for G1 and G2
+    generators of GG.
+
+    Output ( (1/(k+c))*G1, c ) where c is an element of GF(p)
+~~~
+
+The assumption that this problem is hard was first introduced in
+{{BB04}}. Since then, there have been a number of cryptanalytic studies
+that have reduced the security of the assumption below that implied by
+the group instantiation (for example, {{BG04}} and {{Cheon06}}). In
+summary, the attacks reduce the security of the group instantiation by
+log\_2(Q)/2 bits. Note that the attacks only work in situations where Q
+divides p-1 or p+1, where p is the order of the prime-order group used
+to instantiate the OPRF.
+
+As an example, suppose that a group instantiation is used that provides
+128 bits of security against discrete log cryptanalysis. Then an
+adversary with access to a Q-sDH oracle and makes Q=2^20 queries can
+reduce the security of the instantiation by log\_2(2^20)/2 = 10 bits.
+Launching this attack would require 2^(p/2-log\_2(Q)/2) bits of memory.
+
+Notice that it is easy to instantiate a Q-sDH oracle using the OPRF
+functionality that we provide. A client can just submit sequential
+queries of the form (G, k * G, (k^2)G, ..., (k^(Q-1))G), where each
+query is the output of the previous interaction. This means that any
+client that submits Q queries to the OPRF can use the aforementioned
+attacks to reduce the security of the group instantiation by
+(log\_2(Q)/2) bits.
+
+Recall that from a malicious client's perspective, the adversary wins if
+they can distinguish the OPRF interaction from a protocol that computes
+the ideal functionality provided by the PRF.
+
+### POPRF Assumptions
 
 The POPRF construction in this document is based on the construction known
 as 3HashSDHI given by {{TCRSTW21}}. The construction is identical to
@@ -1277,10 +1348,11 @@ in the algebraic group model, for some q number of `Evaluate` queries.
 evaluate the 2HashDH-NIZK construction from {{JKK14}}, which is a predecessor
 to the design in this specification.)
 
-### Static q-DL Assumption
+#### Static q-DL Assumption
 
-A side-effect of the POPRF design is that it allows instantiation of an oracle for
-retrieving "strong-DH" evaluations, in which an adversary can query a group element
+As with the OPRF and VOPRF variants, a side-effect of the POPRF design is
+that it allows instantiation of an oracle for retrieving "strong-DH"
+evaluations, in which an adversary can query a group element
 B and scalar c, and receive evaluation output 1/(k+c)\*B. This type of oracle allows
 an adversary to form elements of "repeated powers" of the server-side secret. This
 "repeated powers" structure has been studied in terms of the q-DL problem which
@@ -1301,6 +1373,45 @@ evaluation oracle.
 The q-DL assumption has been well studied in the literature, and there exist a number of
 cryptanalytic studies to inform parameter choice and group instantiation (for example,
 {{BG04}} and {{Cheon06}}).
+
+### 2HashDH OPRF Equivalence {#equiv-2hashdh}
+
+The non-verifiable 3HashSDHI POPRF construction in this specification is equivalent
+to the non-verifiable 2HashDH OPRF from {{JKK14}} when the input `info` is fixed.
+In particular, the 3HashSDHI POPRF computes the following given private key `k`,
+private input `x`, and public input `t`, where H1, H2, and H3 are GG.HashToGroup,
+GG.HashToScalar, and Hash, respectively:
+
+~~~
+H3(x, H1(x)^(1 / (k + H2(t))))
+~~~
+
+Similarly, the 2HashDH OPRF computes the following given private key `k'` and
+private input `x`:
+
+~~~
+H3(x, H1(x)^k')
+~~~
+
+Given a fixed public input `t`, one can transform a 3HashSDHI private key `k`
+into an equivalent 2HashDH private key `k'` as follows:
+
+~~~
+k' = 1 / (k + H2(t))
+~~~
+
+This transformation is undefined for values of `k` and `t` such that
+`k + H2(t) = 0`. Because only a single choice of `k` leads to this
+undefined case, the distribution of `k'` defined via this transformation
+is statistically close to the distribution of a randomly sampled `k'`
+as output from `GG.GenerateKeyPair`.
+
+Note that one can also transform any non-zero 2HashDH private key `k'` into
+an equivalent 3HashSDHI private key `k` as follows:
+
+~~~
+k = (1 - (k' * H2(t))) / k'
+~~~
 
 ### Implications for Ciphersuite Choices
 
@@ -1396,15 +1507,15 @@ also provided helpful input and contributions to the document.
 
 # Test Vectors
 
-This section includes test vectors for the (V)OPRF protocol specified
+This section includes test vectors for the protocol variants specified
 in this document. For each ciphersuite specified in {{ciphersuites}},
-there is a set of test vectors for the protocol when run in the base
-mode and verifiable mode. Each test vector lists the batch size for
+there is a set of test vectors for the protocol when run the OPRF,
+VOPRF, and POPRF modes. Each test vector lists the batch size for
 the evaluation. Each test vector value is encoded as a hexadecimal
 byte string. The label for each test vector value is described below.
 
 - "Input": The private client input, an opaque byte string.
-- "Info": The public info, an opaque byte string.
+- "Info": The public info, an opaque byte string. Only present for POPRF vectors.
 - "Blind": The blind value output by `Blind()`, a serialized `Scalar`
   of `Ns` bytes long.
 - "BlindedElement": The blinded value output by `Blind()`, a serialized
@@ -1413,10 +1524,10 @@ byte string. The label for each test vector value is described below.
   a serialized `Element` of `Ne` bytes long.
 - "Proof": The serialized `Proof` output from `GenerateProof()` (only
   listed for verifiable mode test vectors), composed of two serialized
-  `Scalar` values each of `Ns` bytes long.
+  `Scalar` values each of `Ns` bytes long. Only present for VOPRF and POPRF vectors.
 - "ProofRandomScalar": The random scalar `r` computed in `GenerateProof()`
   (only listed for verifiable mode test vectors), a serialized `Scalar` of
-  `Ns` bytes long.
+  `Ns` bytes long. Only present for VOPRF and POPRF vectors.
 - "Output": The OPRF output, a byte string of length `Nh` bytes.
 
 Test vectors with batch size B > 1 have inputs separated by a comma
@@ -1441,7 +1552,7 @@ def DeriveKeyPair(mode, suite, seed):
 
 ## OPRF(ristretto255, SHA-512)
 
-### Base Mode
+### OPRF Mode
 
 ~~~
 seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
@@ -1454,35 +1565,33 @@ c0f
 
 ~~~
 Input = 00
-Info = 7465737420696e666f
 Blind = c604c785ada70d77a5256ae21767de8c3304115237d262134f5e46e512cf
 8e03
 BlindedElement = 744441a5d3ee12571a84d34812443eba2b6521a47265ad655f0
 1e759b3dd7d35
-EvaluationElement = 4254c503ee2013262473eec926b109b018d699b8dd954ee8
-78bc17b159696353
-Output = 9aef8983b729baacb7ecf1be98d1276ca29e7d62dbf39bc595be018b66b
-199119f18579a9ae96a39d7d506c9e00f75b433a870d76ba755a3e7196911fff89ff
-3
+EvaluationElement = 5238fc69e584025f803c1126f3493c9bad2777b60b1946dd
+bf05922fe2a77533
+Output = fd3b3e1424c876a811a3558ea27eef69a23b16b1e26997a8c5980e719ea
+a9155a730a4680a09e91e9590a875a7d6a3667867da174e8d43b550d7792b0005315
+8
 ~~~
 
 #### Test Vector 2, Batch Size 1
 
 ~~~
 Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
-Info = 7465737420696e666f
 Blind = 5ed895206bfc53316d307b23e46ecc6623afb3086da74189a416012be037
 e50b
 BlindedElement = f4eeea4e1bcb2ec818ee2d5c1fcec56c24064a9ff4bea5b3dd6
 877800fc28e4d
-EvaluationElement = 185dae43b6209dacbc41a62fd4889700d11eeeff4e83ffbc
-72d54daee7e25659
-Output = f556e2d83e576b4edc890472572d08f0d90d2ecc52a73b35b2a8416a72f
-f676549e3a83054fdf4fd16fe03e03bee7bb32cbd83c7ca212ea0d03b8996c2c268b
+EvaluationElement = 90f841bace4f20ba5b30c30e415b0f06158f793ab008848b
+6262d0d27415c266
+Output = 4601db3454cdbae31c66922d3afaaae689899af378f5ca34183332ad9d8
+aa217f25980a421e97f548b12a3dc59d69dda3713fdf8ec51ae8c6428cf328398cda
 2
 ~~~
 
-### Verifiable Mode
+### VOPRF Mode
 
 ~~~
 seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
@@ -1497,20 +1606,92 @@ b52
 
 ~~~
 Input = 00
-Info = 7465737420696e666f
 Blind = ed8366feb6b1d05d1f46acb727061e43aadfafe9c10e5a64e7518d63e326
 3503
 BlindedElement = 56c6926e940df23d5dfe6a48949c5a9e5b503df3bff36454ba4
 821afa1528718
-EvaluationElement = 523774950001072a4fb1f1f3300f7feb1eeddb5b8304baa9
-c3d463c11e7f0509
-Proof = c973c8cfbcdbb12a09e7640e44e45d85d420ed0539a18dc6c67c189b4f28
-c70dd32f9b13717ee073e1e73333a7cb17545dd42ed8a2008c5dae11a3bd7e70260d
+EvaluationElement = a6c7f6b6ecd9d040dd9490d6b3f42cf4ac51ae009c737015
+f03d5293d0d9444e
+Proof = c256db421a3286a543b814ff2910659ffc84014cd807bcbd15046fc26388
+060b931480a56967d5fb0398694542fe0bb0a1953332021fee378e90d394ba683a0f
 ProofRandomScalar = 019cbd1d7420292528f8cdd62f339fdabb602f04a95dac9d
 bcec831b8c681a09
-Output = 2d9ed987fdfa623a5b4d5e445b127e86212b7c8f2567c175b424c59602f
-bba7c36975df5e4ecdf060430c8b1b581fc97e953535fd82089e15afbafcf310b339
-9
+Output = 0925637f605f2da4cb5424cf810071c3343ff281229c0afa01826958207
+8c93c23e530ba462f3817a6e8ab58580a995aa990f844ef84993b539a170a4384edc
+3
+~~~
+
+#### Test Vector 2, Batch Size 1
+
+~~~
+Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
+Blind = e6d0f1d89ad552e383d6c6f4e8598cc3037d6e274d22da3089e7afbd4171
+ea02
+BlindedElement = 5cd133d03df2e1ff919ed85501319c2039853dd7dc59da73605
+fd5791b835d23
+EvaluationElement = 38f1c43a0ff7de2de2fe5118e46258854426d90d8cc18f4e
+7c5407ec4155b124
+Proof = 63eab55e660427fd36db9f2931aa27515bcd86d4bf77c609095318774f97
+6407bc358b3d2d02d52387076dc3bde52e3a600514455d27a39a88b040d7b7746303
+ProofRandomScalar = 74ae06fd50d5f26c2519bd7b184f45dd3ef2cb50197d42df
+9d013f7d6c312a0b
+Output = 89b51fc800c79e249c3149477d28a00ada5ee894e470b9171223162260b
+268affb1082713cf8d3ac381bd750df712623949c83de974854e39c5df90bf396ebf
+f
+~~~
+
+#### Test Vector 3, Batch Size 2
+
+~~~
+Input = 00,5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
+Blind = 80513e77795feeec6d2c450589b0e1b178febd5c193a9fcba0d27f0a06e0
+d50f,533c2e6d91c934f919ac218973be55ba0d7b234160a0d4cf3bddafbda99e2e0
+c
+BlindedElement = 1c7ee9c1b4145dabeba9ad159531432a20718cb44a86f79dc73
+f6f8671c9bf5e,7c1ef37881602cb6d3cf995e6ee310ed51e39b80ce0a825a316bc6
+21d0580a14
+EvaluationElement = 14551ccb502a3a54a8939f7202209527fbea63003de298c2
+252adeb39d79a529,96660c2a6cf50b47c368f99652869016d148b99ca20ed0b0e1d
+5bad6fdc82002
+Proof = 91cf0cbac5565c805580a210684d0849302326fa39cd22a4099ff1ccb9ba
+34052251b656a5b6ac68a6c3057b1c379690e0a2e9b4a6bfa341e8b405013792f505
+ProofRandomScalar = 3af5aec325791592eee4a8860522f8444c8e71ac33af5186
+a9706137886dce08
+Output = 0925637f605f2da4cb5424cf810071c3343ff281229c0afa01826958207
+8c93c23e530ba462f3817a6e8ab58580a995aa990f844ef84993b539a170a4384edc
+3,89b51fc800c79e249c3149477d28a00ada5ee894e470b9171223162260b268affb
+1082713cf8d3ac381bd750df712623949c83de974854e39c5df90bf396ebff
+~~~
+
+### POPRF Mode
+
+~~~
+seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
+3a3
+skSm = 7e759858c6eb14698e57df64fb14115b450ada6bd4c686af96f9522d76c86
+306
+pkSm = ba05e4328cac4174274fc70ac4118a889b108cf1efc8ba5bc79abfdcb61ba
+846
+~~~
+
+#### Test Vector 1, Batch Size 1
+
+~~~
+Input = 00
+Info = 7465737420696e666f
+Blind = 7e5bcbf82a46109ee0d24e9bcab41fc830a6ce8b82fc1e9213a043b743b9
+5800
+BlindedElement = a045ba27352937407c6c3f09ae1ad7b8ccd4ee120df5e92dcd2
+2014756e17806
+EvaluationElement = eeb704f4e05fd2bdbc189ca22ef025538165ef4839289886
+f1f9d83ae61e417b
+Proof = 4a4e7fbb5b0e8b94ab362b76e59b2eb7e686e679a61bf598046ece310aea
+2f0f863527afef744747554e223c1505201b3a2c2ec28eeb72989a0f11eda2c2fc0f
+ProofRandomScalar = 080d0a4d352de92672ab709b1ae1888cb48dfabc2d6ca5b9
+14b335512fe70508
+Output = 342dc80a0fc56b34d0d0b0e96df8febadb7d1d7782472381f0fc3571061
+5819d3ca993587b89603c250f04c8ebcbd48c8fd755ce14deef9f42ec05b20b60f27
+3
 ~~~
 
 #### Test Vector 2, Batch Size 1
@@ -1518,48 +1699,24 @@ bba7c36975df5e4ecdf060430c8b1b581fc97e953535fd82089e15afbafcf310b339
 ~~~
 Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
 Info = 7465737420696e666f
-Blind = e6d0f1d89ad552e383d6c6f4e8598cc3037d6e274d22da3089e7afbd4171
-ea02
-BlindedElement = 5cd133d03df2e1ff919ed85501319c2039853dd7dc59da73605
-fd5791b835d23
-EvaluationElement = c0ba1012cbfb0338dadb435ef1d910eb179dc18c0d0a341f
-0249a3a9ff03b06e
-Proof = 156761aee4eb6a5e1e32bc0adb56ea46d65883777e152d4c607a3a3b8abf
-3b036ecebae005d3f26222a8da0a3924cceed8a1a7c707ef4ba077456c3e80f8c40f
-ProofRandomScalar = 74ae06fd50d5f26c2519bd7b184f45dd3ef2cb50197d42df
-9d013f7d6c312a0b
-Output = f5da1276b5ca3de4591534cf2d96f7bb49059bd374f40259f42dca89d72
-3cac69ed3ae567128aaa2dfdf777f333615524aec24bc77b0a38e200e6a07b6c638e
-b
-~~~
-
-#### Test Vector 3, Batch Size 2
-
-~~~
-Input = 00,5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
-Info = 7465737420696e666f
-Blind = 80513e77795feeec6d2c450589b0e1b178febd5c193a9fcba0d27f0a06e0
-d50f,533c2e6d91c934f919ac218973be55ba0d7b234160a0d4cf3bddafbda99e2e0
-c
-BlindedElement = 1c7ee9c1b4145dabeba9ad159531432a20718cb44a86f79dc73
-f6f8671c9bf5e,7c1ef37881602cb6d3cf995e6ee310ed51e39b80ce0a825a316bc6
-21d0580a14
-EvaluationElement = a8a66348d351408cb7e2d26341a1258ba91c1a7d1b380f62
-15bdfc242500991b,5a4b72bee9d2ca80ea220571690e2f92fadd0c13635b2888bc1
-ff255f8fee975
-Proof = caad28bac17ce71d59b43956e8d80f3edde3d0c317144bef3d10d9733ef1
-cf09fd910c663ea85ad7cfaf641d73314694fe18d3f6b89cfe001b18163ff908d10a
-ProofRandomScalar = 3af5aec325791592eee4a8860522f8444c8e71ac33af5186
-a9706137886dce08
-Output = 2d9ed987fdfa623a5b4d5e445b127e86212b7c8f2567c175b424c59602f
-bba7c36975df5e4ecdf060430c8b1b581fc97e953535fd82089e15afbafcf310b339
-9,f5da1276b5ca3de4591534cf2d96f7bb49059bd374f40259f42dca89d723cac69e
-d3ae567128aaa2dfdf777f333615524aec24bc77b0a38e200e6a07b6c638eb
+Blind = de2e98f422bf7b99be19f7da7cac62f1599d35a225ec6340149a0aaff310
+2003
+BlindedElement = aad45f3d7d66884129d3048614dcd3e35bb0fbac66f073b916b
+8ab66c7252249
+EvaluationElement = b60ce5f6d855837c1947fd118c83dba5ad154b18afccc685
+24e8ebcf4fb17e0a
+Proof = cf72c646650cf8b140a44de8ff4f4b619dffa23b8bf44e60370b71190ae4
+c909f53e4750ef76d9968b285c66c44a8d771d765a05b7930ec83410849b7875d302
+ProofRandomScalar = c4d002aa4cfcf281657cf36fe562bc60d9133e0e72a74432
+f685b2b6a4b42a0c
+Output = 86cec51f8290fafa6523f770709d901d8c5efec3e2aedfa002b13694ddf
+13ec1fc313cbdf94b019241d926c664ca995f81d9e47516f2e978a0933dbad03e793
+1
 ~~~
 
 ## OPRF(decaf448, SHAKE-256)
 
-### Base Mode
+### OPRF Mode
 
 ~~~
 seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
@@ -1572,35 +1729,33 @@ skSm = 82c2a6492e1792e6ccdf1d7cff410c717681bd53ad47da7646b14ebd05885
 
 ~~~
 Input = 00
-Info = 7465737420696e666f
-Blind = d1080372f0fcf8c5eace50914e7127f576725f215cc7c111673c635ce668
-bbbb9b50601ad89b358ab8c23ed0b6c9d040365ec9d060868714
-BlindedElement = 1c354d6d31500c7c5ae6fb10901ac87552ea3af1824e79871e2
-596ef537f86abac64859cf6f35911ab74f0b09a06ecc757a65a104e9e49fb
-EvaluationElement = 9e5bbf27b2312a493b2f2f1d051b7cdf3801769ec5dc0724
-51b68c4d0d4ed9303979ec4798261a01fabd8d25540f48a11dd8342fded95383
-Output = 5f8c28d5e760786cbd000ac58444bd216141472b9370b058408a714da5e
-3dd51fc572f96c99a9338bc8569abc991bc1523fa1467cd3a0de3aef7f154bd65d92
-e
+Blind = d3a425c41eac0e313a47e99d05df72c6e1d58e654a5ee9354b115060bca8
+7db7d73e00cbb8559f84cb7a221b235b0950a0ab553f40bcc304
+BlindedElement = ae09cc0ef98064e4d0b3a295026d62ce80b4be8e44aae716fe3
+5c1536fecd0aff874fe7553bbd3c609558a8c5474a8762ebf8056839dcc0f
+EvaluationElement = fa50b47b6f9c16b130ae267de20ed65e56484ab89aa01cb8
+d89f63ab6ec91a7686a516a3c83591a22627328f242390c21f670a69497c079d
+Output = 0cf3d2c8bea99633af7e50b4dfd04a205d77f5a27da0acd4a3cf4284160
+bb385ab01075928cc7c9355eedde4e29eb51a9e845a83927995e18e392d8f3858f8e
+b
 ~~~
 
 #### Test Vector 2, Batch Size 1
 
 ~~~
 Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
-Info = 7465737420696e666f
-Blind = aed1ffa44fd8f0ed16373606a3cf7df589cca86d8ea1abbf5768771dbef3
-d401c74ae55ba1e28b9565e1e4018eb261a14134a4ce60c1c718
-BlindedElement = e8111f22d50595f68f01a6a9135f50e8702c90794c2637fbe00
-9046f0c455884cc77ee7a87f3abf494afe780b3620ab0e7fb65c65ba902b2
-EvaluationElement = 0ec625f99914ba702f0e6bc5d0f837cb4deaf7ab3ac55458
-7182c3dfe1dad6d1540964f9581d26e8ef0a47b61c5f145109a5fffe04ad528e
-Output = 7f0e40c08d8220f88c0961925f764ee0e4e08909d497f462a97a2030b40
-b44986fa76d344efb9b0acab23db81356fc8c380b80701a61a5fa76097a5d2ea7aa9
-e
+Blind = 87abe954011b7da62bb6599418ef90b5d4ea98cca1bcd65fa514f1894bcf
+6a1c7cef33909b794fe6e69a642b20f4c9118febffaf9a5acc11
+BlindedElement = 863a8628a9837efbc0d1caeb69fd5b31c6fd3359d8e74fc07c3
+911dbaa6103dfb7b7b6c0b86f50db7b151fc61d1079c271abd402a2932d20
+EvaluationElement = 4e8ce7c6cbffd0d3117c733051b0e087667b7d147cf7242d
+4343cca984808fcb0e9dcf7e98322789e01a3249087c30fc7062d5c83890a568
+Output = 8765cfbfec353309dae15200f5ece075b5d11a2329d4d085917c1aa7b35
+116e46e45ada7c495336714548bf31d57833737393f7e1fb97e4403bc052063ba06e
+6
 ~~~
 
-### Verifiable Mode
+### VOPRF Mode
 
 ~~~
 seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
@@ -1615,22 +1770,103 @@ pkSm = 8e623ef9b65ef2ce148ce56249ee5e69ed6acd3e504a07905cc4c09312551
 
 ~~~
 Input = 00
+Blind = 20e7794aa77ced123f07e56cc27de60b0ab106c0e1aac79e92dd2d051e90
+efe4e2e093bc1e82b80e8cce6afa798ac214abffabac4a096005
+BlindedElement = 5cc67ce84bd60ef4760cbd864aefd7d30767a7d6ba6c7af63bc
+11347ccab9b59f9bf09cb76e627f061f46501a1f05a8d7cf11a24dc0d9c1b
+EvaluationElement = 16f46e03d10285656d3acc05f0f4ef838e4031694ecad71c
+fa166793dce520054edc67ba6a9b8428220eaf45a3411581db2ac5707d3b500e
+Proof = f5e94c46ade56ad071f3272ddc08cc349feda48c0e01403d74486886221c
+2c1dae2da1cc645445a8ac6dcd1b0597df9315073e7dbb80632718fea9a9ba85273b
+4f634e722e105c98669a051c5b9f058f5f07db6a6896b137c35bed3e093ceb418cb2
+7919ec23032825653ec74f029306
+ProofRandomScalar = da3e9faf0f2009d16c797646097d761e2b84e0df5d76ece5
+658b3aab5207735beb86c5379228da260159dc24f7c5c2483a81aff8f6ff991b
+Output = 0476bea0b5af32e5c4acf713dee317efd4124b2fc0f2ce90f15120d9e1e
+2ed8c75b9abcc1cb238290b85bef86231938bac0abeea9a006e6ced003ca3b4265e0
+c
+~~~
+
+#### Test Vector 2, Batch Size 1
+
+~~~
+Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
+Blind = befcb571168f337dd52851d4bc07947c858dc735e9e22aaf0576f161ab55
+5182908dbd7947b1c988956fa73b17b373b72fd4e3c08992892a
+BlindedElement = 8cbf06254ec3393734d50a9cbf7b6b27bc18706a49f4c559ee7
+aa4642b1295d5de7e9f1150d51611660344d8a194c584fbbc1e1908428a72
+EvaluationElement = de4cd9d4250c18bae746e46729aa192f85722b9cb2355523
+f6d7241667e7531ab3d9a03af90c4cde1ea699619eed124c55bfa688b231dc90
+Proof = 4cd3f93cba5a21d646b9cf33926973ad62f39f104d8da6571c33101ff2b1
+8c469cd276d2f7a7648a7f6e9ee01127eec886594b532d3f6a0e7ce81c3561b51426
+a9a0a3646e5f95230fd42aed5a6086b5f0ce2081688e2439e80b998cd59dd17f7150
+9d657109fbf1882be12c4f638c09
+ProofRandomScalar = 4dab20fd864de6ceab345e8d755997956ddd1f267a2d8617
+5aeae5e1168932285a6f602b4b20a570a697452b3ddbb7d0e29363ad3a6fed19
+Output = 9e4b68269cd8d3e8cf2d87ef9cff1e07c4ec02aff316d412fc6d867b775
+ed325043175bca9190ec15a493aa457c5d17f5ef594b22f8e8b46a1a878636f0b253
+5
+~~~
+
+#### Test Vector 3, Batch Size 2
+
+~~~
+Input = 00,5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
+Blind = 01229ee057507c3e53534ad9db9f6df6ce515d1b8017923b65cada199e93
+6a623c8eb3bd08e9b3f6584a85e4ff26e9f869d30b6c1f5bf11b,da4e3069d3ed33e
+f13a08c384d74f6dcaed32bb9448c02865efb17a32b82c7f06a9586c63b775932689
+cb8215043bf2952776afbc6d9ab26
+BlindedElement = 90bc0fdfeeeb43811c39afe42a4e97448e5e8494c2bf9522154
+10d4147667f9bdc7c9e7db02a94a844ada03f834660e83ff4e052e23d0b7d,e633bf
+3e0df4150bb0feaa524ab008f26b65006e9d04b299949dd44ea814c9d4b837473e3a
+dff919202645557118463b0ca5798b1a12f3e0
+EvaluationElement = daabac62aead1073267807ba3de327db4179e76bcde35d78
+49f95509da874dfacfdf337d97e3926c18d9ce15159116820c2787de7759acb4,703
+02c85e8508bc373b66229bf9d33d402da29d6e1ce88560e95be1dd1a0d4a138bcfdc
+c2cc646edf8ec928582bf317c46bb2935fa5c72fa
+Proof = bbdbd15fecd7ca234abdcb01a7fb02ee6cc219f75ab5b624833bec952bbc
+707b655f4d13cb6b86ab539b1bb54c66a9475fa3ce2a0f01b8182d3135b1c1f9278e
+22531ec469dc1b29103ac62aa35265b5c55690183cc60e784dfb28b6310a23ea8335
+e0c09c5848e5506ae47676dc3401
+ProofRandomScalar = 4e278b9fbe31963bbdda1edc786e5fd0033feac1992c53a6
+07d516a46251614940e76a2763b80683e5b789398710bdbc774d9221f74c7102
+Output = 0476bea0b5af32e5c4acf713dee317efd4124b2fc0f2ce90f15120d9e1e
+2ed8c75b9abcc1cb238290b85bef86231938bac0abeea9a006e6ced003ca3b4265e0
+c,9e4b68269cd8d3e8cf2d87ef9cff1e07c4ec02aff316d412fc6d867b775ed32504
+3175bca9190ec15a493aa457c5d17f5ef594b22f8e8b46a1a878636f0b2535
+~~~
+
+### POPRF Mode
+
+~~~
+seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
+3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3
+skSm = 4830949d85595c3de128f8487b04378f1ddb834cb013925b90ff461814fde
+784d03f1b938fb1a421aa1e0f57c7236d98afc501ae52664935
+pkSm = 70b5023ffb66a7ed4933354e67a21ceed1fb065341c4cde7f5ee9572a771c
+63e0ffb03864277e3ea83422537400b92678f3c3d6cf940771e
+~~~
+
+#### Test Vector 1, Batch Size 1
+
+~~~
+Input = 00
 Info = 7465737420696e666f
-Blind = 4c936db1779a621b6c71475ac3111fd5703a59b713929f36dfd1e892a7fe
-814479c93d8b4b6e11d1f6fe5351e51457b665fa7b76074e531f
-BlindedElement = 74bb2406b15a86ba94b0686901545f8ddc23e64918de47c76fa
-0bf812387021392c73e01068ac9cc07c7647b3d0d4e648c27bb3880ddb8e5
-EvaluationElement = 90997b495c19f16561a3286a7bcba9a4ee6e12bab4d580d5
-004ae5064d90a389124e81066f3f1dbf9a729ab46ed674c3292f56d54a0d5641
-Proof = 668f6ef88b249d51b6c94bfe82f2bec35ab7386bc9f3d14209d0247a5b6e
-bedec4c333947fff96d322f516f4674cc07638b8e854c52be7045d83d65aff518104
-60ec43417a6c6efbfb67ba7b0257b1237c64e6792195e338474d09df32b076c0b702
-ec8c639b34c29878b87aad70d63c
-ProofRandomScalar = 1b3f5a55b2f18f8c53d4ecf2e1c27e1028f1c345bb504486
-4aa9dd8439d7520a7ba6183d50ef08bdf6c781aa465660c93e8195a8d231b62f
-Output = 7db8c49354861f2d71c8175681c9cc930a00251330b2acc5c321f9833fe
-d4113a1cb3e05a3840082c24e8d49470474dd1c7586f3663f32f66dc3888c63dc0e6
-e
+Blind = c3b11cb03005ced988ae863bc6f3e8b59bbd1354548220e81cd0ffb6f9e4
+ec2173870ae684f86b1c06e41ecdb9ef83429e58098b238c292d
+BlindedElement = ce23c7d365058dc76f97adf83eb0c7baa4f27aea3ba1b015d0d
+a3043afab3d84694f1d0f5dbb77cfb96873aade920218f5ec80e481584747
+EvaluationElement = 26ce331ad4a51a983b5091ab5ec5bcbc37d8622b0f0ed7cf
+be123c474c004fe609cab847657de9e835a2c58e714f29d15d7243dbe964e695
+Proof = 52db3e4c2031e3df29426791407bc35edae93192b59da99cbd65cfced416
+1cb96f40744d036529d58b5e308dac21f0c0b149ab4c2eee583e26ad06717c3788a1
+51256ae6c32596570991b97c3ee1d537b9d7d10978d5ead25f29b59a6f28bc3aa134
+4623edce6050feb62d5d27b60a08
+ProofRandomScalar = 9e414ad5e6073d177a1f0b697d9efa2b60c984df38632f10
+96f2bf292478118d78e9edabbe9ad22900ad84b1a2cdcb869c70c832589a471a
+Output = 1a593b2c934acc3d504e834a73276831ce7441f93ca7552adb0c45b18af
+222a3e45c936a2c3a64702de43e570c0bfca194d00fefd23f15d12f0c49fe1d1a918
+6
 ~~~
 
 #### Test Vector 2, Batch Size 1
@@ -1638,55 +1874,26 @@ e
 ~~~
 Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
 Info = 7465737420696e666f
-Blind = 15b3355179392f40c3d5a15f0d5ffc354e340454ec779f575e4573a3886a
-b5e57e4da2985cea9e32f6d95539ce2c7189e1bd7462e8c5483a
-BlindedElement = ea3418614d71144ac4ecbd2c63c30ce34718b739ba0a5dd3585
-efd9800b9debdad4cffc25dcc39b4691aaffba19ead8a425d7d50f016f57e
-EvaluationElement = 7e12ab491c3787a1f17118f7a0308f8c41f4cd6e850cf7fa
-ba030b6c1bf1888337149e7c2fc88068626a0107be18e8b9e29f41c8d1510049
-Proof = 91ed184bf518a155749a99d39bed3f9dc9895054e55fab0ebd0ce4270e84
-52fcc8da055e8c2f75f2306ecacaa594de592e0d0b059b8eb30e15d5c3132b71ebc4
-933596c563ee8ce8681e0e40534e92ce487a0e33e341f02a9aaa1f750d9efa7545a0
-008b2f8dde5047ce68d00c2e962e
-ProofRandomScalar = 2f2e9955be83a4b25743ebd3618d4fad8b7288477da50bed
-9befa58af639ddd950fec34205f8a4f166fadcb8fa71a3ffdd2e98f4c8ef5e26
-Output = 66125718c5d651c88ab57dda67c52a506d436600f1521b7684c869b9a2b
-3e67d1b41c47593e79fd6b70aaae8d3689536897ae8964ffcd433c0884c12c94929d
-c
-~~~
-
-#### Test Vector 3, Batch Size 2
-
-~~~
-Input = 00,5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
-Info = 7465737420696e666f
-Blind = 614bb578f29cc677ea9e7aea3e4839413997e020f9377b63c13584156a09
-a46dd2a425c41eac0e313a47e99d05df72c6e1d58e6592577a0d,4c115060bca87db
-7d73e00cbb8559f84cb7a221b235b0950a0ab553f03f10e1386abe954011b7da62bb
-6599418ef90b5d4ea98cc28aff517
-BlindedElement = 909b0b8bcb900bd9e70f27258d7264015c50f3717361afff22d
-16ad84758d2c6b7a1963263d0d035f63b88df8b473f9365c53abcec34b201,726315
-ee47e217344da7036a24f806177e221c9f6eae5763f9089b16bada69b85aec56c3ca
-83b6f5f1091640ea3fe3e9429ff2aa7772efef
-EvaluationElement = 46d8dec85a27698b4b69a67299eab1da0ec2bbed013a3a59
-b932e2938e2e2c5bcc8274febf49b7903419c18b895f17c4a9a504737d7a3fdc,fe4
-7eca9d06b400c80cc2b749284312c6f97c7b5d88055fe56b068c441e053fe909c6c2
-2bb7cd646a932e2d3838b7b3e2e883cfe0ed1a2a1
-Proof = 1f63637de4f945f5937ac015a508420f119f7b6a8e001439a1923a1705ce
-ee704ad17664ff4c72f89566f83ceccee3001d44d849ac4dad2bc05b9bc718ba787f
-c3c5b09198c4ab244455bac64a9a231b18c4682c0e6e30ae5398f5c041ee2c5b02c6
-19b7497c5bf070fdb4656353de1d
-ProofRandomScalar = a614f1894bcf6a1c7cef33909b794fe6e69a642b20f4c911
-8febffaf6b6a31471fe7794aa77ced123f07e56cc27de60b0ab106c0b8eab127
-Output = 7db8c49354861f2d71c8175681c9cc930a00251330b2acc5c321f9833fe
-d4113a1cb3e05a3840082c24e8d49470474dd1c7586f3663f32f66dc3888c63dc0e6
-e,66125718c5d651c88ab57dda67c52a506d436600f1521b7684c869b9a2b3e67d1b
-41c47593e79fd6b70aaae8d3689536897ae8964ffcd433c0884c12c94929dc
+Blind = 87c1563075086f0749e88205237f77416210747f2369383efbec7bf6c78a
+77d5062b938e91fbc6ce569a4461a97bda32d0af163d4307bb22
+BlindedElement = 14e74297bbe248bb6a56e72310c55cc3de98622adc7aede7fa9
+89163456486e06909f990d046120571f7e787c5cd177480b769f51d240618
+EvaluationElement = aa1c671697ba9b91adca349ec2174a75532187e992a64a8f
+0dc4b5b8df6e26727e547032d3ae9d482da346a4d839a68544f9b8f96bd526e2
+Proof = 56674fe3522f9e46f92c850829bb0f6147d96cd03f4725a0e4ea6b53ff47
+e28f19c7452e4b6ecc746507f7f9eec70e49e5a081b998b022136b700068375a63e1
+f861c71fc458fa891115212c90acf7a1030db303402ab8a5e8e842fee81452c19072
+a0005916ace140ceb51197fcf23e
+ProofRandomScalar = 68481b589434b3b5b6c131de9e080e58e63ca9ce7d0c1bf8
+1599e1a6292f2574e3a23e21d5bf79ecc75a16f7a77618bb9a9224c39cf90a18
+Output = ddd1d28bc5516c85d4d0202e5904a2a92586cd8c0f26ed20393c5bcf70b
+15aa33938bc3179614367105730419f5fb0d495079cf2e8b84b70170e964bae4f12a
+0
 ~~~
 
 ## OPRF(P-256, SHA-256)
 
-### Base Mode
+### OPRF Mode
 
 ~~~
 seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
@@ -1699,33 +1906,31 @@ e97
 
 ~~~
 Input = 00
-Info = 7465737420696e666f
-Blind = 5d9e7f6efd3093c32ecceabd57fb03cf760c926d2a7bfa265babf29ec98a
-f0d0
-BlindedElement = 03e9097c54d2ea05f99424bdf984ea30ecc3614029bd5f1139e
-70c4e1ae3bdbd92
-EvaluationElement = 0202e4d1a338659c211900c39855f30025359928d261e6c9
-558d667b3fbbc811cd
-Output = 15b96275d06b85741f491fe0cad5cb835baa6c39066cbea73132dcf95e8
-58e1c
+Blind = 41fabd4722d92472d858051ce9ad1a533176a862c697b2c392aff2aeb77e
+b20d
+BlindedElement = 0214499fd6847222cfb6cb68db02121851b9ed884737541fddf
+655798a2b22c9a2
+EvaluationElement = 033da53f19a54644f8654d54ca9653400c499641237f974f
+f1386246bea54488ab
+Output = bee89c9d383f4ffc5d43b2b8efd185428366d26580a3597fa6f4a6b069f
+17ac1
 ~~~
 
 #### Test Vector 2, Batch Size 1
 
 ~~~
 Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
-Info = 7465737420696e666f
-Blind = 825155ab61f17605af2ae2e935c78d857c9407bcd45128d57d338f1671b5
-fcbe
-BlindedElement = 03fa1ea45dd58d6b516c1252f2791610bf5ff1828c93be8af66
-786f45fb4d14db5
-EvaluationElement = 02657822553416d91bb3d707040fd0d5a0555f5cbae7519d
-f3a297747a3ad1dd57
-Output = e97f3f451f3cfce45a530dec0a0dec934cd78c5b656771549072ee236ce
-070b9
+Blind = 7b7f977a1fb71593281099ef2625644aee0b6c5f5e6e01a2b052b3bd4caf
+539b
+BlindedElement = 034c9497343f27a300bde18834dd02dc656af533111811a565c
+ba0ff554d384dd0
+EvaluationElement = 0231f254a80fecb4147250214d8980b3334cb5f9e51a98bc
+4de28a7dc490bc8d8e
+Output = 3284ba954ff6dd0c1fa2e2e8b1d52d17fbf7e52f3d0cfa894344253516d
+67eea
 ~~~
 
-### Verifiable Mode
+### VOPRF Mode
 
 ~~~
 seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
@@ -1740,19 +1945,88 @@ pkSm = 03d6c3f69cfa683418a533fc52143a377f166e571ae50581abcb97ffd4e71
 
 ~~~
 Input = 00
+Blind = 2c2059c25684e6ccea420f8d0c793f9f51171628f1d28bb7402ca4aea646
+5e27
+BlindedElement = 035f218c9109e2f9fda41525d02bf0637b76e821a11155b8cef
+51c2f4143261124
+EvaluationElement = 03204514c2190a84fa3297217aaad13c2eb52fd4a65bf317
+9e3ed83d5f72f9e5e6
+Proof = 754781f357918661054f8b39011e995412772fda58c2f0eaab488abd0185
+3d046d434702e59b9ddadefc4c0cc94e32894ed78e63331af60241344184ac82706f
+ProofRandomScalar = 1b538ff23749be19e92df82df1acd3f606cc9faa9dc7ab25
+1997738a3a232f36
+Output = 45aa32847b1ce094c060d37664937866308f007170c9aac2a943d103e94
+d0004
+~~~
+
+#### Test Vector 2, Batch Size 1
+
+~~~
+Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
+Blind = 8b45f65717a40c38f671d326e196e8a21bf6cfd40327a95f1ccfc82a9f83
+a75e
+BlindedElement = 03552596458a0cd6656909d2b475306e1bc8a08363984d6bda1
+546784501b5b068
+EvaluationElement = 036e48e2ac6c1082bfec8bf27c6127af5273911224d4eb37
+ed5fa1248bd11e0d10
+Proof = 65d0c25f226bb260e01134e4197cb077fb9a43a62a702655cd518a1e2c74
+3decf8b59f4ad3048bc36dfc88a18e571bb3934ba78a0933c3a15538772e1f43a87f
+ProofRandomScalar = 3d35895f4cff282d86b2358d89a82ee6523eff8db014d9b8
+b53ad7b0e149b094
+Output = 3e3c5c10845bff573c040333be9c83440cc888456c63d82722127844315
+97f39
+~~~
+
+#### Test Vector 3, Batch Size 2
+
+~~~
+Input = 00,5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
+Blind = 83705fcc9a39607288b935b0797ac6b3c4b2e848823ac9ae16b3a3b5816b
+e035,644c8539857abe3a2022e9c9fd6a1695bbabe8add48bcd149ff3b840dc8a5d2
+5
+BlindedElement = 03cdccc126afb60535c4e75157cd8ec1431e169af693fdcff4d
+5d77b64c5b586f7,0367169f69b1eff90261e7444049c6f2d08d6a218b21bbdbb7fc
+8750a5a5ffd232
+EvaluationElement = 020e05d0b35b911ce76e14fd4822eb7168ef7b45a1fd43d9
+a05c3bb3c0ec8bf311,02b13b991b82468a1cdf8efd694d3f9e239540eb06a34bfe7
+b192fdbe3276b41e9
+Proof = 1540451231eb093d0fd42a786ab3a12f3c647d2ce26550b6849481930def
+eaafd21e0876b029660ebe31d025a6ffb6e26171905c0d3ebed9d4a4d8615e1a65c9
+ProofRandomScalar = 316bc8567c89bd70267d35c8ddcb2be2cdc867089a2eb5cf
+471b1e6eb4b043ba
+Output = 45aa32847b1ce094c060d37664937866308f007170c9aac2a943d103e94
+d0004,3e3c5c10845bff573c040333be9c83440cc888456c63d8272212784431597f
+39
+~~~
+
+### POPRF Mode
+
+~~~
+seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
+3a3
+skSm = 89231532daa982e80bc6edbf822f3788f51d720ce2d1ddcd9ebe865ad8a6a
+7ba
+pkSm = 03f398bf384b63b0dc0dc6d95f6883be889081b06de287fc1457c38513dd6
+dd282
+~~~
+
+#### Test Vector 1, Batch Size 1
+
+~~~
+Input = 00
 Info = 7465737420696e666f
-Blind = cee64d86fd20ab4caa264a26c0e3d42fb773b3173ba76f9588c9b14779bd
-8d91
-BlindedElement = 029e103c4003ab9bf4a42e2003dd180922c8517927a68320058
-178fee56c6ac8a0
-EvaluationElement = 02856ac0748085d250d842b8b8fff6c1a9f688c961de52c4
-a1e6c004c48196a123
-Proof = 2a95bd827cf47873c886967ef6c17fe0e46efddd3b5f639927215cb7592a
-4bf12a29117174a1af5899d64855352690e416b37f2a95580846a6bec445d82364fc
-ProofRandomScalar = 70a5204b2b606f5a28328916e1e5ea5a17862d7a261fdd6d
-959759758d5e34ac
-Output = 14afc50acf64589445991da5b60add8b3f71205d53a983023d3cdaf8c95
-c300d
+Blind = 0470f06169bee12cf47965b72a59946ca387966f5d8331eab82117c88bbd
+91b9
+BlindedElement = 02a9e77b7aa32172fd173e59a8a8a9c1e3c4f4b5528bc0592dc
+21ab64772a3320d
+EvaluationElement = 02293297df91b01e1f75a702f2673eeb435797cfa4a8afb5
+86061e3b9245127ed1
+Proof = 2e2f27608ae61cd6d21126faef15678d8a3294aa57f43ad11ae8af6ad169
+4bb4a4e8a82a561e6526d6bf501be5f3bd7a52131fd5e4868af26a4d1838b5fc75f4
+ProofRandomScalar = 466f3c0a05741260040bc9f302a4fea13f1d8f2f6b92a02a
+32d5eb06f81de797
+Output = b8808e10e23cfd422ee86673ff8c094cc347e604cfd91c8b055394eb3d6
+c72cf
 ~~~
 
 #### Test Vector 2, Batch Size 1
@@ -1760,46 +2034,23 @@ c300d
 ~~~
 Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
 Info = 7465737420696e666f
-Blind = 5c4b401063eff0bf242b4cd534a79bacfc2e715b2db1e7a3ad4ff8af1b24
-daa2
-BlindedElement = 0323aabcfa93e9570524253671b3ce083144b183cecb562ec8f
-8a8472fc8cf341b
-EvaluationElement = 03087bc7e00b8ad80b8a27484b91f8bf824a5d896a703135
-4edfa3269866493d9f
-Proof = fe55ecc9a92f940d4a56207a58e5554c6976b9425c917d24237b0a35c312
-bdcdea778a5c56690309ff28f26cc8bc5994e85868e3c870e5a32c0a559d80deccb8
-ProofRandomScalar = 3b9217801b5d51cef66d9fdbd94a53533e7c5057e09e2200
-65ea8c257c0dd606
-Output = 533c79459ee0ffa8844ac37572f3616e10a1074dcbf945ce37b0c651cbb
-5775f
-~~~
-
-#### Test Vector 3, Batch Size 2
-
-~~~
-Input = 00,5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
-Info = 7465737420696e666f
-Blind = f0c7822ba317fb5e86028c44b92bd3aedcf6744d388ca013ef33edd36930
-4eda,3b9631be9f8b274d9aaf671bfb6a775229bf435021b89c683259773bc686956
-b
-BlindedElement = 021af4563c31cf1513bc5ae0b89c5b527c7ac70614b9d31c44c
-eb292ab49c91cc4,03f7e7ebe5610710c360df40cbd90dc52c2da500664e879f2afb
-78e71f815abee1
-EvaluationElement = 03c8678cdb95e2f0eac027932c51893a20326b774ef23531
-bcd95def84060d240d,02b68c3891314a9696b5dff5df4b4e5b325938e2c5cb90f5f
-b9ba6a1133aa4dd14
-Proof = 6efbde69d36e3f9d53a79a73ce46d5d8ef31f0df2fb3f6f2c882b21fdf0e
-d76dcd755e42f35f00daaa6e964f48125cf1d642b1cea2e5faa2fb868584a8752bf2
-ProofRandomScalar = 8306b863276ae74049615162a416d507a6532c99c1ea3f03
-d05f6e78dc1edabe
-Output = 14afc50acf64589445991da5b60add8b3f71205d53a983023d3cdaf8c95
-c300d,533c79459ee0ffa8844ac37572f3616e10a1074dcbf945ce37b0c651cbb577
-5f
+Blind = 15c1b9ee1e66339439e3925cf8ce21ce8659f22523b6ce778bbd8f8b541b
+e4be
+BlindedElement = 02f6e5ffbaf4b8d98cd9b8a6a5243a3cd509afcf537712f21c6
+28aa10ef52c4fb0
+EvaluationElement = 023d1df31312cb5b72728679783ee4a019b6d0d28726d9ac
+7584de458f5090cba4
+Proof = e5377709734c881ae0c3376cff9854886a0f5e7eda54a379f7ced0874575
+6f47915e9d674e8a270902b06e421f1366f9066a84e562c8424c74a2b2312393611c
+ProofRandomScalar = a1545e9aafbba6a90dc0d4094ba4283237211e139f306fc9
+04c2d4fe4cc69c0b
+Output = dcb2405478265bfd9833e3eda76d5a228c6354076c3366e9a865782e130
+e7e68
 ~~~
 
 ## OPRF(P-384, SHA-384)
 
-### Base Mode
+### OPRF Mode
 
 ~~~
 seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
@@ -1812,33 +2063,31 @@ skSm = b9ff42e68ef6f8eaa3b4d15d15ceb6f3f36b9dc332a3473d64840fc7b4462
 
 ~~~
 Input = 00
-Info = 7465737420696e666f
-Blind = 359073c015b92d15450f7fb395bf52c6ea98384c491fe4e4d423b59de7b0
-df382902c13bdc9993d3717bda68fc080b99
-BlindedElement = 0285d803c65fda56993a296b99e8f4944e45cccb9b322bbc265
-c91a21d2c9cd146212aefbf3126ed59d84c32d6ab823b66
-EvaluationElement = 026061a4ccfe38777e725855c96570fe85303cd70567007e
-489d0aa8bfced0e47579ecbc290e5150b9e84bf25188294f7e
-Output = bc2c3c895f96d769703aec18359cbc0e84b41248559f0bd44f1e5467522
-3c77e00874bbe61c1c320d3c95aee5a8c752f
+Blind = 4dd65065273c5bd886c7f87ff8c5f39f90320718eff747e2482562df55c9
+9bf9591cb0eab2a72d044c05ca2cc2ef9b61
+BlindedElement = 02c4eb0f78b26dd471bfa6d8babb0936425667ee6bee5515513
+25431a564b7a5bfdef110317b6b21453955c63681bb2a11
+EvaluationElement = 025ee7d04e824e7ace179c10810e877574d617dd2ea39d63
+c0dee43cb4e8bb30a22931eb809e440c23b32eb688eabbf753
+Output = 149f664b38ea596fd55517bd3add0094f152bf6166e7192b9e72a875feb
+37ff24ba2b8eaa15fac9191e390927e2bae8a
 ~~~
 
 #### Test Vector 2, Batch Size 1
 
 ~~~
 Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
-Info = 7465737420696e666f
-Blind = 21ece4f9b6ffd01ce82082545413bd9bb5e8f3c63b86ae88d9ce0530b01c
-b1c23382c7ec9bdd6e75898e4877d8e2bc17
-BlindedElement = 0211dd06e40b902006c33a92dc476a7c708b6b46c990656239c
-d6867ff0be5867d859517eaf7ea9bad10702b80a9dc6bdc
-EvaluationElement = 03a1d34b657f6267b29338592e3c769db5d3fc8713bf2eb7
-238efb8138d5af8c56f9437315a5c58761b35cbfc0e1d2511d
-Output = ee37530d0d7b20635fbc476317343b257750ffb3e83a2865ce2a46e5959
-1f854b8301d6ca7d063322314a33b953c8bd5
+Blind = 55f951785ae22374dfc19eb96faba6382ec845097904db87240b9dd47b1e
+487ec625f11a7ba2cc3de74c5078a81806f8
+BlindedElement = 0334bfc4cf126b2caad4964447039346a3f2170608f6aff312e
+deed6d186d6cd16e80a381cd3575b9561ae68c228fee4b8
+EvaluationElement = 034ca2886907eca964946026858092367cffd5a2aab704df
+b43f76979b23bc271c6bc20a0f6d9e4344e0153cc8d7ac9330
+Output = a18c3d46c55d98ff9b07f8015a684e32e57162d236013116692f1b03887
+d58885a08a932509b5e9c0ae3203b2d875e55
 ~~~
 
-### Verifiable Mode
+### VOPRF Mode
 
 ~~~
 seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
@@ -1853,20 +2102,94 @@ pkSm = 0389ad5e50eebf9617ae3a5778e4f0665b56aa9066919e1fa5580d8dd781d
 
 ~~~
 Input = 00
+Blind = 84580de0f95f8e06aa6f6663d48b1a4b998a539380ed73cafefa2709f67b
+d38be70f0ffdc309b401029d3c6016057a8f
+BlindedElement = 0394e2556115a7e830f55d56d141ccf3d85ae18169d8ee80c28
+978ae1abc49fb4bf28e82f68413359312d38d2cedc55bf7
+EvaluationElement = 03f1793d88d367b65f045a454221be7d96fac26985060e67
+7c886ed61831bdeb974a6f9f7182badd25cc1e1ad98f83ee36
+Proof = 5ba5dc21d4d9146189014b29bc2fcb062e4b7496112c38073c626f9650ba
+cf18ec4cb30c0d47313d7429d07a6eda23169c879d228084571f17bccda2302bd52b
+cf550be6965f72067a6dd746ea5858370da787a1ca1831f721340bc4c5ae8e5d
+ProofRandomScalar = e17e559ca3ccd1944f9a70536c175f11a827452672b60d4e
+9f89eba281046e2839dd2c7a98309b06dfe89ac0cdd6b747
+Output = a5f4f2fd35205d1e4dc2769d009e51553b1655377a6cd5e8713f3ee9aa2
+07f5afefc9649375e0b472ede4ac0b68b0bbf
+~~~
+
+#### Test Vector 2, Batch Size 1
+
+~~~
+Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
+Blind = 7759061965a423d9d3d6e1e1006dc8984ad28a4c93ecfc36fc2171046b3c
+4284855cfa2434ed98db9e68a597db2c1473
+BlindedElement = 022a802b27e6f6468b5f8ff12a9e10e971b55f5f80c2967cebe
+6cf3a22c6c5350cc3b8a6fd7262d4f601946e18c827dae4
+EvaluationElement = 03e6dbab214ad5c46bee8afb4037bca733cd7f8b8ca5eb99
+7143d9e54d38b75717a2a8252e499229db1e66ab3afa49ecbc
+Proof = cac8b6fa5c126d0cb254852cf6b4f4e126d2dcf78788ba66ed251708e0a1
+ed3f173f29eff7d0e0a97fc73fa050d2e2d86eb6e0757bbee6f9ac2235c244ab6c6a
+dd0b6de46af7a14afc0f83484804e5db61f0a70b8640ad585cd7740fcbcbbce4
+ProofRandomScalar = f96713dfe16f40f2c662a56ed2db95e1e7bf2dea02bd1fa7
+6e953a630772f68b53baade9962d164565d8c0e3a1ba1a34
+Output = aa304f11d0d2f221412c65db6684fdc051fed3d2eb626461a4dbdfb2218
+0f6238c05045d39d100379fe873611191abff
+~~~
+
+#### Test Vector 3, Batch Size 2
+
+~~~
+Input = 00,5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
+Blind = 563b3420d7764097502850c445ccd86e2d20d7e4ec77617a423883574303
+7876080d2e3e27bc3ce7b5fb6a1107ffedeb,4ecbc087302667fabefa647b1766acc
+b7c82a46aa3fc6caecbb9e935f0bfb00ea27eb2359bb3b4ef3d5c65b55a1b8961
+BlindedElement = 02fc9fc91ac7fee2f806445b45013a4a0464749d81750be4aea
+300e4903d0e838e1c3c2e9182e8174b200df65392ddc47a,02ea354e2b7b46186577
+390d16bb2af526e3b77340fb830f37356c4a0aa234400bc629ebcf030744e02ab611
+4ca15b9150
+EvaluationElement = 03b6175ddf3c2683d98057289675fb04ceadb16df5d4cfaf
+758b5c3a9b552930d5a9eabe983ffc3bbcdbe669f7607beb20,03a73e4add28824c4
+d49e66fab3c2a97724eba6a46ec80c69864bd59b03aab9e06dccb56d03cfb276669b
+1a72ccec5e635
+Proof = 4a2a01f086865f14d7ccac57fc8a3128eaae72424349c23b38985c4e6765
+a83762e533b1d30c4cdc8e0b316a5102d97cde463bde0dda39046bceadf6cd6838a1
+0df63fc99876c657e19a3cddcad19d3c30c8764f93d8801d9289ae9b9ad77536
+ProofRandomScalar = f77ff0b2ebcfe21e1a1ca4a84361e9f1b18e24c9a40ed5ee
+c262bf51dc970d63acb5ab74318e54223c759e9747f59c0e
+Output = a5f4f2fd35205d1e4dc2769d009e51553b1655377a6cd5e8713f3ee9aa2
+07f5afefc9649375e0b472ede4ac0b68b0bbf,aa304f11d0d2f221412c65db6684fd
+c051fed3d2eb626461a4dbdfb22180f6238c05045d39d100379fe873611191abff
+~~~
+
+### POPRF Mode
+
+~~~
+seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
+3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3
+skSm = e3e8a7602b17a19cc91711ec7df8ab913fcd3d429e769be6bed57755cc6b4
+1bef922d8d5b85188a724c47bdac1ceae60
+pkSm = 037c6bf0f50bff1d04e5bd84b785f93f451bf234671dca7c0eafbac65b521
+eafd561c9e4fcec7ae4fc0db834a5ae96ad19
+~~~
+
+#### Test Vector 1, Batch Size 1
+
+~~~
+Input = 00
 Info = 7465737420696e666f
-Blind = 102f6338df84c9602bfa9e7d690b1f7a173d07e6d54a419db4a6308f8b09
-589e4283efb9cd1ee4061c6bf884e60a8774
-BlindedElement = 02ae8990d580dcd52b6bc273bc6d0fd25be50b057511b953d9c
-c95bb27cb3e1fd3249ae19744ed496c6e4104ebc1ed48f1
-EvaluationElement = 024cffdae0cae5fa4d6a68246ae797dbe06508284b65e0f0
-9046977ab5d52a8b38f0245607db74979e5276fc636332cdee
-Proof = 128ad4f987ce1e3a9aab1e487df15d8c8000d5c4c9f14bd7fd699fabdb8d
-a3f577d91625fabb0d9cf6069f8af6d9cc232dd63cd161be84a1e146e0110dc741e6
-26a082193aa0a26e03118b662f1b903667f6e6fba51d69a2d65982a3b64ecb35
-ProofRandomScalar = 90f67cafc0ffaa7a1e1d1ced3c477fea691e696032c8709c
-86cbcda2b184ad0029d29abeabede9788d11782429bff297
-Output = 8a0b4829bc8422b1a2301d5471256892883c5e3fe27b998d1010225a706
-545637336a20a76f842d8a22e591d382c77e4
+Blind = c405a354e666f086fa0ea4754fb56527be010296ea880e1c6a4dbbc9ede5
+43a2ad0f83fd60fdacb59801a9d83b5d1c10
+BlindedElement = 02fc60f6dbc6f262fc96f4b3cfd464f967eeb143f42630aeffd
+8a89a51af29a4ee913899f1c43b8eada345126fa7291fbb
+EvaluationElement = 026ca0ee64813ee656e96ab14fd8056842d79e9a13047410
+3778d15d25fa817e8adf1d4c68afea81f2dc97d393d1f8a150
+Proof = e2046f0d64cb43f38b2a406e42b79df6d51fa6124e47249a15826c09b7fc
+596b6904c418e8fd53d30524347a6a9e37b3eedb4b1e9963c77a048773a4718b8aa5
+3ee7499ec8fa08f44a4c31c12aaafc913f467c1c7e647cf55dc225fb74376600
+ProofRandomScalar = 5cf7fa02f3ad744eb5baf418275e45ab31ade30669dbae98
+fb0879524fb9234e93a8bd048ad9f44b428026396a810329
+Output = f65c4bd1b4e659de5fecc965408a9b1db0f8a86bffc3b2b031935f5d785
+f54ab85d3c121a95d85c8528eb0ac23c213de
 ~~~
 
 #### Test Vector 2, Batch Size 1
@@ -1874,50 +2197,24 @@ Output = 8a0b4829bc8422b1a2301d5471256892883c5e3fe27b998d1010225a706
 ~~~
 Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
 Info = 7465737420696e666f
-Blind = 8aec1d0c3d16afd032da7ba961449a56cec6fb918e932b06d5778ac7f67b
-ecfb3e3869237f74106241777f230582e84a
-BlindedElement = 02a384f2d9635adffcc5482344c519036c019f3cc0918ec737c
-67cdda10ac0f73a9fe348835531f1900ea2c1f06dacdce4
-EvaluationElement = 0306f0f71b58d53ae0973538a7bf2ce8fba7143efc88d2ef
-ca6cf1f98fb8399b16840d1fbbe7897807db930f67916418ae
-Proof = 2c47297ee0093061ca2c87b430b2851a860aaae76c2bdba48779ba4294e7
-de0556ede3e6b881a04970b68a6126e2fa197d69e6784fbbd173604501c0edd21696
-628f0fd7cb13be28f94e5e15c042ffccadd780b2448d7d9d528e9615e4e70539
-ProofRandomScalar = bb1876a7f7165ac7ec79bfd5213ea2e374252f29a6e19915
-f81b0c7dcea93ce6580e089ede31c1b6b5b33494581b4868
-Output = 8c52d40c1f6cc80208bd610178a5034d6c4a05584e19b69617f846b09a8
-545443c63c8aa4d85bf0aad368e0591b1216a
-~~~
-
-#### Test Vector 3, Batch Size 2
-
-~~~
-Input = 00,5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
-Info = 7465737420696e666f
-Blind = 41fabd4722d92472d858051ce9ad1a533176a862c697b2c392aff2aeb77e
-b20c2ae6ba52fe31e13e03bf1d9f39878b23,51171628f1d28bb7402ca4aea6465e2
-67b7f977a1fb71593281099ef2625644aee0b6c5f5e6e01a2b052b3bd4caf539b
-BlindedElement = 02d4e6186c9ffa92565055f43f27bb1e2c4103c3325bba0b499
-adb99a157987d20fb374096814e438a6b483efa8f2a3307,033a3b052416a8a6d842
-a0baea6f5fab99d36645a70c89897a536970d34038eca35afac24906294cb7925b1b
-05e4327c8f
-EvaluationElement = 037bf8e28a0607b1f8aa59363380b5a7450b66b98017cf03
-3797f6c6c74e7625a445f71ace1bea7836ea5baa75d54eb5bd,03b793a9cb2d76991
-f1d6cd822abfbfa89fdfa1a06ef42b0bc8ade161e1996ed08c288a08366d4140c762
-7bba4e3472bcf
-Proof = 27240901b6855d2b58ce84afefa91dd11819d7d5df73f94865a9d7e19020
-41200eb732b60b57fa0daf6e456402bb1ccb1aed901af35d3d790cd7c618604b766b
-b9271010354da9e4e5507e0468adf177977143db2ddb94d9b70e837ad7578275
-ProofRandomScalar = 1b538ff23749be19e92df82df1acd3f606cc9faa9dc7ab25
-1997738a3a232f352c2059c25684e6ccea420f8d0c793fa0
-Output = 8a0b4829bc8422b1a2301d5471256892883c5e3fe27b998d1010225a706
-545637336a20a76f842d8a22e591d382c77e4,8c52d40c1f6cc80208bd610178a503
-4d6c4a05584e19b69617f846b09a8545443c63c8aa4d85bf0aad368e0591b1216a
+Blind = fd762bff10c1b9bd5d37afc6f3644f8545b9a09a6d7a3073b3c9b3d78588
+213957ea3a5dfd0f1fe3cda63dff3137c95a
+BlindedElement = 025fe88056c51a118883f57fc066ebfd34d1c430b6ae63e807c
+002a97137576077456d001cbdc1bae9ba913cd07704635e
+EvaluationElement = 03c46510ab68ac6e3da5cc2b7b8956a9626ac1e09548f1f5
+541828d1a77ed47aeb325d50c0c5ee8ac1ce6a7b5a28665752
+Proof = ea36521cb51388b831aa068a7723836b97b43b59ce4a6472b3e0debacf0f
+8b3f2fde560631e9d7dd043c16ac6238d5d448bc5c646d3089e747341992e4c18706
+c7e3d67b4ec0f950f7adc3c757964eecb97c24d9573dcef5494a38d4912a0132
+ProofRandomScalar = ddff1365bb9b82b279e775b7220c673c782e351691bea820
+6a6b6856c044df390ab5683964fc7aabf9e066cf04a050c5
+Output = 27ad157602b0a582e83995a9ec7059ba16a25cd5a480a4b47780646426e
+0994cc40b2a833d3188df95ea4d96f6501a28
 ~~~
 
 ## OPRF(P-521, SHA-512)
 
-### Base Mode
+### OPRF Mode
 
 ~~~
 seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
@@ -1932,41 +2229,39 @@ da1
 
 ~~~
 Input = 00
-Info = 7465737420696e666f
-Blind = 01b983705fcc9a39607288b935b0797ac6b3c4b2e848823ac9ae16b3a3b5
-816be03432370deb7c3c17d9fc7cb4e0ce646e04e42d638e0fa7a434ed340772a8b5
-d626
-BlindedElement = 03006ce4a27e778a624d943cf4db48f9d393d3d4dd9cd44b78a
-cf2d5b668a12f0ca587962de8c82b5aaa1f0166eb60d511f060aaab895fc6c519332
-77bc945add6d74a
-EvaluationElement = 030055f7cd3ee3b1734e73ad8bbd4baca72ae8d051160c27
-7ee329f23fa2365f9f138b38e6e2c59cc287242eeca01fae83d0c7cc3bb19724ac59
-8a188816e7cfe1ca88
-Output = aa59060a41ec8ca7b6c47f9c5a31883a44ffd95869a09dbe845ea8ce20c
-b290dba0b57c505824a0dcf6f961a2baeb8e6b49df8c158761a3fdb46f39e8e7fcb8
-b
+Blind = 01583649f3e9cdf20a7e882066be571714f5db073555bc1bfebe1d50a04f
+d6656a439cf465109653bf8e484c01c5f8516f98f3159b3fed13a409f5685928c72d
+9dac
+BlindedElement = 0201e96bd2ad4e61e68a78f1ff93cc06c392b9d20ecbe5b3d54
+7b27a1c2d59839ed4c1824f8a2e5d42b2c5c60ec13df725b6fc3a48ff95a226beb63
+e369d3e64caef9d
+EvaluationElement = 0200932deeac097520701e773f35d920062da798445096ef
+b5f54c586caea81e42c0fdc265b7731541a02d233f052c93a4474c99cb70f59a06aa
+2d27fa94dd4d488ba5
+Output = e5457f91608af4fa340c960087b6a570a379dfe2677f6735e1a789561b1
+882acada9bee13f731a3e9052027175acbf8f051e60afe2499ccbdc547fba17b4e0a
+8
 ~~~
 
 #### Test Vector 2, Batch Size 1
 
 ~~~
 Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
-Info = 7465737420696e666f
-Blind = 01a03b1096b0316bc8567c89bd70267d35c8ddcb2be2cdc867089a2eb5cf
-471b1e6eb4b043b9644c8539857abe3a2022e9c9fd6a1695bbabe8add48bcd149ff3
-b841
-BlindedElement = 0201459ba64ad0e0f9f689f0ad5ab29ca5b960f5c9da3aef412
-6d2d547b871e754b17971fd45e0d64bdcfc8d256c342a141f04e2640705c38936c8c
-f53c22ea6b13966
-EvaluationElement = 030094036457e8e5bf77719b11f01dd4aa2959efdb3329c3
-e3b25493efc3ab572c2e7db104cd5922645320ef51bbb282f84e5f6b08e9b49354f9
-d6a9f3a4327a1de6e4
-Output = 5efe6f00f45ec4e87e4c9b89aeaec61313c15c0a0a21ee2e41362d6af54
-536adf2f68d23c729b92b6fa8d5611764b0272be6cc153d47a0256c8cb44bd740037
-a
+Blind = 0017a273530dc66aa53bb9adb4f0ed499871eb81ae8c1af769a56d4fc42a
+ef54a703503046d8272eaea47cfa963b696f07af04cbc6545ca16de56540574e2bc9
+2535
+BlindedElement = 0201d0be20c38601fad866c78c2caf7fbf2a1cb22a8cc5169a1
+a989b8f058cc55d7435242aaf1dd373dfe232ae7327cf1f3d357fd367adbc4a2ee95
+99af9d85b02afc8
+EvaluationElement = 0201f1cd8d3166d928509842a25b0d836a8b2fcdde79a524
+fc52a051fbb9e9227463ee809ec128a50314f8dc16f0a3a1327b062be539a67d9499
+d49905bb7e864ea704
+Output = f7d7f6f946f5fc678bb0e5ae814f06ca81a2e180c5695ded9966350b48b
+6ce58c0f7cd30bf102bf93f65896aa7a385775e1e184bc104197398d0edf7a0c5706
+2
 ~~~
 
-### Verifiable Mode
+### VOPRF Mode
 
 ~~~
 seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
@@ -1984,25 +2279,24 @@ bfc1b
 
 ~~~
 Input = 00
-Info = 7465737420696e666f
-Blind = 00bbb82117c88bbd91b8954e16c0b9ceed3ce992b198be1ebfba9ba970db
-d75beefbfc6d056b7f7ba1ef79f4facbf2d912c26ce2ecc5bb8d66419b379952e96b
-d6f5
-BlindedElement = 02002ff3ef3f2411aa0358936f852be710af790c9affbced8c3
-9b018fd97de0a45d80c66cbf0dbda690ee4f594e0795627e6c6f37a500f223c30f31
-c24e73501532e7c
-EvaluationElement = 0300769fd56c5174c4e3922900fcefdd5a89c9592f4d8e8f
-2396678fa72c01d4f8551ec92d4b5287ca673dc29d8db9bb05d2396121a6b8732b68
-ebf310fc2620059d67
-Proof = 011fd92f54f6a955a333648d843807bd88f644d235a7d592189da42d721e
-a6f7b55ec813146f35982487910aa15bbf5ce90653edb6a1b48c0bfd15758e9358aa
-731601baa67a3a59db301f41caa020986ae9e93a80d6c06d92e8c5eef6056fa6f342
-6b6054d118dc9fecb77fdcb4fc86b9857ada6de18394ff7d6c574cbd08d746b9dde0
-ProofRandomScalar = 00ce4f0d824939827888f4c28773466f3c0a05741260040b
-c9f302a4fea13f1d8f2f6b92a02a32d5eb06f81de7960470f06169bee12cf47965b7
-2a59946ca3879670
-Output = a647c5a940aa19d767ab0e163d1357ca068206b2b78f9e8e1021c0bb0f3
-27d20cb8fadf996199d86d4cc0a08ac314493319979e1c2a98a96085b8fabff9f0d0
+Blind = 013a196708f773cf65852bda777210337d8b3b88754b881aa5fd937ec793
+2e725ac43a07cb3ea0e90b40e0501e6bdc3c97510cdd9475ad6d9e630235ff21b634
+bc66
+BlindedElement = 0201cb841061f512b32bc297075fb06f149dad897ad465e6ba0
+3ecdadd24966922a8f67d18df8cb62189c59973fe772debc0675408a7f678b14d090
+ced5a61198ee5e0
+EvaluationElement = 0200615889c13306edaa55c3098c5c7b0e49f58084eb461a
+d823ef631389662edf818ed21202ea715006220d55b34d40d424e0b76f0a84780b71
+595ede3a82adbb1524
+Proof = 00300fe79f906744bfd91c93f8cf96e1db1210eacea7b7b9389403151131
+96fbd633fab72feccdb580b6b48dc8f4125bfb4f6b2a694fe2a9cddf2740982c6d0e
+70f901d835d849a4365d0f866b4ee4ac084552c127327e2b6b9c34de23e7103a1b25
+63cea378851e97883c86694930892c1b791a47ce427d4823f311c5b937938e19d01a
+ProofRandomScalar = 00eba4687426b0b4f35c14eb2477c52e1ffe177f193a485c
+ccf5018abbf875b8e81c5ade0def4fe6fa8dfc15388367a60f23616cd1468dae6018
+75f7dd570624d0af
+Output = 1ef9dbce08fcdce60694987e1853fcbc54f0206effafc7bad17cd4d6784
+c4ad40ed50d74696037b874f5034616633c2c243e066de3b702e9e6568f495121afa
 7
 ~~~
 
@@ -2010,57 +2304,121 @@ Output = a647c5a940aa19d767ab0e163d1357ca068206b2b78f9e8e1021c0bb0f3
 
 ~~~
 Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
-Info = 7465737420696e666f
-Blind = 009055c99bf9591cb0eab2a72d044c05ca2cc2ef9b609a38546f74b6d688
-f70cf205f782fa11a0d61b2f5a8a2a1143368327f3077c68a1545e9aafbba6a90dc0
-d40a
-BlindedElement = 0301e2ecf7313820e9d47763e12633ce6acf9b3dec89928c83b
-de1ede2180dc73553af1317408846af5c53ebfed00d19a4125f4ffb7df9f4260ccc0
-84a6f7482414a9d
-EvaluationElement = 02000e69591ab605652cb3310e774edf79417e102cf89005
-c2c7f2bd3a06060d740817802f2cf484748d93df5b281a4bd835617a97ec9809519d
-474ca53bba15cdf014
-Proof = 0076fa4275414acb9f87dc9e4f20971d51fcd0d38a980854ac2ad1bd5737
-eec23bfb4599d021881f7b3872d2e90d9b47e4219f490cf7f0235b2f0859cb2ef15d
-dfd401acb6b0844edf066a5767b4b85536bfee69bdf472acf7a59254cf6578f9f35e
-ba51bb58c6428d6b7c9e5c9af97edc66d98886fda9544048bf9ceea6fc745bf970da
-ProofRandomScalar = 00b5dfc19eb96faba6382ec845097904db87240b9dd47b1e
-487ec625f11a7ba2cc3de74c5078a81806f74dd65065273c5bd886c7f87ff8c5f39f
-90320718eff747e3
-Output = 8d109503ccced41cbec087dab86c607763020be93bdd5ec8508cb078607
-1a2b22a7b06150242bcaf6ea1b555a994e0266647eb72914caf73cabe53ddfb0f940
-d
+Blind = 0085f76f3320fdd24777894218769fc1965033654f34b06b578fe36ef23a
+5b9872ade82b9261cc447670debcf78318add682f6055089b0a2484abc37f110b36f
+4c2b
+BlindedElement = 0301baa873c7209654d581f46fa3f2f4bdc4f423050e7c9a779
+f4ccff0812c5acabc2fe940f39d280fa9a07316acfbfaeeabcdc520cd5e75cccedb1
+adcd5078f9236a4
+EvaluationElement = 03013d7a792ea82554b7aaf5b8f68dae350d6628ead48ee8
+b15e376891e4dc94c286a857033083dc5752668d0a4c2751d0900575315bb4f7ffce
+e58bd772e511baafc9
+Proof = 00c3ef9529360f7774e9537a2b3b1ff38c70345bdc07269d2e5a62e0b592
+15048b198ac0b8ada686c45bb578abf6db26a04c7ce27d1fcd565c23939a5bfd6189
+074000e6db3e5b9b1cd8d9ec0acdb92598511c4cbe7e62a6666b9c6930a8e91fa7b1
+50a67e50659e78d7175c5becf5cd0f1707e72fefe9870f725a7e5a2c2ffd9ad620f9
+ProofRandomScalar = 0165aa02c8e46a9e48f3e2ee00241f9a75f3f7493200a8a6
+05644334de4987fb60d9aaec15b54fc65ef1e10520556b43938fbf81d4fbc8c36d78
+7161fa4f1e6cf4f9
+Output = 3ae6563392a94882e77a352e3d75bb49f6d14a2af31ff9c552f869fe1af
+f02d9c533d820f7d88fe741d9c4ba1a2eba8fc5576d551c4cc90e9e61d568e1b6606
+f
 ~~~
 
 #### Test Vector 3, Batch Size 2
 
 ~~~
 Input = 00,5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
+Blind = 006915357a04fab501c0f6764e854701129e38071b008286c5fb629de5cf
+ea56c0532dd8254a5a6e7fcc9e51e20a1cf4f254335ca57ce603ae7cf03fc00b7a2d
+4953,00d60ce57aa6729d935ef02e2dd607cb7efcf4ae3bbac5ec43774e65a9980f6
+48a5af772f5e7337fbeefbee276c901e6e57b7ec6752a45c74f3ed36a3eb8ad0dafb
+7
+BlindedElement = 0200112309d14634e5f0d453d1289f789d7014a90b021469e68
+2026f411af0549ca3d46b22c46dc4c05ac9c3cac9755f394f3ee4374925d1f0395cf
+b5611ffd7988b9a,02000f240c39d3ef3b03a08efa617eafd9605fdf40f483a9e8b5
+f3ff31e9affe14812e4afa16939069070dc4467481f4557c6bf21f1da1fa706b5ed6
+a9895093abcc5c
+EvaluationElement = 02018ed97fea6e60f9f1719a628cbdf8dd655904e81c437f
+7d9f0c0d818a690278bdc3f5c4f4448d51eb283e3d3dab757b618c8b926ba264507c
+e19d5847d465adbcd9,030185ee868a085c6f2c1c2cbd989c7059eba50da416f86a9
+3165b7412a7c1718820478857c48c1b8622eb0e10cb5d2b70f7a7d629d6303bd1d8e
+811b8a7482289ded6
+Proof = 003d598f1725882369d61baf214e1a97d8ae24cc9af53f988e1ed9c53f6c
+ff9809e4faeca94e37c1252aa82deeb01e8eaba41e684ef9c9266377dd1376b273c0
+2a850083208d6ef64434309c9c1886f7237b52f6bed77ea09b08eafc2dee5cd3e6d9
+621ca9919ea8fb81b6a35e7b8e164a996a658a371a54941e93cd66b3104926c877ad
+ProofRandomScalar = 00ac8346e02cbdf55c95ef9b1aadda5ef280cfa46891dfa6
+64a785675b2c95bbc2412ceae9d69a186038345f8ff704bc925f6818500615a825a9
+a6b5646a4e4f11b2
+Output = 1ef9dbce08fcdce60694987e1853fcbc54f0206effafc7bad17cd4d6784
+c4ad40ed50d74696037b874f5034616633c2c243e066de3b702e9e6568f495121afa
+7,3ae6563392a94882e77a352e3d75bb49f6d14a2af31ff9c552f869fe1aff02d9c5
+33d820f7d88fe741d9c4ba1a2eba8fc5576d551c4cc90e9e61d568e1b6606f
+~~~
+
+### POPRF Mode
+
+~~~
+seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
+3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
+3a3
+skSm = 01bcad9924addf6a1595a49dd4e7c1981907e73ae6f9b60b0617140f788aa
+9c16a236b198b2440f89baff014d405ca558d5d3ac50f1410dccf638bae6e4748cf9
+c90
+pkSm = 0301ad8d103addab07113823bb2d94932333a0fba8f94763371fc67d8db5e
+e76006fe5b2f05e6a8d43fbb609a65b7a8c042f80162afbbec2d2fb1691a128efced
+cf445
+~~~
+
+#### Test Vector 1, Batch Size 1
+
+~~~
+Input = 00
 Info = 7465737420696e666f
-Blind = 01c6cf092d80c7cf2cb55388d899515238094c800bdd9c65f71780ba85f5
-ae9b4703e17e559ca3ccd1944f9a70536c175f11a827452672b60d4e9f89eba28104
-6e29,00cba1ba1a337759061965a423d9d3d6e1e1006dc8984ad28a4c93ecfc36fc2
-171046b3c4284855cfa2434ed98db9e68a597db2c14728fade716a6a82d600444b26
-e
-BlindedElement = 0201e22c01df5ac0502842fad603f7a1e1183bcc79a5cb04bb7
-befdea870a9a6ea96fbccd752ea9927a9e1e28438098f693461e81832a3f690616bf
-983fced079f3a33,0300b49216dd8ba5ba1275d8345679f70fbc6baf4f4b32a03e91
-7165a18afa9fad849c48eecb4bae965057ef7c215b52b42ca53c8d5f650633e0bb70
-97f2bd809d09ea
-EvaluationElement = 03002949c2478249b918a0cf2cd870226541a81d2f3e88c4
-7119f732301e749c3dea317c11174a18b89d1b9d2aa4f6ae92ae724e03a4800a26b7
-c827b00199f1114bcd,0300924ab017ea6e6328a0b0f341bbeb7d209c67ac169fa4e
-f7b04055c66b92aa9657f5d83b0b1ee9c79f3f0198519c97fef07dbecf3f6d477755
-0242a1c87953f9461
-Proof = 01f5d3c3f835d91aa88202f0fe8728180eeffe7fbc66ffe3f7a7dd958696
-a7cd3d47b3c0ec6cd59e9ee23090137293e6f42269923f3d4a1659bc706fd9762070
-7d230028cd4b0aa237b91a352fce81248936826ba99e7bd5103a871715126014b8d4
-7447e5f20192ed377a7431516fbd82763098ba23f9d15b84fe24fb1126beb0d46f03
-ProofRandomScalar = 00d47b0d4ca4c64825ba085de242042b84d9ebe3b2e9de07
-678ff96713dfe16f40f2c662a56ed2db95e1e7bf2dea02bd1fa76e953a630772f68b
-53baade9962d1646
-Output = a647c5a940aa19d767ab0e163d1357ca068206b2b78f9e8e1021c0bb0f3
-27d20cb8fadf996199d86d4cc0a08ac314493319979e1c2a98a96085b8fabff9f0d0
-7,8d109503ccced41cbec087dab86c607763020be93bdd5ec8508cb0786071a2b22a
-7b06150242bcaf6ea1b555a994e0266647eb72914caf73cabe53ddfb0f940d
+Blind = 010204f2476ad5274e2f9d258659e80b0fbd20e4761b22298eba98ae9dc4
+fcbc7ad42f5459d29f5c3b170f51d08e65679d984c1e852b2344bbebcb92747c83cd
+6b89
+BlindedElement = 0301fbaa2acd4b3c118aecd4001d521331b1d98cd45876c8c28
+b37f6e38931abf8f6d7ef221ffaa89430817c0f51af0a3c82a5ae01e5afb76e912b7
+13f095dd2ca2152
+EvaluationElement = 0301a3c4026901a007748bbcfb523b9f79aa440fd91cbd94
+cd73969c24ab3e1fc430d62154a5daf69cc8c2460bef7b5d52472d3bbccfd3223680
+0b0a183282e3c22b39
+Proof = 00f7f0c58660ae95ba6f1c003fb9fed5fa903f783b38e5bf475d009a983d
+155e15be26459fb07313cbd6b258f28f632cda32795cd5f864cc226078e529b6b91c
+af2400b471bf4ebc39f736a28f3d848e3e4855f7cdf7b32653312a45876ea99e6404
+cff16fd7a2b1cc2997190e57d0e26789032cbc8586c0504fb43fcf84994d57d1c022
+ProofRandomScalar = 008492e4dc9cd7f7aebfb1d3d2b8c7fa7904503aef20c694
+a01d3e1154fe98e7232be9eaec5789a012a559367b1f99654ddef5acc7b0dbee75bc
+d8bb50363ec64004
+Output = 7b25727d6e7231868a093467a35cd5f650c4e7119a659c17c75713a3caa
+fd19172b9dd1c52e19fcfc031a32b386f0106632dfd3b6de1e1499268898391e26aa
+a
+~~~
+
+#### Test Vector 2, Batch Size 1
+
+~~~
+Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
+Info = 7465737420696e666f
+Blind = 01ab3a90cc9da17604b2e59a93759eb0985d2259c20e3783be009527adf4
+7f8fb5b1437cba7731c34ac70bc6ab1b8c14ff4110afc54c9598d5f1544830f9d667
+b684
+BlindedElement = 03005afd7be45866679f4d6407ffbae16df62ca61437487ef41
+97963d0700ab9dde69bd326931261d533e16755b528b5ac7d6916bd37c49e76a3147
+a3d91d3a9655d70
+EvaluationElement = 0301b8d76cb194d5207a64e78a2afabea357d5743f6dbf9b
+b3dac0e666274fd833dae0ba21007c5c2d7a2032abccaae8ed2e44a1523b4f8ad205
+f25dbad557de3fe212
+Proof = 0031f81bc53f787f10368cbd02866a14e603e6be28a6077ac7fb35db1ac5
+ae376b207bb213e07cd1f4c0ce1de5cfef06eb3f1c07bf3ad936ed3188b210f39ae1
+d88e00f74abd90511bfbc99a3bfd3d438824881316fc5bb3861e6bb65e31c9f47687
+49b1aab065605fc460313debadf6530aabd78fd8fe2246b57579a38e8de623f98581
+ProofRandomScalar = 008c15ac9ea0f8380dcce04b4c70b85f82bd8d1806c3f85d
+aa0e690689a7ed6faa65712283a076c4eaee988dcf39d6775f3feee6a4376b45efbc
+57c5f087181c9f04
+Output = 34ec5a12c07a35a9f6acbcbd991a2552444c9255c30f63b0537e1d6ed07
+1b736b732a88e40c368d8978e475ba0391865f608db1169c655697550f109589283c
+3
 ~~~

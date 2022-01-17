@@ -45,7 +45,7 @@ class Evaluation(object):
         self.evaluated_element = evaluated_element
         self.proof = proof
 
-class ClientContext(Context):
+class OPRFClientContext(Context):
     def __init__(self, version, mode, suite):
         Context.__init__(self, version, mode, suite)
 
@@ -68,15 +68,13 @@ class ClientContext(Context):
 
     def finalize(self, x, blind, evaluated_element, blinded_element, proof, info):
         unblinded_element = self.unblind(blind, evaluated_element, blinded_element, proof)
-        finalizeDST = _as_bytes("Finalize-") + self.context_string
         finalize_input = I2OSP(len(x), 2) + x \
-            + I2OSP(len(info), 2) + info \
             + I2OSP(len(unblinded_element), 2) + unblinded_element \
-            + I2OSP(len(finalizeDST), 2) + finalizeDST
+            + _as_bytes("Finalize")
 
         return self.suite.hash(finalize_input)
 
-class ServerContext(Context):
+class OPRFServerContext(Context):
     def __init__(self, version, mode, suite, skS, pkS):
         Context.__init__(self, version, mode, suite)
         self.skS = skS
@@ -84,26 +82,18 @@ class ServerContext(Context):
 
     def evaluate(self, blinded_element, info):
         R = self.suite.group.deserialize(blinded_element)
-        context_DST = _as_bytes("Context-") + self.context_string
-        context = context_DST + I2OSP(len(info), 2) + info
-        t = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
-
-        k = self.skS + t
-        k_inv = inverse_mod(k, self.suite.group.order())
-        Z = k_inv * R
+        Z = self.skS * R
         evaluated_element = self.suite.group.serialize(Z)
         return evaluated_element, None, None
 
     def verify_finalize(self, x, expected_digest, info):
         P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
         input_element = self.suite.group.serialize(P)
-        issued_element, _, _  = self.evaluate(input_element, info) # Ignore the proof output
+        issued_element, _, _ = self.evaluate(input_element, info) # Ignore proof output
 
-        finalizeDST = _as_bytes("Finalize-") + self.context_string
         finalize_input = I2OSP(len(x), 2) + x \
-            + I2OSP(len(info), 2) + info \
             + I2OSP(len(issued_element), 2) + issued_element \
-            + I2OSP(len(finalizeDST), 2) + finalizeDST
+            + _as_bytes("Finalize")
 
         digest = self.suite.hash(finalize_input)
 
@@ -114,7 +104,6 @@ class Verifiable(object):
         assert(len(Cs) == len(Ds))
 
         seedDST = _as_bytes("Seed-") + self.context_string
-        compositeDST = _as_bytes("Composite-") + self.context_string
         Bm = self.suite.group.serialize(B)
 
         h1_input = I2OSP(len(Bm), 2) + Bm \
@@ -131,7 +120,7 @@ class Verifiable(object):
                 + I2OSP(i, 2) \
                 + I2OSP(len(Ci), 2) + Ci \
                 + I2OSP(len(Di), 2) + Di \
-                + I2OSP(len(compositeDST), 2) + compositeDST
+                + _as_bytes("Composite")
 
             di = self.suite.group.hash_to_scalar(h2_input, self.scalar_domain_separation_tag())
             M = (di * Cs[i]) + M
@@ -150,9 +139,9 @@ class Verifiable(object):
     def compute_composites(self, B, Cs, Ds):
         return self.compute_composites_inner(None, B, Cs, Ds)
 
-class VerifiableClientContext(ClientContext,Verifiable):
+class VOPRFClientContext(OPRFClientContext,Verifiable):
     def __init__(self, version, mode, suite, pkS):
-        ClientContext.__init__(self, version, mode, suite)
+        OPRFClientContext.__init__(self, version, mode, suite)
         self.pkS = pkS
 
     def verify_proof(self, A, B, Cs, Ds, proof):
@@ -169,25 +158,138 @@ class VerifiableClientContext(ClientContext,Verifiable):
         a2 = self.suite.group.serialize(t2)
         a3 = self.suite.group.serialize(t3)
 
-        challengeDST = _as_bytes("Challenge-") + self.context_string
         h2s_input = I2OSP(len(Bm), 2) + Bm \
             + I2OSP(len(a0), 2) + a0 \
             + I2OSP(len(a1), 2) + a1 \
             + I2OSP(len(a2), 2) + a2 \
             + I2OSP(len(a3), 2) + a3 \
-            + I2OSP(len(challengeDST), 2) + challengeDST
+            + _as_bytes("Challenge")
 
         c = self.suite.group.hash_to_scalar(h2s_input, self.scalar_domain_separation_tag())
 
         assert(c == proof[0])
         return c == proof[0]
 
-    def blind(self, x):
-        blind = ZZ(self.suite.group.random_scalar())
-        P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
-        R = blind * P
-        blinded_element = self.suite.group.serialize(R)
-        return blind, blinded_element
+    def unblind(self, blind, evaluated_element, blinded_element, proof):
+        R = self.suite.group.deserialize(blinded_element)
+        Z = self.suite.group.deserialize(evaluated_element)
+        G = self.suite.group.generator()
+        if not self.verify_proof(G, self.pkS, [R], [Z], proof):
+            raise Exception("Proof verification failed")
+
+        blind_inv = inverse_mod(blind, self.suite.group.order())
+        N = blind_inv * Z
+        unblinded_element = self.suite.group.serialize(N)
+        return unblinded_element
+
+    def unblind_batch(self, blinds, evaluated_elements, blinded_elements, proof):
+        assert(len(blinds) == len(evaluated_elements))
+        assert(len(evaluated_elements) == len(blinded_elements))
+
+        G = self.suite.group.generator()
+        Rs = []
+        Zs = []
+        for i, _ in enumerate(blinded_elements):
+            R = self.suite.group.deserialize(blinded_elements[i])
+            Z = self.suite.group.deserialize(evaluated_elements[i])
+            Rs.append(R)
+            Zs.append(Z)
+
+        if not self.verify_proof(G, self.pkS, Rs, Zs, proof):
+            raise Exception("Proof verification failed")
+
+        unblinded_elements = []
+        for i, evaluated_element in enumerate(evaluated_elements):
+            Z = self.suite.group.deserialize(evaluated_element)
+            blind_inv = inverse_mod(blinds[i], self.suite.group.order())
+            N = blind_inv * Z
+            unblinded_element = self.suite.group.serialize(N)
+            unblinded_elements.append(unblinded_element)
+
+        return unblinded_elements
+
+    def finalize(self, x, blind, evaluated_element, blinded_element, proof, info):
+        unblinded_element = self.unblind(blind, evaluated_element, blinded_element, proof)
+        finalize_input = I2OSP(len(x), 2) + x \
+            + I2OSP(len(unblinded_element), 2) + unblinded_element \
+            + _as_bytes("Finalize")
+
+        return self.suite.hash(finalize_input)
+
+    def finalize_batch(self, xs, blinds, evaluated_elements, blinded_elements, proof, info):
+        assert(len(blinds) == len(evaluated_elements))
+        assert(len(evaluated_elements) == len(blinded_elements))
+
+        unblinded_elements = self.unblind_batch(blinds, evaluated_elements, blinded_elements, proof)
+
+        outputs = []
+        for i, unblinded_element in enumerate(unblinded_elements):
+            finalize_input = I2OSP(len(xs[i]), 2) + xs[i] \
+                + I2OSP(len(unblinded_element), 2) + unblinded_element \
+                + _as_bytes("Finalize")
+
+            digest = self.suite.hash(finalize_input)
+            outputs.append(digest)
+
+        return outputs
+
+class VOPRFServerContext(OPRFServerContext,Verifiable):
+    def __init__(self, version, mode, suite, skS, pkS):
+        OPRFServerContext.__init__(self, version, mode, suite, skS, pkS)
+
+    def generate_proof(self, k, A, B, Cs, Ds):
+        a = self.compute_composites_fast(k, B, Cs, Ds)
+
+        r = ZZ(self.suite.group.random_scalar())
+        M = a[0]
+        Z = a[1]
+        t2 = r * A
+        t3 = r * M
+
+        Bm = self.suite.group.serialize(B)
+        a0 = self.suite.group.serialize(M)
+        a1 = self.suite.group.serialize(Z)
+        a2 = self.suite.group.serialize(t2)
+        a3 = self.suite.group.serialize(t3)
+
+        h2s_input = I2OSP(len(Bm), 2) + Bm \
+            + I2OSP(len(a0), 2) + a0 \
+            + I2OSP(len(a1), 2) + a1 \
+            + I2OSP(len(a2), 2) + a2 \
+            + I2OSP(len(a3), 2) + a3 \
+            + _as_bytes("Challenge")
+
+        c = self.suite.group.hash_to_scalar(h2s_input, self.scalar_domain_separation_tag())
+        s = (r - c * k) % self.suite.group.order()
+
+        return [c, s], r
+
+    def evaluate(self, blinded_element, info):
+        R = self.suite.group.deserialize(blinded_element)
+        Z = self.skS * R
+        evaluated_element = self.suite.group.serialize(Z)
+        proof, r = self.generate_proof(self.skS, self.suite.group.generator(), self.pkS, [R], [Z])
+        return evaluated_element, proof, r
+
+    def evaluate_batch(self, blinded_elements, info):
+        Rs = []
+        Zs = []
+        evaluated_elements = []
+        for blinded_element in blinded_elements:
+            R = self.suite.group.deserialize(blinded_element)
+            Z = self.skS * R
+            Rs.append(R)
+            Zs.append(Z)
+            evaluated_element = self.suite.group.serialize(Z)
+            evaluated_elements.append(evaluated_element)
+
+        proof, r = self.generate_proof(self.skS, self.suite.group.generator(), self.pkS, Rs, Zs)
+        return evaluated_elements, proof, r
+
+class POPRFClientContext(VOPRFClientContext):
+    def __init__(self, version, mode, suite, pkS):
+        VOPRFClientContext.__init__(self, version, mode, suite, pkS)
+        self.pkS = pkS
 
     def unblind(self, blind, evaluated_element, blinded_element, proof, tag):
         R = self.suite.group.deserialize(blinded_element)
@@ -197,9 +299,6 @@ class VerifiableClientContext(ClientContext,Verifiable):
         gk = (G * tag) + self.pkS
         if not self.verify_proof(G, gk, [Z], [R], proof):
             raise Exception("Proof verification failed")
-
-        # if not self.verify_proof(tag, self.pkS, [R], [Z], proof):
-        #     raise Exception("Proof verification failed")
 
         blind_inv = inverse_mod(blind, self.suite.group.order())
         N = blind_inv * Z
@@ -223,9 +322,6 @@ class VerifiableClientContext(ClientContext,Verifiable):
         if not self.verify_proof(G, gk, Zs, Rs, proof):
             raise Exception("Proof verification failed")
 
-        # if not self.verify_proof(tag, self.pkS, Rs, Zs, proof):
-        #     raise Exception("Proof verification failed")
-
         unblinded_elements = []
         for i, evaluated_element in enumerate(evaluated_elements):
             Z = self.suite.group.deserialize(evaluated_element)
@@ -237,15 +333,13 @@ class VerifiableClientContext(ClientContext,Verifiable):
         return unblinded_elements
 
     def finalize(self, x, blind, evaluated_element, blinded_element, proof, info):
-        context_DST = _as_bytes("Context-") + self.context_string
-        context = context_DST + I2OSP(len(info), 2) + info
+        context = _as_bytes("Info") + I2OSP(len(info), 2) + info
         tag = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
         unblinded_element = self.unblind(blind, evaluated_element, blinded_element, proof, tag)
-        finalizeDST = _as_bytes("Finalize-") + self.context_string
         finalize_input = I2OSP(len(x), 2) + x \
             + I2OSP(len(info), 2) + info \
             + I2OSP(len(unblinded_element), 2) + unblinded_element \
-            + I2OSP(len(finalizeDST), 2) + finalizeDST
+            + _as_bytes("Finalize")
 
         return self.suite.hash(finalize_input)
 
@@ -253,60 +347,29 @@ class VerifiableClientContext(ClientContext,Verifiable):
         assert(len(blinds) == len(evaluated_elements))
         assert(len(evaluated_elements) == len(blinded_elements))
 
-        context_DST = _as_bytes("Context-") + self.context_string
-        context = context_DST + I2OSP(len(info), 2) + info
+        context = _as_bytes("Info") + I2OSP(len(info), 2) + info
         tag = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
         unblinded_elements = self.unblind_batch(blinds, evaluated_elements, blinded_elements, proof, tag)
 
         outputs = []
-        finalizeDST = _as_bytes("Finalize-") + self.context_string
         for i, unblinded_element in enumerate(unblinded_elements):
             finalize_input = I2OSP(len(xs[i]), 2) + xs[i] \
                 + I2OSP(len(info), 2) + info \
                 + I2OSP(len(unblinded_element), 2) + unblinded_element \
-                + I2OSP(len(finalizeDST), 2) + finalizeDST
+                + _as_bytes("Finalize")
 
             digest = self.suite.hash(finalize_input)
             outputs.append(digest)
 
         return outputs
 
-class VerifiableServerContext(ServerContext,Verifiable):
+class POPRFServerContext(VOPRFServerContext):
     def __init__(self, version, mode, suite, skS, pkS):
-        ServerContext.__init__(self, version, mode, suite, skS, pkS)
-
-    def generate_proof(self, k, A, B, Cs, Ds):
-        a = self.compute_composites_fast(k, B, Cs, Ds)
-
-        r = ZZ(self.suite.group.random_scalar())
-        M = a[0]
-        Z = a[1]
-        t2 = r * A
-        t3 = r * M
-
-        Bm = self.suite.group.serialize(B)
-        a0 = self.suite.group.serialize(M)
-        a1 = self.suite.group.serialize(Z)
-        a2 = self.suite.group.serialize(t2)
-        a3 = self.suite.group.serialize(t3)
-
-        challengeDST = _as_bytes("Challenge-") + self.context_string
-        h2s_input = I2OSP(len(Bm), 2) + Bm \
-            + I2OSP(len(a0), 2) + a0 \
-            + I2OSP(len(a1), 2) + a1 \
-            + I2OSP(len(a2), 2) + a2 \
-            + I2OSP(len(a3), 2) + a3 \
-            + I2OSP(len(challengeDST), 2) + challengeDST
-
-        c = self.suite.group.hash_to_scalar(h2s_input, self.scalar_domain_separation_tag())
-        s = (r - c * k) % self.suite.group.order()
-
-        return [c, s], r
+        VOPRFServerContext.__init__(self, version, mode, suite, skS, pkS)
 
     def evaluate(self, blinded_element, info):
         R = self.suite.group.deserialize(blinded_element)
-        context_DST = _as_bytes("Context-") + self.context_string
-        context = context_DST + I2OSP(len(info), 2) + info
+        context = _as_bytes("Info") + I2OSP(len(info), 2) + info
         t = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
 
         k = self.skS + t
@@ -319,14 +382,12 @@ class VerifiableServerContext(ServerContext,Verifiable):
         proof, r = self.generate_proof(k, G, gk, [Z], [R])
         return evaluated_element, proof, r
 
-
     def evaluate_batch(self, blinded_elements, info):
         Rs = []
         Zs = []
         evaluated_elements = []
 
-        context_DST = _as_bytes("Context-") + self.context_string
-        context = context_DST + I2OSP(len(info), 2) + info
+        context = _as_bytes("Info") + I2OSP(len(info), 2) + info
         t = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
 
         for blinded_element in blinded_elements:
@@ -345,8 +406,24 @@ class VerifiableServerContext(ServerContext,Verifiable):
         proof, r = self.generate_proof(k, G, gk, Zs, Rs)
         return evaluated_elements, proof, r
 
-MODE_BASE = 0x00
-MODE_VERIFIABLE = 0x01
+    def verify_finalize(self, x, expected_digest, info):
+        P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
+        input_element = self.suite.group.serialize(P)
+        issued_element, _, _ = self.evaluate(input_element, info) # Ignore proof output
+
+        finalize_input = I2OSP(len(x), 2) + x \
+            + I2OSP(len(info), 2) + info \
+            + I2OSP(len(issued_element), 2) + issued_element \
+            + _as_bytes("Finalize")
+
+        digest = self.suite.hash(finalize_input)
+
+        return (digest == expected_digest)
+
+MODE_OPRF = 0x00
+MODE_VOPRF = 0x01
+MODE_POPRF = 0x02
+
 VERSION = "VOPRF08-"
 
 def GenerateKeyPair(suite):
@@ -359,17 +436,23 @@ def DeriveKeyPair(mode, suite, seed):
     pkS = skS * suite.group.generator()
     return skS, pkS
 
-def SetupBaseServer(suite, skS):
-    return ServerContext(VERSION, MODE_BASE, suite, skS, None)
+def SetupOPRFServer(suite, skS):
+    return OPRFServerContext(VERSION, MODE_OPRF, suite, skS, None)
 
-def SetupBaseClient(suite):
-    return ClientContext(VERSION, MODE_BASE, suite)
+def SetupOPRFClient(suite):
+    return OPRFClientContext(VERSION, MODE_OPRF, suite)
 
-def SetupVerifiableServer(suite, skS, pkS):
-    return VerifiableServerContext(VERSION, MODE_VERIFIABLE, suite, skS, pkS)
+def SetupVOPRFServer(suite, skS, pkS):
+    return VOPRFServerContext(VERSION, MODE_VOPRF, suite, skS, pkS)
 
-def SetupVerifiableClient(suite, pkS):
-    return VerifiableClientContext(VERSION, MODE_VERIFIABLE, suite, pkS)
+def SetupVOPRFClient(suite, pkS):
+    return VOPRFClientContext(VERSION, MODE_VOPRF, suite, pkS)
+
+def SetupPOPRFServer(suite, skS, pkS):
+    return POPRFServerContext(VERSION, MODE_POPRF, suite, skS, pkS)
+
+def SetupPOPRFClient(suite, pkS):
+    return POPRFClientContext(VERSION, MODE_POPRF, suite, pkS)
 
 Ciphersuite = namedtuple("Ciphersuite", ["name", "identifier", "group", "H", "hash"])
 
