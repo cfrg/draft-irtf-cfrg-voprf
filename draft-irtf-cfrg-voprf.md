@@ -620,7 +620,6 @@ ComputeComposites
 
 Input:
 
-  Scalar k
   Element B
   Element Cs[m]
   Element Ds[m]
@@ -630,7 +629,7 @@ Output:
   Element M
   Element Z
 
-def ComputeCompositesFast(k, B, Cs, Ds):
+def ComputeComposites(B, Cs, Ds):
   Bm = GG.SerializeElement(B)
   seedDST = "Seed-" || contextString
   h1Input = I2OSP(len(Bm), 2) || Bm ||
@@ -638,6 +637,7 @@ def ComputeCompositesFast(k, B, Cs, Ds):
   seed = Hash(h1Input)
 
   M = GG.Identity()
+  Z = GG.Identity()
   for i = 0 to m-1:
     Ci = GG.SerializeElement(Cs[i])
     Di = GG.SerializeElement(Ds[i])
@@ -648,8 +648,7 @@ def ComputeCompositesFast(k, B, Cs, Ds):
 
     di = GG.HashToScalar(h2Input)
     M = di * Cs[i] + M
-
-  Z = k * M
+    Z = di * Ds[i] + Z
 
  return (M, Z)
 ~~~
@@ -2444,28 +2443,6 @@ Proof = 0031f81bc53f787f10368cbd02866a14e603e6be28a6077ac7fb35db1ac5
 ae376b207bb213e07cd1f4c0ce1de5cfef06eb3f1c07bf3ad936ed3188b210f39ae1
 d88e00f74abd90511bfbc99a3bfd3d438824881316fc5bb3861e6bb65e31c9f47687
 49b1aab065605fc460313debadf6530aabd78fd8fe2246b57579a38e8de623f98581
-ProofRandomScalar = 008c15ac9ea0f8380dcce04b4c70b85f82bd8d1806c3f85d
-aa0e690689a7ed6faa65712283a076c4eaee988dcf39d6775f3feee6a4376b45efbc
-57c5f087181c9f04
-Output = 34ec5a12c07a35a9f6acbcbd991a2552444c9255c30f63b0537e1d6ed07
-1b736b732a88e40c368d8978e475ba0391865f608db1169c655697550f109589283c
-3
-~~~
-Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
-Info = 7465737420696e666f
-Blind = 01ab3a90cc9da17604b2e59a93759eb0985d2259c20e3783be009527adf4
-7f8fb5b1437cba7731c34ac70bc6ab1b8c14ff4110afc54c9598d5f1544830f9d667
-b684
-BlindedElement = 03005afd7be45866679f4d6407ffbae16df62ca61437487ef41
-97963d0700ab9dde69bd326931261d533e16755b528b5ac7d6916bd37c49e76a3147
-a3d91d3a9655d70
-EvaluationElement = 0301d653352b885524b775116064c1de5fc1dedd1ca4ef80
-560156d627f3ed71487a765ba4ea0aae4e659dc60997a2b362c6479ad5cda6fe8ac9
-eb93ad8f1829f0858f
-Proof = 0159601e267dca78265188a393cc0dd337451fb1bc530b2f8bf5a47f0ff8
-49e310f0ae38ae704a66525bfbf9abdbd8499caa149baedf0553449ba8110564d8e4
-01f900ea0554be32745571f50c3f83259b64f19046803c4cd7b577aae1349b50f024
-06e9a77ef87c2511e2044b381442bffe64f7a0d210f364936f3f061010615309b7fc
 ProofRandomScalar = 008c15ac9ea0f8380dcce04b4c70b85f82bd8d1806c3f85d
 aa0e690689a7ed6faa65712283a076c4eaee988dcf39d6775f3feee6a4376b45efbc
 57c5f087181c9f04
