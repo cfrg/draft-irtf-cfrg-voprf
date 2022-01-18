@@ -345,7 +345,8 @@ The following functions and notation are used throughout the document.
 For serialization, all data structure descriptions use TLS notation {{RFC8446, Section 3}}.
 
 All algorithms and procedures described in this document are laid out
-in a Python-like pseudocode.
+in a Python-like pseudocode. The data types `PrivateInput` and `PublicInput`
+are opaque byte strings of arbitrary length no larger than 2^13 octets.
 
 String values such as "Context-" are ASCII string literals.
 
@@ -464,8 +465,8 @@ done by clients in the protocol.
 Generating a proof is done with the `GenerateProof` function, defined below.
 This function takes four Elements, A, B, C, and D, and a single
 group Scalar k, and produces a proof that `k*A == B` and `k*C == D`.
-The output is a pair of serialized Scalars concatenated together,
-denoted as type `Proof`.
+The output is a value of type Proof, which is a tuple of two Scalar
+values.
 
 ~~~
 GenerateProof
@@ -507,8 +508,7 @@ def GenerateProof(k, A, B, C, D)
   c = GG.HashToScalar(h2Input)
   s = (r - c * k) mod p
 
-  proof = GG.SerializeScalar(c) || GG.SerializeScalar(s)
-  return proof
+  return [c, s]
 ~~~
 
 The helper function ComputeCompositesFast is as defined below.
@@ -543,6 +543,7 @@ def ComputeCompositesFast(k, B, Cs, Ds):
               I2OSP(len(Ci), 2) || Ci ||
               I2OSP(len(Di), 2) || Di ||
               "Composite"
+
     di = GG.HashToScalar(h2Input)
     M = di * Cs[i] + M
 
@@ -588,8 +589,8 @@ def VerifyProof(A, B, C, D, proof):
   Ds = [D]
 
   (M, Z) = ComputeComposites(B, Cs, Ds)
-  c = GG.DeserializeScalar(proof.c)
-  s = GG.DeserializeScalar(proof.s)
+  c = proof[0]
+  s = proof[1]
 
   t2 = ((s * A) + (c * B))
   t3 = ((s * M) + (c * Z))
@@ -619,6 +620,7 @@ ComputeComposites
 
 Input:
 
+  Scalar k
   Element B
   Element Cs[m]
   Element Ds[m]
@@ -628,7 +630,7 @@ Output:
   Element M
   Element Z
 
-def ComputeComposites(B, Cs, Ds):
+def ComputeCompositesFast(k, B, Cs, Ds):
   Bm = GG.SerializeElement(B)
   seedDST = "Seed-" || contextString
   h1Input = I2OSP(len(Bm), 2) || Bm ||
@@ -636,7 +638,6 @@ def ComputeComposites(B, Cs, Ds):
   seed = Hash(h1Input)
 
   M = GG.Identity()
-  Z = GG.Identity()
   for i = 0 to m-1:
     Ci = GG.SerializeElement(Cs[i])
     Di = GG.SerializeElement(Ds[i])
@@ -644,9 +645,11 @@ def ComputeComposites(B, Cs, Ds):
               I2OSP(len(Ci), 2) || Ci ||
               I2OSP(len(Di), 2) || Di ||
               "Composite"
+
     di = GG.HashToScalar(h2Input)
     M = di * Cs[i] + M
-    Z = di * Ds[i] + Z
+
+  Z = k * M
 
  return (M, Z)
 ~~~
@@ -666,14 +669,14 @@ and `output` is the OPRF output. The client learns `output` and the server learn
 This interaction is shown below.
 
 ~~~
-    Client                                              Server(skS)
+    Client                                                  Server(skS)
   ---------------------------------------------------------------------
   blind, blindedElement = Blind(input)
 
                              blindedElement
                                ---------->
 
-                      evaluatedElement = Evaluate(blindedElement)
+                           evaluatedElement = Evaluate(blindedElement)
 
                              evaluatedElement
                                <----------
@@ -685,35 +688,37 @@ This interaction is shown below.
 In the verifiable mode, the client additionally receives proof that the server used `skS` in
 computing the function. To achieve verifiability, as in the original work of {{JKK14}}, the
 server provides a zero-knowledge proof that the key provided as input by the server in
-the `Evaluate` function is the same key as it used to produce the server's public key.
-This proof does not reveal the server's private key to the client. This interaction
-is shown below.
+the `Evaluate` function is the same key as it used to produce the server's public key, `pkS`,
+which the client receives as input to the protocol. This proof does not reveal the server's
+private key to the client. This interaction is shown below.
 
 ~~~
-    Client(pkS)                                     Server(skS, pkS)
+    Client(pkS)            <---- pkS ------                 Server(skS)
   ---------------------------------------------------------------------
   blind, blindedElement = Blind(input)
 
                              blindedElement
                                ---------->
 
-               evaluatedElement, proof = Evaluate(blindedElement)
+                     evaluatedElement, proof = Evaluate(blindedElement)
 
                          evaluatedElement, proof
                                <----------
 
-  output = Finalize(input, blind, evaluatedElement, blindedElement, proof)
+  output = Finalize(input, blind, evaluatedElement,
+                    blindedElement, proof)
 ~~~
 {: #fig-voprf title="VOPRF protocol overview with additional proof"}
 
-The partially-oblivious mode extends the VOPRF mode such that the client and server can additionally provide a public
-input `info` that is used in computing the pseudorandom function. That is, the client and server
-interact to compute `output = F(skS, input, info)`. To support additional public input,
-the client and server augment the `pkS` and `skS`, respectively, using the `info` value,
+The partially-oblivious mode extends the VOPRF mode such that the client and
+server can additionally provide a public input `info` that is used in computing
+the pseudorandom function. That is, the client and server interact to compute
+`output = F(skS, input, info)`. To support additional public input, the client
+and server augment the `pkS` and `skS`, respectively, using the `info` value,
 as in {{TCRSTW21}}.
 
 ~~~
-    Client(pkS, info)                          Server(skS, pkS, info)
+    Client(pkS, info)        <---- pkS ------        Server(skS, info)
   ---------------------------------------------------------------------
   blind, blindedElement = Blind(input)
 
@@ -725,7 +730,8 @@ as in {{TCRSTW21}}.
                          evaluatedElement, proof
                                <----------
 
-  output = Finalize(input, blind, evaluatedElement, blindedElement, proof, info)
+  output = Finalize(input, blind, evaluatedElement,
+                    blindedElement, proof, info)
 ~~~
 {: #fig-poprf title="POPRF protocol overview with additional public input"}
 
@@ -747,13 +753,8 @@ Additionally, each protocol variant is instantiated with a ciphersuite,
 or suite. Each ciphersuite is identified with a two-byte value, referred
 to as `suiteID`; see {{ciphersuites}} for the registry of initial values.
 
-## Offline Context Setup {#offline}
-
-In the offline setup phase, both the client and server create a context used
-for executing the online phase of the protocol. The key pair (`skS`, `pkS`)
-should be generated by calling either `GenerateKeyPair` or `DeriveKeyPair`.
-Additionally, they agree on a ciphersuite value `suiteID`. These values are
-combined to create a "context string" using the following function:
+The mode and ciphersuite ID values are combined to create a "context string"
+used throughout the protocol with the following function:
 
 ~~~
 def CreateContextString(mode, suiteID):
@@ -761,6 +762,42 @@ def CreateContextString(mode, suiteID):
 ~~~
 
 [[RFC editor: please change "VOPRF08" to "RFCXXXX", where XXXX is the final number, here and elsewhere before publication.]]
+
+## Key Generation and Context Setup {#offline}
+
+In the offline setup phase, both the client and server create a context used
+for executing the online phase of the protocol after agreeing on a mode and
+ciphersuite value suiteID. The server key pair (`skS`, `pkS`) is generated
+using the following function, which accepts a randomly generated seed of length
+`Ns` and optional public info string:
+
+~~~
+Input:
+
+  opaque seed[Ns]
+  PublicInput info
+
+Output:
+
+  Scalar skS
+  Element pkS
+
+Errors: DeriveKeyPairError
+
+def DeriveKeyPair(seed, info):
+  contextString = CreateContextString(mode, suiteID)
+  deriveInput = seed || I2OSP(len(info), 2) || info
+  counter = 0
+  skS = 0
+  while skS == 0:
+    if counter > 255:
+      raise DeriveKeyPairError
+    skS = GG.HashToScalar(deriveInput || I2OSP(counter, 1),
+                          DST = "DeriveKeyPair" || contextString)
+    counter = counter + 1
+  pkS = ScalarBaseMult(skS)
+  return skS, pkS
+~~~
 
 The OPRF variant server and client contexts are created as follows:
 
@@ -809,8 +846,10 @@ parameters are assumed to exist:
 - contextString, a domain separation tag constructed during context setup as created in {{offline}}.
 - skS and pkS, the private and public keys configured for client and server in {{offline}}.
 
-Moreover, the data types `PrivateInput` and `PublicInput` are opaque byte
-strings of arbitrary length no larger than 2^13 octets.
+All protocol elements are serialized between client and server for transmission.
+Specifically, values of type Element are transmitted as SerializedElement values,
+and values of type Proof are serialized as the concatenation of two SerializedScalar
+values. Deserializing these values can fail, in which case the protocol MUST be aborted.
 
 ### OPRF Protocol {#oprf}
 
@@ -818,8 +857,6 @@ The OPRF protocol begins with the client blinding its input, as described
 by the `Blind` function below.
 
 ~~~
-Blind
-
 Input:
 
   PrivateInput input
@@ -827,65 +864,58 @@ Input:
 Output:
 
   Scalar blind
-  SerializedElement blindedElement
+  Element blindedElement
 
 def Blind(input):
   blind = GG.RandomScalar()
   P = GG.HashToGroup(input)
-  blindedElement = GG.SerializeElement(blind * P)
+  blindedElement = blind * P
 
   return blind, blindedElement
 ~~~
 
-Clients store `blind` locally, and send `blindedElement` to the server for evaluation.
-Upon receipt, servers evaluate `blindedElement` using the `Evaluate` function
-described below.
-
-~~~
-Evaluate
-
-Input:
-
-  SerializedElement blindedElement
-
-Output:
-
-  SerializedElement evaluatedElement
-
-Errors: DeserializeError
-
-def Evaluate(blindedElement):
-  R = GG.DeserializeElement(blindedElement)
-  Z = skS * R
-  evaluatedElement = GG.SerializeElement(Z)
-
-  return evaluatedElement
-~~~
-
-Servers send the output `evaluatedElement` to clients for processing. Recall that
-servers may batch multiple client inputs to `Evaluate`.
-
-Upon receipt of `evaluatedElement`, clients complete the OPRF evaluation
-using the `Finalize` function described below.
+Clients store `blind` locally, and send a serialized `blindedElement` to the server for
+evaluation. Upon receipt, servers deserialize the value and process `blindedElement`
+using the `Evaluate` function described below. If deserialization fails, servers MUST
+abort the protocol with a `DeserializeError` failure.
 
 ~~~
 Finalize
 
 Input:
 
+  Element blindedElement
+
+Output:
+
+  Element evaluatedElement
+
+def Evaluate(blindedElement):
+  evaluatedElement = skS * blindedElement
+  return evaluatedElement
+~~~
+
+Servers serialize and send the output `evaluatedElement` to clients for processing.
+Recall that servers may batch multiple client inputs to `Evaluate`.
+
+Upon receipt of `evaluatedElement`, clients deserialize and process the result to
+complete the OPRF evaluation with the `Finalize` function described below.
+If deserialization fails, clients MUST abort the protocol with a `DeserializeError`
+failure.
+
+~~~
+Input:
+
   PrivateInput input
   Scalar blind
-  SerializedElement evaluatedElement
+  Element evaluatedElement
 
 Output:
 
   opaque output[Nh]
 
-Errors: DeserializeError
-
 def Finalize(input, blind, evaluatedElement):
-  Z = GG.DeserializeElement(evaluatedElement)
-  N = blind^(-1) * Z
+  N = blind^(-1) * evaluatedElement
   unblindedElement = GG.SerializeElement(N)
 
   hashInput = I2OSP(len(input), 2) || input ||
@@ -898,60 +928,54 @@ def Finalize(input, blind, evaluatedElement):
 
 The VOPRF protocol begins with the client blinding its input, using the same
 `Blind` function as in {{oprf}}. Clients store the output `blind` locally
-and send `blindedElement` to the server for evaluation. Upon receipt,
-servers compute an evaluated element and DLEQ proof using the following
-`Evaluate` function.
+and send a serialized `blindedElement` to the server for evaluation. Upon
+receipt, servers deserialize and process `blindedElement` to compute an
+evaluated element and DLEQ proof using the following `Evaluate` function.
+If deserialization fails, servers MUST abort the protocol with a `DeserializeError`
+failure.
 
 ~~~
-Evaluate
-
 Input:
 
-  SerializedElement blindedElement
+  Element blindedElement
 
 Output:
 
-  SerializedElement evaluatedElement
+  Element evaluatedElement
   Proof proof
 
-Errors: DeserializeError
-
 def Evaluate(blindedElement):
-  R = GG.DeserializeElement(blindedElement)
-  Z = skS * R
-  proof = GenerateProof(skS, G, pkS, R, Z)
-  evaluatedElement = GG.SerializeElement(Z)
+  evaluatedElement = skS * blindedElement
+  proof = GenerateProof(skS, G, pkS, blindedElement, evaluatedElement)
   return evaluatedElement, proof
 ~~~
 
-The server sends both `evaluatedElement` and `proof` back to the client.
-Upon receipt, the client completes the VOPRF computation using the
-`Finalize` function below.
+The server serializes and sends both `evaluatedElement` and `proof` back to
+the client. Upon receipt, the client deserializes and processes both values to
+complete the VOPRF computation using the `Finalize` function below. If
+deserialization of either value fails, clients MUST abort the protocol with
+a `DeserializeError` failure.
 
 ~~~
-Finalize
-
 Input:
 
   PrivateInput input
   Scalar blind
-  SerializedElement evaluatedElement
-  SerializedElement blindedElement
+  Element evaluatedElement
+  Element blindedElement
   Proof proof
 
 Output:
 
   opaque output[Nh]
 
-Errors: DeserializeError, VerifyError
+Errors: VerifyError
 
 def Finalize(input, blind, evaluatedElement, blindedElement, proof):
-  R = GG.DeserializeElement(blindedElement)
-  Z = GG.DeserializeElement(evaluatedElement)
-  if VerifyProof(G, pkS, R, Z, proof) == false:
+  if VerifyProof(G, pkS, blindedElement, evaluatedElement, proof) == false:
     raise VerifyError
 
-  N = blind^(-1) * Z
+  N = blind^(-1) * evaluatedElement
   unblindedElement = GG.SerializeElement(N)
 
   hashInput = I2OSP(len(input), 2) || input ||
@@ -964,53 +988,55 @@ def Finalize(input, blind, evaluatedElement, blindedElement, proof):
 
 The POPRF protocol begins with the client blinding its input, using the same
 `Blind` function as in {{oprf}}. Clients store the output `blind` locally
-and send `blindedElement` to the server for evaluation. Upon receipt,
-servers compute an evaluated element and DLEQ proof using the following
-`Evaluate` function.
-
-~~~
-Evaluate
-
-Input:
-
-  SerializedElement blindedElement
-  PublicInput info
-
-Output:
-
-  SerializedElement evaluatedElement
-  Proof proof
-
-Errors: DeserializeError, InverseError
-
-def Evaluate(blindedElement, info):
-  R = GG.DeserializeElement(blindedElement)
-  context = "Info" || I2OSP(len(info), 2) || info
-  m = GG.HashToScalar(context)
-  t = skS + m
-  if t == 0:
-      raise InverseError
-  Z = t^(-1) * R
-
-  U = ScalarBaseMult(t)
-  proof = GenerateProof(t, G, U, Z, R)
-  evaluatedElement = GG.SerializeElement(Z)
-  return evaluatedElement, proof
-~~~
-
-The server sends both `evaluatedElement` and `proof` back to the client.
-Upon receipt, the client completes the VOPRF computation using the
-`Finalize` function below.
+and send a serialized `blindedElement` to the server for evaluation. Upon
+receipt, servers deserialize and process `blindedElement` to compute an
+evaluated element and DLEQ proof using the following `Evaluate` function.
+If deserialization fails, servers MUST abort the protocol with a `DeserializeError`
+failure.
 
 ~~~
 Finalize
 
 Input:
 
+  Element blindedElement
+  PublicInput info
+
+Output:
+
+  Element evaluatedElement
+  Proof proof
+
+Errors: InverseError
+
+def Evaluate(blindedElement, info):
+  context = "Info" || I2OSP(len(info), 2) || info
+  m = GG.HashToScalar(context)
+  t = skS + m
+  if t == 0:
+    raise InverseError
+
+  evaluatedElement = t^(-1) * blindedElement
+
+  U = ScalarBaseMult(t)
+  proof = GenerateProof(t, G, U, evaluatedElement, blindedElement)
+
+  return evaluatedElement, proof
+~~~
+
+The server serializes and sends both `evaluatedElement` and `proof` back to
+the client. Upon receipt, the client deserializes and processes both values to
+complete the VOPRF computation using the `Finalize` function below. If
+deserialization of either value fails, clients MUST abort the protocol with
+a `DeserializeError` failure.
+
+~~~
+Input:
+
   PrivateInput input
   Scalar blind
-  SerializedElement evaluatedElement
-  SerializedElement blindedElement
+  Element evaluatedElement
+  Element blindedElement
   Proof proof
   PublicInput info
 
@@ -1018,21 +1044,17 @@ Output:
 
   opaque output[Nh]
 
-Errors: DeserializeError, VerifyError
+Errors: InverseError
 
 def Finalize(input, blind, evaluatedElement, blindedElement, proof, info):
   context = "Info" || I2OSP(len(info), 2) || info
   m = GG.HashToScalar(context)
-
-  R = GG.DeserializeElement(blindedElement)
-  Z = GG.DeserializeElement(evaluatedElement)
-
   T = ScalarBaseMult(m)
   U = T + pkS
-  if VerifyProof(G, U, Z, R, proof) == false:
+  if VerifyProof(G, U, evaluatedElement, blindedElement, proof) == false:
     raise VerifyError
 
-  N = blind^(-1) * Z
+  N = blind^(-1) * evaluatedElement
   unblindedElement = GG.SerializeElement(N)
 
   hashInput = I2OSP(len(input), 2) || input ||
@@ -1156,8 +1178,15 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 
 # Application Considerations {#apis}
 
-This section describes considerations for applications, including explicit error
-treatment and public input representation for the POPRF protocol variant.
+This section describes considerations for applications, including external interface
+recommendations, explicit error treatment, and public input representation for the
+POPRF protocol variant.
+
+## External Interface Recommendations
+
+The protocol functions in {{online}} are specified in terms of prime-order group
+Elements and Scalars. However, applications can treat these as internal functions,
+and instead expose interfaces that operate in terms of wire format messages.
 
 ## Error Considerations
 
@@ -1167,8 +1196,8 @@ The explicit errors generated throughout this specification, along with the
 conditions that lead to each error, are as follows:
 
 - `VerifyError`: Verifiable OPRF proof verification failed; {{voprf}} and {{poprf}}.
-- `DeserializeError`: Group element or scalar deserialization failure; {{pog}}.
-- `InverseError`: A scalar is zero and has no inverse; {{pog}}.
+- `DeserializeError`: Group element or scalar deserialization failure; {{pog}} and {{online}}.
+- `InverseError`: A scalar is zero and has no inverse; {{pog}} and {{online}}.
 
 The errors in this document are meant as a guide to implementors. They are not
 an exhaustive list of all the errors an implementation might emit. For example,
@@ -2415,6 +2444,28 @@ Proof = 0031f81bc53f787f10368cbd02866a14e603e6be28a6077ac7fb35db1ac5
 ae376b207bb213e07cd1f4c0ce1de5cfef06eb3f1c07bf3ad936ed3188b210f39ae1
 d88e00f74abd90511bfbc99a3bfd3d438824881316fc5bb3861e6bb65e31c9f47687
 49b1aab065605fc460313debadf6530aabd78fd8fe2246b57579a38e8de623f98581
+ProofRandomScalar = 008c15ac9ea0f8380dcce04b4c70b85f82bd8d1806c3f85d
+aa0e690689a7ed6faa65712283a076c4eaee988dcf39d6775f3feee6a4376b45efbc
+57c5f087181c9f04
+Output = 34ec5a12c07a35a9f6acbcbd991a2552444c9255c30f63b0537e1d6ed07
+1b736b732a88e40c368d8978e475ba0391865f608db1169c655697550f109589283c
+3
+~~~
+Input = 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a
+Info = 7465737420696e666f
+Blind = 01ab3a90cc9da17604b2e59a93759eb0985d2259c20e3783be009527adf4
+7f8fb5b1437cba7731c34ac70bc6ab1b8c14ff4110afc54c9598d5f1544830f9d667
+b684
+BlindedElement = 03005afd7be45866679f4d6407ffbae16df62ca61437487ef41
+97963d0700ab9dde69bd326931261d533e16755b528b5ac7d6916bd37c49e76a3147
+a3d91d3a9655d70
+EvaluationElement = 0301d653352b885524b775116064c1de5fc1dedd1ca4ef80
+560156d627f3ed71487a765ba4ea0aae4e659dc60997a2b362c6479ad5cda6fe8ac9
+eb93ad8f1829f0858f
+Proof = 0159601e267dca78265188a393cc0dd337451fb1bc530b2f8bf5a47f0ff8
+49e310f0ae38ae704a66525bfbf9abdbd8499caa149baedf0553449ba8110564d8e4
+01f900ea0554be32745571f50c3f83259b64f19046803c4cd7b577aae1349b50f024
+06e9a77ef87c2511e2044b381442bffe64f7a0d210f364936f3f061010615309b7fc
 ProofRandomScalar = 008c15ac9ea0f8380dcce04b4c70b85f82bd8d1806c3f85d
 aa0e690689a7ed6faa65712283a076c4eaee988dcf39d6775f3feee6a4376b45efbc
 57c5f087181c9f04
