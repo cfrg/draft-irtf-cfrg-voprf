@@ -849,8 +849,7 @@ parameters are assumed to exist:
 All protocol elements are serialized between client and server for transmission.
 Specifically, values of type Element are transmitted as SerializedElement values,
 and values of type Proof are serialized as the concatenation of two SerializedScalar
-values. Deserializing these values may fail, in which case the protocol participant
-MUST abort the protocol.
+values. Deserializing these values can fail, in which case the protocol MUST be aborted.
 
 ### OPRF Protocol {#oprf}
 
@@ -875,9 +874,10 @@ def Blind(input):
   return blind, blindedElement
 ~~~
 
-Clients store `blind` locally, and sends `blindedElement` to the server for evaluation.
-Upon receipt, servers process `blindedElement` using the `Evaluate` function described
-below.
+Clients store `blind` locally, and send a serialized `blindedElement` to the server for
+evaluation. Upon receipt, servers deserialize the value and process `blindedElement`
+using the `Evaluate` function described below. If deserialization fails, servers MUST
+abort the protocol with a `DeserializeError` failure.
 
 ~~~
 Finalize
@@ -890,18 +890,18 @@ Output:
 
   Element evaluatedElement
 
-Errors: DeserializeError
-
 def Evaluate(blindedElement):
   evaluatedElement = skS * blindedElement
   return evaluatedElement
 ~~~
 
-Servers send the output `evaluatedElement` to clients for processing. Recall that
-servers may batch multiple client inputs to `Evaluate`.
+Servers serialize and send the output `evaluatedElement` to clients for processing.
+Recall that servers may batch multiple client inputs to `Evaluate`.
 
-Upon receipt of `evaluatedElement`, clients complete the OPRF evaluation using the
-`Finalize` function described below.
+Upon receipt of `evaluatedElement`, clients deserialize and process the result to
+complete the OPRF evaluation with the `Finalize` function described below.
+If deserialization fails, clients MUST abort the protocol with a `DeserializeError`
+failure.
 
 ~~~
 Input:
@@ -913,8 +913,6 @@ Input:
 Output:
 
   opaque output[Nh]
-
-Errors: DeserializeError
 
 def Finalize(input, blind, evaluatedElement):
   N = blind^(-1) * Z
@@ -930,9 +928,11 @@ def Finalize(input, blind, evaluatedElement):
 
 The VOPRF protocol begins with the client blinding its input, using the same
 `Blind` function as in {{oprf}}. Clients store the output `blind` locally
-and send `blindedElement` to the server for evaluation. Upon receipt,
-servers compute an evaluated element and DLEQ proof using the following
-`Evaluate` function.
+and send a serialized `blindedElement` to the server for evaluation. Upon
+receipt, servers deserialize and process `blindedElement` to compute an
+evaluated element and DLEQ proof using the following `Evaluate` function.
+If deserialization fails, servers MUST abort the protocol with a `DeserializeError`
+failure.
 
 ~~~
 Input:
@@ -944,17 +944,17 @@ Output:
   Element evaluatedElement
   Proof proof
 
-Errors: DeserializeError
-
 def Evaluate(blindedElement):
   evaluatedElement = skS * blindedElement
   proof = GenerateProof(skS, G, pkS, blindedElement, evaluatedElement)
   return evaluatedElement, proof
 ~~~
 
-The server sends both `evaluatedElement` and `proof` back to the client.
-Upon receipt, the client completes the VOPRF computation using the
-`Finalize` function below.
+The server serializes and sends both `evaluatedElement` and `proof` back to
+the client. Upon receipt, the client deserializes and processes both values to
+complete the VOPRF computation using the `Finalize` function below. If
+deserialization of either value fails, clients MUST abort the protocol with
+a `DeserializeError` failure.
 
 ~~~
 Input:
@@ -988,9 +988,11 @@ def Finalize(input, blind, evaluatedElement, blindedElement, proof):
 
 The POPRF protocol begins with the client blinding its input, using the same
 `Blind` function as in {{oprf}}. Clients store the output `blind` locally
-and send `blindedElement` to the server for evaluation. Upon receipt,
-servers compute an evaluated element and DLEQ proof using the following
-`Evaluate` function.
+and send a serialized `blindedElement` to the server for evaluation. Upon
+receipt, servers deserialize and process `blindedElement` to compute an
+evaluated element and DLEQ proof using the following `Evaluate` function.
+If deserialization fails, servers MUST abort the protocol with a `DeserializeError`
+failure.
 
 ~~~
 Finalize
@@ -1005,7 +1007,7 @@ Output:
   Element evaluatedElement
   Proof proof
 
-Errors: DeserializeError, InverseError
+Errors: InverseError
 
 def Evaluate(blindedElement, info):
   context = "Info" || I2OSP(len(info), 2) || info
@@ -1022,9 +1024,11 @@ def Evaluate(blindedElement, info):
   return evaluatedElement, proof
 ~~~
 
-The server sends both `evaluatedElement` and `proof` back to the client.
-Upon receipt, the client completes the VOPRF computation using the
-`Finalize` function below.
+The server serializes and sends both `evaluatedElement` and `proof` back to
+the client. Upon receipt, the client deserializes and processes both values to
+complete the VOPRF computation using the `Finalize` function below. If
+deserialization of either value fails, clients MUST abort the protocol with
+a `DeserializeError` failure.
 
 ~~~
 Input:
@@ -1040,7 +1044,7 @@ Output:
 
   opaque output[Nh]
 
-Errors: DeserializeError, InverseError
+Errors: InverseError
 
 def Finalize(input, blind, evaluatedElement, blindedElement, proof, info):
   context = "Info" || I2OSP(len(info), 2) || info
@@ -1192,8 +1196,8 @@ The explicit errors generated throughout this specification, along with the
 conditions that lead to each error, are as follows:
 
 - `VerifyError`: Verifiable OPRF proof verification failed; {{voprf}} and {{poprf}}.
-- `DeserializeError`: Group element or scalar deserialization failure; {{pog}}.
-- `InverseError`: A scalar is zero and has no inverse; {{pog}}.
+- `DeserializeError`: Group element or scalar deserialization failure; {{pog}} and {{online}}.
+- `InverseError`: A scalar is zero and has no inverse; {{pog}} and {{online}}.
 
 The errors in this document are meant as a guide to implementors. They are not
 an exhaustive list of all the errors an implementation might emit. For example,
