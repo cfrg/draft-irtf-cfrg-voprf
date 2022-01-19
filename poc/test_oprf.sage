@@ -47,7 +47,7 @@ class Protocol(object):
         self.info = info
 
         self.seed = b'\xA3' * suite.group.scalar_byte_length()
-        skS, pkS = DeriveKeyPair(self.mode, self.suite, self.seed)
+        skS, pkS = DeriveKeyPair(self.mode, self.suite, self.seed, info)
         if mode == MODE_OPRF:
             self.server = SetupOPRFServer(suite, skS)
             self.client = SetupOPRFClient(suite)

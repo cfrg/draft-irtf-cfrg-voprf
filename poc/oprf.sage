@@ -40,6 +40,9 @@ class Context(object):
     def scalar_domain_separation_tag(self):
         return _as_bytes("HashToScalar-") + self.context_string
 
+    def domain_separation_tag(self, prefix):
+        return _as_bytes(prefix) + self.context_string
+
 class Evaluation(object):
     def __init__(self, evaluated_element, proof):
         self.evaluated_element = evaluated_element
@@ -384,13 +387,17 @@ MODE_POPRF = 0x02
 
 VERSION = "VOPRF08-"
 
-def GenerateKeyPair(suite):
-    skS, pkS = suite.group.key_gen()
-    return skS, pkS
-
-def DeriveKeyPair(mode, suite, seed):
+def DeriveKeyPair(mode, suite, seed, info):
     ctx = Context(VERSION, mode, suite)
-    skS = suite.group.hash_to_scalar(seed, ctx.scalar_domain_separation_tag())
+    deriveInput = seed + I2OSP(len(info), 2) + info
+    counter = 0
+    skS = ZZ(0)
+    while ZZ(skS) == ZZ(0):
+        if counter > 255:
+            raise Exception("DeriveKeyPairError")
+        hashInput = deriveInput + I2OSP(counter, 1)
+        skS = suite.group.hash_to_scalar(hashInput, ctx.domain_separation_tag("DeriveKeyPair"))
+        counter = counter + 1
     pkS = skS * suite.group.generator()
     return skS, pkS
 
