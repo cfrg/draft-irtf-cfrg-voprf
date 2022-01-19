@@ -55,14 +55,12 @@ class OPRFClientContext(Context):
     def blind(self, x):
         blind = ZZ(self.suite.group.random_scalar())
         P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
-        R = blind * P
-        blinded_element = self.suite.group.serialize(R)
+        blinded_element = blind * P
         return blind, blinded_element
 
     def unblind(self, blind, evaluated_element, blinded_element, proof):
-        Z = self.suite.group.deserialize(evaluated_element)
         blind_inv = inverse_mod(blind, self.suite.group.order())
-        N = blind_inv * Z
+        N = blind_inv * evaluated_element
         unblinded_element = self.suite.group.serialize(N)
         return unblinded_element
 
@@ -81,15 +79,13 @@ class OPRFServerContext(Context):
         self.pkS = pkS
 
     def evaluate(self, blinded_element, info):
-        R = self.suite.group.deserialize(blinded_element)
-        Z = self.skS * R
-        evaluated_element = self.suite.group.serialize(Z)
+        evaluated_element = self.skS * blinded_element
         return evaluated_element, None, None
 
     def verify_finalize(self, x, expected_digest, info):
         P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
-        input_element = self.suite.group.serialize(P)
-        issued_element, _, _ = self.evaluate(input_element, info) # Ignore proof output
+        evaluated_element, _, _ = self.evaluate(P, info) # Ignore proof output
+        issued_element = self.suite.group.serialize(evaluated_element)
 
         finalize_input = I2OSP(len(x), 2) + x \
             + I2OSP(len(issued_element), 2) + issued_element \
@@ -171,14 +167,12 @@ class VOPRFClientContext(OPRFClientContext,Verifiable):
         return c == proof[0]
 
     def unblind(self, blind, evaluated_element, blinded_element, proof):
-        R = self.suite.group.deserialize(blinded_element)
-        Z = self.suite.group.deserialize(evaluated_element)
         G = self.suite.group.generator()
-        if not self.verify_proof(G, self.pkS, [R], [Z], proof):
+        if not self.verify_proof(G, self.pkS, [blinded_element], [evaluated_element], proof):
             raise Exception("Proof verification failed")
 
         blind_inv = inverse_mod(blind, self.suite.group.order())
-        N = blind_inv * Z
+        N = blind_inv * evaluated_element
         unblinded_element = self.suite.group.serialize(N)
         return unblinded_element
 
@@ -187,22 +181,13 @@ class VOPRFClientContext(OPRFClientContext,Verifiable):
         assert(len(evaluated_elements) == len(blinded_elements))
 
         G = self.suite.group.generator()
-        Rs = []
-        Zs = []
-        for i, _ in enumerate(blinded_elements):
-            R = self.suite.group.deserialize(blinded_elements[i])
-            Z = self.suite.group.deserialize(evaluated_elements[i])
-            Rs.append(R)
-            Zs.append(Z)
-
-        if not self.verify_proof(G, self.pkS, Rs, Zs, proof):
+        if not self.verify_proof(G, self.pkS, blinded_elements, evaluated_elements, proof):
             raise Exception("Proof verification failed")
 
         unblinded_elements = []
         for i, evaluated_element in enumerate(evaluated_elements):
-            Z = self.suite.group.deserialize(evaluated_element)
             blind_inv = inverse_mod(blinds[i], self.suite.group.order())
-            N = blind_inv * Z
+            N = blind_inv * evaluated_element
             unblinded_element = self.suite.group.serialize(N)
             unblinded_elements.append(unblinded_element)
 
@@ -265,25 +250,17 @@ class VOPRFServerContext(OPRFServerContext,Verifiable):
         return [c, s], r
 
     def evaluate(self, blinded_element, info):
-        R = self.suite.group.deserialize(blinded_element)
-        Z = self.skS * R
-        evaluated_element = self.suite.group.serialize(Z)
-        proof, r = self.generate_proof(self.skS, self.suite.group.generator(), self.pkS, [R], [Z])
+        evaluated_element = self.skS * blinded_element
+        proof, r = self.generate_proof(self.skS, self.suite.group.generator(), self.pkS, [blinded_element], [evaluated_element])
         return evaluated_element, proof, r
 
     def evaluate_batch(self, blinded_elements, info):
-        Rs = []
-        Zs = []
         evaluated_elements = []
         for blinded_element in blinded_elements:
-            R = self.suite.group.deserialize(blinded_element)
-            Z = self.skS * R
-            Rs.append(R)
-            Zs.append(Z)
-            evaluated_element = self.suite.group.serialize(Z)
+            evaluated_element = self.skS * blinded_element
             evaluated_elements.append(evaluated_element)
 
-        proof, r = self.generate_proof(self.skS, self.suite.group.generator(), self.pkS, Rs, Zs)
+        proof, r = self.generate_proof(self.skS, self.suite.group.generator(), self.pkS, blinded_elements, evaluated_elements)
         return evaluated_elements, proof, r
 
 class POPRFClientContext(VOPRFClientContext):
@@ -292,16 +269,13 @@ class POPRFClientContext(VOPRFClientContext):
         self.pkS = pkS
 
     def unblind(self, blind, evaluated_element, blinded_element, proof, tag):
-        R = self.suite.group.deserialize(blinded_element)
-        Z = self.suite.group.deserialize(evaluated_element)
-
         G = self.suite.group.generator()
         gk = (G * tag) + self.pkS
-        if not self.verify_proof(G, gk, [Z], [R], proof):
+        if not self.verify_proof(G, gk, [evaluated_element], [blinded_element], proof):
             raise Exception("Proof verification failed")
 
         blind_inv = inverse_mod(blind, self.suite.group.order())
-        N = blind_inv * Z
+        N = blind_inv * evaluated_element
         unblinded_element = self.suite.group.serialize(N)
         return unblinded_element
 
@@ -310,23 +284,14 @@ class POPRFClientContext(VOPRFClientContext):
         assert(len(evaluated_elements) == len(blinded_elements))
 
         G = self.suite.group.generator()
-        Rs = []
-        Zs = []
-        for i, _ in enumerate(blinded_elements):
-            R = self.suite.group.deserialize(blinded_elements[i])
-            Z = self.suite.group.deserialize(evaluated_elements[i])
-            Rs.append(R)
-            Zs.append(Z)
-
         gk = (G * tag) + self.pkS
-        if not self.verify_proof(G, gk, Zs, Rs, proof):
+        if not self.verify_proof(G, gk, evaluated_elements, blinded_elements, proof):
             raise Exception("Proof verification failed")
 
         unblinded_elements = []
         for i, evaluated_element in enumerate(evaluated_elements):
-            Z = self.suite.group.deserialize(evaluated_element)
             blind_inv = inverse_mod(blinds[i], self.suite.group.order())
-            N = blind_inv * Z
+            N = blind_inv * evaluated_element
             unblinded_element = self.suite.group.serialize(N)
             unblinded_elements.append(unblinded_element)
 
@@ -368,18 +333,16 @@ class POPRFServerContext(VOPRFServerContext):
         VOPRFServerContext.__init__(self, version, mode, suite, skS, pkS)
 
     def evaluate(self, blinded_element, info):
-        R = self.suite.group.deserialize(blinded_element)
         context = _as_bytes("Info") + I2OSP(len(info), 2) + info
         t = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
 
         k = self.skS + t
         k_inv = inverse_mod(k, self.suite.group.order())
-        Z = k_inv * R
-        evaluated_element = self.suite.group.serialize(Z)
+        evaluated_element = k_inv * blinded_element
 
         G = self.suite.group.generator()
-        gk = k * G
-        proof, r = self.generate_proof(k, G, gk, [Z], [R])
+        U = k * G
+        proof, r = self.generate_proof(k, G, U, [evaluated_element], [blinded_element])
         return evaluated_element, proof, r
 
     def evaluate_batch(self, blinded_elements, info):
@@ -391,25 +354,20 @@ class POPRFServerContext(VOPRFServerContext):
         t = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
 
         for blinded_element in blinded_elements:
-            R = self.suite.group.deserialize(blinded_element)
-
             k = self.skS + t
             k_inv = inverse_mod(k, self.suite.group.order())
-            Z = k_inv * R
-            Rs.append(R)
-            Zs.append(Z)
-            evaluated_element = self.suite.group.serialize(Z)
+            evaluated_element = k_inv * blinded_element
             evaluated_elements.append(evaluated_element)
 
         G = self.suite.group.generator()
-        gk = k * G
-        proof, r = self.generate_proof(k, G, gk, Zs, Rs)
+        U = k * G
+        proof, r = self.generate_proof(k, G, U, Zs, Rs)
         return evaluated_elements, proof, r
 
     def verify_finalize(self, x, expected_digest, info):
         P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
-        input_element = self.suite.group.serialize(P)
-        issued_element, _, _ = self.evaluate(input_element, info) # Ignore proof output
+        evaluated_element, _, _ = self.evaluate(P, info) # Ignore proof output
+        issued_element = self.suite.group.serialize(evaluated_element)
 
         finalize_input = I2OSP(len(x), 2) + x \
             + I2OSP(len(info), 2) + info \

@@ -74,8 +74,8 @@ class Protocol(object):
 
             vector = {}
             vector["Blind"] = to_hex(group.serialize_scalar(blind))
-            vector["BlindedElement"] = to_hex(blinded_element)
-            vector["EvaluationElement"] = to_hex(evaluated_element)
+            vector["BlindedElement"] = to_hex(group.serialize(blinded_element))
+            vector["EvaluationElement"] = to_hex(group.serialize(evaluated_element))
 
             if self.mode == MODE_VOPRF or self.mode == MODE_POPRF:
                 vector["Proof"] = {
@@ -107,8 +107,8 @@ class Protocol(object):
 
             vector = {}
             vector["Blind"] = ",".join([to_hex(group.serialize_scalar(blind)) for blind in blinds])
-            vector["BlindedElement"] = to_hex(blinded_elements)
-            vector["EvaluationElement"] = to_hex(evaluated_elements)
+            vector["BlindedElement"] = to_hex(list(map(lambda e : group.serialize(e), blinded_elements)))
+            vector["EvaluationElement"] = to_hex(list(map(lambda e : group.serialize(e), evaluated_elements)))
 
             if self.mode == MODE_VOPRF or self.mode == MODE_POPRF:
                 vector["Proof"] = {
