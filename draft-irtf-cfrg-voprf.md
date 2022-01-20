@@ -837,10 +837,16 @@ parameters are assumed to exist:
 - contextString, a domain separation tag constructed during context setup as created in {{offline}}.
 - skS and pkS, the private and public keys configured for client and server in {{offline}}.
 
-All protocol elements are serialized between client and server for transmission.
-Specifically, values of type Element are transmitted as SerializedElement values,
+Applications serialize protocol messages between client and server for transmission.
+Specifically, values of type Element are serialized to SerializedElement values,
 and values of type Proof are serialized as the concatenation of two SerializedScalar
-values. Deserializing these values can fail, in which case the protocol MUST be aborted.
+values. Deserializing these values can fail, in which case the application MUST abort
+the protocol with a `DeserializeError` failure.
+
+Applications MUST check that input Element values received over the wire are not
+the group identity element. This check is handled when deserializing Element values
+using DeserializeElement; see {{input-validation}} for more information on input
+validation.
 
 ### OPRF Protocol {#oprf}
 
@@ -865,10 +871,9 @@ def Blind(input):
   return blind, blindedElement
 ~~~
 
-Clients store `blind` locally, and send a serialized `blindedElement` to the server for
-evaluation. Upon receipt, servers deserialize the value and process `blindedElement`
-using the `Evaluate` function described below. If deserialization fails, servers MUST
-abort the protocol with a `DeserializeError` failure.
+Clients store `blind` locally, and send `blindedElement` to the server for evaluation.
+Upon receipt, servers process `blindedElement` using the `Evaluate` function described
+below.
 
 ~~~
 Finalize
@@ -886,13 +891,11 @@ def Evaluate(blindedElement):
   return evaluatedElement
 ~~~
 
-Servers serialize and send the output `evaluatedElement` to clients for processing.
+Servers send the output `evaluatedElement` to clients for processing.
 Recall that servers may batch multiple client inputs to `Evaluate`.
 
-Upon receipt of `evaluatedElement`, clients deserialize and process the result to
-complete the OPRF evaluation with the `Finalize` function described below.
-If deserialization fails, clients MUST abort the protocol with a `DeserializeError`
-failure.
+Upon receipt of `evaluatedElement`, clients process it to complete the
+OPRF evaluation with the `Finalize` function described below.
 
 ~~~
 Input:
@@ -919,11 +922,9 @@ def Finalize(input, blind, evaluatedElement):
 
 The VOPRF protocol begins with the client blinding its input, using the same
 `Blind` function as in {{oprf}}. Clients store the output `blind` locally
-and send a serialized `blindedElement` to the server for evaluation. Upon
-receipt, servers deserialize and process `blindedElement` to compute an
-evaluated element and DLEQ proof using the following `Evaluate` function.
-If deserialization fails, servers MUST abort the protocol with a `DeserializeError`
-failure.
+and send `blindedElement` to the server for evaluation. Upon receipt,
+servers process `blindedElement` to compute an evaluated element and DLEQ
+proof using the following `Evaluate` function.
 
 ~~~
 Input:
@@ -941,11 +942,9 @@ def Evaluate(blindedElement):
   return evaluatedElement, proof
 ~~~
 
-The server serializes and sends both `evaluatedElement` and `proof` back to
-the client. Upon receipt, the client deserializes and processes both values to
-complete the VOPRF computation using the `Finalize` function below. If
-deserialization of either value fails, clients MUST abort the protocol with
-a `DeserializeError` failure.
+The server sends both `evaluatedElement` and `proof` back to the client.
+Upon receipt, the client processes both values to complete the VOPRF computation
+using the `Finalize` function below.
 
 ~~~
 Input:
@@ -979,11 +978,9 @@ def Finalize(input, blind, evaluatedElement, blindedElement, proof):
 
 The POPRF protocol begins with the client blinding its input, using the same
 `Blind` function as in {{oprf}}. Clients store the output `blind` locally
-and send a serialized `blindedElement` to the server for evaluation. Upon
-receipt, servers deserialize and process `blindedElement` to compute an
-evaluated element and DLEQ proof using the following `Evaluate` function.
-If deserialization fails, servers MUST abort the protocol with a `DeserializeError`
-failure.
+and send `blindedElement` to the server for evaluation. Upon receipt, servers
+process `blindedElement` to compute an evaluated element and DLEQ proof using
+the following `Evaluate` function.
 
 ~~~
 Finalize
@@ -1015,11 +1012,9 @@ def Evaluate(blindedElement, info):
   return evaluatedElement, proof
 ~~~
 
-The server serializes and sends both `evaluatedElement` and `proof` back to
-the client. Upon receipt, the client deserializes and processes both values to
-complete the VOPRF computation using the `Finalize` function below. If
-deserialization of either value fails, clients MUST abort the protocol with
-a `DeserializeError` failure.
+The server sends both `evaluatedElement` and `proof` back to the client.
+Upon receipt, the client processes both values to complete the VOPRF computation
+using the `Finalize` function below.
 
 ~~~
 Input:
