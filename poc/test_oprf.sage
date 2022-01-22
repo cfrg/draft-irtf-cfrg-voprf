@@ -45,9 +45,10 @@ class Protocol(object):
         self.suite = suite
         self.mode = mode
         self.info = info
+        self.key_info = _as_bytes("test key")
 
         self.seed = b'\xA3' * suite.group.scalar_byte_length()
-        skS, pkS = DeriveKeyPair(self.mode, self.suite, self.seed, info)
+        skS, pkS = DeriveKeyPair(self.mode, self.suite, self.seed, self.key_info)
         if mode == MODE_OPRF:
             self.server = SetupOPRFServer(suite, skS)
             self.client = SetupOPRFClient(suite)
@@ -133,6 +134,7 @@ class Protocol(object):
         vecSuite["suiteID"] = int(self.suite.identifier)
         vecSuite["mode"] = int(self.mode)
         vecSuite["hash"] = self.suite.H().name.upper()
+        vecSuite["keyInfo"] = to_hex(self.key_info)
         vecSuite["seed"] = to_hex(self.seed)
         vecSuite["skSm"] = to_hex(group.serialize_scalar(server.skS))
         vecSuite["groupDST"] = to_hex(client.group_domain_separation_tag())
@@ -157,7 +159,8 @@ def write_value(fh, name, value):
 
 def write_oprf_vector(fh, vector):
     fh.write("~~~\n")
-    write_value(fh, "seed", vector["seed"])
+    write_value(fh, "Seed", vector["seed"])
+    write_value(fh, "KeyInfo", vector["keyInfo"])
     write_value(fh, "skSm", vector["skSm"])
     fh.write("~~~\n")
     fh.write("\n")
@@ -175,7 +178,8 @@ def write_oprf_vector(fh, vector):
 
 def write_voprf_vector(fh, vector):
     fh.write("~~~\n")
-    write_value(fh, "seed", vector["seed"])
+    write_value(fh, "Seed", vector["seed"])
+    write_value(fh, "KeyInfo", vector["keyInfo"])
     write_value(fh, "skSm", vector["skSm"])
     write_value(fh, "pkSm", vector["pkSm"])
     fh.write("~~~\n")
@@ -196,7 +200,8 @@ def write_voprf_vector(fh, vector):
 
 def write_poprf_vector(fh, vector):
     fh.write("~~~\n")
-    write_value(fh, "seed", vector["seed"])
+    write_value(fh, "Seed", vector["seed"])
+    write_value(fh, "KeyInfo", vector["keyInfo"])
     write_value(fh, "skSm", vector["skSm"])
     write_value(fh, "pkSm", vector["pkSm"])
     fh.write("~~~\n")
