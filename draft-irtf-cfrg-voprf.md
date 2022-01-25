@@ -852,8 +852,9 @@ validation.
 
 The OPRF protocol begins with the client blinding its input, as described
 by the `Blind` function below. Note that this function can fail with an
-`InvalidInputError` error for certain inputs. Dealing with this failure
-is an application-specific decision; see {{errors}}.
+`InvalidInputError` error for certain inputs that map to the group identity
+element. Dealing with this failure is an application-specific decision;
+see {{errors}}.
 
 ~~~
 Input:
