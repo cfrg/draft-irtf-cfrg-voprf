@@ -303,8 +303,6 @@ class POPRFClientContext(VOPRFClientContext):
     def finalize(self, x, blind, evaluated_element, blinded_element, proof, info):
         context = _as_bytes("Info") + I2OSP(len(info), 2) + info
         tag = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
-        if int(tag) == 0:
-            raise Exception("InverseError")
         unblinded_element = self.unblind(blind, evaluated_element, blinded_element, proof, tag)
         finalize_input = I2OSP(len(x), 2) + x \
             + I2OSP(len(info), 2) + info \
@@ -319,8 +317,6 @@ class POPRFClientContext(VOPRFClientContext):
 
         context = _as_bytes("Info") + I2OSP(len(info), 2) + info
         tag = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
-        if int(tag) == 0:
-            raise Exception("InverseError")
         unblinded_elements = self.unblind_batch(blinds, evaluated_elements, blinded_elements, proof, tag)
 
         outputs = []
@@ -342,10 +338,9 @@ class POPRFServerContext(VOPRFServerContext):
     def evaluate(self, blinded_element, info):
         context = _as_bytes("Info") + I2OSP(len(info), 2) + info
         t = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
-        if int(t) == 0:
-            raise Exception("InverseError")
-
         k = self.skS + t
+        if int(k) == 0:
+            raise Exception("InverseError")
         k_inv = inverse_mod(k, self.suite.group.order())
         evaluated_element = k_inv * blinded_element
 
@@ -361,11 +356,11 @@ class POPRFServerContext(VOPRFServerContext):
 
         context = _as_bytes("Info") + I2OSP(len(info), 2) + info
         t = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
-        if int(t) == 0:
-            raise Exception("InverseError")
 
         for blinded_element in blinded_elements:
             k = self.skS + t
+            if int(k) == 0:
+                raise Exception("InverseError")
             k_inv = inverse_mod(k, self.suite.group.order())
             evaluated_element = k_inv * blinded_element
             evaluated_elements.append(evaluated_element)
