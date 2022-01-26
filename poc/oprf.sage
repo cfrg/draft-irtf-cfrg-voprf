@@ -172,7 +172,7 @@ class VOPRFClientContext(OPRFClientContext,Verifiable):
     def unblind(self, blind, evaluated_element, blinded_element, proof):
         G = self.suite.group.generator()
         if not self.verify_proof(G, self.pkS, [blinded_element], [evaluated_element], proof):
-            raise Exception("Proof verification failed")
+            raise Exception("VerifyError")
 
         blind_inv = inverse_mod(blind, self.suite.group.order())
         N = blind_inv * evaluated_element
@@ -185,7 +185,7 @@ class VOPRFClientContext(OPRFClientContext,Verifiable):
 
         G = self.suite.group.generator()
         if not self.verify_proof(G, self.pkS, blinded_elements, evaluated_elements, proof):
-            raise Exception("Proof verification failed")
+            raise Exception("VerifyError")
 
         unblinded_elements = []
         for i, evaluated_element in enumerate(evaluated_elements):
@@ -303,6 +303,8 @@ class POPRFClientContext(VOPRFClientContext):
     def finalize(self, x, blind, evaluated_element, blinded_element, proof, info):
         context = _as_bytes("Info") + I2OSP(len(info), 2) + info
         tag = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
+        if int(tag) == 0:
+            raise Exception("InverseError")
         unblinded_element = self.unblind(blind, evaluated_element, blinded_element, proof, tag)
         finalize_input = I2OSP(len(x), 2) + x \
             + I2OSP(len(info), 2) + info \
@@ -317,6 +319,8 @@ class POPRFClientContext(VOPRFClientContext):
 
         context = _as_bytes("Info") + I2OSP(len(info), 2) + info
         tag = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
+        if int(tag) == 0:
+            raise Exception("InverseError")
         unblinded_elements = self.unblind_batch(blinds, evaluated_elements, blinded_elements, proof, tag)
 
         outputs = []
@@ -338,6 +342,8 @@ class POPRFServerContext(VOPRFServerContext):
     def evaluate(self, blinded_element, info):
         context = _as_bytes("Info") + I2OSP(len(info), 2) + info
         t = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
+        if int(t) == 0:
+            raise Exception("InverseError")
 
         k = self.skS + t
         k_inv = inverse_mod(k, self.suite.group.order())
@@ -355,6 +361,8 @@ class POPRFServerContext(VOPRFServerContext):
 
         context = _as_bytes("Info") + I2OSP(len(info), 2) + info
         t = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
+        if int(t) == 0:
+            raise Exception("InverseError")
 
         for blinded_element in blinded_elements:
             k = self.skS + t
