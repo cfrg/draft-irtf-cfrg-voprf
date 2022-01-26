@@ -1000,6 +1000,7 @@ Output:
 
   Scalar blind
   Element blindedElement
+  Element tweakedKey
 
 Errors: InvalidInputError
 
