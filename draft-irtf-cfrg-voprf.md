@@ -1075,7 +1075,7 @@ Output:
 
   opaque output[Nh]
 
-def Finalize(input, blind, evaluatedElement, blindedElement, proof, info, U):
+def Finalize(input, blind, evaluatedElement, blindedElement, proof, info, tweakedKey):
   if VerifyProof(G, tweakedKey, evaluatedElement, blindedElement, proof) == false:
     raise VerifyError
 
