@@ -711,7 +711,7 @@ as in {{TCRSTW21}}.
 ~~~
     Client(pkS, info)        <---- pkS ------        Server(skS, info)
   ---------------------------------------------------------------------
-  blind, blindedElement = Blind(input)
+  blind, blindedElement, tweakedKey = Blind(input)
 
                              blindedElement
                                ---------->
@@ -722,7 +722,7 @@ as in {{TCRSTW21}}.
                                <----------
 
   output = Finalize(input, blind, evaluatedElement,
-                    blindedElement, proof, info)
+                    blindedElement, proof, info, tweakedKey)
 ~~~
 {: #fig-poprf title="POPRF protocol overview with additional public input"}
 
@@ -945,7 +945,7 @@ Output:
 
 def Evaluate(blindedElement):
   evaluatedElement = skS * blindedElement
-  proof = GenerateProof(skS, G, pkS, blindedElement, evaluatedElement)
+  proof = GenerateProof(skS, GG.Generator(), pkS, blindedElement, evaluatedElement)
   return evaluatedElement, proof
 ~~~
 
@@ -969,7 +969,7 @@ Output:
 Errors: VerifyError
 
 def Finalize(input, blind, evaluatedElement, blindedElement, proof):
-  if VerifyProof(G, pkS, blindedElement, evaluatedElement, proof) == false:
+  if VerifyProof(GG.Generator(), pkS, blindedElement, evaluatedElement, proof) == false:
     raise VerifyError
 
   N = blind^(-1) * evaluatedElement
@@ -983,11 +983,47 @@ def Finalize(input, blind, evaluatedElement, blindedElement, proof):
 
 ### POPRF Protocol {#poprf}
 
-The POPRF protocol begins with the client blinding its input, using the same
-`Blind` function as in {{oprf}}. Clients store the output `blind` locally
-and send `blindedElement` to the server for evaluation. Upon receipt, servers
-process `blindedElement` to compute an evaluated element and DLEQ proof using
-the following `Evaluate` function.
+The POPRF protocol begins with the client blinding its input, using the
+following modified `Blind` function. Note that this function can fail with an
+`InvalidInputError` error for certain private inputs that map to the group
+identity element, as well as certain public inputs that map lead to invalid
+public keys for server evaluation. Dealing with either failure is an
+application-specific decision; see {{errors}}.
+
+~~~
+Input:
+
+  PrivateInput input
+  PublicInput info
+
+Output:
+
+  Scalar blind
+  Element blindedElement
+
+Errors: InvalidInputError
+
+def Blind(input, info):
+  context = "Info" || I2OSP(len(info), 2) || info
+  m = GG.HashToScalar(context)
+  T = ScalarBaseMult(m)
+  tweakedKey = T + pkS
+  if tweakedKey == GG.Identity():
+    raise InvalidInputError
+
+  blind = GG.RandomScalar()
+  P = GG.HashToGroup(input)
+  if P == GG.Identity():
+    raise InvalidInputError
+
+  blindedElement = blind * P
+
+  return blind, blindedElement, tweakedKey
+~~~
+
+Clients store the outputs `blind` and `U` locally and send `blindedElement` to
+the server for evaluation. Upon receipt, servers process `blindedElement` to
+compute an evaluated element and DLEQ proof using the following `Evaluate` function.
 
 ~~~
 Finalize
@@ -1013,8 +1049,8 @@ def Evaluate(blindedElement, info):
 
   evaluatedElement = t^(-1) * blindedElement
 
-  U = ScalarBaseMult(t)
-  proof = GenerateProof(t, G, U, evaluatedElement, blindedElement)
+  tweakedKey = ScalarBaseMult(t)
+  proof = GenerateProof(t, GG.Generator(), tweakedKey, evaluatedElement, blindedElement)
 
   return evaluatedElement, proof
 ~~~
@@ -1032,19 +1068,14 @@ Input:
   Element blindedElement
   Proof proof
   PublicInput info
+  Element tweakedKey
 
 Output:
 
   opaque output[Nh]
 
-Errors: InverseError
-
-def Finalize(input, blind, evaluatedElement, blindedElement, proof, info):
-  context = "Info" || I2OSP(len(info), 2) || info
-  m = GG.HashToScalar(context)
-  T = ScalarBaseMult(m)
-  U = T + pkS
-  if VerifyProof(G, U, evaluatedElement, blindedElement, proof) == false:
+def Finalize(input, blind, evaluatedElement, blindedElement, proof, info, U):
+  if VerifyProof(G, tweakedKey, evaluatedElement, blindedElement, proof) == false:
     raise VerifyError
 
   N = blind^(-1) * evaluatedElement
@@ -1188,7 +1219,7 @@ and `Evaluate` can fail if any element received from the peer fails deserializat
 The explicit errors generated throughout this specification, along with the
 conditions that lead to each error, are as follows:
 
-- `InvalidInputError`: OPRF input deterministically maps to the group identity element; {{oprf}}.
+- `InvalidInputError`: OPRF input deterministically maps to the group identity element; {{oprf}} and {{poprf}}.
 - `VerifyError`: Verifiable OPRF proof verification failed; {{voprf}} and {{poprf}}.
 - `DeserializeError`: Group element or scalar deserialization failure; {{pog}} and {{online}}.
 - `InverseError`: A scalar is zero and has no inverse; {{pog}} and {{online}}.

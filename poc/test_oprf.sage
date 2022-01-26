@@ -67,9 +67,14 @@ class Protocol(object):
         server = self.server
 
         def create_test_vector_for_input(x, info):
-            blind, blinded_element = client.blind(x)
-            evaluated_element, proof, proof_randomness = server.evaluate(blinded_element, info)
-            output = client.finalize(x, blind, evaluated_element, blinded_element, proof, info)
+            if self.mode == MODE_POPRF:
+                blind, blinded_element, tweaked_key = client.blind(x, info)
+                evaluated_element, proof, proof_randomness = server.evaluate(blinded_element, info)
+                output = client.finalize(x, blind, evaluated_element, blinded_element, proof, info, tweaked_key)
+            else:
+                blind, blinded_element = client.blind(x)
+                evaluated_element, proof, proof_randomness = server.evaluate(blinded_element, info)
+                output = client.finalize(x, blind, evaluated_element, blinded_element, proof, info)
 
             assert(server.verify_finalize(x, output, info))
 
@@ -95,12 +100,21 @@ class Protocol(object):
         def create_batched_test_vector_for_inputs(xs, info):
             blinds = []
             blinded_elements = []
+            tweaked_key = None
             for x in xs:
-                blind, blinded_element = client.blind(x)
-                blinds.append(blind)
-                blinded_elements.append(blinded_element)
+                if self.mode == MODE_POPRF:
+                    blind, blinded_element, tweaked_key = client.blind(x, info)
+                    blinds.append(blind)
+                    blinded_elements.append(blinded_element)
+                else:
+                    blind, blinded_element = client.blind(x)
+                    blinds.append(blind)
+                    blinded_elements.append(blinded_element)
 
-            evaluated_elements, proof, proof_randomness = server.evaluate_batch(blinded_elements, info)
+            if self.mode == MODE_POPRF:
+                evaluated_elements, proof, proof_randomness = server.evaluate_batch(blinded_elements, info, tweaked_key)
+            else:
+                evaluated_elements, proof, proof_randomness = server.evaluate_batch(blinded_elements, info)
 
             outputs = client.finalize_batch(xs, blinds, evaluated_elements, blinded_elements, proof, info)
             for i, output in enumerate(outputs):
