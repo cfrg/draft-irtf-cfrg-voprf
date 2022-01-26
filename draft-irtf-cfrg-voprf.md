@@ -851,7 +851,10 @@ validation.
 ### OPRF Protocol {#oprf}
 
 The OPRF protocol begins with the client blinding its input, as described
-by the `Blind` function below.
+by the `Blind` function below. Note that this function can fail with an
+`InvalidInputError` error for certain inputs that map to the group identity
+element. Dealing with this failure is an application-specific decision;
+see {{errors}}.
 
 ~~~
 Input:
@@ -863,9 +866,13 @@ Output:
   Scalar blind
   Element blindedElement
 
+Errors: InvalidInputError
+
 def Blind(input):
   blind = GG.RandomScalar()
   P = GG.HashToGroup(input)
+  if P == GG.Identity():
+    raise InvalidInputError
   blindedElement = blind * P
 
   return blind, blindedElement
@@ -1174,13 +1181,14 @@ The protocol functions in {{online}} are specified in terms of prime-order group
 Elements and Scalars. However, applications can treat these as internal functions,
 and instead expose interfaces that operate in terms of wire format messages.
 
-## Error Considerations
+## Error Considerations {#errors}
 
 Some OPRF variants specified in this document have fallible operations. For example, `Finalize`
 and `Evaluate` can fail if any element received from the peer fails deserialization.
 The explicit errors generated throughout this specification, along with the
 conditions that lead to each error, are as follows:
 
+- `InvalidInputError`: OPRF input deterministically maps to the group identity element; {{oprf}}.
 - `VerifyError`: Verifiable OPRF proof verification failed; {{voprf}} and {{poprf}}.
 - `DeserializeError`: Group element or scalar deserialization failure; {{pog}} and {{online}}.
 - `InverseError`: A scalar is zero and has no inverse; {{pog}} and {{online}}.
