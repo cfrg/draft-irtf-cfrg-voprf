@@ -1022,7 +1022,7 @@ def Blind(input, info):
   return blind, blindedElement, tweakedKey
 ~~~
 
-Clients store the outputs `blind` and `U` locally and send `blindedElement` to
+Clients store the outputs `blind` and `tweakedKey` locally and send `blindedElement` to
 the server for evaluation. Upon receipt, servers process `blindedElement` to
 compute an evaluated element and DLEQ proof using the following `Evaluate` function.
 
