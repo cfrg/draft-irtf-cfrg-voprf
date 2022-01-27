@@ -58,6 +58,8 @@ class OPRFClientContext(Context):
     def blind(self, x):
         blind = ZZ(self.suite.group.random_scalar())
         P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
+        if P == self.suite.group.identity():
+            raise Exception("InvalidInputError")
         blinded_element = blind * P
         return blind, blinded_element
 
@@ -271,10 +273,25 @@ class POPRFClientContext(VOPRFClientContext):
         VOPRFClientContext.__init__(self, version, mode, suite, pkS)
         self.pkS = pkS
 
-    def unblind(self, blind, evaluated_element, blinded_element, proof, tag):
+    def blind(self, x, info):
+        context = _as_bytes("Info") + I2OSP(len(info), 2) + info
+        t = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
         G = self.suite.group.generator()
-        gk = (G * tag) + self.pkS
-        if not self.verify_proof(G, gk, [evaluated_element], [blinded_element], proof):
+        tweaked_key = (G * t) + self.pkS
+        if tweaked_key == self.suite.group.identity():
+            raise Exception("InvalidInputError")
+
+        blind = ZZ(self.suite.group.random_scalar())
+        P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
+        if P == self.suite.group.identity():
+            raise Exception("InvalidInputError")
+
+        blinded_element = blind * P
+        return blind, blinded_element, tweaked_key
+
+    def unblind(self, blind, evaluated_element, blinded_element, proof, tweaked_key):
+        G = self.suite.group.generator()
+        if not self.verify_proof(G, tweaked_key, [evaluated_element], [blinded_element], proof):
             raise Exception("Proof verification failed")
 
         blind_inv = inverse_mod(blind, self.suite.group.order())
@@ -282,13 +299,12 @@ class POPRFClientContext(VOPRFClientContext):
         unblinded_element = self.suite.group.serialize(N)
         return unblinded_element
 
-    def unblind_batch(self, blinds, evaluated_elements, blinded_elements, proof, tag):
+    def unblind_batch(self, blinds, evaluated_elements, blinded_elements, proof, tweaked_key):
         assert(len(blinds) == len(evaluated_elements))
         assert(len(evaluated_elements) == len(blinded_elements))
 
         G = self.suite.group.generator()
-        gk = (G * tag) + self.pkS
-        if not self.verify_proof(G, gk, evaluated_elements, blinded_elements, proof):
+        if not self.verify_proof(G, tweaked_key, evaluated_elements, blinded_elements, proof):
             raise Exception("Proof verification failed")
 
         unblinded_elements = []
@@ -300,10 +316,8 @@ class POPRFClientContext(VOPRFClientContext):
 
         return unblinded_elements
 
-    def finalize(self, x, blind, evaluated_element, blinded_element, proof, info):
-        context = _as_bytes("Info") + I2OSP(len(info), 2) + info
-        tag = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
-        unblinded_element = self.unblind(blind, evaluated_element, blinded_element, proof, tag)
+    def finalize(self, x, blind, evaluated_element, blinded_element, proof, info, tweaked_key):
+        unblinded_element = self.unblind(blind, evaluated_element, blinded_element, proof, tweaked_key)
         finalize_input = I2OSP(len(x), 2) + x \
             + I2OSP(len(info), 2) + info \
             + I2OSP(len(unblinded_element), 2) + unblinded_element \
@@ -311,13 +325,11 @@ class POPRFClientContext(VOPRFClientContext):
 
         return self.suite.hash(finalize_input)
 
-    def finalize_batch(self, xs, blinds, evaluated_elements, blinded_elements, proof, info):
+    def finalize_batch(self, xs, blinds, evaluated_elements, blinded_elements, proof, info, tweaked_key):
         assert(len(blinds) == len(evaluated_elements))
         assert(len(evaluated_elements) == len(blinded_elements))
 
-        context = _as_bytes("Info") + I2OSP(len(info), 2) + info
-        tag = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
-        unblinded_elements = self.unblind_batch(blinds, evaluated_elements, blinded_elements, proof, tag)
+        unblinded_elements = self.unblind_batch(blinds, evaluated_elements, blinded_elements, proof, tweaked_key)
 
         outputs = []
         for i, unblinded_element in enumerate(unblinded_elements):
