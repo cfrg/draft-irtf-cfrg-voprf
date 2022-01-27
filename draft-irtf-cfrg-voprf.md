@@ -461,8 +461,6 @@ The output is a value of type Proof, which is a tuple of two Scalar
 values.
 
 ~~~
-GenerateProof
-
 Input:
 
   Scalar k
@@ -506,8 +504,6 @@ def GenerateProof(k, A, B, C, D)
 The helper function ComputeCompositesFast is as defined below.
 
 ~~~
-ComputeCompositesFast
-
 Input:
 
   Scalar k
@@ -560,8 +556,6 @@ output from `GenerateProof`. It outputs a single boolean value indicating whethe
 or not the proof is valid for the given DLEQ inputs.
 
 ~~~
-VerifyProof
-
 Input:
 
   Element A
@@ -608,8 +602,6 @@ def VerifyProof(A, B, C, D, proof):
 The definition of `ComputeComposites` is given below.
 
 ~~~
-ComputeComposites
-
 Input:
 
   Element B
@@ -883,8 +875,6 @@ Upon receipt, servers process `blindedElement` using the `Evaluate` function des
 below.
 
 ~~~
-Finalize
-
 Input:
 
   Element blindedElement
@@ -1027,7 +1017,6 @@ the server for evaluation. Upon receipt, servers process `blindedElement` to
 compute an evaluated element and DLEQ proof using the following `Evaluate` function.
 
 ~~~
-
 Input:
 
   Element blindedElement
