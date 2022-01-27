@@ -1027,7 +1027,6 @@ the server for evaluation. Upon receipt, servers process `blindedElement` to
 compute an evaluated element and DLEQ proof using the following `Evaluate` function.
 
 ~~~
-Finalize
 
 Input:
 
