@@ -1257,7 +1257,7 @@ in the above ciphersuite list.
 
 ### DeserializeElement Validation
 
-The DeserializeElement function recovers a group element from an arbitrary
+The DeserializeElement function attempts to recover a group element from an arbitrary
 byte array. This function validates that the element is a proper member
 of the group and is not the identity element, and returns an error if either
 condition is not met.
@@ -1275,7 +1275,7 @@ deserialization returns an error.
 
 ### DeserializeScalar Validation
 
-The DeserializeScalar function recovers a scalar field element from an arbitrary
+The DeserializeScalar function attempts to recover a scalar field element from an arbitrary
 byte array. Like DeserializeElement, this function validates that the element
 is a member of the scalar field and returns an error if this condition is not met.
 
