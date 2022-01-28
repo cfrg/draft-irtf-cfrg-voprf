@@ -1491,9 +1491,7 @@ k = (1 - (k' * H2(t))) / k'
 A side-effect of the OPRF protocol variants in this document is that they allow
 instantiation of an oracle for constructing static DH samples; see {{BG04}} and {{Cheon06}}.
 Best-known attacks reduce the security of the prime-order group instantiation by log_2(Q)/2
-bits, where Q is the number of `Evalute()` calls made by the attacker. Note that the attacks
-only work in situations where Q divides p-1 or p+1, where p is the order of the prime-order
-group used to instantiate the OPRF.
+bits, where Q is the number of `Evalute()` calls made by the attacker.
 
 As a result of this class of this class of attack, choosing prime-order groups with a
 128-bit security level instantiates an OPRF with 128-(log\_2(Q)/2) bits of security.
