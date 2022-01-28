@@ -1351,9 +1351,7 @@ constructing domain separation values.
 Implementations may choose to not let applications control `info` in cases where
 this value is fixed or otherwise not useful to the application. In this case,
 the resulting protocol is functionally equivalent to an OPRF without public
-input. See {{equiv-2hashdh}} for discussion about repurposing existing non-verifiable
-OPRF implementations, i.e., those without the `info` parameter, using the construction
-in this specification.
+input.
 
 # Security Considerations {#sec}
 
@@ -1449,44 +1447,6 @@ in the algebraic group model, for some q number of `Evaluate` queries.
 (The One-More Gap CDH assumption was the hardness assumption used to
 evaluate the OPRF and VOPRF designs based on {{JKK14}}, which is a predecessor
 to the POPRF variant in {{poprf}}.)
-
-### VOPRF and POPRF Equivalence {#equiv-2hashdh}
-
-The POPRF variant in this specification is equivalent to the non-verifiable VOPRF
-variant from {{JKK14}} when the input `info` is fixed. In particular, the POPRF
-computes the following given private key `k`, private input `x`, and public input
-`t`, where H1, H2, and H3 are HashToGroup, HashToScalar, and Hash, respectively:
-
-~~~
-H3(x, H1(x)^(1 / (k + H2(t))))
-~~~
-
-Similarly, the VOPRF computes the following given private key `k'` and private
-input `x`:
-
-~~~
-H3(x, H1(x)^k')
-~~~
-
-Given a fixed public input `t`, one can transform a POPRF private key `k`
-into an equivalent VOPRF private key `k'` as follows:
-
-~~~
-k' = 1 / (k + H2(t))
-~~~
-
-This transformation is undefined for values of `k` and `t` such that
-`k + H2(t) = 0`. Because only a single choice of `k` leads to this
-undefined case, the distribution of `k'` defined via this transformation
-is statistically close to the distribution of a randomly sampled `k'`
-as output from `GenerateKeyPair`.
-
-Note that one can also transform any non-zero VOPRF private key `k'` into
-an equivalent POPRF private key `k` as follows:
-
-~~~
-k = (1 - (k' * H2(t))) / k'
-~~~
 
 ### Static Diffie Hellman Attack and Security Limits {#limits}
 
