@@ -374,9 +374,9 @@ also a member of the group. Also, for any `A` in the group, there exists an elem
 `-A` such that `A + (-A) = (-A) + A = I`. Scalar multiplication is
 equivalent to the repeated application of the group operation on an
 element A with itself `r-1` times, this is denoted as `r*A = A + ... + A`.
-For any element `A`, `p*A=I`. We denote `G` as the fixed generator of
+For any element `A`, `p*A=I`. We denote `B` as the fixed generator of
 the group. Scalar base multiplication is equivalent to the repeated
-application of the group operation `G` with itself `r-1` times, this
+application of the group operation `B` with itself `r-1` times, this
 is denoted as `ScalarBaseMult(r)`. The set of scalars corresponds to
 `GF(p)`. This document uses types `Element` and `Scalar` to denote elements
 of the group and its set of scalars, respectively.
@@ -1359,7 +1359,9 @@ in this specification.
 
 This section discusses the cryptographic security of our protocol, along
 with some suggestions and trade-offs that arise from the implementation
-of the OPRF variants in this document.
+of the OPRF variants in this document. Note that the syntax of the POPRF
+variant is different from that of the OPRF and POPRF variants since it
+admits an additional public input, but the same security considerations apply.
 
 ## Security Properties {#properties}
 
@@ -1446,7 +1448,7 @@ and the One-More Gap SDHI assumption reduce to the q-DL (Discrete Log) assumptio
 in the algebraic group model, for some q number of `Evaluate` queries.
 (The One-More Gap CDH assumption was the hardness assumption used to
 evaluate the OPRF and VOPRF designs based on {{JKK14}}, which is a predecessor
-to the POPRF variant.)
+to the POPRF variant in {{poprf}}.)
 
 ### VOPRF and POPRF Equivalence {#equiv-2hashdh}
 
@@ -1490,6 +1492,7 @@ k = (1 - (k' * H2(t))) / k'
 
 A side-effect of the OPRF protocol variants in this document is that they allow
 instantiation of an oracle for constructing static DH samples; see {{BG04}} and {{Cheon06}}.
+These attacks are meant to recover (bits of) the server private key.
 Best-known attacks reduce the security of the prime-order group instantiation by log_2(Q)/2
 bits, where Q is the number of `Evalute()` calls made by the attacker.
 
