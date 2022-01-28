@@ -382,7 +382,7 @@ is denoted as `ScalarBaseMult(r)`. The set of scalars corresponds to
 of the group and its set of scalars, respectively.
 
 We now detail a number of member functions that can be invoked on a
-prime-order group, denoted `Group`.
+prime-order group.
 
 - Order(): Outputs the order of the group (i.e. `p`).
 - Identity(): Outputs the identity element of the group (i.e. `I`).
