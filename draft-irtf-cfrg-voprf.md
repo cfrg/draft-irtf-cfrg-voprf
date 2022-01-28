@@ -218,7 +218,7 @@ F(k, x) such that the client learns F(k, x) without learning anything
 about k; and the server does not learn anything about x or F(k, x).
 A Verifiable OPRF (VOPRF) is an OPRF wherein the server also proves
 to the client that F(k, x) was produced by the key k corresponding
-to the public key the client knows. A Partially-Oblivious PRF (POPRF)
+to the server's public key the client knows. A Partially-Oblivious PRF (POPRF)
 is a variant of a VOPRF wherein client and server interact in computing
 F(k, x, y), for some PRF F with server-provided key k, client-provided
 input x, and public input y, and client receives proof
