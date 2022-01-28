@@ -374,12 +374,12 @@ also a member of the group. Also, for any `A` in the group, there exists an elem
 `-A` such that `A + (-A) = (-A) + A = I`. Scalar multiplication is
 equivalent to the repeated application of the group operation on an
 element A with itself `r-1` times, this is denoted as `r*A = A + ... + A`.
-For any element `A`, `p*A=I`. We denote `B` as the fixed generator of
-the group. Scalar base multiplication is equivalent to the repeated
-application of the group operation `B` with itself `r-1` times, this
-is denoted as `ScalarBaseMult(r)`. The set of scalars corresponds to
-`GF(p)`. This document uses types `Element` and `Scalar` to denote elements
-of the group and its set of scalars, respectively.
+For any element `A`, `p*A=I`. Scalar base multiplication is equivalent
+to the repeated application of the group operation on the fixed group
+generator with itself `r-1` times, and is denoted as `ScalarBaseMult(r)`.
+The set of scalars corresponds to `GF(p)`. This document uses types
+`Element` and `Scalar` to denote elements of the group and its set of
+scalars, respectively.
 
 We now detail a number of member functions that can be invoked on a
 prime-order group.
@@ -1151,9 +1151,8 @@ A ciphersuite contains instantiations of the following functionalities:
 - `Hash`: A cryptographic hash function whose output length is Nh bytes long.
 
 This section specifies an initial registry of ciphersuites with supported groups
-and hash functions. It also includes details for implementation details for
-each ciphersuite, focusing on input validation, as well as requirements for future
-ciphersuites.
+and hash functions. It also includes implementation details for each ciphersuite,
+focusing on input validation, as well as requirements for future ciphersuites.
 
 ## Ciphersuite Registry
 
@@ -1271,7 +1270,7 @@ If these checks fail, deserialization returns an error.
 
 For ristretto255 and decaf448, elements are deserialized by invoking the Decode
 function from {{RISTRETTO, Section 4.3.1}} and {{RISTRETTO, Section 5.3.1}}, respectively,
-which returns false if the element is invalid. If this function returns false,
+which returns false if the input is invalid. If this function returns false,
 deserialization returns an error.
 
 ### DeserializeScalar Validation
@@ -1281,9 +1280,9 @@ byte array. Like DeserializeElement, this function validates that the element
 is a member of the scalar field and returns an error if this condition is not met.
 
 For P-256, P-384, and P-521 ciphersuites, this function ensures that the input,
-when treated as a big-endian integer, is a value between 0 and `Order()`. For
+when treated as a big-endian integer, is a value between 0 and `Order() - 1`. For
 ristretto255 and decaf448, this function ensures that the input, when treated as
-a little-endian integer, is a valud between 0 and `Order()`.
+a little-endian integer, is a value between 0 and `Order() - 1`.
 
 ## Future Ciphersuites
 
@@ -1382,6 +1381,12 @@ from an existing evaluation). A genuinely random function will be
 non-malleable with high probability, and so a pseudorandom function must
 be non-malleable to maintain indistinguishability.
 
+- Unconditional input secrecy: The server does not learn anything about
+  the client input x, even with unbounded computation.
+
+In other words, an attacker with infinite compute cannot recover any information
+about the client's private input x from an invocation of the protocol.
+
 Additionally, for the VOPRF and POPRF protocol variants, there is an additional
 security property:
 
@@ -1423,8 +1428,8 @@ that this document supports batching so that multiple evaluations can happen
 at once whilst only constructing one proof object. This is enabled using
 an established batching technique.
 
-The pseudorandomness (and verifiability) of the OPRF (and VOPRF) variants is based on
-the assumption that the One-More Gap Computational Diffie Hellman (CDH) is computationally
+The pseudorandomness and input secrecy (and verifiability) of the OPRF (and VOPRF) variants
+is based on the assumption that the One-More Gap Computational Diffie Hellman (CDH) is computationally
 difficult to solve in the corresponding prime-order group. The original paper {{JKK14}}
 gives a security proof that the construction satisfies the security guarantees of a
 VOPRF protocol {{properties}} under the One-More Gap CDH assumption in the universal
@@ -1438,7 +1443,7 @@ as 3HashSDHI given by {{TCRSTW21}}. The construction is identical to
 evaluations in one go, whilst only constructing one NIZK proof object.
 This is enabled using an established batching technique.
 
-Pseudorandomness, verifiability, and partial obliviousness of the POPRF variant is
+Pseudorandomness, input secrecy, verifiability, and partial obliviousness of the POPRF variant is
 based on the assumption that the One-More Gap Strong Diffie-Hellman Inversion (SDHI)
 assumption from {{TCRSTW21}} is computationally difficult to solve in the corresponding
 prime-order group. {{TCRSTW21}} show that both the One-More Gap CDH assumption
@@ -1456,8 +1461,8 @@ These attacks are meant to recover (bits of) the server private key.
 Best-known attacks reduce the security of the prime-order group instantiation by log_2(Q)/2
 bits, where Q is the number of `Evalute()` calls made by the attacker.
 
-As a result of this class of this class of attack, choosing prime-order groups with a
-128-bit security level instantiates an OPRF with 128-(log\_2(Q)/2) bits of security.
+As a result of this class of attack, choosing prime-order groups with a 128-bit security
+level instantiates an OPRF with a reduced security level of 128-(log\_2(Q)/2) bits of security.
 Moreover, such attacks are only possible for those certain applications where the
 adversary can query the OPRF directly. Applications can mitigate against this problem
 in a variety of ways, e.g., by rate-limiting client queries to `Evaluate()` or by
