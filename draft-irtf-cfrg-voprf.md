@@ -1459,8 +1459,10 @@ bits, where Q is the number of `Evalute()` calls made by the attacker.
 As a result of this class of this class of attack, choosing prime-order groups with a
 128-bit security level instantiates an OPRF with 128-(log\_2(Q)/2) bits of security.
 Moreover, such attacks are only possible for those certain applications where the
-adversary can query the OPRF directly. In applications where such an oracle is not
-made available this security loss does not apply.
+adversary can query the OPRF directly. Applications can mitigate against this problem
+in a variety of ways, e.g., by rate-limiting client queries to `Evaluate()` or by
+rotating private keys. In applications where such an oracle is not made available
+this security loss does not apply.
 
 In most cases, it would require an informed and persistent attacker to
 launch a highly expensive attack to reduce security to anything much
