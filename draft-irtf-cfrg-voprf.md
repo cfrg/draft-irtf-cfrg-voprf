@@ -47,22 +47,10 @@ normative:
 
 informative:
   RFC7748:
-  RFC8446:
   PrivacyPass:
     title: Privacy Pass
     target: https://github.com/privacypass/challenge-bypass-server
     date: false
-  BB04:
-    title: Short Signatures Without Random Oracles
-    target: http://ai.stanford.edu/~xb/eurocrypt04a/bbsigs.pdf
-    date: false
-    authors:
-      -
-        ins: D. Boneh
-        org: Stanford University, CA, USA
-      -
-        ins: X. Boyen
-        org: Voltage Security, Palo Alto, CA, USA
   BG04:
     title: The Static Diffie-Hellman Problem
     target: https://eprint.iacr.org/2004/306
@@ -228,13 +216,15 @@ and a client, where the server holds a PRF key k and the client holds
 some input x. The protocol allows both parties to cooperate in computing
 F(k, x) such that the client learns F(k, x) without learning anything
 about k; and the server does not learn anything about x or F(k, x).
-A Verifiable OPRF (VOPRF) is an OPRF wherein the server can prove to
-the client that F(k, x) was computed using the key k. A Partially-Oblivious
-PRF (POPRF) is a variant of a VOPRF wherein client and server interact
-in computing F(k, x, y), for some PRF F with server-provided key k,
-client-provided input x, and public input y, and client receives proof
-that F(k, x, y) was computed using k. A POPRF with fixed input y is
-functionally equivalent to a VOPRF.
+A Verifiable OPRF (VOPRF) is an OPRF wherein the server also proves
+to the client that F(k, x) was produced by the key k corresponding
+to the server's public key the client knows. A Partially-Oblivious PRF (POPRF)
+is a variant of a VOPRF wherein client and server interact in computing
+F(k, x, y), for some PRF F with server-provided key k, client-provided
+input x, and public input y, and client receives proof
+that F(k, x, y) was computed using k corresponding to the public key
+that the client knows. A POPRF with fixed input y is functionally
+equivalent to a VOPRF.
 
 OPRFs have a variety of applications, including: password-protected secret
 sharing schemes {{JKKX16}}, privacy-preserving password stores {{SJKS17}}, and
@@ -244,8 +234,7 @@ Verifiable POPRFs are necessary in some applications such as Privacy Pass
 password-protected secret sharing schemes such as that of {{JKK14}}.
 
 This document specifies OPRF, VOPRF, and POPRF protocols built upon
-prime-order groups based on the 2HashDH {{JKKX16}} and 3HashSDHI {{TCRSTW21}}
-designs, respectively. The document describes each protocol variant,
+prime-order groups. The document describes each protocol variant,
 along with application considerations, and their security properties.
 
 ## Change log
@@ -338,11 +327,6 @@ The following functions and notation are used throughout the document.
 - I2OSP and OS2IP: Convert a byte array to and from a non-negative
   integer as described in {{!RFC8017}}. Note that these functions
   operate on byte arrays in big-endian byte order.
-- For any two byte strings `a` and `b`, `CT_EQUAL(a, b)` represents
-  constant-time equality between `a` and `b` which returns `true` if
-  `a` and `b` are equal and `false` otherwise.
-
-For serialization, all data structure descriptions use TLS notation {{RFC8446, Section 3}}.
 
 All algorithms and procedures described in this document are laid out
 in a Python-like pseudocode. The data types `PrivateInput` and `PublicInput`
@@ -365,64 +349,67 @@ The following terms are used throughout this document.
 
 The protocols in this document have two primary dependencies:
 
-- `GG`: A prime-order group implementing the API described below in {{pog}},
+- `Group`: A prime-order group implementing the API described below in {{pog}},
   with base point defined in the corresponding reference for each group.
   (See {{ciphersuites}} for these base points.)
-- `Hash`: A cryptographic hash function that is indifferentiable from a
-  Random Oracle, whose output length is Nh bytes long.
+- `Hash`: A cryptographic hash function whose output length is Nh bytes long.
 
-{{ciphersuites}} specifies ciphersuites as combinations of `GG` and `Hash`.
+{{ciphersuites}} specifies ciphersuites as combinations of `Group` and `Hash`.
 
 ## Prime-Order Group Dependency {#pog}
 
 In this document, we assume the construction of an additive, prime-order
-group `GG` for performing all mathematical operations. Such groups are
+group `Group` for performing all mathematical operations. Such groups are
 uniquely determined by the choice of the prime `p` that defines the
-order of the group. We use `GF(p)` to represent the finite field of
-order `p`. For the purpose of understanding and implementing this
+order of the group. (There may, however, exist different representations
+of the group for a single `p`. {{ciphersuites}} lists specific groups which
+indicate both order and representation.) We use `GF(p)` to represent the finite
+field of order `p`. For the purpose of understanding and implementing this
 document, we take `GF(p)` to be equal to the set of integers defined by
 `{0, 1, ..., p-1}`.
 
 The fundamental group operation is addition `+` with identity element
-`I`. For any elements `A` and `B` of the group `GG`, `A + B = B + A` is
-also a member of `GG`. Also, for any `A` in `GG`, there exists an element
+`I`. For any elements `A` and `B` of the group, `A + B = B + A` is
+also a member of the group. Also, for any `A` in the group, there exists an element
 `-A` such that `A + (-A) = (-A) + A = I`. Scalar multiplication is
 equivalent to the repeated application of the group operation on an
 element A with itself `r-1` times, this is denoted as `r*A = A + ... + A`.
-For any element `A`, `p*A=I`. We denote `G` as the fixed generator of
-the group. Scalar base multiplication is equivalent to the repeated
-application of the group operation `G` with itself `r-1` times, this
-is denoted as `ScalarBaseMult(r)`. The set of scalars corresponds to
-`GF(p)`. This document uses types `Element` and `Scalar` to denote elements
-of the group `GG` and its set of scalars, respectively.
+For any element `A`, `p*A=I`. Scalar base multiplication is equivalent
+to the repeated application of the group operation on the fixed group
+generator with itself `r-1` times, and is denoted as `ScalarBaseMult(r)`.
+The set of scalars corresponds to `GF(p)`. This document uses types
+`Element` and `Scalar` to denote elements of the group and its set of
+scalars, respectively.
 
 We now detail a number of member functions that can be invoked on a
-prime-order group `GG`.
+prime-order group.
 
-- Order(): Outputs the order of `GG` (i.e. `p`).
+- Order(): Outputs the order of the group (i.e. `p`).
 - Identity(): Outputs the identity element of the group (i.e. `I`).
-- HashToGroup(x): A member function of `GG` that deterministically maps
-  an array of bytes `x` to an element of `GG`. The map must ensure that,
+- HashToGroup(x): A member function of `Group` that deterministically maps
+  an array of bytes `x` to an element of `Group`. The map must ensure that,
   for any adversary receiving `R = HashToGroup(x)`, it is
   computationally difficult to reverse the mapping. This function is optionally
   parameterized by a domain separation tag (DST); see {{ciphersuites}}.
-- HashToScalar(x): A member function of `GG` that deterministically maps
+- HashToScalar(x): A member function of `Group` that deterministically maps
   an array of bytes `x` to an element in GF(p). This function is optionally
   parameterized by a DST; see {{ciphersuites}}.
-- RandomScalar(): A member function of `GG` that chooses at random a
+- RandomScalar(): A member function of `Group` that chooses at random a
   non-zero element in GF(p).
-- SerializeElement(A): A member function of `GG` that maps a group element `A`
+- ScalarInverse(s): Compute the multiplicative inverse of input Scalar `s`
+  modulo the prime order of the group `p`.
+- SerializeElement(A): A member function of `Group` that maps a group element `A`
   to a unique byte array `buf` of fixed length `Ne`. The output type of
   this function is `SerializedElement`.
-- DeserializeElement(buf): A member function of `GG` that maps a byte array
+- DeserializeElement(buf): A member function of `Group` that maps a byte array
   `buf` to a group element `A`, or fails if the input is not a valid
   byte representation of an element. This function can raise a
   DeserializeError if deserialization fails or `A` is the identity element
   of the group; see {{input-validation}}.
-- SerializeScalar(s): A member function of `GG` that maps a scalar element `s`
+- SerializeScalar(s): A member function of `Group` that maps a scalar element `s`
   to a unique byte array `buf` of fixed length `Ns`. The output type of this
   function is `SerializedScalar`.
-- DeserializeScalar(buf): A member function of `GG` that maps a byte array
+- DeserializeScalar(buf): A member function of `Group` that maps a byte array
   `buf` to a scalar `s`, or fails if the input is not a valid byte
   representation of a scalar. This function can raise a
   DeserializeError if deserialization fails; see {{input-validation}}.
@@ -473,20 +460,24 @@ Output:
 
   Proof proof
 
+Parameters:
+
+  Group G
+
 def GenerateProof(k, A, B, C, D)
   Cs = [C]
   Ds = [D]
   (M, Z) = ComputeCompositesFast(k, B, Cs, Ds)
 
-  r = GG.RandomScalar()
+  r = G.RandomScalar()
   t2 = r * A
   t3 = r * M
 
-  Bm = GG.SerializeElement(B)
-  a0 = GG.SerializeElement(M)
-  a1 = GG.SerializeElement(Z)
-  a2 = GG.SerializeElement(t2)
-  a3 = GG.SerializeElement(t3)
+  Bm = G.SerializeElement(B)
+  a0 = G.SerializeElement(M)
+  a1 = G.SerializeElement(Z)
+  a2 = G.SerializeElement(t2)
+  a3 = G.SerializeElement(t3)
 
   h2Input = I2OSP(len(Bm), 2) || Bm ||
             I2OSP(len(a0), 2) || a0 ||
@@ -495,8 +486,8 @@ def GenerateProof(k, A, B, C, D)
             I2OSP(len(a3), 2) || a3 ||
             "Challenge"
 
-  c = GG.HashToScalar(h2Input)
-  s = (r - c * k) mod p
+  c = G.HashToScalar(h2Input)
+  s = (r - c * k) mod G.Order()
 
   return [c, s]
 ~~~
@@ -516,29 +507,37 @@ Output:
   Element M
   Element Z
 
+Parameters:
+
+  Group G
+  PublicInput contextString
+
 def ComputeCompositesFast(k, B, Cs, Ds):
-  Bm = GG.SerializeElement(B)
+  Bm = G.SerializeElement(B)
   seedDST = "Seed-" || contextString
   h1Input = I2OSP(len(Bm), 2) || Bm ||
             I2OSP(len(seedDST), 2) || seedDST
   seed = Hash(h1Input)
 
-  M = GG.Identity()
-  for i = 0 to m-1:
-    Ci = GG.SerializeElement(Cs[i])
-    Di = GG.SerializeElement(Ds[i])
+  M = G.Identity()
+  for i = 0 to range(m):
+    Ci = G.SerializeElement(Cs[i])
+    Di = G.SerializeElement(Ds[i])
     h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
               I2OSP(len(Ci), 2) || Ci ||
               I2OSP(len(Di), 2) || Di ||
               "Composite"
 
-    di = GG.HashToScalar(h2Input)
+    di = G.HashToScalar(h2Input)
     M = di * Cs[i] + M
 
   Z = k * M
 
  return (M, Z)
 ~~~
+
+When used in the protocol described in {{protocol}}, the parameter `contextString` is
+as defined in {{configuration}}.
 
 `ComputeCompositesFast` takes lists of inputs, rather than a single input.
 Applications can take advantage of this functionality by invoking `GenerateProof`
@@ -568,6 +567,10 @@ Output:
 
   boolean verified
 
+Parameters:
+
+  Group G
+
 Errors: DeserializeError
 
 def VerifyProof(A, B, C, D, proof):
@@ -581,11 +584,11 @@ def VerifyProof(A, B, C, D, proof):
   t2 = ((s * A) + (c * B))
   t3 = ((s * M) + (c * Z))
 
-  Bm = GG.SerializeElement(B)
-  a0 = GG.SerializeElement(M)
-  a1 = GG.SerializeElement(Z)
-  a2 = GG.SerializeElement(t2)
-  a3 = GG.SerializeElement(t3)
+  Bm = G.SerializeElement(B)
+  a0 = G.SerializeElement(M)
+  a1 = G.SerializeElement(Z)
+  a2 = G.SerializeElement(t2)
+  a3 = G.SerializeElement(t3)
 
   h2Input = I2OSP(len(Bm), 2) || Bm ||
             I2OSP(len(a0), 2) || a0 ||
@@ -594,7 +597,7 @@ def VerifyProof(A, B, C, D, proof):
             I2OSP(len(a3), 2) || a3 ||
             "Challenge"
 
-  expectedC = GG.HashToScalar(h2Input)
+  expectedC = G.HashToScalar(h2Input)
 
   return expectedC == c
 ~~~
@@ -613,29 +616,37 @@ Output:
   Element M
   Element Z
 
+Parameters:
+
+  Group G
+  PublicInput contextString
+
 def ComputeComposites(B, Cs, Ds):
-  Bm = GG.SerializeElement(B)
+  Bm = G.SerializeElement(B)
   seedDST = "Seed-" || contextString
   h1Input = I2OSP(len(Bm), 2) || Bm ||
             I2OSP(len(seedDST), 2) || seedDST
   seed = Hash(h1Input)
 
-  M = GG.Identity()
-  Z = GG.Identity()
+  M = G.Identity()
+  Z = G.Identity()
   for i = 0 to m-1:
-    Ci = GG.SerializeElement(Cs[i])
-    Di = GG.SerializeElement(Ds[i])
+    Ci = G.SerializeElement(Cs[i])
+    Di = G.SerializeElement(Ds[i])
     h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
               I2OSP(len(Ci), 2) || Ci ||
               I2OSP(len(Di), 2) || Di ||
               "Composite"
 
-    di = GG.HashToScalar(h2Input)
+    di = G.HashToScalar(h2Input)
     M = di * Cs[i] + M
     Z = di * Ds[i] + Z
 
  return (M, Z)
 ~~~
+
+When used in the protocol described in {{protocol}}, the parameter `contextString` is
+as defined in {{configuration}}.
 
 As with the proof generation case, proof verification can be batched. `ComputeComposites`
 is defined in terms of a batch of inputs. Implementations can take advantage of this
@@ -722,7 +733,7 @@ Each protocol consists of an offline setup phase and an online phase,
 described in {{offline}} and {{online}}, respectively. Configuration details
 for the offline phase are described in {{configuration}}.
 
-## Configuration
+## Configuration {#configuration}
 
 Each of the three protocol variants are identified with a one-byte value:
 
@@ -744,7 +755,7 @@ def CreateContextString(mode, suiteID):
   return "VOPRF09-" || I2OSP(mode, 1) || I2OSP(suiteID, 2)
 ~~~
 
-[[RFC editor: please change "VOPRF08" to "RFCXXXX", where XXXX is the final number, here and elsewhere before publication.]]
+[[RFC editor: please change "VOPRF09" to "RFCXXXX", where XXXX is the final number, here and elsewhere before publication.]]
 
 ## Key Generation and Context Setup {#offline}
 
@@ -752,7 +763,7 @@ In the offline setup phase, both the client and server create a context used
 for executing the online phase of the protocol after agreeing on a mode and
 ciphersuite value suiteID. The server key pair (`skS`, `pkS`) is generated
 using the following function, which accepts a randomly generated seed of length
-`Ns` and optional public info string:
+`Ns` and optional public info string.
 
 ~~~
 Input:
@@ -765,6 +776,11 @@ Output:
   Scalar skS
   Element pkS
 
+Parameters:
+
+  Group G
+  PublicInput contextString
+
 Errors: DeriveKeyPairError
 
 def DeriveKeyPair(seed, info):
@@ -775,10 +791,10 @@ def DeriveKeyPair(seed, info):
   while skS == 0:
     if counter > 255:
       raise DeriveKeyPairError
-    skS = GG.HashToScalar(deriveInput || I2OSP(counter, 1),
+    skS = G.HashToScalar(deriveInput || I2OSP(counter, 1),
                           DST = "DeriveKeyPair" || contextString)
     counter = counter + 1
-  pkS = ScalarBaseMult(skS)
+  pkS = G.ScalarBaseMult(skS)
   return skS, pkS
 ~~~
 
@@ -822,12 +838,12 @@ def SetupPOPRFClient(suiteID, pkS):
 
 In the online phase, the client and server engage in a two message protocol
 to compute the protocol output. This section describes the protocol details
-for each protocol variant. Throughout each description the following implicit
-parameters are assumed to exist:
+for each protocol variant. Throughout each description the following parameters
+are assumed to exist:
 
-- GG, a prime-order group implementing the API described in {{pog}}.
-- contextString, a domain separation tag constructed during context setup as created in {{offline}}.
-- skS and pkS, the private and public keys configured for client and server in {{offline}}.
+- G, a prime-order Group implementing the API described in {{pog}}.
+- contextString, a PublicInput domain separation tag constructed during context setup as created in {{configuration}}.
+- skS and pkS, a Scalar and Element representing the private and public keys configured for client and server in {{offline}}.
 
 Applications serialize protocol messages between client and server for transmission.
 Specifically, values of type Element are serialized to SerializedElement values,
@@ -858,12 +874,16 @@ Output:
   Scalar blind
   Element blindedElement
 
+Parameters:
+
+  Group G
+
 Errors: InvalidInputError
 
 def Blind(input):
-  blind = GG.RandomScalar()
-  P = GG.HashToGroup(input)
-  if P == GG.Identity():
+  blind = G.RandomScalar()
+  P = G.HashToGroup(input)
+  if P == G.Identity():
     raise InvalidInputError
   blindedElement = blind * P
 
@@ -882,6 +902,10 @@ Input:
 Output:
 
   Element evaluatedElement
+
+Parameters:
+
+  Scalar skS
 
 def Evaluate(blindedElement):
   evaluatedElement = skS * blindedElement
@@ -905,9 +929,13 @@ Output:
 
   opaque output[Nh]
 
+Parameters:
+
+  Group G
+
 def Finalize(input, blind, evaluatedElement):
-  N = blind^(-1) * evaluatedElement
-  unblindedElement = GG.SerializeElement(N)
+  N = G.ScalarInverse(blind) * evaluatedElement
+  unblindedElement = G.SerializeElement(N)
 
   hashInput = I2OSP(len(input), 2) || input ||
               I2OSP(len(unblindedElement), 2) || unblindedElement ||
@@ -933,9 +961,15 @@ Output:
   Element evaluatedElement
   Proof proof
 
+Parameters:
+
+  Group G
+  Scalar skS
+  Element pkS
+
 def Evaluate(blindedElement):
   evaluatedElement = skS * blindedElement
-  proof = GenerateProof(skS, GG.Generator(), pkS, blindedElement, evaluatedElement)
+  proof = GenerateProof(skS, G.Generator(), pkS, blindedElement, evaluatedElement)
   return evaluatedElement, proof
 ~~~
 
@@ -956,14 +990,19 @@ Output:
 
   opaque output[Nh]
 
+Parameters:
+
+  Group G
+  Element pkS
+
 Errors: VerifyError
 
 def Finalize(input, blind, evaluatedElement, blindedElement, proof):
-  if VerifyProof(GG.Generator(), pkS, blindedElement, evaluatedElement, proof) == false:
+  if VerifyProof(G.Generator(), pkS, blindedElement, evaluatedElement, proof) == false:
     raise VerifyError
 
-  N = blind^(-1) * evaluatedElement
-  unblindedElement = GG.SerializeElement(N)
+  N = G.ScalarInverse(blind) * evaluatedElement
+  unblindedElement = G.SerializeElement(N)
 
   hashInput = I2OSP(len(input), 2) || input ||
               I2OSP(len(unblindedElement), 2) || unblindedElement ||
@@ -992,19 +1031,24 @@ Output:
   Element blindedElement
   Element tweakedKey
 
+Parameters:
+
+  Group G
+  Element pkS
+
 Errors: InvalidInputError
 
 def Blind(input, info):
-  context = "Info" || I2OSP(len(info), 2) || info
-  m = GG.HashToScalar(context)
-  T = ScalarBaseMult(m)
+  framedInfo = "Info" || I2OSP(len(info), 2) || info
+  m = G.HashToScalar(framedInfo)
+  T = G.ScalarBaseMult(m)
   tweakedKey = T + pkS
-  if tweakedKey == GG.Identity():
+  if tweakedKey == G.Identity():
     raise InvalidInputError
 
-  blind = GG.RandomScalar()
-  P = GG.HashToGroup(input)
-  if P == GG.Identity():
+  blind = G.RandomScalar()
+  P = G.HashToGroup(input)
+  if P == G.Identity():
     raise InvalidInputError
 
   blindedElement = blind * P
@@ -1027,19 +1071,25 @@ Output:
   Element evaluatedElement
   Proof proof
 
+Parameters:
+
+  Group G
+  Scalar skS
+  Element pkS
+
 Errors: InverseError
 
 def Evaluate(blindedElement, info):
-  context = "Info" || I2OSP(len(info), 2) || info
-  m = GG.HashToScalar(context)
+  framedInfo = "Info" || I2OSP(len(info), 2) || info
+  m = G.HashToScalar(framedInfo)
   t = skS + m
   if t == 0:
     raise InverseError
 
-  evaluatedElement = t^(-1) * blindedElement
+  evaluatedElement = G.ScalarInverse(t) * blindedElement
 
-  tweakedKey = ScalarBaseMult(t)
-  proof = GenerateProof(t, GG.Generator(), tweakedKey, evaluatedElement, blindedElement)
+  tweakedKey = G.ScalarBaseMult(t)
+  proof = GenerateProof(t, G.Generator(), tweakedKey, evaluatedElement, blindedElement)
 
   return evaluatedElement, proof
 ~~~
@@ -1063,12 +1113,17 @@ Output:
 
   opaque output[Nh]
 
+Parameters:
+
+  Group G
+  Element pkS
+
 def Finalize(input, blind, evaluatedElement, blindedElement, proof, info, tweakedKey):
-  if VerifyProof(G, tweakedKey, evaluatedElement, blindedElement, proof) == false:
+  if VerifyProof(G.Generator(), tweakedKey, evaluatedElement, blindedElement, proof) == false:
     raise VerifyError
 
-  N = blind^(-1) * evaluatedElement
-  unblindedElement = GG.SerializeElement(N)
+  N = G.ScalarInverse(blind) * evaluatedElement
+  unblindedElement = G.SerializeElement(N)
 
   hashInput = I2OSP(len(input), 2) || input ||
               I2OSP(len(info), 2) || info ||
@@ -1080,29 +1135,32 @@ def Finalize(input, blind, evaluatedElement, blindedElement, proof, info, tweake
 # Ciphersuites {#ciphersuites}
 
 A ciphersuite (also referred to as 'suite' in this document) for the protocol
-wraps the functionality required for the protocol to take place. This
+wraps the functionality required for the protocol to take place. The
 ciphersuite should be available to both the client and server, and agreement
-on the specific instantiation is assumed throughout. A ciphersuite contains
-instantiations of the following functionalities:
+on the specific instantiation is assumed throughout.
 
-- `GG`: A prime-order group exposing the API detailed in {{pog}}, with base
+A ciphersuite contains instantiations of the following functionalities:
+
+- `Group`: A prime-order Group exposing the API detailed in {{pog}}, with base
   point defined in the corresponding reference for each group. Each group also
   specifies HashToGroup, HashToScalar, and serialization functionalities. For
   HashToGroup, the domain separation tag (DST) is constructed in accordance
   with the recommendations in {{!I-D.irtf-cfrg-hash-to-curve}}, Section 3.1.
   For HashToScalar, each group specifies an integer order that is used in
   reducing integer values to a member of the corresponding scalar field.
-- `Hash`: A cryptographic hash function that is indifferentiable from a
-  Random Oracle, whose output length is Nh bytes long.
+- `Hash`: A cryptographic hash function whose output length is Nh bytes long.
 
-This section specifies ciphersuites with supported groups and hash functions.
-For each ciphersuite, contextString is that which is computed in the Setup
-functions.
+This section specifies an initial registry of ciphersuites with supported groups
+and hash functions. It also includes implementation details for each ciphersuite,
+focusing on input validation, as well as requirements for future ciphersuites.
 
-Applications should take caution in using ciphersuites targeting P-256
-and ristretto255. See {{cryptanalysis}} for related discussion.
+## Ciphersuite Registry
 
-## OPRF(ristretto255, SHA-512)
+For each ciphersuite, contextString is that which is computed in the Setup functions.
+Applications should take caution in using ciphersuites targeting P-256 and ristretto255.
+See {{cryptanalysis}} for related discussion.
+
+### OPRF(ristretto255, SHA-512)
 
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
   - HashToGroup(): Use hash_to_ristretto255
@@ -1120,7 +1178,7 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 - Hash: SHA-512, and Nh = 64.
 - ID: 0x0001
 
-## OPRF(decaf448, SHAKE-256)
+### OPRF(decaf448, SHAKE-256)
 
 - Group: decaf448 {{!RISTRETTO}}
   - HashToGroup(): Use hash_to_decaf448
@@ -1138,7 +1196,7 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 - Hash: SHAKE-256, and Nh = 64.
 - ID: 0x0002
 
-## OPRF(P-256, SHA-256)
+### OPRF(P-256, SHA-256)
 
 - Group: P-256 (secp256r1) {{x9.62}}
   - HashToGroup(): Use hash_to_curve with suite P256_XMD:SHA-256_SSWU_RO\_
@@ -1155,7 +1213,7 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 - Hash: SHA-256, and Nh = 32.
 - ID: 0x0003
 
-## OPRF(P-384, SHA-384)
+### OPRF(P-384, SHA-384)
 
 - Group: P-384 (secp384r1) {{x9.62}}
   - HashToGroup(): Use hash_to_curve with suite P384_XMD:SHA-384_SSWU_RO\_
@@ -1172,7 +1230,7 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
 - Hash: SHA-384, and Nh = 48.
 - ID: 0x0004
 
-## OPRF(P-521, SHA-512)
+### OPRF(P-521, SHA-512)
 
 - Group: P-521 (secp521r1) {{x9.62}}
   - HashToGroup(): Use hash_to_curve with suite P521_XMD:SHA-512_SSWU_RO\_
@@ -1188,6 +1246,62 @@ and ristretto255. See {{cryptanalysis}} for related discussion.
     order.
 - Hash: SHA-512, and Nh = 64.
 - ID: 0x0005
+
+## Input Validation {#input-validation}
+
+The DeserializeElement and DeserializeScalar functions instantiated for a
+particular prime-order group corresponding to a ciphersuite MUST adhere
+to the description in {{pog}}. This section describes how both DeserializeElement
+and DeserializeScalar are implemented for all prime-order groups included
+in the above ciphersuite list.
+
+### DeserializeElement Validation
+
+The DeserializeElement function attempts to recover a group element from an arbitrary
+byte array. This function validates that the element is a proper member
+of the group and is not the identity element, and returns an error if either
+condition is not met.
+
+For P-256, P-384, and P-521 ciphersuites, this function performs partial
+public-key validation as defined in Section 5.6.2.3.4 of {{keyagreement}}.
+This includes checking that the coordinates are in the correct range, that
+the point is on the curve, and that the point is not the point at infinity.
+If these checks fail, deserialization returns an error.
+
+For ristretto255 and decaf448, elements are deserialized by invoking the Decode
+function from {{RISTRETTO, Section 4.3.1}} and {{RISTRETTO, Section 5.3.1}}, respectively,
+which returns false if the input is invalid. If this function returns false,
+deserialization returns an error.
+
+### DeserializeScalar Validation
+
+The DeserializeScalar function attempts to recover a scalar field element from an arbitrary
+byte array. Like DeserializeElement, this function validates that the element
+is a member of the scalar field and returns an error if this condition is not met.
+
+For P-256, P-384, and P-521 ciphersuites, this function ensures that the input,
+when treated as a big-endian integer, is a value between 0 and `Order() - 1`. For
+ristretto255 and decaf448, this function ensures that the input, when treated as
+a little-endian integer, is a value between 0 and `Order() - 1`.
+
+## Future Ciphersuites
+
+A critical requirement of implementing the prime-order group using
+elliptic curves is a method to instantiate the function
+`HashToGroup`, that maps inputs to group elements. In the elliptic
+curve setting, this deterministically maps inputs x (as byte arrays) to
+uniformly chosen points on the curve.
+
+In the security proof of the construction Hash is modeled as a random
+oracle. This implies that any instantiation of `HashToGroup` must be
+pre-image and collision resistant. In {{ciphersuites}} we give
+instantiations of this functionality based on the functions described in
+{{!I-D.irtf-cfrg-hash-to-curve}}. Consequently, any OPRF implementation
+must adhere to the implementation and security considerations discussed
+in {{!I-D.irtf-cfrg-hash-to-curve}} when instantiating the function.
+
+Additionally, future ciphersuites must take care when choosing the
+security level of the group. See {{limits}} for additional details.
 
 # Application Considerations {#apis}
 
@@ -1236,28 +1350,28 @@ constructing domain separation values.
 Implementations may choose to not let applications control `info` in cases where
 this value is fixed or otherwise not useful to the application. In this case,
 the resulting protocol is functionally equivalent to an OPRF without public
-input. See {{equiv-2hashdh}} for discussion about repurposing existing non-verifiable
-OPRF implementations, i.e., those without the `info` parameter, using the construction
-in this specification.
+input.
 
 # Security Considerations {#sec}
 
 This section discusses the cryptographic security of our protocol, along
 with some suggestions and trade-offs that arise from the implementation
-of a POPRF.
+of the OPRF variants in this document. Note that the syntax of the POPRF
+variant is different from that of the OPRF and POPRF variants since it
+admits an additional public input, but the same security considerations apply.
 
 ## Security Properties {#properties}
 
-The security properties of a POPRF protocol with functionality
-y = F(k, x, t) include those of a standard PRF. Specifically:
+The security properties of an OPRF protocol with functionality y = F(k, x)
+include those of a standard PRF. Specifically:
 
-- Pseudorandomness: F is pseudorandom if the output y = F(k, x, t) on any
+- Pseudorandomness: F is pseudorandom if the output y = F(k, x) on any
   input x is indistinguishable from uniformly sampling any element in
   F's range, for a random sampling of k.
 
 In other words, consider an adversary that picks inputs x from the
-domain of F and evaluates F on (k, x, t) (without knowledge of randomly
-sampled k). Then the output distribution F(k, x, t) is indistinguishable
+domain of F and evaluates F on (k, x) (without knowledge of randomly
+sampled k). Then the output distribution F(k, x) is indistinguishable
 from the output distribution of a randomly chosen function with the same
 domain and range.
 
@@ -1267,17 +1381,11 @@ from an existing evaluation). A genuinely random function will be
 non-malleable with high probability, and so a pseudorandom function must
 be non-malleable to maintain indistinguishability.
 
-A POPRF protocol must also satisfy the following property:
+- Unconditional input secrecy: The server does not learn anything about
+  the client input x, even with unbounded computation.
 
-- Partial obliviousness: The server must learn nothing about the client's
-  private input or the output of the function. In addition, the client must
-  learn nothing about the server's private key. Both client and server learn
-  the public input (info).
-
-Essentially, partial obliviousness tells us that, even if the server learns
-the client's private input x at some point in the future, then the server will
-not be able to link any particular POPRF evaluation to x. This property is
-also known as unlinkability {{DGSTV18}}.
+In other words, an attacker with infinite compute cannot recover any information
+about the client's private input x from an invocation of the protocol.
 
 Additionally, for the VOPRF and POPRF protocol variants, there is an additional
 security property:
@@ -1294,7 +1402,19 @@ place. Then the client verifies that the server has used the key in the
 protocol using this commitment. In the following, we may also refer to this
 commitment as a public key.
 
-## Cryptographic Security {#cryptanalysis}
+Finally, the POPRF variant also has the following security property:
+
+- Partial obliviousness: The server must learn nothing about the client's
+  private input or the output of the function. In addition, the client must
+  learn nothing about the server's private key. Both client and server learn
+  the public input (info).
+
+Essentially, partial obliviousness tells us that, even if the server learns
+the client's private input x at some point in the future, then the server will
+not be able to link any particular POPRF evaluation to x. This property is
+also known as unlinkability {{DGSTV18}}.
+
+## Security Assumptions {#cryptanalysis}
 
 Below, we discuss the cryptographic security of each protocol variant
 from {{protocol}}, relative to the necessary cryptographic assumptions
@@ -1308,70 +1428,12 @@ that this document supports batching so that multiple evaluations can happen
 at once whilst only constructing one proof object. This is enabled using
 an established batching technique.
 
-Consequently, the cryptographic security of the OPRF and VOPRF variants is based on
-the assumption that the One-More Gap DH is computationally difficult to solve.
-
-The (N,Q)-One-More Gap DH (OMDH) problem asks the following.
-
-~~~
-    Given:
-    - G, k * G, and (G_1, ... , G_N), all elements of GG;
-    - oracle access to an OPRF functionality using the key k;
-    - oracle access to DDH solvers.
-
-    Find Q+1 pairs of the form below:
-
-    (G_{j_s}, k * G_{j_s})
-
-    where the following conditions hold:
-      - s is a number between 1 and Q+1;
-      - j_s is a number between 1 and N for each s;
-      - Q is the number of allowed queries.
-~~~
-
-The original paper {{JKK14}} gives a security proof that the 2HashDH-NIZK
-construction satisfies the security guarantees of a VOPRF protocol {{properties}}
-under the OMDH assumption in the universal composability (UC) security model.
-
-#### Q-Strong-DH Oracle {#qsdh}
-
-A side-effect of the OPRF and VOPRF protocols is that it allows instantiation of
-a oracle for constructing Q-strong-DH (Q-sDH) samples. The Q-Strong-DH
-problem asks the following.
-
-~~~
-    Given G1, G2, h*G2, (h^2)*G2, ..., (h^Q)*G2; for G1 and G2
-    generators of GG.
-
-    Output ( (1/(k+c))*G1, c ) where c is an element of GF(p)
-~~~
-
-The assumption that this problem is hard was first introduced in
-{{BB04}}. Since then, there have been a number of cryptanalytic studies
-that have reduced the security of the assumption below that implied by
-the group instantiation (for example, {{BG04}} and {{Cheon06}}). In
-summary, the attacks reduce the security of the group instantiation by
-log\_2(Q)/2 bits. Note that the attacks only work in situations where Q
-divides p-1 or p+1, where p is the order of the prime-order group used
-to instantiate the OPRF.
-
-As an example, suppose that a group instantiation is used that provides
-128 bits of security against discrete log cryptanalysis. Then an
-adversary with access to a Q-sDH oracle and makes Q=2^20 queries can
-reduce the security of the instantiation by log\_2(2^20)/2 = 10 bits.
-Launching this attack would require 2^(p/2-log\_2(Q)/2) bits of memory.
-
-Notice that it is easy to instantiate a Q-sDH oracle using the OPRF
-functionality that we provide. A client can just submit sequential
-queries of the form (G, k * G, (k^2)G, ..., (k^(Q-1))G), where each
-query is the output of the previous interaction. This means that any
-client that submits Q queries to the OPRF can use the aforementioned
-attacks to reduce the security of the group instantiation by
-(log\_2(Q)/2) bits.
-
-Recall that from a malicious client's perspective, the adversary wins if
-they can distinguish the OPRF interaction from a protocol that computes
-the ideal functionality provided by the PRF.
+The pseudorandomness and input secrecy (and verifiability) of the OPRF (and VOPRF) variants
+is based on the assumption that the One-More Gap Computational Diffie Hellman (CDH) is computationally
+difficult to solve in the corresponding prime-order group. The original paper {{JKK14}}
+gives a security proof that the construction satisfies the security guarantees of a
+VOPRF protocol {{properties}} under the One-More Gap CDH assumption in the universal
+composability (UC) security framework.
 
 ### POPRF Assumptions
 
@@ -1381,161 +1443,53 @@ as 3HashSDHI given by {{TCRSTW21}}. The construction is identical to
 evaluations in one go, whilst only constructing one NIZK proof object.
 This is enabled using an established batching technique.
 
-The cryptographic security of the construction is based on the assumption
-that the One-More Gap Strong Diffie-Hellman Inversion (SDHI) assumption from
-{{TCRSTW21}} is computationally difficult to solve. {{TCRSTW21}} show that
-both the One-More Gap Computational Diffie Hellman (CDH)
-assumption and the One-More Gap SDHI assumption reduce to the q-DL assumption
+Pseudorandomness, input secrecy, verifiability, and partial obliviousness of the POPRF variant is
+based on the assumption that the One-More Gap Strong Diffie-Hellman Inversion (SDHI)
+assumption from {{TCRSTW21}} is computationally difficult to solve in the corresponding
+prime-order group. {{TCRSTW21}} show that both the One-More Gap CDH assumption
+and the One-More Gap SDHI assumption reduce to the q-DL (Discrete Log) assumption
 in the algebraic group model, for some q number of `Evaluate` queries.
 (The One-More Gap CDH assumption was the hardness assumption used to
-evaluate the 2HashDH-NIZK construction from {{JKK14}}, which is a predecessor
-to the design in this specification.)
+evaluate the OPRF and VOPRF designs based on {{JKK14}}, which is a predecessor
+to the POPRF variant in {{poprf}}.)
 
-#### Static q-DL Assumption
+### Static Diffie Hellman Attack and Security Limits {#limits}
 
-As with the OPRF and VOPRF variants, a side-effect of the POPRF design is
-that it allows instantiation of an oracle for retrieving "strong-DH"
-evaluations, in which an adversary can query a group element
-B and scalar c, and receive evaluation output 1/(k+c)\*B. This type of oracle allows
-an adversary to form elements of "repeated powers" of the server-side secret. This
-"repeated powers" structure has been studied in terms of the q-DL problem which
-asks the following: Given G1, G2, h\*G2, (h^2)\*G2, ..., (h^Q)\*G2; for G1 and G2
-generators of GG. Output h where h is an element of GF(p)
+A side-effect of the OPRF protocol variants in this document is that they allow
+instantiation of an oracle for constructing static DH samples; see {{BG04}} and {{Cheon06}}.
+These attacks are meant to recover (bits of) the server private key.
+Best-known attacks reduce the security of the prime-order group instantiation by log_2(Q)/2
+bits, where Q is the number of `Evalute()` calls made by the attacker.
 
-For example, consider an adversary that queries the strong-DH oracle provided by the
-POPRF on a fixed scalar c starting with group element G2, then passes the received
-evaluation group element back as input for the next evaluation. If we set h = 1/(k+c),
-such an adversary would receive exactly the evaluations given in the q-DL problem: h\*G2,
-(h^2)\*G2, ..., (h^Q)\*G2.
-
-{{TCRSTW21}} capture the power of the strong-DH oracle in the One-More Gap SDHI assumption
-and show, in the algebraic group model, the security of this assumption can be reduced to
-the security of the q-DL problem, where q is the number of queries made to the blind
-evaluation oracle.
-
-The q-DL assumption has been well studied in the literature, and there exist a number of
-cryptanalytic studies to inform parameter choice and group instantiation (for example,
-{{BG04}} and {{Cheon06}}).
-
-### 2HashDH OPRF Equivalence {#equiv-2hashdh}
-
-The non-verifiable 3HashSDHI POPRF construction in this specification is equivalent
-to the non-verifiable 2HashDH OPRF from {{JKK14}} when the input `info` is fixed.
-In particular, the 3HashSDHI POPRF computes the following given private key `k`,
-private input `x`, and public input `t`, where H1, H2, and H3 are GG.HashToGroup,
-GG.HashToScalar, and Hash, respectively:
-
-~~~
-H3(x, H1(x)^(1 / (k + H2(t))))
-~~~
-
-Similarly, the 2HashDH OPRF computes the following given private key `k'` and
-private input `x`:
-
-~~~
-H3(x, H1(x)^k')
-~~~
-
-Given a fixed public input `t`, one can transform a 3HashSDHI private key `k`
-into an equivalent 2HashDH private key `k'` as follows:
-
-~~~
-k' = 1 / (k + H2(t))
-~~~
-
-This transformation is undefined for values of `k` and `t` such that
-`k + H2(t) = 0`. Because only a single choice of `k` leads to this
-undefined case, the distribution of `k'` defined via this transformation
-is statistically close to the distribution of a randomly sampled `k'`
-as output from `GG.GenerateKeyPair`.
-
-Note that one can also transform any non-zero 2HashDH private key `k'` into
-an equivalent 3HashSDHI private key `k` as follows:
-
-~~~
-k = (1 - (k' * H2(t))) / k'
-~~~
-
-### Implications for Ciphersuite Choices
-
-The POPRF instantiations that we recommend in this document are informed
-by the cryptanalytic discussion above. In particular, choosing elliptic
-curves configurations that describe 128-bit group instantiations would
-appear to in fact instantiate a POPRF with 128-(log\_2(Q)/2) bits of
-security. Moreover, such attacks are only possible for those certain
-applications where the adversary can query the POPRF directly.
-In applications where such an oracle is not made available this security loss does not apply.
+As a result of this class of attack, choosing prime-order groups with a 128-bit security
+level instantiates an OPRF with a reduced security level of 128-(log\_2(Q)/2) bits of security.
+Moreover, such attacks are only possible for those certain applications where the
+adversary can query the OPRF directly. Applications can mitigate against this problem
+in a variety of ways, e.g., by rate-limiting client queries to `Evaluate()` or by
+rotating private keys. In applications where such an oracle is not made available
+this security loss does not apply.
 
 In most cases, it would require an informed and persistent attacker to
 launch a highly expensive attack to reduce security to anything much
-below 100 bits of security. We see this possibility as something that
-may result in problems in the future. Applications that admit the
-aforementioned oracle functionality, and that cannot tolerate discrete
-logarithm security of lower than 128 bits, are RECOMMENDED to only
-implement ciphersuites 0x0002, 0x0004, and 0x0005.
-
-## Proof Randomness
-
-It is essential that a different `r` value is used for every invocation
-of GenerateProof. Failure to do so may leak `skS` as is possible in Schnorr
-or (EC)DSA scenarios where fresh randomness is not used.
+below 100 bits of security. Applications that admit the aforementioned
+oracle functionality, and that cannot tolerate discrete logarithm security
+of lower than 128 bits, are RECOMMENDED to choose groups that target a
+higher security level, such as decaf448 (used by ciphersuite 0x0002),
+P-384 (used by 0x0004), or P-521 (used by 0x0005).
 
 ## Domain Separation {#domain-separation}
 
 Applications SHOULD construct input to the protocol to provide domain
-separation. Any system which has multiple POPRF applications should
-distinguish client inputs to ensure the POPRF results are separate.
+separation. Any system which has multiple OPRF applications should
+distinguish client inputs to ensure the OPRF results are separate.
 Guidance for constructing info can be found in {{!I-D.irtf-cfrg-hash-to-curve, Section 3.1}}.
-
-## Element and Scalar Validation {#input-validation}
-
-The DeserializeElement function recovers a group element from an arbitrary
-byte array. This function validates that the element is a proper member
-of the group and is not the identity element, and returns an error if either
-condition is not met.
-
-For P-256, P-384, and P-521 ciphersuites, this function performs partial
-public-key validation as defined in Section 5.6.2.3.4 of {{keyagreement}}.
-This includes checking that the coordinates are in the correct range, that
-the point is on the curve, and that the point is not the point at infinity.
-If these checks fail, deserialization returns an error.
-
-For ristretto255 and decaf448, elements are deserialized by invoking the Decode
-function from {{RISTRETTO, Section 4.3.1}} and {{RISTRETTO, Section 5.3.1}}, respectively,
-which returns false if the element is invalid. If this function returns false,
-deserialization returns an error.
-
-The DeserializeScalar function recovers a scalar field element from an arbitrary
-byte array. Like DeserializeElement, this function validates that the element
-is a member of the scalar field and returns an error if this condition is not met.
-
-For P-256, P-384, and P-521 ciphersuites, this function ensures that the input,
-when treated as a big-endian integer, is a value between 0 and `Order()`. For
-ristretto255 and decaf448, this function ensures that the input, when treated as
-a little-endian integer, is a valud between 0 and `Order()`.
-
-## Hashing to Group
-
-A critical requirement of implementing the prime-order group using
-elliptic curves is a method to instantiate the function
-`GG.HashToGroup`, that maps inputs to group elements. In the elliptic
-curve setting, this deterministically maps inputs x (as byte arrays) to
-uniformly chosen points on the curve.
-
-In the security proof of the construction Hash is modeled as a random
-oracle. This implies that any instantiation of `GG.HashToGroup` must be
-pre-image and collision resistant. In {{ciphersuites}} we give
-instantiations of this functionality based on the functions described in
-{{!I-D.irtf-cfrg-hash-to-curve}}. Consequently, any OPRF implementation
-must adhere to the implementation and security considerations discussed
-in {{!I-D.irtf-cfrg-hash-to-curve}} when instantiating the function.
 
 ## Timing Leaks
 
 To ensure no information is leaked during protocol execution, all
-operations that use secret data MUST run in constant time. Operations that
-SHOULD run in constant time include all prime-order group operations and
-proof-specific operations (`GenerateProof()` and `VerifyProof()`).
+operations that use secret data MUST run in constant time. This includes
+all prime-order group operations and proof-specific operations that
+operate on secret data, including `GenerateProof()` and `Evaluate()`.
 
 # Acknowledgements
 
@@ -1543,8 +1497,8 @@ This document resulted from the work of the Privacy Pass team
 {{PrivacyPass}}. The authors would also like to acknowledge helpful
 conversations with Hugo Krawczyk. Eli-Shaoul Khedouri provided
 additional review and comments on key consistency. Daniel Bourdrez,
-Tatiana Bradley, Sofia Celi, Frank Denis, Kevin Lewi, and Bas Westerbaan
-also provided helpful input and contributions to the document.
+Tatiana Bradley, Sofia Celi, Frank Denis, Kevin Lewi, Christopher Patton,
+and Bas Westerbaan also provided helpful input and contributions to the document.
 
 --- back
 
