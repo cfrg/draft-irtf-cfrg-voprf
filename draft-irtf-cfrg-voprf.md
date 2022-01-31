@@ -673,14 +673,14 @@ and `output` is the OPRF output. The client learns `output` and the server learn
 This interaction is shown below.
 
 ~~~
-    Client                                                  Server(skS)
-  ---------------------------------------------------------------------
+    Client                                                Server(skS)
+  -------------------------------------------------------------------
   blind, blindedElement = Blind(input)
 
                              blindedElement
                                ---------->
 
-                           evaluatedElement = Evaluate(blindedElement)
+                          evaluatedElement = Evaluate(blindedElement)
 
                              evaluatedElement
                                <----------
@@ -697,14 +697,14 @@ which the client receives as input to the protocol. This proof does not reveal t
 private key to the client. This interaction is shown below.
 
 ~~~
-    Client(pkS)            <---- pkS ------                 Server(skS)
-  ---------------------------------------------------------------------
+    Client(pkS)            <---- pkS ------               Server(skS)
+  -------------------------------------------------------------------
   blind, blindedElement = Blind(input)
 
                              blindedElement
                                ---------->
 
-                     evaluatedElement, proof = Evaluate(blindedElement)
+                   evaluatedElement, proof = Evaluate(blindedElement)
 
                          evaluatedElement, proof
                                <----------
@@ -722,14 +722,14 @@ and server augment the `pkS` and `skS`, respectively, using the `info` value,
 as in {{TCRSTW21}}.
 
 ~~~
-    Client(pkS, info)        <---- pkS ------        Server(skS, info)
-  ---------------------------------------------------------------------
+    Client(pkS, info)        <---- pkS ------       Server(skS, info)
+  -------------------------------------------------------------------
   blind, blindedElement, tweakedKey = Blind(input, info)
 
                              blindedElement
                                ---------->
 
-               evaluatedElement, proof = Evaluate(blindedElement, info)
+             evaluatedElement, proof = Evaluate(blindedElement, info)
 
                          evaluatedElement, proof
                                <----------
@@ -980,7 +980,8 @@ Parameters:
 
 def Evaluate(blindedElement):
   evaluatedElement = skS * blindedElement
-  proof = GenerateProof(skS, G.Generator(), pkS, blindedElement, evaluatedElement)
+  proof = GenerateProof(skS, G.Generator(), pkS,
+                        blindedElement, evaluatedElement)
   return evaluatedElement, proof
 ~~~
 
@@ -1009,7 +1010,8 @@ Parameters:
 Errors: VerifyError
 
 def Finalize(input, blind, evaluatedElement, blindedElement, proof):
-  if VerifyProof(G.Generator(), pkS, blindedElement, evaluatedElement, proof) == false:
+  if VerifyProof(G.Generator(), pkS, blindedElement,
+                 evaluatedElement, proof) == false:
     raise VerifyError
 
   N = G.ScalarInverse(blind) * evaluatedElement
@@ -1100,7 +1102,8 @@ def Evaluate(blindedElement, info):
   evaluatedElement = G.ScalarInverse(t) * blindedElement
 
   tweakedKey = G.ScalarBaseMult(t)
-  proof = GenerateProof(t, G.Generator(), tweakedKey, evaluatedElement, blindedElement)
+  proof = GenerateProof(t, G.Generator(), tweakedKey,
+                        evaluatedElement, blindedElement)
 
   return evaluatedElement, proof
 ~~~
@@ -1129,8 +1132,10 @@ Parameters:
   Group G
   Element pkS
 
-def Finalize(input, blind, evaluatedElement, blindedElement, proof, info, tweakedKey):
-  if VerifyProof(G.Generator(), tweakedKey, evaluatedElement, blindedElement, proof) == false:
+def Finalize(input, blind, evaluatedElement, blindedElement,
+             proof, info, tweakedKey):
+  if VerifyProof(G.Generator(), tweakedKey, evaluatedElement,
+                 blindedElement, proof) == false:
     raise VerifyError
 
   N = G.ScalarInverse(blind) * evaluatedElement
