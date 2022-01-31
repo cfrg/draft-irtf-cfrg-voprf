@@ -239,6 +239,16 @@ along with application considerations, and their security properties.
 
 ## Change log
 
+[draft-09](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-09):
+
+- Split syntax for OPRF, VOPRF, and POPRF functionalities.
+- Make Blind function fallible for invalid private and public inputs.
+- Specify key generation.
+- Remove serialization steps from core protocol functions.
+- Refactor protocol presentation for clarity.
+- Simplify security considerations.
+- Update test vectors.
+
 [draft-08](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-08):
 
 - Adopt partially-oblivious PRF construction from {{TCRSTW21}}.
@@ -356,7 +366,7 @@ The protocols in this document have two primary dependencies:
 
 {{ciphersuites}} specifies ciphersuites as combinations of `Group` and `Hash`.
 
-## Prime-Order Group Dependency {#pog}
+## Prime-Order Group {#pog}
 
 In this document, we assume the construction of an additive, prime-order
 group `Group` for performing all mathematical operations. Such groups are
@@ -763,7 +773,8 @@ In the offline setup phase, both the client and server create a context used
 for executing the online phase of the protocol after agreeing on a mode and
 ciphersuite value suiteID. The server key pair (`skS`, `pkS`) is generated
 using the following function, which accepts a randomly generated seed of length
-`Ns` and optional public info string.
+`Ns` and optional public info string. The constant `Ns` corresponds to the size
+of a serialized Scalar and is defined in {{pog}}.
 
 ~~~
 Input:
