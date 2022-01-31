@@ -714,7 +714,7 @@ as in {{TCRSTW21}}.
 ~~~
     Client(pkS, info)        <---- pkS ------        Server(skS, info)
   ---------------------------------------------------------------------
-  blind, blindedElement, tweakedKey = Blind(input)
+  blind, blindedElement, tweakedKey = Blind(input, info)
 
                              blindedElement
                                ---------->
