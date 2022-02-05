@@ -1338,14 +1338,18 @@ and `Evaluate` can fail if any element received from the peer fails deserializat
 The explicit errors generated throughout this specification, along with the
 conditions that lead to each error, are as follows:
 
-- `InvalidInputError`: OPRF input deterministically maps to the group identity element; {{oprf}} and {{poprf}}.
 - `VerifyError`: Verifiable OPRF proof verification failed; {{voprf}} and {{poprf}}.
-- `DeserializeError`: Group element or scalar deserialization failure; {{pog}} and {{online}}.
-- `InverseError`: A scalar is zero and has no inverse; {{pog}} and {{online}}.
+- `DeserializeError`: Group Element or Scalar deserialization failure; {{pog}} and {{online}}.
 
-The errors in this document are meant as a guide to implementors. They are not
-an exhaustive list of all the errors an implementation might emit. For example,
-implementations might run out of memory and return a corresponding error.
+There are other explicit errors generated in this specification, however they occur with
+negligible probability in practice. We note them here for completeness.
+
+- `InvalidInputError`: OPRF Blind input produces an invalid output element; {{oprf}} and {{poprf}}.
+- `InverseError`: A tweaked private key is invalid (has no multiplicative inverse); {{pog}} and {{online}}.
+
+In general, the errors in this document are meant as a guide to implementors.
+They are not an exhaustive list of all the errors an implementation might emit.
+For example, implementations might run out of memory and return a corresponding error.
 
 ## POPRF Public Input
 
