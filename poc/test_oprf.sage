@@ -111,12 +111,13 @@ class Protocol(object):
                     blinds.append(blind)
                     blinded_elements.append(blinded_element)
 
-            if self.mode == MODE_POPRF:
-                evaluated_elements, proof, proof_randomness = server.evaluate_batch(blinded_elements, info, tweaked_key)
-            else:
-                evaluated_elements, proof, proof_randomness = server.evaluate_batch(blinded_elements, info)
+            evaluated_elements, proof, proof_randomness = server.evaluate_batch(blinded_elements, info)
 
-            outputs = client.finalize_batch(xs, blinds, evaluated_elements, blinded_elements, proof, info)
+            if self.mode == MODE_POPRF:
+                outputs = client.finalize_batch(xs, blinds, evaluated_elements, blinded_elements, proof, info, tweaked_key)
+            else:
+                outputs = client.finalize_batch(xs, blinds, evaluated_elements, blinded_elements, proof, info)
+
             for i, output in enumerate(outputs):
                 assert(server.verify_finalize(xs[i], output, info))
 
@@ -140,7 +141,7 @@ class Protocol(object):
             return vector
 
         vectors = [create_test_vector_for_input(x, self.info) for x in self.inputs]
-        if self.mode == MODE_VOPRF:
+        if self.mode == MODE_VOPRF or self.mode == MODE_POPRF:
             vectors.append(create_batched_test_vector_for_inputs(self.inputs, self.info))
 
         vecSuite = {}

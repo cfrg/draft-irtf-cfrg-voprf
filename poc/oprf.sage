@@ -362,13 +362,10 @@ class POPRFServerContext(VOPRFServerContext):
         return evaluated_element, proof, r
 
     def evaluate_batch(self, blinded_elements, info):
-        Rs = []
-        Zs = []
-        evaluated_elements = []
-
         context = _as_bytes("Info") + I2OSP(len(info), 2) + info
         t = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
 
+        evaluated_elements = []
         for blinded_element in blinded_elements:
             k = self.skS + t
             if int(k) == 0:
@@ -379,7 +376,7 @@ class POPRFServerContext(VOPRFServerContext):
 
         G = self.suite.group.generator()
         U = k * G
-        proof, r = self.generate_proof(k, G, U, Zs, Rs)
+        proof, r = self.generate_proof(k, G, U, evaluated_elements, blinded_elements)
         return evaluated_elements, proof, r
 
     def verify_finalize(self, x, expected_digest, info):
