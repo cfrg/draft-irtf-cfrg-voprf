@@ -239,6 +239,12 @@ along with application considerations, and their security properties.
 
 ## Change log
 
+[draft-10](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-10):
+
+- Update application interface considerations.
+- Fix test vector issue.
+- Apply various editorial changes.
+
 [draft-09](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-09):
 
 - Split syntax for OPRF, VOPRF, and POPRF functionalities.
