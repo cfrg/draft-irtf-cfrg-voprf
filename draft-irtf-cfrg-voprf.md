@@ -1132,6 +1132,8 @@ Parameters:
   Group G
   Element pkS
 
+Errors: VerifyError
+
 def Finalize(input, blind, evaluatedElement, blindedElement,
              proof, info, tweakedKey):
   if VerifyProof(G.Generator(), tweakedKey, evaluatedElement,
