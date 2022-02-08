@@ -1369,10 +1369,10 @@ this construction might ensure that the public input uses a unique, prefix-free 
 See {{I-D.irtf-cfrg-hash-to-curve, Section 10.4}} for further discussion on
 constructing domain separation values.
 
-Implementations may choose to not let applications control `info` in cases where
-this value is fixed or otherwise not useful to the application. In this case,
-the resulting protocol is functionally equivalent to an OPRF without public
-input.
+Implementations of the POPRF may choose to not let applications control `info` in
+cases where this value is fixed or otherwise not useful to the application. In this
+case, the resulting protocol is functionally equivalent to the VOPRF, which does not
+admit public input.
 
 # Security Considerations {#sec}
 
