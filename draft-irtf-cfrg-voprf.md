@@ -247,6 +247,7 @@ along with application considerations, and their security properties.
 - Remove serialization steps from core protocol functions.
 - Refactor protocol presentation for clarity.
 - Simplify security considerations.
+- Update application interface considerations.
 - Update test vectors.
 
 [draft-08](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-08):
