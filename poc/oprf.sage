@@ -397,7 +397,7 @@ MODE_OPRF = 0x00
 MODE_VOPRF = 0x01
 MODE_POPRF = 0x02
 
-VERSION = "VOPRF10-"
+VERSION = "VOPRF09-"
 
 def DeriveKeyPair(mode, suite, seed, info):
     ctx = Context(VERSION, mode, suite)
