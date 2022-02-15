@@ -3,9 +3,9 @@
 
 import sys
 import json
-import binascii
 
 try:
+    from sagelib.test_drng import TestDRNG
     from sagelib.oprf \
     import DeriveKeyPair, \
            SetupOPRFServer, SetupOPRFClient, MODE_OPRF, \
@@ -67,13 +67,14 @@ class Protocol(object):
         server = self.server
 
         def create_test_vector_for_input(x, info):
+            rng = TestDRNG("test vector seed".encode('utf-8'))
             if self.mode == MODE_POPRF:
-                blind, blinded_element, tweaked_key = client.blind(x, info)
-                evaluated_element, proof, proof_randomness = server.evaluate(blinded_element, info)
+                blind, blinded_element, tweaked_key = client.blind(x, info, rng)
+                evaluated_element, proof, proof_randomness = server.evaluate(blinded_element, info, rng)
                 output = client.finalize(x, blind, evaluated_element, blinded_element, proof, info, tweaked_key)
             else:
-                blind, blinded_element = client.blind(x)
-                evaluated_element, proof, proof_randomness = server.evaluate(blinded_element, info)
+                blind, blinded_element = client.blind(x, rng)
+                evaluated_element, proof, proof_randomness = server.evaluate(blinded_element, info, rng)
                 output = client.finalize(x, blind, evaluated_element, blinded_element, proof, info)
 
             assert(server.verify_finalize(x, output, info))
@@ -101,17 +102,18 @@ class Protocol(object):
             blinds = []
             blinded_elements = []
             tweaked_key = None
+            rng = TestDRNG("test vector seed".encode('utf-8'))
             for x in xs:
                 if self.mode == MODE_POPRF:
-                    blind, blinded_element, tweaked_key = client.blind(x, info)
+                    blind, blinded_element, tweaked_key = client.blind(x, info, rng)
                     blinds.append(blind)
                     blinded_elements.append(blinded_element)
                 else:
-                    blind, blinded_element = client.blind(x)
+                    blind, blinded_element = client.blind(x, rng)
                     blinds.append(blind)
                     blinded_elements.append(blinded_element)
 
-            evaluated_elements, proof, proof_randomness = server.evaluate_batch(blinded_elements, info)
+            evaluated_elements, proof, proof_randomness = server.evaluate_batch(blinded_elements, info, rng)
 
             if self.mode == MODE_POPRF:
                 outputs = client.finalize_batch(xs, blinds, evaluated_elements, blinded_elements, proof, info, tweaked_key)
