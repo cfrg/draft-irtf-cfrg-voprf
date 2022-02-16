@@ -76,7 +76,6 @@ class Group(object):
 
     def random_scalar(self, rng):
         return rng.randint(1, self.order() - 1)
-        # return random.randint(1, self.order() - 1)
 
     def __str__(self):
         return self.name
