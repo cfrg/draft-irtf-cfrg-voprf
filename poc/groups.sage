@@ -2,10 +2,7 @@
 # vim: syntax=python
 
 import sys
-import json
-import random
 import hashlib
-import binascii
 import struct
 
 from hash_to_field import I2OSP, OS2IP, expand_message_xmd, expand_message_xof, XMDExpander, hash_to_field
@@ -18,18 +15,6 @@ try:
     from sagelib.ristretto_decaf import Ed25519Point, Ed448GoldilocksPoint
 except ImportError as e:
     sys.exit("Error loading preprocessed sage files. Try running `make setup && make clean pyfiles`. Full error: " + e)
-
-if sys.version_info[0] == 3:
-    xrange = range
-    _as_bytes = lambda x: x if isinstance(x, bytes) else bytes(x, "utf-8")
-    _strxor = lambda str1, str2: bytes( s1 ^ s2 for (s1, s2) in zip(str1, str2) )
-else:
-    _as_bytes = lambda x: x
-    _strxor = lambda str1, str2: ''.join( chr(ord(s1) ^ ord(s2)) for (s1, s2) in zip(str1, str2) )
-
-# Fix a seed so all test vectors are deterministic
-FIXED_SEED = "oprf".encode('utf-8')
-random.seed(int.from_bytes(hashlib.sha256(FIXED_SEED).digest(), 'big'))
 
 # little-endian version of I2OSP
 def I2OSP_le(val, length):
@@ -89,13 +74,9 @@ class Group(object):
     def hash_to_scalar(self, x):
         return None
 
-    def random_scalar(self):
-        return random.randint(1, self.order() - 1)
-
-    def key_gen(self):
-        skS = ZZ(self.random_scalar())
-        pkS = self.generator() * skS
-        return skS, pkS
+    def random_scalar(self, rng):
+        return rng.randint(1, self.order() - 1)
+        # return random.randint(1, self.order() - 1)
 
     def __str__(self):
         return self.name
