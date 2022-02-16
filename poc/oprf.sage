@@ -2,31 +2,17 @@
 # vim: syntax=python
 
 import sys
-import json
 import hashlib
-import binascii
 
 from collections import namedtuple
-
 from hash_to_field import I2OSP
 
 try:
     from sagelib.groups import GroupP256, GroupP384, GroupP521, GroupRistretto255, GroupDecaf448
-    from sagelib.suite_p256 import p256_sswu_ro, p256_order, p256_p, p256_F, p256_A, p256_B
-    from sagelib.suite_p384 import p384_sswu_ro, p384_order, p384_p, p384_F, p384_A, p384_B
-    from sagelib.suite_p521 import p521_sswu_ro, p521_order, p521_p, p521_F, p521_A, p521_B
-    from sagelib.common import sgn0
-    from sagelib.ristretto_decaf import Ed25519Point, Ed448GoldilocksPoint
 except ImportError as e:
     sys.exit("Error loading preprocessed sage files. Try running `make setup && make clean pyfiles`. Full error: " + e)
 
-if sys.version_info[0] == 3:
-    xrange = range
-    _as_bytes = lambda x: x if isinstance(x, bytes) else bytes(x, "utf-8")
-    _strxor = lambda str1, str2: bytes( s1 ^ s2 for (s1, s2) in zip(str1, str2) )
-else:
-    _as_bytes = lambda x: x
-    _strxor = lambda str1, str2: ''.join( chr(ord(s1) ^ ord(s2)) for (s1, s2) in zip(str1, str2) )
+_as_bytes = lambda x: x if isinstance(x, bytes) else bytes(x, "utf-8")
 
 class Context(object):
     def __init__(self, version, mode, suite):
@@ -55,8 +41,8 @@ class OPRFClientContext(Context):
     def identifier(self):
         return self.identifier
 
-    def blind(self, x):
-        blind = ZZ(self.suite.group.random_scalar())
+    def blind(self, x, rng):
+        blind = ZZ(self.suite.group.random_scalar(rng))
         P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
         if P == self.suite.group.identity():
             raise Exception("InvalidInputError")
@@ -83,13 +69,20 @@ class OPRFServerContext(Context):
         self.skS = skS
         self.pkS = pkS
 
-    def evaluate(self, blinded_element, info):
+    def internal_evaluate(self, blinded_element):
         evaluated_element = self.skS * blinded_element
+        return evaluated_element
+
+    def evaluate(self, blinded_element, info, rng):
+        evaluated_element = self.internal_evaluate(blinded_element)
         return evaluated_element, None, None
+
+    def evaluate_without_proof(self, blinded_element, info):
+        return self.internal_evaluate(blinded_element)
 
     def verify_finalize(self, x, expected_digest, info):
         P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
-        evaluated_element, _, _ = self.evaluate(P, info) # Ignore proof output
+        evaluated_element = self.evaluate_without_proof(P, info)
         issued_element = self.suite.group.serialize(evaluated_element)
 
         finalize_input = I2OSP(len(x), 2) + x \
@@ -227,10 +220,10 @@ class VOPRFServerContext(OPRFServerContext,Verifiable):
     def __init__(self, version, mode, suite, skS, pkS):
         OPRFServerContext.__init__(self, version, mode, suite, skS, pkS)
 
-    def generate_proof(self, k, A, B, Cs, Ds):
+    def generate_proof(self, k, A, B, Cs, Ds, rng):
         a = self.compute_composites_fast(k, B, Cs, Ds)
 
-        r = ZZ(self.suite.group.random_scalar())
+        r = ZZ(self.suite.group.random_scalar(rng))
         M = a[0]
         Z = a[1]
         t2 = r * A
@@ -254,18 +247,25 @@ class VOPRFServerContext(OPRFServerContext,Verifiable):
 
         return [c, s], r
 
-    def evaluate(self, blinded_element, info):
+    def internal_evaluate(self, blinded_element):
         evaluated_element = self.skS * blinded_element
-        proof, r = self.generate_proof(self.skS, self.suite.group.generator(), self.pkS, [blinded_element], [evaluated_element])
+        return evaluated_element
+
+    def evaluate(self, blinded_element, info, rng):
+        evaluated_element = self.internal_evaluate(blinded_element)
+        proof, r = self.generate_proof(self.skS, self.suite.group.generator(), self.pkS, [blinded_element], [evaluated_element], rng)
         return evaluated_element, proof, r
 
-    def evaluate_batch(self, blinded_elements, info):
+    def evaluate_without_proof(self, blinded_element, info):
+        return self.internal_evaluate(blinded_element)
+
+    def evaluate_batch(self, blinded_elements, info, rng):
         evaluated_elements = []
         for blinded_element in blinded_elements:
             evaluated_element = self.skS * blinded_element
             evaluated_elements.append(evaluated_element)
 
-        proof, r = self.generate_proof(self.skS, self.suite.group.generator(), self.pkS, blinded_elements, evaluated_elements)
+        proof, r = self.generate_proof(self.skS, self.suite.group.generator(), self.pkS, blinded_elements, evaluated_elements, rng)
         return evaluated_elements, proof, r
 
 class POPRFClientContext(VOPRFClientContext):
@@ -273,7 +273,7 @@ class POPRFClientContext(VOPRFClientContext):
         VOPRFClientContext.__init__(self, version, mode, suite, pkS)
         self.pkS = pkS
 
-    def blind(self, x, info):
+    def blind(self, x, info, rng):
         context = _as_bytes("Info") + I2OSP(len(info), 2) + info
         t = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
         G = self.suite.group.generator()
@@ -281,7 +281,7 @@ class POPRFClientContext(VOPRFClientContext):
         if tweaked_key == self.suite.group.identity():
             raise Exception("InvalidInputError")
 
-        blind = ZZ(self.suite.group.random_scalar())
+        blind = ZZ(self.suite.group.random_scalar(rng))
         P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
         if P == self.suite.group.identity():
             raise Exception("InvalidInputError")
@@ -347,7 +347,7 @@ class POPRFServerContext(VOPRFServerContext):
     def __init__(self, version, mode, suite, skS, pkS):
         VOPRFServerContext.__init__(self, version, mode, suite, skS, pkS)
 
-    def evaluate(self, blinded_element, info):
+    def internal_evaluate(self, blinded_element, info):
         context = _as_bytes("Info") + I2OSP(len(info), 2) + info
         t = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
         k = self.skS + t
@@ -356,12 +356,20 @@ class POPRFServerContext(VOPRFServerContext):
         k_inv = inverse_mod(k, self.suite.group.order())
         evaluated_element = k_inv * blinded_element
 
+        return evaluated_element, k
+
+    def evaluate(self, blinded_element, info, rng):
+        evaluated_element, k = self.internal_evaluate(blinded_element, info)
         G = self.suite.group.generator()
         U = k * G
-        proof, r = self.generate_proof(k, G, U, [evaluated_element], [blinded_element])
+        proof, r = self.generate_proof(k, G, U, [evaluated_element], [blinded_element], rng)
         return evaluated_element, proof, r
 
-    def evaluate_batch(self, blinded_elements, info):
+    def evaluate_without_proof(self, blinded_element, info):
+        evaluated_element, _ = self.internal_evaluate(blinded_element, info)
+        return evaluated_element
+
+    def evaluate_batch(self, blinded_elements, info, rng):
         context = _as_bytes("Info") + I2OSP(len(info), 2) + info
         t = self.suite.group.hash_to_scalar(context, self.scalar_domain_separation_tag())
 
@@ -376,12 +384,12 @@ class POPRFServerContext(VOPRFServerContext):
 
         G = self.suite.group.generator()
         U = k * G
-        proof, r = self.generate_proof(k, G, U, evaluated_elements, blinded_elements)
+        proof, r = self.generate_proof(k, G, U, evaluated_elements, blinded_elements, rng)
         return evaluated_elements, proof, r
 
     def verify_finalize(self, x, expected_digest, info):
         P = self.suite.group.hash_to_group(x, self.group_domain_separation_tag())
-        evaluated_element, _, _ = self.evaluate(P, info) # Ignore proof output
+        evaluated_element = self.evaluate_without_proof(P, info)
         issued_element = self.suite.group.serialize(evaluated_element)
 
         finalize_input = I2OSP(len(x), 2) + x \
