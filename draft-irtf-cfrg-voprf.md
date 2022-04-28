@@ -64,6 +64,14 @@ informative:
         org: Certicom Research
   ChaumPedersen: DOI.10.1007/3-540-48071-4_7
   Cheon06: DOI.10.1007/11761679_1
+  Hen14:
+    title: Efficient Zero-Knowledge Proofs and Applications
+    target: http://hdl.handle.net/10012/8621
+    date: false
+    authors:
+      -
+        ins: R. Henry
+        org: University of Waterloo, Ontario, Canada
   JKKX16: DOI.10.1109/EuroSP.2016.30
   JKK14: DOI.10.1007/978-3-662-45608-8_13
   SJKS17: DOI.10.1109/ICDCS.2017.64
@@ -301,10 +309,7 @@ group `Group` for performing all mathematical operations. Such groups are
 uniquely determined by the choice of the prime `p` that defines the
 order of the group. (There may, however, exist different representations
 of the group for a single `p`. {{ciphersuites}} lists specific groups which
-indicate both order and representation.) We use `GF(p)` to represent the finite
-field of order `p`. For the purpose of understanding and implementing this
-document, we take `GF(p)` to be equal to the set of integers defined by
-`{0, 1, ..., p-1}`.
+indicate both order and representation.)
 
 The fundamental group operation is addition `+` with identity element
 `I`. For any elements `A` and `B` of the group, `A + B = B + A` is
@@ -315,7 +320,12 @@ element A with itself `r-1` times, this is denoted as `r*A = A + ... + A`.
 For any element `A`, `p*A=I`. Scalar base multiplication is equivalent
 to the repeated application of the group operation on the fixed group
 generator with itself `r-1` times, and is denoted as `ScalarBaseMult(r)`.
-The set of scalars corresponds to `GF(p)`. This document uses types
+Given two elements A and B, the discrete logarithm problem is to find
+an integer k such that B = k*A. Thus, k is the discrete logarithm of
+B to the base A.
+The set of scalars corresponds to `GF(p)`, a prime field of order p, and are
+represented as the set of integers defined by `{0, 1, ..., p-1}`.
+This document uses types
 `Element` and `Scalar` to denote elements of the group and its set of
 scalars, respectively.
 
@@ -365,14 +375,27 @@ with a prime-order group instantiation are removed. See {{ciphersuites}}
 for advice corresponding to the implementation of this interface for
 specific definitions of elliptic curves.
 
-## Discrete Log Equivalence Proofs {#dleq}
+## Discrete Logarithm Equivalence Proofs {#dleq}
 
-Another important piece of the OPRF protocols in this document is proving
-that the discrete log of two values is identical in zero knowledge, i.e.,
-without revealing the discrete logarithm. This is referred to as a discrete
-log equivalence (DLEQ) proof. This section describes functions
-for non-interactively proving and verifying this type of statement,
-built on a Chaum-Pedersen {{ChaumPedersen}} proof. It is split into
+A proof of knowledge allows a prover to convince a verifier that some
+statement is true. If the prover can generate a proof without interaction
+with the verifier, the proof is noninteractive. If the verifier learns
+nothing beyond that the veracity of the statement claimed by the prover,
+the proof is zero-knowledge.
+
+This section describes a noninteractive zero-knowledge proof for the discrete
+logarithm equivalence (DLEQ), that is, proving that two pairs of group elements
+have the same discrete logarithm, but without revealing the discrete logarithm.
+
+The DLEQ proof is an important piece to achieve verifiability of the OPRF
+protocols of this document. Due to the zero-knowledge property of the proof,
+the server can convince the client about the consistent use of the server's
+private key while the client learns nothing about its value.
+
+The proof presented below is built on the Chaum-Pedersen's {{ChaumPedersen}}
+proof, which is proven to be zero-knowledge by Jarecki, et al. {{JKK14}} and
+can use batching techniques shown by Henry {{Hen14}}.
+The description is split into
 two sub-sections: one for generating the proof, which is done by servers
 in the verifiable protocols, and another for verifying the proof, which is
 done by clients in the protocol.
