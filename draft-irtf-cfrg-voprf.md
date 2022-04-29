@@ -343,7 +343,23 @@ All algorithms and procedures described in this document are laid out
 in a Python-like pseudocode. The data types `PrivateInput` and `PublicInput`
 are opaque byte strings of arbitrary length no larger than 2^13 octets.
 
-String values such as "Finalize" are ASCII string literals.
+The following labels are constant ASCII string literals used in some
+functions of the protocol.
+
+~~~txt
+VERSION   = 'VOPRF09'
+HASH_ELEM = 'HashToGroup-'
+HASH_SCLR = 'HashToScalar-'
+DLEQ_CHAL = 'Challenge'
+DLEQ_SEED = 'Seed-'
+DLEQ_COMP = 'Composite'
+DERIVEKEY = 'DeriveKeyPair'
+FINALIZE  = 'Finalize'
+POPRF_INF = 'Info'
+~~~
+
+[[RFC editor: please change "VOPRF09" to "RFCXXXX", where XXXX is the final
+number, here and elsewhere before publication.]]
 
 The following terms are used throughout this document.
 
@@ -495,7 +511,7 @@ def GenerateProof(k, A, B, C, D)
             I2OSP(len(a1), 2) || a1 ||
             I2OSP(len(a2), 2) || a2 ||
             I2OSP(len(a3), 2) || a3 ||
-            "Challenge"
+            DLEQ_CHAL
 
   c = G.HashToScalar(h2Input)
   s = (r - c * k) mod G.Order()
@@ -525,7 +541,7 @@ Parameters:
 
 def ComputeCompositesFast(k, B, Cs, Ds):
   Bm = G.SerializeElement(B)
-  seedDST = "Seed-" || contextString
+  seedDST = DLEQ_SEED || contextString
   h1Input = I2OSP(len(Bm), 2) || Bm ||
             I2OSP(len(seedDST), 2) || seedDST
   seed = Hash(h1Input)
@@ -537,7 +553,7 @@ def ComputeCompositesFast(k, B, Cs, Ds):
     h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
               I2OSP(len(Ci), 2) || Ci ||
               I2OSP(len(Di), 2) || Di ||
-              "Composite"
+              DLEQ_COMP
 
     di = G.HashToScalar(h2Input)
     M = di * Cs[i] + M
@@ -606,7 +622,7 @@ def VerifyProof(A, B, C, D, proof):
             I2OSP(len(a1), 2) || a1 ||
             I2OSP(len(a2), 2) || a2 ||
             I2OSP(len(a3), 2) || a3 ||
-            "Challenge"
+            DLEQ_CHAL
 
   expectedC = G.HashToScalar(h2Input)
 
@@ -634,7 +650,7 @@ Parameters:
 
 def ComputeComposites(B, Cs, Ds):
   Bm = G.SerializeElement(B)
-  seedDST = "Seed-" || contextString
+  seedDST = DLEQ_SEED || contextString
   h1Input = I2OSP(len(Bm), 2) || Bm ||
             I2OSP(len(seedDST), 2) || seedDST
   seed = Hash(h1Input)
@@ -647,7 +663,7 @@ def ComputeComposites(B, Cs, Ds):
     h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
               I2OSP(len(Ci), 2) || Ci ||
               I2OSP(len(Di), 2) || Di ||
-              "Composite"
+              DLEQ_COMP
 
     di = G.HashToScalar(h2Input)
     M = di * Cs[i] + M
@@ -763,10 +779,8 @@ used throughout the protocol with the following function:
 
 ~~~
 def CreateContextString(mode, suiteID):
-  return "VOPRF09-" || I2OSP(mode, 1) || I2OSP(suiteID, 2)
+  return VERSION || I2OSP(mode, 1) || I2OSP(suiteID, 2)
 ~~~
-
-[[RFC editor: please change "VOPRF09" to "RFCXXXX", where XXXX is the final number, here and elsewhere before publication.]]
 
 ## Key Generation and Context Setup {#offline}
 
@@ -800,11 +814,11 @@ def DeriveKeyPair(seed, info):
   deriveInput = seed || I2OSP(len(info), 2) || info
   counter = 0
   skS = 0
+  dst = DERIVEKEY || contextString
   while skS == 0:
     if counter > 255:
       raise DeriveKeyPairError
-    skS = G.HashToScalar(deriveInput || I2OSP(counter, 1),
-                          DST = "DeriveKeyPair" || contextString)
+    skS = G.HashToScalar(deriveInput || I2OSP(counter, 1), dst)
     counter = counter + 1
   pkS = G.ScalarBaseMult(skS)
   return skS, pkS
@@ -951,7 +965,7 @@ def Finalize(input, blind, evaluatedElement):
 
   hashInput = I2OSP(len(input), 2) || input ||
               I2OSP(len(unblindedElement), 2) || unblindedElement ||
-              "Finalize"
+              FINALIZE
   return Hash(hashInput)
 ~~~
 
@@ -1020,7 +1034,7 @@ def Finalize(input, blind, evaluatedElement, blindedElement, proof):
 
   hashInput = I2OSP(len(input), 2) || input ||
               I2OSP(len(unblindedElement), 2) || unblindedElement ||
-              "Finalize"
+              FINALIZE
   return Hash(hashInput)
 ~~~
 
@@ -1053,7 +1067,7 @@ Parameters:
 Errors: InvalidInputError
 
 def Blind(input, info):
-  framedInfo = "Info" || I2OSP(len(info), 2) || info
+  framedInfo = POPRF_INF || I2OSP(len(info), 2) || info
   m = G.HashToScalar(framedInfo)
   T = G.ScalarBaseMult(m)
   tweakedKey = T + pkS
@@ -1094,7 +1108,7 @@ Parameters:
 Errors: InverseError
 
 def Evaluate(blindedElement, info):
-  framedInfo = "Info" || I2OSP(len(info), 2) || info
+  framedInfo = POPRF_INF || I2OSP(len(info), 2) || info
   m = G.HashToScalar(framedInfo)
   t = skS + m
   if t == 0:
@@ -1147,7 +1161,8 @@ def Finalize(input, blind, evaluatedElement, blindedElement,
   hashInput = I2OSP(len(input), 2) || input ||
               I2OSP(len(info), 2) || info ||
               I2OSP(len(unblindedElement), 2) || unblindedElement ||
-              "Finalize"
+              FINALIZE
+
   return Hash(hashInput)
 ~~~
 
@@ -1167,7 +1182,7 @@ A ciphersuite contains instantiations of the following functionalities:
   with the recommendations in {{!I-D.irtf-cfrg-hash-to-curve}}, Section 3.1.
   For HashToScalar, each group specifies an integer order that is used in
   reducing integer values to a member of the corresponding scalar field.
-- `Hash`: A cryptographic hash function whose output length is Nh bytes long.
+- `Hash`: A cryptographic hash function whose output length is Nh bytes.
 
 This section specifies an initial registry of ciphersuites with supported groups
 and hash functions. It also includes implementation details for each ciphersuite,
@@ -1184,10 +1199,10 @@ See {{cryptanalysis}} for related discussion.
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
   - HashToGroup(): Use hash_to_ristretto255
     {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
-    "HashToGroup-" || contextString, and `expand_message` = `expand_message_xmd`
+    HASH_ELEM || contextString, and `expand_message` = `expand_message_xmd`
     using SHA-512.
   - HashToScalar(): Compute `uniform_bytes` using `expand_message` = `expand_message_xmd`,
-    DST = "HashToScalar-" || contextString, and output length 64, interpret
+    DST = HASH_SCLR || contextString, and output length 64, interpret
     `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the integer
     modulo `Order()`.
   - Serialization: Both group elements and scalars are encoded in Ne = Ns = 32
@@ -1202,10 +1217,10 @@ See {{cryptanalysis}} for related discussion.
 - Group: decaf448 {{!RISTRETTO}}
   - HashToGroup(): Use hash_to_decaf448
     {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
-    "HashToGroup-" || contextString, and `expand_message` = `expand_message_xof`
+    HASH_ELEM || contextString, and `expand_message` = `expand_message_xof`
     using SHAKE-256.
   - HashToScalar(): Compute `uniform_bytes` using `expand_message` = `expand_message_xof`,
-    DST = "HashToScalar-" || contextString, and output length 64, interpret
+    DST = HASH_SCLR || contextString, and output length 64, interpret
     `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the integer
     modulo `Order()`.
   - Serialization: Both group elements and scalars are encoded in Ne = Ns = 56
@@ -1220,10 +1235,10 @@ See {{cryptanalysis}} for related discussion.
 - Group: P-256 (secp256r1) {{x9.62}}
   - HashToGroup(): Use hash_to_curve with suite P256_XMD:SHA-256_SSWU_RO\_
     {{!I-D.irtf-cfrg-hash-to-curve}} and DST =
-    "HashToGroup-" || contextString.
+    HASH_ELEM || contextString.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
     using L = 48, `expand_message_xmd` with SHA-256,
-    DST = "HashToScalar-" || contextString, and
+    DST = HASH_SCLR || contextString, and
     prime modulus equal to `Order()`.
   - Serialization: Elements are serialized as Ne = 33 byte strings using
     compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
@@ -1237,10 +1252,10 @@ See {{cryptanalysis}} for related discussion.
 - Group: P-384 (secp384r1) {{x9.62}}
   - HashToGroup(): Use hash_to_curve with suite P384_XMD:SHA-384_SSWU_RO\_
     {{!I-D.irtf-cfrg-hash-to-curve}} and DST =
-    "HashToGroup-" || contextString.
+    HASH_ELEM || contextString.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
     using L = 72, `expand_message_xmd` with SHA-384,
-    DST = "HashToScalar-" || contextString, and
+    DST = HASH_SCLR || contextString, and
     prime modulus equal to `Order()`.
   - Serialization: Elements are serialized as Ne = 49 byte strings using
     compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
@@ -1254,10 +1269,10 @@ See {{cryptanalysis}} for related discussion.
 - Group: P-521 (secp521r1) {{x9.62}}
   - HashToGroup(): Use hash_to_curve with suite P521_XMD:SHA-512_SSWU_RO\_
     {{!I-D.irtf-cfrg-hash-to-curve}} and DST =
-    "HashToGroup-" || contextString.
+    HASH_ELEM || contextString.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
     using L = 98, `expand_message_xmd` with SHA-512,
-    DST = "HashToScalar-" || contextString, and
+    DST = HASH_SCLR || contextString, and
     prime modulus equal to `Order()`.
   - Serialization: Elements are serialized as Ne = 67 byte strings using
     compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
