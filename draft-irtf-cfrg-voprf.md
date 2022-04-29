@@ -335,9 +335,9 @@ The following functions and notation are used throughout the document.
 - For any object `x`, we write `len(x)` to denote its length in bytes.
 - For two byte arrays `x` and `y`, write `x || y` to denote their
   concatenation.
-- I2OSP and OS2IP: Convert a byte array to and from a non-negative
-  integer as described in {{!RFC8017}}. Note that these functions
-  operate on byte arrays in big-endian byte order.
+- I2OSP(x, xLen): Converts a non-negative integer `x` into a byte array
+  of specified length `xLen` as described in {{!RFC8017}}. Note that
+  this function returns a byte array in big-endian byte order.
 
 All algorithms and procedures described in this document are laid out
 in a Python-like pseudocode. The data types `PrivateInput` and `PublicInput`
@@ -363,7 +363,7 @@ The protocols in this document have two primary dependencies:
 - `Group`: A prime-order group implementing the API described below in {{pog}},
   with base point defined in the corresponding reference for each group.
   (See {{ciphersuites}} for these base points.)
-- `Hash`: A cryptographic hash function whose output length is Nh bytes long.
+- `Hash`: A cryptographic hash function whose output length is `Nh` bytes.
 
 {{ciphersuites}} specifies ciphersuites as combinations of `Group` and `Hash`.
 
@@ -407,8 +407,7 @@ prime-order group.
   parameterized by a DST; see {{ciphersuites}}.
 - RandomScalar(): A member function of `Group` that chooses at random a
   non-zero element in GF(p).
-- ScalarInverse(s): Compute the multiplicative inverse of input Scalar `s`
-  modulo the prime order of the group `p`.
+- ScalarInverse(s): Returns the inverse of input Scalar `s` on `GF(p)`.
 - SerializeElement(A): A member function of `Group` that maps a group element `A`
   to a unique byte array `buf` of fixed length `Ne`. The output type of
   this function is `SerializedElement`.
@@ -1284,7 +1283,7 @@ condition is not met.
 For P-256, P-384, and P-521 ciphersuites, this function performs partial
 public-key validation as defined in Section 5.6.2.3.4 of {{keyagreement}}.
 This includes checking that the coordinates are in the correct range, that
-the point is on the curve, and that the point is not the point at infinity.
+the point is on the curve, and that the point is not the identity.
 If these checks fail, deserialization returns an error.
 
 For ristretto255 and decaf448, elements are deserialized by invoking the Decode
