@@ -322,7 +322,7 @@ to the repeated application of the group operation on the fixed group
 generator with itself `r-1` times, and is denoted as `ScalarBaseMult(r)`.
 Given two elements A and B, the discrete logarithm problem is to find
 an integer k such that B = k*A. Thus, k is the discrete logarithm of
-B to the base A.
+B with respect to the base A.
 The set of scalars corresponds to `GF(p)`, a prime field of order p, and are
 represented as the set of integers defined by `{0, 1, ..., p-1}`.
 This document uses types
@@ -383,16 +383,12 @@ with the verifier, the proof is noninteractive. If the verifier learns
 nothing beyond that the veracity of the statement claimed by the prover,
 the proof is zero-knowledge.
 
-This section describes a noninteractive zero-knowledge proof for the discrete
-logarithm equivalence (DLEQ), that is, proving that two pairs of group elements
-have the same discrete logarithm, but without revealing the discrete logarithm.
+This section describes a noninteractive zero-knowledge proof for discrete
+logarithm equivalence (DLEQ). A DLEQ proof demonstrates that two pairs of group elements
+have the same discrete logarithm without revealing the discrete logarithm.
 
-The DLEQ proof is an important piece to achieve verifiability of the OPRF
-protocols of this document. Due to the zero-knowledge property of the proof,
-the server can convince the client about the consistent use of the server's
-private key while the client learns nothing about its value.
 
-The proof presented below is built on the Chaum-Pedersen's {{ChaumPedersen}}
+The specific DLEQ proof construction presented below is built on the Chaum-Pedersen {{ChaumPedersen}}
 proof, which is proven to be zero-knowledge by Jarecki, et al. {{JKK14}} and
 can use batching techniques shown by Henry {{Hen14}}.
 The description is split into
