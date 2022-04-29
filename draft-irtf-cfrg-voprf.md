@@ -62,65 +62,11 @@ informative:
       -
         ins: R. Gallant
         org: Certicom Research
-  ChaumPedersen:
-    title: "Wallet Databases with Observers"
-    target: https://chaum.com/publications/Wallet_Databases.pdf
-  Cheon06:
-    title: Security Analysis of the Strong Diffie-Hellman Problem
-    target: https://www.iacr.org/archive/eurocrypt2006/40040001/40040001.pdf
-    date: false
-    authors:
-      -
-        ins: J. H. Cheon
-        org: Seoul National University, Republic of Korea
-  JKKX16:
-    title: Highly-Efficient and Composable Password-Protected Secret Sharing (Or, How to Protect Your Bitcoin Wallet Online)
-    target: https://eprint.iacr.org/2016/144
-    date: false
-    authors:
-      -
-        ins: S. Jarecki
-        org: UC Irvine, CA, USA
-      -
-        ins: A. Kiayias
-        org: University of Athens, Greece
-      -
-        ins: H. Krawczyk
-        org: IBM Research, NY, USA
-      -
-        ins: Jiayu Xu
-        org: UC Irvine, CA, USA
-  JKK14:
-    title:  Round-Optimal Password-Protected Secret Sharing and T-PAKE in the Password-Only model
-    target: https://eprint.iacr.org/2014/650
-    date: false
-    authors:
-      -
-        ins: S. Jarecki
-        org: UC Irvine, CA, USA
-      -
-        ins: A. Kiayias
-        org: University of Athens, Greece
-      -
-        ins: H. Krawczyk
-        org: IBM Research, NY, USA
-  SJKS17:
-    title:  SPHINX, A Password Store that Perfectly Hides from Itself
-    target: https://eprint.iacr.org/2018/695
-    date: false
-    authors:
-      -
-        ins: M. Shirvanian
-        org: University of Alabama at Birmingham, USA
-      -
-        ins: S. Jarecki
-        org: UC Irvine, CA, USA
-      -
-        ins: H. Krawczyk
-        org: IBM Research, NY, USA
-      -
-        ins: N. Saxena
-        org: University of Alabama at Birmingham, USA
+  ChaumPedersen: DOI.10.1007/3-540-48071-4_7
+  Cheon06: DOI.10.1007/11761679_1
+  JKKX16: DOI.10.1109/EuroSP.2016.30
+  JKK14: DOI.10.1007/978-3-662-45608-8_13
+  SJKS17: DOI.10.1109/ICDCS.2017.64
   TCRSTW21:
     title: A Fast and Simple Partially Oblivious PRF, with Applications
     target: https://eprint.iacr.org/2021/864
@@ -144,26 +90,7 @@ informative:
       -
         ins: C. Wood
         org: Cloudflare, USA
-  DGSTV18:
-    title: Privacy Pass, Bypassing Internet Challenges Anonymously
-    target: https://www.degruyter.com/view/j/popets.2018.2018.issue-3/popets-2018-0026/popets-2018-0026.xml
-    date: false
-    authors:
-      -
-        ins: A. Davidson
-        org: RHUL, UK
-      -
-        ins: I. Goldberg
-        org: University of Waterloo, Canada
-      -
-        ins: N. Sullivan
-        org: Cloudflare, CA, USA
-      -
-        ins: G. Tankersley
-        org: Independent
-      -
-        ins: F. Valsorda
-        org: Independent
+  DGSTV18: DOI.10.1515/popets-2018-0026
   SEC1:
     title: "SEC 1: Elliptic Curve Cryptography"
     target: https://www.secg.org/sec1-v2.pdf
