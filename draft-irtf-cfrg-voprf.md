@@ -55,7 +55,7 @@ informative:
     title: The Static Diffie-Hellman Problem
     target: https://eprint.iacr.org/2004/306
     date: false
-    authors:
+    author:
       -
         ins: D. Brown
         org: Certicom Research
@@ -68,9 +68,10 @@ informative:
     title: Efficient Zero-Knowledge Proofs and Applications
     target: http://hdl.handle.net/10012/8621
     date: false
-    authors:
+    author:
       -
         ins: R. Henry
+        name: Ryan Henry
         org: University of Waterloo, Ontario, Canada
   JKKX16: DOI.10.1109/EuroSP.2016.30
   JKK14: DOI.10.1007/978-3-662-45608-8_13
@@ -79,7 +80,7 @@ informative:
     title: A Fast and Simple Partially Oblivious PRF, with Applications
     target: https://eprint.iacr.org/2021/864
     date: false
-    authors:
+    author:
       -
         ins: N. Tyagi
         org: Cornell University, USA
@@ -384,13 +385,14 @@ nothing beyond that the veracity of the statement claimed by the prover,
 the proof is zero-knowledge.
 
 This section describes a noninteractive zero-knowledge proof for discrete
-logarithm equivalence (DLEQ). A DLEQ proof demonstrates that two pairs of group elements
-have the same discrete logarithm without revealing the discrete logarithm.
+logarithm equivalence (DLEQ). A DLEQ proof demonstrates that two pairs of
+group elements have the same discrete logarithm without revealing the
+discrete logarithm.
 
-
-The specific DLEQ proof construction presented below is built on the Chaum-Pedersen {{ChaumPedersen}}
-proof, which is proven to be zero-knowledge by Jarecki, et al. {{JKK14}} and
-can use batching techniques shown by Henry {{Hen14}}.
+The specific DLEQ proof construction presented below is built on the
+Chaum-Pedersen {{ChaumPedersen}} proof, which is proven to be zero-knowledge
+by Jarecki, et al. {{JKK14}} and use a product test batching technique
+described in Section 3.1.4 of {{Hen14}}.
 The description is split into
 two sub-sections: one for generating the proof, which is done by servers
 in the verifiable protocols, and another for verifying the proof, which is
