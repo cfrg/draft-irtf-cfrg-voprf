@@ -381,7 +381,7 @@ specific definitions of elliptic curves.
 A proof of knowledge allows a prover to convince a verifier that some
 statement is true. If the prover can generate a proof without interaction
 with the verifier, the proof is noninteractive. If the verifier learns
-nothing beyond that the veracity of the statement claimed by the prover,
+nothing beyond the truthiness of the statement claimed by the prover,
 the proof is zero-knowledge.
 
 This section describes a noninteractive zero-knowledge proof for discrete
