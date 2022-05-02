@@ -381,8 +381,8 @@ specific definitions of elliptic curves.
 A proof of knowledge allows a prover to convince a verifier that some
 statement is true. If the prover can generate a proof without interaction
 with the verifier, the proof is noninteractive. If the verifier learns
-nothing beyond the truthiness of the statement claimed by the prover,
-the proof is zero-knowledge.
+nothing other than whether the statement claimed by the prover is true or
+false, the proof is zero-knowledge.
 
 This section describes a noninteractive zero-knowledge proof for discrete
 logarithm equivalence (DLEQ). A DLEQ proof demonstrates that two pairs of
