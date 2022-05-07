@@ -391,7 +391,7 @@ discrete logarithm.
 
 The specific DLEQ proof construction presented below is built on the
 Chaum-Pedersen {{ChaumPedersen}} proof, which is proven to be zero-knowledge
-by Jarecki, et al. {{JKK14}} and use a product test batching technique
+by Jarecki, et al. {{JKK14}} and uses the product test batching technique
 described in Section 3.1.4 of {{Hen14}}.
 The description is split into
 two sub-sections: one for generating the proof, which is done by servers
