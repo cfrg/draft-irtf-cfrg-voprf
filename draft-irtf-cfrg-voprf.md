@@ -348,21 +348,18 @@ prime-order group.
 - RandomScalar(): A member function of `Group` that chooses at random a
   non-zero element in GF(p).
 - ScalarInverse(s): Returns the inverse of input Scalar `s` on `GF(p)`.
-- SerializeElement(A): A member function of `Group` that maps a group element `A`
-  to a unique byte array `buf` of fixed length `Ne`. The output type of
-  this function is `SerializedElement`.
-- DeserializeElement(buf): A member function of `Group` that maps a byte array
-  `buf` to a group element `A`, or fails if the input is not a valid
-  byte representation of an element. This function can raise a
-  DeserializeError if deserialization fails or `A` is the identity element
-  of the group; see {{input-validation}}.
-- SerializeScalar(s): A member function of `Group` that maps a scalar element `s`
-  to a unique byte array `buf` of fixed length `Ns`. The output type of this
-  function is `SerializedScalar`.
-- DeserializeScalar(buf): A member function of `Group` that maps a byte array
-  `buf` to a scalar `s`, or fails if the input is not a valid byte
-  representation of a scalar. This function can raise a
-  DeserializeError if deserialization fails; see {{input-validation}}.
+- SerializeElement(A): A member function of `Group` that maps a group element
+  `A` to a unique byte array `buf` of fixed length `Ne`.
+- DeserializeElement(buf): A member function of `Group` that maps a byte
+  array `buf` to a group element `A`, or raise a DeserializeError if the
+  input is not a valid byte representation of an element.
+  See {{input-validation}} for further requirements on input validation.
+- SerializeScalar(s): A member function of `Group` that maps a scalar element
+  `s` to a unique byte array `buf` of fixed length `Ns`.
+- DeserializeScalar(buf): A member function of `Group` that maps a byte
+  array `buf` to a scalar `s`, or raise a DeserializeError if the input
+  is not a valid byte representation of a scalar.
+  See {{input-validation}} for further requirements on input validation.
 
 It is convenient in cryptographic applications to instantiate such
 prime-order groups using elliptic curves, such as those detailed in
@@ -538,8 +535,6 @@ Parameters:
 
   Group G
 
-Errors: DeserializeError
-
 def VerifyProof(A, B, C, D, proof):
   Cs = [C]
   Ds = [D]
@@ -642,7 +637,7 @@ This interaction is shown below.
                              evaluatedElement
                                <----------
 
-  output = Finalize(input, blind, evaluatedElement, blindedElement)
+  output = Finalize(input, blind, evaluatedElement)
 ~~~
 {: #fig-oprf title="OPRF protocol overview"}
 
@@ -730,8 +725,8 @@ In the offline setup phase, both the client and server create a context used
 for executing the online phase of the protocol after agreeing on a mode and
 ciphersuite value suiteID. The server key pair (`skS`, `pkS`) is generated
 using the following function, which accepts a randomly generated seed of length
-`Ns` and optional public info string. The constant `Ns` corresponds to the size
-of a serialized Scalar and is defined in {{pog}}.
+`Ns` and optional public `info` string. The constant `Ns` corresponds to the
+size of a serialized Scalar and is defined in {{pog}}.
 
 ~~~
 Input:
@@ -813,15 +808,15 @@ are assumed to exist:
 - contextString, a PublicInput domain separation tag constructed during context setup as created in {{configuration}}.
 - skS and pkS, a Scalar and Element representing the private and public keys configured for client and server in {{offline}}.
 
-Applications serialize protocol messages between client and server for transmission.
-Specifically, values of type Element are serialized to SerializedElement values,
-and values of type Proof are serialized as the concatenation of two SerializedScalar
-values. Deserializing these values can fail, in which case the application MUST abort
+Applications serialize protocol messages between client and server for
+transmission. Elements and scalars are serialized to byte arrays, and values
+of type Proof are serialized as the concatenation of two serialized scalars.
+Deserializing these values can fail, in which case the application MUST abort
 the protocol with a `DeserializeError` failure.
 
-Applications MUST check that input Element values received over the wire are not
-the group identity element. This check is handled when deserializing Element values
-using DeserializeElement; see {{input-validation}} for more information on input
+Applications MUST check that input Element values received over the wire
+are not the group identity element. This check is handled after deserializing
+Element values; see {{input-validation}} for more information on input
 validation.
 
 ### OPRF Protocol {#oprf}
@@ -1224,31 +1219,34 @@ See {{cryptanalysis}} for related discussion.
 
 ## Input Validation {#input-validation}
 
+Since messages between server and clients are usually sent as an opaque
+byte array, a validation process is required to detect malformed or
+invalid inputs of the protocol.
 The DeserializeElement and DeserializeScalar functions instantiated for a
 particular prime-order group corresponding to a ciphersuite MUST adhere
-to the description in {{pog}}. This section describes how both DeserializeElement
-and DeserializeScalar are implemented for all prime-order groups included
+to the description in {{pog}}. This section describes how input validation
+of elements and scalars is implemented for all prime-order groups included
 in the above ciphersuite list.
 
-### DeserializeElement Validation
+### Element Validation
 
-The DeserializeElement function attempts to recover a group element from an arbitrary
-byte array. This function validates that the element is a proper member
-of the group and is not the identity element, and returns an error if either
-condition is not met.
+Recovering a group element from an arbitrary byte array must validate that
+the element is a proper member of the group and is not the identity element,
+and returns an error if either condition is not met.
 
-For P-256, P-384, and P-521 ciphersuites, this function performs partial
+For P-256, P-384, and P-521 ciphersuites, it is required to perform partial
 public-key validation as defined in Section 5.6.2.3.4 of {{keyagreement}}.
 This includes checking that the coordinates are in the correct range, that
 the point is on the curve, and that the point is not the identity.
-If these checks fail, deserialization returns an error.
+If these checks fail, validation returns an InputValidationError.
 
 For ristretto255 and decaf448, elements are deserialized by invoking the Decode
 function from {{RISTRETTO, Section 4.3.1}} and {{RISTRETTO, Section 5.3.1}}, respectively,
-which returns false if the input is invalid. If this function returns false,
-deserialization returns an error.
+which returns false if the input is invalid. If this function returns false
+or if the decoded element is the identity, validation returns an
+InputValidationError.
 
-### DeserializeScalar Validation
+### Scalar Validation
 
 The DeserializeScalar function attempts to recover a scalar field element from an arbitrary
 byte array. Like DeserializeElement, this function validates that the element
@@ -1302,12 +1300,13 @@ and instead expose interfaces that operate in terms of wire format messages.
 ## Error Considerations {#errors}
 
 Some OPRF variants specified in this document have fallible operations. For example, `Finalize`
-and `Evaluate` can fail if any element received from the peer fails deserialization.
+and `Evaluate` can fail if any element received from the peer fails input validation.
 The explicit errors generated throughout this specification, along with the
 conditions that lead to each error, are as follows:
 
 - `VerifyError`: Verifiable OPRF proof verification failed; {{voprf}} and {{poprf}}.
 - `DeserializeError`: Group Element or Scalar deserialization failure; {{pog}} and {{online}}.
+- `InputValidationError`: Validation of byte array inputs failed; {{input-validation}}.
 
 There are other explicit errors generated in this specification, however they occur with
 negligible probability in practice. We note them here for completeness.
