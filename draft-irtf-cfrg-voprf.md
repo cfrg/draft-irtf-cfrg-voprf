@@ -1210,9 +1210,9 @@ See {{cryptanalysis}} for related discussion.
 
 ## Input Validation {#input-validation}
 
-Since messages between server and clients are usually sent as an opaque
-byte array, a validation process is required to detect malformed or
-invalid inputs of the protocol.
+Since messages are serialized before transmission between client and server, 
+deserialization is followed by input validation to prevent malformed or invalid
+invalid inputs from being used in the protocol.
 The DeserializeElement and DeserializeScalar functions instantiated for a
 particular prime-order group corresponding to a ciphersuite MUST adhere
 to the description in {{pog}}. This section describes how input validation
