@@ -397,9 +397,10 @@ Furthermore, Davidson, et al. {{DGSTV18}} showed a proof system for
 batching DLEQ proofs that has constant-size proofs with respect to the
 number of inputs.
 The specific DLEQ proof system presented below follows this latter
-construction with minor modifications in the transcript used to generate
-the challenge, and replaces the pseudorandom number generator by a
-seed-prefixed hash to scalar invocation for sampling scalars.
+construction with two modifications: (1) the transcript used to generate
+the seed includes more context information, and (2) the individual challenges
+for each element in the proof is derived from a seed-prefixed hash-to-scalar
+invocation rather than being sampled from a seeded PRNG.
 The description is split into
 two sub-sections: one for generating the proof, which is done by servers
 in the verifiable protocols, and another for verifying the proof, which is
