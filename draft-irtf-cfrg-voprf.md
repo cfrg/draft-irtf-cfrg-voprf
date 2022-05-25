@@ -64,15 +64,17 @@ informative:
         org: Certicom Research
   ChaumPedersen: DOI.10.1007/3-540-48071-4_7
   Cheon06: DOI.10.1007/11761679_1
-  Hen14:
-    title: Efficient Zero-Knowledge Proofs and Applications
-    target: http://hdl.handle.net/10012/8621
-    date: false
+  FS00:
+    title: "How To Prove Yourself: Practical Solutions to Identification and Signature Problems"
+    target: https://doi.org/10.1007/3-540-47721-7_12
+    date: Dec, 2000
     author:
       -
-        ins: R. Henry
-        name: Ryan Henry
-        org: University of Waterloo, Ontario, Canada
+        ins: A. Fiat
+        org: The Weizmann Institute of Science, Israel
+      -
+        ins: A. Shamir
+        org: The Weizmann Institute of Science, Israel
   JKKX16: DOI.10.1109/EuroSP.2016.30
   JKK14: DOI.10.1007/978-3-662-45608-8_13
   SJKS17: DOI.10.1109/ICDCS.2017.64
@@ -388,10 +390,16 @@ logarithm equivalence (DLEQ). A DLEQ proof demonstrates that two pairs of
 group elements have the same discrete logarithm without revealing the
 discrete logarithm.
 
-The specific DLEQ proof construction presented below is built on the
-Chaum-Pedersen {{ChaumPedersen}} proof, which is proven to be zero-knowledge
-by Jarecki, et al. {{JKK14}} and uses the product test batching technique
-described in Section 3.1.4 of {{Hen14}}.
+The DLEQ proof resembles the Chaum-Pedersen {{ChaumPedersen}} proof, which
+is shown to be zero-knowledge by Jarecki, et al. {{JKK14}} and is
+noninteractive after applying the Fiat-Shamir transform {{FS00}}.
+Furthermore, Davidson, et al. {{DGSTV18}} showed a proof system for
+batching DLEQ proofs that has constant-size proofs with respect to the
+number of inputs.
+The specific DLEQ proof system presented below follows this latter
+construction with minor modifications in the transcript used to generate
+the challenge, and replaces the pseudorandom number generator by a
+seed-prefixed hash to scalar invocation for sampling scalars.
 The description is split into
 two sub-sections: one for generating the proof, which is done by servers
 in the verifiable protocols, and another for verifying the proof, which is
