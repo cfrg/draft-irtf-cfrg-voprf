@@ -281,7 +281,7 @@ All algorithms and procedures described in this document are laid out
 in a Python-like pseudocode. The data types `PrivateInput` and `PublicInput`
 are opaque byte strings of arbitrary length no larger than 2^13 octets.
 
-String values such as "Finalize" are ASCII string literals.
+String values such as 'DeriveKeyPair', 'Seed-', or "Finalize" are ASCII string literals.
 
 The following terms are used throughout this document.
 
