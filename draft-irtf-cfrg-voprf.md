@@ -1210,8 +1210,8 @@ See {{cryptanalysis}} for related discussion.
 
 ## Input Validation {#input-validation}
 
-Since messages are serialized before transmission between client and server, 
-deserialization is followed by input validation to prevent malformed or invalid
+Since messages are serialized before transmission between client and server,
+deserialization is followed by input validation to prevent malformed or
 invalid inputs from being used in the protocol.
 The DeserializeElement and DeserializeScalar functions instantiated for a
 particular prime-order group corresponding to a ciphersuite MUST adhere
