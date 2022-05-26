@@ -412,12 +412,10 @@ and `k*C[i] == D[i]` for each element in the list.
 The output is a value of type Proof, which is a tuple of two Scalar
 values.
 
-`GenerateProof` admits lists of inputs to further support parallel invocations
-of the OPRF protocol while amortizing the cost of proof generation and
-bandwidth across multiple requests.
-Thus, applications can take advantage of this functionality by invoking the
-protocol on batches of inputs to produce a single, constant-sized proof
-for `m` DLEQ inputs, rather than one proof per DLEQ input.
+`GenerateProof` accepts lists of inputs to amortize the cost of proof
+generation. Applications can take advantage of this functionality to
+produce a single, constant-sized proof for `m` DLEQ inputs, rather
+than `m` proofs for `m` DLEQ inputs.
 
 ~~~
 Input:
@@ -926,13 +924,14 @@ Parameters:
 
 def Evaluate(blindedElement):
   evaluatedElement = skS * blindedElement
-  C = [ blindedElement ]
-  D = [ evaluatedElement ]
-  proof = GenerateProof(skS, G.Generator(), pkS, C, D)
+  blindedElements = [blindedElement]     // list of length 1
+  evaluatedElements = [evaluatedElement] // list of length 1
+  proof = GenerateProof(skS, G.Generator(), pkS,
+                        blindedElements, evaluatedElements)
   return evaluatedElement, proof
 ~~~
 
-In the descripton above, C and D are passsed to `GenerateProof` as one-item
+In the description above, inputs to `GenerateProof` are one-item
 lists. Using larger lists allows servers to batch the evaluation of multiple
 elements while producing a single batched DLEQ proof for them.
 
@@ -961,9 +960,10 @@ Parameters:
 Errors: VerifyError
 
 def Finalize(input, blind, evaluatedElement, blindedElement, proof):
-  C = [ blindedElement ]
-  D = [ evaluatedElement ]
-  if VerifyProof(G.Generator(), pkS, C, D, proof) == false:
+  blindedElements = [blindedElement]     // list of length 1
+  evaluatedElements = [evaluatedElement] // list of length 1
+  if VerifyProof(G.Generator(), pkS, blindedElements,
+                 evaluatedElements, proof) == false:
     raise VerifyError
 
   N = G.ScalarInverse(blind) * evaluatedElement
@@ -975,9 +975,9 @@ def Finalize(input, blind, evaluatedElement, blindedElement, proof):
   return Hash(hashInput)
 ~~~
 
-Like in `Evaluate`, C and D are passsed to `VerifyProof` as one-item lists.
-Clients can verify multiple inputs at once whenever the server produced a
-batched DLEQ proof for them.
+As in `Evaluate`, inputs to `VerifyProof` are one-item lists. Clients can verify
+multiple inputs at once whenever the server produced a batched DLEQ proof
+for them.
 
 ### POPRF Protocol {#poprf}
 
@@ -1058,14 +1058,15 @@ def Evaluate(blindedElement, info):
   evaluatedElement = G.ScalarInverse(t) * blindedElement
 
   tweakedKey = G.ScalarBaseMult(t)
-  C = [ evaluatedElement ]
-  D = [ blindedElement ]
-  proof = GenerateProof(t, G.Generator(), tweakedKey, C, D)
+  evaluatedElements = [evaluatedElement] // list of length 1
+  blindedElements = [blindedElement]     // list of length 1
+  proof = GenerateProof(t, G.Generator(), tweakedKey,
+                        evaluatedElements, blindedElements)
 
   return evaluatedElement, proof
 ~~~
 
-In the descripton above, C and D are passsed to `GenerateProof` as one-item
+In the description above, inputs to `GenerateProof` are one-item
 lists. Using larger lists allows servers to batch the evaluation of multiple
 elements while producing a single batched DLEQ proof for them.
 
@@ -1097,9 +1098,10 @@ Errors: VerifyError
 
 def Finalize(input, blind, evaluatedElement, blindedElement,
              proof, info, tweakedKey):
-  C = [ evaluatedElement ]
-  D = [ blindedElement ]
-  if VerifyProof(G.Generator(), tweakedKey, C, D, proof) == false:
+  evaluatedElements = [evaluatedElement] // list of length 1
+  blindedElements = [blindedElement]     // list of length 1
+  if VerifyProof(G.Generator(), tweakedKey, evaluatedElements,
+                 blindedElements, proof) == false:
     raise VerifyError
 
   N = G.ScalarInverse(blind) * evaluatedElement
@@ -1112,7 +1114,7 @@ def Finalize(input, blind, evaluatedElement, blindedElement,
   return Hash(hashInput)
 ~~~
 
-Like in `Evaluate`, C and D are passsed to `VerifyProof` as one-item lists.
+As in `Evaluate`, inputs to `VerifyProof` are one-item lists.
 Clients can verify multiple inputs at once whenever the server produced a
 batched DLEQ proof for them.
 
