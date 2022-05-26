@@ -49,7 +49,7 @@ informative:
   RFC7748:
   PrivacyPass:
     title: Privacy Pass
-    target: https://github.com/privacypass/challenge-bypass-server
+    target: https://github.com/privacypass/team
     date: false
   BG04:
     title: The Static Diffie-Hellman Problem
@@ -406,10 +406,16 @@ done by clients in the protocol.
 ### Proof Generation
 
 Generating a proof is done with the `GenerateProof` function, defined below.
-This function takes four Elements, A, B, C, and D, and a single
-group Scalar k, and produces a proof that `k*A == B` and `k*C == D`.
+Given elements A and B, two non-empty lists of elements C and D of length
+`m`, and a scalar k; this function produces a proof that `k*A == B`
+and `k*C[i] == D[i]` for each element in the list.
 The output is a value of type Proof, which is a tuple of two Scalar
 values.
+
+`GenerateProof` accepts lists of inputs to amortize the cost of proof
+generation. Applications can take advantage of this functionality to
+produce a single, constant-sized proof for `m` DLEQ inputs, rather
+than `m` proofs for `m` DLEQ inputs.
 
 ~~~
 Input:
@@ -417,8 +423,8 @@ Input:
   Scalar k
   Element A
   Element B
-  Element C
-  Element D
+  Element C[m]
+  Element D[m]
 
 Output:
 
@@ -429,9 +435,7 @@ Parameters:
   Group G
 
 def GenerateProof(k, A, B, C, D)
-  Cs = [C]
-  Ds = [D]
-  (M, Z) = ComputeCompositesFast(k, B, Cs, Ds)
+  (M, Z) = ComputeCompositesFast(k, B, C, D)
 
   r = G.RandomScalar()
   t2 = r * A
@@ -463,8 +467,8 @@ Input:
 
   Scalar k
   Element B
-  Element Cs[m]
-  Element Ds[m]
+  Element C[m]
+  Element D[m]
 
 Output:
 
@@ -476,7 +480,7 @@ Parameters:
   Group G
   PublicInput contextString
 
-def ComputeCompositesFast(k, B, Cs, Ds):
+def ComputeCompositesFast(k, B, C, D):
   Bm = G.SerializeElement(B)
   seedDST = "Seed-" || contextString
   h1Input = I2OSP(len(Bm), 2) || Bm ||
@@ -484,47 +488,41 @@ def ComputeCompositesFast(k, B, Cs, Ds):
   seed = Hash(h1Input)
 
   M = G.Identity()
-  for i = 0 to range(m):
-    Ci = G.SerializeElement(Cs[i])
-    Di = G.SerializeElement(Ds[i])
+  for i in range(m):
+    Ci = G.SerializeElement(C[i])
+    Di = G.SerializeElement(D[i])
     h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
               I2OSP(len(Ci), 2) || Ci ||
               I2OSP(len(Di), 2) || Di ||
               "Composite"
 
     di = G.HashToScalar(h2Input)
-    M = di * Cs[i] + M
+    M = di * C[i] + M
 
   Z = k * M
 
- return (M, Z)
+  return (M, Z)
 ~~~
 
 When used in the protocol described in {{protocol}}, the parameter `contextString` is
-as defined in {{configuration}}.
-
-`ComputeCompositesFast` takes lists of inputs, rather than a single input.
-Applications can take advantage of this functionality by invoking `GenerateProof`
-on batches of inputs to produce a combined, constant-size proof.
-In particular, servers can produce a single, constant-sized proof for N DLEQ inputs,
-rather than one proof per DLEQ input. This optimization benefits
-clients and servers since it amortizes the cost of proof generation
-and bandwidth across multiple requests.
+as defined in {{offline}}.
 
 ### Proof Verification
 
 Verifying a proof is done with the `VerifyProof` function, defined below.
-This function takes four Elements, A, B, C, and D, along with a Proof value
-output from `GenerateProof`. It outputs a single boolean value indicating whether
-or not the proof is valid for the given DLEQ inputs.
+This function takes elements A and B, two non-empty lists of elements C and D
+of length `m`, and a Proof value output from `GenerateProof`. It outputs a
+single boolean value indicating whether or not the proof is valid for the
+given DLEQ inputs. Note this function can verify proofs on lists of inputs
+whenever the proof was generated as a batched DLEQ proof with the same inputs.
 
 ~~~
 Input:
 
   Element A
   Element B
-  Element C
-  Element D
+  Element C[m]
+  Element D[m]
   Proof proof
 
 Output:
@@ -536,10 +534,7 @@ Parameters:
   Group G
 
 def VerifyProof(A, B, C, D, proof):
-  Cs = [C]
-  Ds = [D]
-
-  (M, Z) = ComputeComposites(B, Cs, Ds)
+  (M, Z) = ComputeComposites(B, C, D)
   c = proof[0]
   s = proof[1]
 
@@ -570,8 +565,8 @@ The definition of `ComputeComposites` is given below.
 Input:
 
   Element B
-  Element Cs[m]
-  Element Ds[m]
+  Element C[m]
+  Element D[m]
 
 Output:
 
@@ -583,7 +578,7 @@ Parameters:
   Group G
   PublicInput contextString
 
-def ComputeComposites(B, Cs, Ds):
+def ComputeComposites(B, C, D):
   Bm = G.SerializeElement(B)
   seedDST = "Seed-" || contextString
   h1Input = I2OSP(len(Bm), 2) || Bm ||
@@ -592,27 +587,23 @@ def ComputeComposites(B, Cs, Ds):
 
   M = G.Identity()
   Z = G.Identity()
-  for i = 0 to m-1:
-    Ci = G.SerializeElement(Cs[i])
-    Di = G.SerializeElement(Ds[i])
+  for i in range(m):
+    Ci = G.SerializeElement(C[i])
+    Di = G.SerializeElement(D[i])
     h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
               I2OSP(len(Ci), 2) || Ci ||
               I2OSP(len(Di), 2) || Di ||
               "Composite"
 
     di = G.HashToScalar(h2Input)
-    M = di * Cs[i] + M
-    Z = di * Ds[i] + Z
+    M = di * C[i] + M
+    Z = di * D[i] + Z
 
- return (M, Z)
+  return (M, Z)
 ~~~
 
 When used in the protocol described in {{protocol}}, the parameter `contextString` is
-as defined in {{configuration}}.
-
-As with the proof generation case, proof verification can be batched. `ComputeComposites`
-is defined in terms of a batch of inputs. Implementations can take advantage of this
-behavior by also batching inputs to `VerifyProof`, respectively.
+as defined in {{offline}}.
 
 # Protocol {#protocol}
 
@@ -704,6 +695,7 @@ Each of the three protocol variants are identified with a one-byte value:
 | modeOPRF       | 0x00  |
 | modeVOPRF      | 0x01  |
 | modePOPRF      | 0x02  |
+{: #tab-modes title="Identifiers for OPRF modes"}
 
 Additionally, each protocol variant is instantiated with a ciphersuite,
 or suite. Each ciphersuite is identified with a two-byte value, referred
@@ -932,10 +924,16 @@ Parameters:
 
 def Evaluate(blindedElement):
   evaluatedElement = skS * blindedElement
+  blindedElements = [blindedElement]     // list of length 1
+  evaluatedElements = [evaluatedElement] // list of length 1
   proof = GenerateProof(skS, G.Generator(), pkS,
-                        blindedElement, evaluatedElement)
+                        blindedElements, evaluatedElements)
   return evaluatedElement, proof
 ~~~
+
+In the description above, inputs to `GenerateProof` are one-item
+lists. Using larger lists allows servers to batch the evaluation of multiple
+elements while producing a single batched DLEQ proof for them.
 
 The server sends both `evaluatedElement` and `proof` back to the client.
 Upon receipt, the client processes both values to complete the VOPRF computation
@@ -962,8 +960,10 @@ Parameters:
 Errors: VerifyError
 
 def Finalize(input, blind, evaluatedElement, blindedElement, proof):
-  if VerifyProof(G.Generator(), pkS, blindedElement,
-                 evaluatedElement, proof) == false:
+  blindedElements = [blindedElement]     // list of length 1
+  evaluatedElements = [evaluatedElement] // list of length 1
+  if VerifyProof(G.Generator(), pkS, blindedElements,
+                 evaluatedElements, proof) == false:
     raise VerifyError
 
   N = G.ScalarInverse(blind) * evaluatedElement
@@ -974,6 +974,10 @@ def Finalize(input, blind, evaluatedElement, blindedElement, proof):
               "Finalize"
   return Hash(hashInput)
 ~~~
+
+As in `Evaluate`, inputs to `VerifyProof` are one-item lists. Clients can verify
+multiple inputs at once whenever the server produced a batched DLEQ proof
+for them.
 
 ### POPRF Protocol {#poprf}
 
@@ -1054,14 +1058,20 @@ def Evaluate(blindedElement, info):
   evaluatedElement = G.ScalarInverse(t) * blindedElement
 
   tweakedKey = G.ScalarBaseMult(t)
+  evaluatedElements = [evaluatedElement] // list of length 1
+  blindedElements = [blindedElement]     // list of length 1
   proof = GenerateProof(t, G.Generator(), tweakedKey,
-                        evaluatedElement, blindedElement)
+                        evaluatedElements, blindedElements)
 
   return evaluatedElement, proof
 ~~~
 
+In the description above, inputs to `GenerateProof` are one-item
+lists. Using larger lists allows servers to batch the evaluation of multiple
+elements while producing a single batched DLEQ proof for them.
+
 The server sends both `evaluatedElement` and `proof` back to the client.
-Upon receipt, the client processes both values to complete the VOPRF computation
+Upon receipt, the client processes both values to complete the POPRF computation
 using the `Finalize` function below.
 
 ~~~
@@ -1088,8 +1098,10 @@ Errors: VerifyError
 
 def Finalize(input, blind, evaluatedElement, blindedElement,
              proof, info, tweakedKey):
-  if VerifyProof(G.Generator(), tweakedKey, evaluatedElement,
-                 blindedElement, proof) == false:
+  evaluatedElements = [evaluatedElement] // list of length 1
+  blindedElements = [blindedElement]     // list of length 1
+  if VerifyProof(G.Generator(), tweakedKey, evaluatedElements,
+                 blindedElements, proof) == false:
     raise VerifyError
 
   N = G.ScalarInverse(blind) * evaluatedElement
@@ -1101,6 +1113,10 @@ def Finalize(input, blind, evaluatedElement, blindedElement,
               "Finalize"
   return Hash(hashInput)
 ~~~
+
+As in `Evaluate`, inputs to `VerifyProof` are one-item lists.
+Clients can verify multiple inputs at once whenever the server produced a
+batched DLEQ proof for them.
 
 # Ciphersuites {#ciphersuites}
 
@@ -1412,8 +1428,8 @@ that need to be made.
 The OPRF and VOPRF protocol variants in this document are based on {{JKK14}}.
 In fact, the VOPRF construction is identical to the {{JKK14}} construction, except
 that this document supports batching so that multiple evaluations can happen
-at once whilst only constructing one proof object. This is enabled using
-an established batching technique.
+at once whilst only constructing one DLEQ proof object. This is enabled using
+an established batching technique {{DGSTV18}}.
 
 The pseudorandomness and input secrecy (and verifiability) of the OPRF (and VOPRF) variants
 is based on the assumption that the One-More Gap Computational Diffie Hellman (CDH) is computationally
@@ -1427,13 +1443,13 @@ composability (UC) security framework.
 The POPRF construction in this document is based on the construction known
 as 3HashSDHI given by {{TCRSTW21}}. The construction is identical to
 3HashSDHI, except that this design can optionally perform multiple POPRF
-evaluations in one go, whilst only constructing one NIZK proof object.
-This is enabled using an established batching technique.
+evaluations in one go, whilst only constructing one DLEQ proof object.
+This is enabled using an established batching technique {{DGSTV18}}.
 
 Pseudorandomness, input secrecy, verifiability, and partial obliviousness of the POPRF variant is
 based on the assumption that the One-More Gap Strong Diffie-Hellman Inversion (SDHI)
 assumption from {{TCRSTW21}} is computationally difficult to solve in the corresponding
-prime-order group. {{TCRSTW21}} show that both the One-More Gap CDH assumption
+prime-order group. Tyagi et al. {{TCRSTW21}} show that both the One-More Gap CDH assumption
 and the One-More Gap SDHI assumption reduce to the q-DL (Discrete Log) assumption
 in the algebraic group model, for some q number of `Evaluate` queries.
 (The One-More Gap CDH assumption was the hardness assumption used to
