@@ -21,7 +21,7 @@ This requires that you have the necessary software installed.  See
 
 | Implementation                                                            | Language   | Version  | Modes  |
 | ------------------------------------------------------------------------- |:-----------|:---------|:-------|
-| [**Reference**](https://github.com/cfrg/draft-irtf-cfrg-voprf/tree/draft-irtf-cfrg-voprf-09/poc)  | Sage/Python | draft-09 | All |
+| [**Reference**](https://github.com/cfrg/draft-irtf-cfrg-voprf/tree/draft-irtf-cfrg-voprf-09/poc)  | Sage/Python | draft-10 | All |
 | [oprf-ts](https://github.com/privacyresearchgroup/oprf-ts)                | TypeScript | draft-07 | All    |
 | [voprf-ts](https://github.com/cloudflare/voprf-ts)                        | TypeScript | draft-09 | All    |
 | [voprf](https://github.com/bytemare/voprf)                                | Go         | draft-10 | All    |
