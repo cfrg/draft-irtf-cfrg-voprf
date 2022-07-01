@@ -24,7 +24,7 @@ This requires that you have the necessary software installed.  See
 | [**Reference**](https://github.com/cfrg/draft-irtf-cfrg-voprf/tree/draft-irtf-cfrg-voprf-09/poc)  | Sage/Python | draft-09 | All |
 | [oprf-ts](https://github.com/privacyresearchgroup/oprf-ts)                | TypeScript | draft-07 | All    |
 | [voprf-ts](https://github.com/cloudflare/voprf-ts)                        | TypeScript | draft-09 | All    |
-| [voprf](https://github.com/bytemare/voprf)                                | Go         | draft-08 | All    |
+| [voprf](https://github.com/bytemare/voprf)                                | Go         | draft-10 | All    |
 | [CIRCL](https://github.com/cloudflare/circl)                              | Go         | draft-09 | All    |
 | [voprf](https://github.com/novifinancial/voprf)                           | Rust       | main     | All    |
 | [BoringSSL](https://boringssl.googlesource.com/boringssl/+/refs/heads/master/crypto/trust_token/) | C      | draft-04 | All    |
@@ -35,7 +35,7 @@ This requires that you have the necessary software installed.  See
 | Implementation                                                            | Language | Version  | Modes  | Notes |
 | ------------------------------------------------------------------------- |:---------|:---------|:-------|:------|
 | [opaque-ke](https://github.com/novifinancial/opaque-ke/)                  | Rust     | draft-06 | Base   | As a component for OPAQUE |
-| [opaque](https://github.com/bytemare/opaque)                              | Go       | draft-08 | Base   | As a component for OPAQUE |
+| [opaque](https://github.com/bytemare/opaque)                              | Go       | draft-10 | Base   | As a component for OPAQUE |
 | [libopaque](https://github.com/stef/libopaque)                            | C        | draft-09 | Base   | As a component for OPAQUE |
 
 Submit a PR if you have a compliant implementation!
