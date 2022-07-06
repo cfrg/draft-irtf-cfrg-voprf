@@ -177,6 +177,14 @@ along with application considerations, and their security properties.
 
 ## Change log
 
+[draft-11](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-11):
+
+- Change Evaluate to BlindEvaluate, and add Evaluate for PRF evaluation
+
+[draft-10](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-10):
+
+- Editorial improvements
+
 [draft-09](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-09):
 
 - Split syntax for OPRF, VOPRF, and POPRF functionalities.
@@ -623,7 +631,7 @@ This interaction is shown below.
                              blindedElement
                                ---------->
 
-                          evaluatedElement = Evaluate(blindedElement)
+                     evaluatedElement = BlindEvaluate(blindedElement)
 
                              evaluatedElement
                                <----------
@@ -635,7 +643,7 @@ This interaction is shown below.
 In the verifiable mode, the client additionally receives proof that the server used `skS` in
 computing the function. To achieve verifiability, as in the original work of {{JKK14}}, the
 server provides a zero-knowledge proof that the key provided as input by the server in
-the `Evaluate` function is the same key as it used to produce the server's public key, `pkS`,
+the `BlindEvaluate` function is the same key as it used to produce the server's public key, `pkS`,
 which the client receives as input to the protocol. This proof does not reveal the server's
 private key to the client. This interaction is shown below.
 
@@ -647,7 +655,7 @@ private key to the client. This interaction is shown below.
                              blindedElement
                                ---------->
 
-                   evaluatedElement, proof = Evaluate(blindedElement)
+              evaluatedElement, proof = BlindEvaluate(blindedElement)
 
                          evaluatedElement, proof
                                <----------
@@ -672,7 +680,7 @@ as in {{TCRSTW21}}.
                              blindedElement
                                ---------->
 
-             evaluatedElement, proof = Evaluate(blindedElement, info)
+        evaluatedElement, proof = BlindEvaluate(blindedElement, info)
 
                          evaluatedElement, proof
                                <----------
@@ -837,16 +845,16 @@ Errors: InvalidInputError
 
 def Blind(input):
   blind = G.RandomScalar()
-  P = G.HashToGroup(input)
-  if P == G.Identity():
+  inputElement = G.HashToGroup(input)
+  if inputElement == G.Identity():
     raise InvalidInputError
-  blindedElement = blind * P
+  blindedElement = blind * inputElement
 
   return blind, blindedElement
 ~~~
 
 Clients store `blind` locally, and send `blindedElement` to the server for evaluation.
-Upon receipt, servers process `blindedElement` using the `Evaluate` function described
+Upon receipt, servers process `blindedElement` using the `BlindEvaluate` function described
 below.
 
 ~~~
@@ -862,13 +870,13 @@ Parameters:
 
   Scalar skS
 
-def Evaluate(blindedElement):
+def BlindEvaluate(blindedElement):
   evaluatedElement = skS * blindedElement
   return evaluatedElement
 ~~~
 
 Servers send the output `evaluatedElement` to clients for processing.
-Recall that servers may batch multiple client inputs to `Evaluate`.
+Recall that servers may batch multiple client inputs to `BlindEvaluate`.
 
 Upon receipt of `evaluatedElement`, clients process it to complete the
 OPRF evaluation with the `Finalize` function described below.
@@ -898,13 +906,45 @@ def Finalize(input, blind, evaluatedElement):
   return Hash(hashInput)
 ~~~
 
+Servers can compute the PRF result using a given input using the following
+`Evaluate` function.
+
+~~~
+Input:
+
+  PrivateInput input
+
+Output:
+
+  opaque output[Nh]
+
+Parameters:
+
+  Group G
+  Scalar skS
+
+Errors: InvalidInputError
+
+def Evaluate(input):
+  inputElement = G.HashToGroup(input)
+  if inputElement == G.Identity():
+    raise InvalidInputError
+  evaluatedElement = skS * inputElement
+  issuedElement = G.SerializeElement(evaluatedElement)
+
+  hashInput = I2OSP(len(input), 2) || input ||
+              I2OSP(len(issuedElement), 2) || issuedElement ||
+              "Finalize"
+  return Hash(hashInput)
+~~~
+
 ### VOPRF Protocol {#voprf}
 
 The VOPRF protocol begins with the client blinding its input, using the same
 `Blind` function as in {{oprf}}. Clients store the output `blind` locally
 and send `blindedElement` to the server for evaluation. Upon receipt,
 servers process `blindedElement` to compute an evaluated element and DLEQ
-proof using the following `Evaluate` function.
+proof using the following `BlindEvaluate` function.
 
 ~~~
 Input:
@@ -922,7 +962,7 @@ Parameters:
   Scalar skS
   Element pkS
 
-def Evaluate(blindedElement):
+def BlindEvaluate(blindedElement):
   evaluatedElement = skS * blindedElement
   blindedElements = [blindedElement]     // list of length 1
   evaluatedElements = [evaluatedElement] // list of length 1
@@ -975,9 +1015,12 @@ def Finalize(input, blind, evaluatedElement, blindedElement, proof):
   return Hash(hashInput)
 ~~~
 
-As in `Evaluate`, inputs to `VerifyProof` are one-item lists. Clients can verify
-multiple inputs at once whenever the server produced a batched DLEQ proof
+As in `BlindEvaluate`, inputs to `VerifyProof` are one-item lists. Clients can
+verify multiple inputs at once whenever the server produced a batched DLEQ proof
 for them.
+
+Finally, servers can compute the PRF result using a given input using the `Evaluate`
+function described in {{oprf}}.
 
 ### POPRF Protocol {#poprf}
 
@@ -1016,18 +1059,18 @@ def Blind(input, info):
     raise InvalidInputError
 
   blind = G.RandomScalar()
-  P = G.HashToGroup(input)
-  if P == G.Identity():
+  inputElement = G.HashToGroup(input)
+  if inputElement == G.Identity():
     raise InvalidInputError
 
-  blindedElement = blind * P
+  blindedElement = blind * inputElement
 
   return blind, blindedElement, tweakedKey
 ~~~
 
 Clients store the outputs `blind` and `tweakedKey` locally and send `blindedElement` to
 the server for evaluation. Upon receipt, servers process `blindedElement` to
-compute an evaluated element and DLEQ proof using the following `Evaluate` function.
+compute an evaluated element and DLEQ proof using the following `BlindEvaluate` function.
 
 ~~~
 Input:
@@ -1048,7 +1091,7 @@ Parameters:
 
 Errors: InverseError
 
-def Evaluate(blindedElement, info):
+def BlindEvaluate(blindedElement, info):
   framedInfo = "Info" || I2OSP(len(info), 2) || info
   m = G.HashToScalar(framedInfo)
   t = skS + m
@@ -1114,9 +1157,49 @@ def Finalize(input, blind, evaluatedElement, blindedElement,
   return Hash(hashInput)
 ~~~
 
-As in `Evaluate`, inputs to `VerifyProof` are one-item lists.
+As in `BlindEvaluate`, inputs to `VerifyProof` are one-item lists.
 Clients can verify multiple inputs at once whenever the server produced a
 batched DLEQ proof for them.
+
+Finally, servers can compute the PRF result using a given input using the `Evaluate`
+function described below.
+
+~~~
+Input:
+
+  PrivateInput input
+  PublicInput info
+
+Output:
+
+  opaque output[Nh]
+
+Parameters:
+
+  Group G
+  Scalar skS
+
+Errors: InvalidInputError, InverseError
+
+def Evaluate(input, info):
+  inputElement = G.HashToGroup(input)
+  if inputElement == G.Identity():
+    raise InvalidInputError
+
+  framedInfo = "Info" || I2OSP(len(info), 2) || info
+  m = G.HashToScalar(framedInfo)
+  t = skS + m
+  if t == 0:
+    raise InverseError
+  evaluatedElement = G.ScalarInverse(t) * inputElement
+  issuedElement = G.SerializeElement(evaluatedElement)
+
+  hashInput = I2OSP(len(input), 2) || input ||
+              I2OSP(len(info), 2) || info ||
+              I2OSP(len(issuedElement), 2) || issuedElement ||
+              "Finalize"
+  return Hash(hashInput)
+~~~
 
 # Ciphersuites {#ciphersuites}
 
@@ -1316,7 +1399,7 @@ and instead expose interfaces that operate in terms of wire format messages.
 ## Error Considerations {#errors}
 
 Some OPRF variants specified in this document have fallible operations. For example, `Finalize`
-and `Evaluate` can fail if any element received from the peer fails input validation.
+and `BlindEvaluate` can fail if any element received from the peer fails input validation.
 The explicit errors generated throughout this specification, along with the
 conditions that lead to each error, are as follows:
 
@@ -1451,7 +1534,7 @@ based on the assumption that the One-More Gap Strong Diffie-Hellman Inversion (S
 assumption from {{TCRSTW21}} is computationally difficult to solve in the corresponding
 prime-order group. Tyagi et al. {{TCRSTW21}} show that both the One-More Gap CDH assumption
 and the One-More Gap SDHI assumption reduce to the q-DL (Discrete Log) assumption
-in the algebraic group model, for some q number of `Evaluate` queries.
+in the algebraic group model, for some q number of `BlindEvaluate` queries.
 (The One-More Gap CDH assumption was the hardness assumption used to
 evaluate the OPRF and VOPRF designs based on {{JKK14}}, which is a predecessor
 to the POPRF variant in {{poprf}}.)
@@ -1462,13 +1545,13 @@ A side-effect of the OPRF protocol variants in this document is that they allow
 instantiation of an oracle for constructing static DH samples; see {{BG04}} and {{Cheon06}}.
 These attacks are meant to recover (bits of) the server private key.
 Best-known attacks reduce the security of the prime-order group instantiation by log_2(Q)/2
-bits, where Q is the number of `Evalute()` calls made by the attacker.
+bits, where Q is the number of `BlindEvalute` calls made by the attacker.
 
 As a result of this class of attack, choosing prime-order groups with a 128-bit security
 level instantiates an OPRF with a reduced security level of 128-(log\_2(Q)/2) bits of security.
 Moreover, such attacks are only possible for those certain applications where the
 adversary can query the OPRF directly. Applications can mitigate against this problem
-in a variety of ways, e.g., by rate-limiting client queries to `Evaluate()` or by
+in a variety of ways, e.g., by rate-limiting client queries to `BlindEvaluate` or by
 rotating private keys. In applications where such an oracle is not made available
 this security loss does not apply.
 
@@ -1492,7 +1575,7 @@ Guidance for constructing info can be found in {{!I-D.irtf-cfrg-hash-to-curve, S
 To ensure no information is leaked during protocol execution, all
 operations that use secret data MUST run in constant time. This includes
 all prime-order group operations and proof-specific operations that
-operate on secret data, including `GenerateProof()` and `Evaluate()`.
+operate on secret data, including `GenerateProof` and `BlindEvaluate`.
 
 # Acknowledgements
 
@@ -1520,7 +1603,7 @@ byte string. The label for each test vector value is described below.
   of `Ns` bytes long.
 - "BlindedElement": The blinded value output by `Blind()`, a serialized
   `Element` of `Ne` bytes long.
-- "EvaluatedElement": The evaluated element output by `Evaluate()`,
+- "EvaluatedElement": The evaluated element output by `BlindEvaluate()`,
   a serialized `Element` of `Ne` bytes long.
 - "Proof": The serialized `Proof` output from `GenerateProof()` (only
   listed for verifiable mode test vectors), composed of two serialized

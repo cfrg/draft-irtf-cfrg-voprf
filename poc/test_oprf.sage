@@ -70,14 +70,14 @@ class Protocol(object):
             rng = TestDRNG("test vector seed".encode('utf-8'))
             if self.mode == MODE_POPRF:
                 blind, blinded_element, tweaked_key = client.blind(x, info, rng)
-                evaluated_element, proof, proof_randomness = server.evaluate(blinded_element, info, rng)
+                evaluated_element, proof, proof_randomness = server.blind_evaluate(blinded_element, info, rng)
                 output = client.finalize(x, blind, evaluated_element, blinded_element, proof, info, tweaked_key)
             else:
                 blind, blinded_element = client.blind(x, rng)
-                evaluated_element, proof, proof_randomness = server.evaluate(blinded_element, info, rng)
+                evaluated_element, proof, proof_randomness = server.blind_evaluate(blinded_element, info, rng)
                 output = client.finalize(x, blind, evaluated_element, blinded_element, proof, info)
 
-            assert(server.verify_finalize(x, output, info))
+            assert(output == server.evaluate(x, info))
 
             vector = {}
             vector["Blind"] = to_hex(group.serialize_scalar(blind))
@@ -113,7 +113,7 @@ class Protocol(object):
                     blinds.append(blind)
                     blinded_elements.append(blinded_element)
 
-            evaluated_elements, proof, proof_randomness = server.evaluate_batch(blinded_elements, info, rng)
+            evaluated_elements, proof, proof_randomness = server.blind_evaluate_batch(blinded_elements, info, rng)
 
             if self.mode == MODE_POPRF:
                 outputs = client.finalize_batch(xs, blinds, evaluated_elements, blinded_elements, proof, info, tweaked_key)
@@ -121,7 +121,7 @@ class Protocol(object):
                 outputs = client.finalize_batch(xs, blinds, evaluated_elements, blinded_elements, proof, info)
 
             for i, output in enumerate(outputs):
-                assert(server.verify_finalize(xs[i], output, info))
+                assert(output == server.evaluate(xs[i], info))
 
             vector = {}
             vector["Blind"] = ",".join([to_hex(group.serialize_scalar(blind)) for blind in blinds])
