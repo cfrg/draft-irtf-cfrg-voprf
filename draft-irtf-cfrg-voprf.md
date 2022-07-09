@@ -1545,7 +1545,7 @@ A side-effect of the OPRF protocol variants in this document is that they allow
 instantiation of an oracle for constructing static DH samples; see {{BG04}} and {{Cheon06}}.
 These attacks are meant to recover (bits of) the server private key.
 Best-known attacks reduce the security of the prime-order group instantiation by log_2(Q)/2
-bits, where Q is the number of `BlindEvalute` calls made by the attacker.
+bits, where Q is the number of `BlindEvaluate` calls made by the attacker.
 
 As a result of this class of attack, choosing prime-order groups with a 128-bit security
 level instantiates an OPRF with a reduced security level of 128-(log\_2(Q)/2) bits of security.
