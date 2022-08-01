@@ -177,6 +177,10 @@ along with application considerations, and their security properties.
 
 ## Change log
 
+[draft-12](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-12):
+
+- Small editorial fixes
+
 [draft-11](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-11):
 
 - Change Evaluate to BlindEvaluate, and add Evaluate for PRF evaluation
