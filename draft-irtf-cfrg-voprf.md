@@ -726,12 +726,10 @@ def CreateContextString(mode, suiteID):
 
 ## Key Generation and Context Setup {#offline}
 
-In the offline setup phase, both the client and server create a context used
-for executing the online phase of the protocol after agreeing on a mode and
-ciphersuite value suiteID. The server key pair (`skS`, `pkS`) is generated
+In the offline setup phase, the server key pair (`skS`, `pkS`) is generated
 using the following function, which accepts a randomly generated seed of length
-`Ns` and optional public `info` string. The constant `Ns` corresponds to the
-size of a serialized Scalar and is defined in {{pog}}.
+`Ns` bytes and optional public `info` string. The constant `Ns` corresponds to
+the size in bytes of a serialized Scalar and is defined in {{pog}}.
 
 ~~~
 Input:
@@ -765,6 +763,12 @@ def DeriveKeyPair(seed, info):
   pkS = G.ScalarMultGen(skS)
   return skS, pkS
 ~~~
+
+Also during the offline setup phase, both the client and server create a
+context used for executing the online phase of the protocol after agreeing on a
+mode and ciphersuite value `suiteID`. The context, such as `OPRFServerContext`,
+is an implementation-specific data structure that stores a context string and
+the relevant key material for each party.
 
 The OPRF variant server and client contexts are created as follows:
 
