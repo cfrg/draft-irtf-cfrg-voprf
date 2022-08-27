@@ -168,7 +168,7 @@ OPRFs have a variety of applications, including: password-protected secret
 sharing schemes {{JKKX16}}, privacy-preserving password stores {{SJKS17}}, and
 password-authenticated key exchange or PAKE {{!I-D.irtf-cfrg-opaque}}.
 Verifiable POPRFs are necessary in some applications such as Privacy Pass
-{{!I-D.ietf-privacypass-protocol}}. Verifiable POPRFs have also been used for
+{{!I-D.ietf-privacypass-protocol}}. Verifiable OPRFs have also been used for
 password-protected secret sharing schemes such as that of {{JKK14}}.
 
 This document specifies OPRF, VOPRF, and POPRF protocols built upon
