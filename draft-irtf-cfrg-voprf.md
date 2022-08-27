@@ -1456,7 +1456,7 @@ admit public input.
 This section discusses the cryptographic security of our protocol, along
 with some suggestions and trade-offs that arise from the implementation
 of the OPRF variants in this document. Note that the syntax of the POPRF
-variant is different from that of the OPRF and POPRF variants since it
+variant is different from that of the OPRF and VOPRF variants since it
 admits an additional public input, but the same security considerations apply.
 
 ## Security Properties {#properties}
@@ -1464,9 +1464,9 @@ admits an additional public input, but the same security considerations apply.
 The security properties of an OPRF protocol with functionality y = F(k, x)
 include those of a standard PRF. Specifically:
 
-- Pseudorandomness: F is pseudorandom if the output y = F(k, x) on any
-  input x is indistinguishable from uniformly sampling any element in
-  F's range, for a random sampling of k.
+- Pseudorandomness: For a random sampling of k, F is pseudorandom if the output
+  y = F(k, x) on any input x is indistinguishable from uniformly sampling any
+  element in F's range.
 
 In other words, consider an adversary that picks inputs x from the
 domain of F and evaluates F on (k, x) (without knowledge of randomly
@@ -1483,10 +1483,11 @@ be non-malleable to maintain indistinguishability.
 - Unconditional input secrecy: The server does not learn anything about
   the client input x, even with unbounded computation.
 
-In other words, an attacker with infinite compute cannot recover any information
-about the client's private input x from an invocation of the protocol.
+In other words, an attacker with infinite computing power cannot recover any
+information about the client's private input x from an invocation of the
+protocol.
 
-Additionally, for the VOPRF and POPRF protocol variants, there is an additional
+For the VOPRF and POPRF protocol variants, there is an additional
 security property:
 
 - Verifiable: The client must only complete execution of the protocol if
@@ -1527,12 +1528,14 @@ that this document supports batching so that multiple evaluations can happen
 at once whilst only constructing one DLEQ proof object. This is enabled using
 an established batching technique {{DGSTV18}}.
 
-The pseudorandomness and input secrecy (and verifiability) of the OPRF (and VOPRF) variants
-is based on the assumption that the One-More Gap Computational Diffie Hellman (CDH) is computationally
-difficult to solve in the corresponding prime-order group. The original paper {{JKK14}}
-gives a security proof that the construction satisfies the security guarantees of a
-VOPRF protocol {{properties}} under the One-More Gap CDH assumption in the universal
-composability (UC) security framework.
+The pseudorandomness and input secrecy (and verifiability) of the OPRF (and
+VOPRF) variant is based on an assumption with oracle access to the
+Computational Diffie Hellman (CDH) assumption, known as the One-More Gap CDH,
+that is computationally difficult to solve in the corresponding prime-order
+group. The original paper {{JKK14}} gives a security proof that the
+construction satisfies the security guarantees of a VOPRF protocol
+(as in {{properties}}) under the One-More Gap CDH assumption in the
+universal composability (UC) security framework.
 
 ### POPRF Assumptions
 
