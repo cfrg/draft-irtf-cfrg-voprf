@@ -310,9 +310,8 @@ The following terms are used throughout this document.
 
 The protocols in this document have two primary dependencies:
 
-- `Group`: A prime-order group implementing the API described below in {{pog}},
-  with base point defined in the corresponding reference for each group.
-  (See {{ciphersuites}} for these base points.)
+- `Group`: A prime-order group implementing the API described below in {{pog}}.
+  See {{ciphersuites}} for specific instances of groups.
 - `Hash`: A cryptographic hash function whose output length is `Nh` bytes.
 
 {{ciphersuites}} specifies ciphersuites as combinations of `Group` and `Hash`.
@@ -320,7 +319,9 @@ The protocols in this document have two primary dependencies:
 ## Prime-Order Group {#pog}
 
 In this document, we assume the construction of an additive, prime-order
-group `Group` for performing all mathematical operations. Such groups are
+group `Group` for performing all mathematical operations. In prime-order groups,
+any element can generate the other elements of the group. Usually, one element
+is fixed and defined as the group generator. Such groups are
 uniquely determined by the choice of the prime `p` that defines the
 order of the group. (There may, however, exist different representations
 of the group for a single `p`. {{ciphersuites}} lists specific groups which
@@ -332,9 +333,8 @@ also a member of the group. Also, for any `A` in the group, there exists an elem
 `-A` such that `A + (-A) = (-A) + A = I`. Scalar multiplication is
 equivalent to the repeated application of the group operation on an
 element A with itself `r-1` times, this is denoted as `r*A = A + ... + A`.
-For any element `A`, `p*A=I`. Scalar base multiplication is equivalent
-to the repeated application of the group operation on the fixed group
-generator with itself `r-1` times, and is denoted as `ScalarBaseMult(r)`.
+For any element `A`, `p*A=I`. The case when the scalar multiplication is
+performed on the group generator is denoted as `ScalarMultGen(r)`.
 Given two elements A and B, the discrete logarithm problem is to find
 an integer k such that B = k*A. Thus, k is the discrete logarithm of
 B with respect to the base A.
@@ -349,6 +349,7 @@ prime-order group.
 
 - Order(): Outputs the order of the group (i.e. `p`).
 - Identity(): Outputs the identity element of the group (i.e. `I`).
+- Generator(): Outputs the generator element of the group.
 - HashToGroup(x): A member function of `Group` that deterministically maps
   an array of bytes `x` to an element of `Group`. The map must ensure that,
   for any adversary receiving `R = HashToGroup(x)`, it is
@@ -761,7 +762,7 @@ def DeriveKeyPair(seed, info):
     skS = G.HashToScalar(deriveInput || I2OSP(counter, 1),
                           DST = "DeriveKeyPair" || contextString)
     counter = counter + 1
-  pkS = G.ScalarBaseMult(skS)
+  pkS = G.ScalarMultGen(skS)
   return skS, pkS
 ~~~
 
@@ -1057,7 +1058,7 @@ Errors: InvalidInputError
 def Blind(input, info):
   framedInfo = "Info" || I2OSP(len(info), 2) || info
   m = G.HashToScalar(framedInfo)
-  T = G.ScalarBaseMult(m)
+  T = G.ScalarMultGen(m)
   tweakedKey = T + pkS
   if tweakedKey == G.Identity():
     raise InvalidInputError
@@ -1104,7 +1105,7 @@ def BlindEvaluate(blindedElement, info):
 
   evaluatedElement = G.ScalarInverse(t) * blindedElement
 
-  tweakedKey = G.ScalarBaseMult(t)
+  tweakedKey = G.ScalarMultGen(t)
   evaluatedElements = [evaluatedElement] // list of length 1
   blindedElements = [blindedElement]     // list of length 1
   proof = GenerateProof(t, G.Generator(), tweakedKey,
@@ -1214,9 +1215,10 @@ on the specific instantiation is assumed throughout.
 
 A ciphersuite contains instantiations of the following functionalities:
 
-- `Group`: A prime-order Group exposing the API detailed in {{pog}}, with base
-  point defined in the corresponding reference for each group. Each group also
-  specifies HashToGroup, HashToScalar, and serialization functionalities. For
+- `Group`: A prime-order Group exposing the API detailed in {{pog}}, with the
+  generator element defined in the corresponding reference for each group. Each
+  group also specifies HashToGroup, HashToScalar, and serialization
+  functionalities. For
   HashToGroup, the domain separation tag (DST) is constructed in accordance
   with the recommendations in {{!I-D.irtf-cfrg-hash-to-curve}}, Section 3.1.
   For HashToScalar, each group specifies an integer order that is used in
