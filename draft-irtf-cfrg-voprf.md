@@ -1244,11 +1244,12 @@ See {{cryptanalysis}} for related discussion.
     using SHA-512.
   - HashToScalar(): Compute `uniform_bytes` using `expand_message` = `expand_message_xmd`,
     DST = "HashToScalar-" || contextString, and output length 64, interpret
-    `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the integer
-    modulo `Order()`.
+    `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the
+    integer modulo `Group.Order()`.
   - Serialization: Both group elements and scalars are encoded in Ne = Ns = 32
     bytes. For group elements, use the 'Encode' and 'Decode' functions from
-    {{!RISTRETTO}}. For scalars, ensure they are fully reduced modulo `Order()`
+    {{!RISTRETTO}}. For scalars, ensure they are fully reduced modulo
+    `Group.Order()`
     and in little-endian order.
 - Hash: SHA-512, and Nh = 64.
 - ID: 0x0001
@@ -1262,11 +1263,12 @@ See {{cryptanalysis}} for related discussion.
     using SHAKE-256.
   - HashToScalar(): Compute `uniform_bytes` using `expand_message` = `expand_message_xof`,
     DST = "HashToScalar-" || contextString, and output length 64, interpret
-    `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the integer
-    modulo `Order()`.
+    `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the
+    integer modulo `Group.Order()`.
   - Serialization: Both group elements and scalars are encoded in Ne = Ns = 56
     bytes. For group elements, use the 'Encode' and 'Decode' functions from
-    {{!RISTRETTO}}. For scalars, ensure they are fully reduced modulo `Order()`
+    {{!RISTRETTO}}. For scalars, ensure they are fully reduced modulo
+    `Group.Order()`
     and in little-endian order.
 - Hash: SHAKE-256, and Nh = 64.
 - ID: 0x0002
@@ -1280,11 +1282,11 @@ See {{cryptanalysis}} for related discussion.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
     using L = 48, `expand_message_xmd` with SHA-256,
     DST = "HashToScalar-" || contextString, and
-    prime modulus equal to `Order()`.
+    prime modulus equal to `Group.Order()`.
   - Serialization: Elements are serialized as Ne = 33 byte strings using
     compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
-    Ns = 32 byte strings by fully reducing the value modulo `Order()` and in big-endian
-    order.
+    Ns = 32 byte strings by fully reducing the value modulo `Group.Order()` and
+    in big-endian order.
 - Hash: SHA-256, and Nh = 32.
 - ID: 0x0003
 
@@ -1297,11 +1299,11 @@ See {{cryptanalysis}} for related discussion.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
     using L = 72, `expand_message_xmd` with SHA-384,
     DST = "HashToScalar-" || contextString, and
-    prime modulus equal to `Order()`.
+    prime modulus equal to `Group.Order()`.
   - Serialization: Elements are serialized as Ne = 49 byte strings using
     compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
-    Ns = 48 byte strings by fully reducing the value modulo `Order()` and in big-endian
-    order.
+    Ns = 48 byte strings by fully reducing the value modulo `Group.Order()` and
+    in big-endian order.
 - Hash: SHA-384, and Nh = 48.
 - ID: 0x0004
 
@@ -1314,11 +1316,11 @@ See {{cryptanalysis}} for related discussion.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
     using L = 98, `expand_message_xmd` with SHA-512,
     DST = "HashToScalar-" || contextString, and
-    prime modulus equal to `Order()`.
+    prime modulus equal to `Group.Order()`.
   - Serialization: Elements are serialized as Ne = 67 byte strings using
     compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
-    Ns = 66 byte strings by fully reducing the value modulo `Order()` and in big-endian
-    order.
+    Ns = 66 byte strings by fully reducing the value modulo `Group.Order()` and
+    in big-endian order.
 - Hash: SHA-512, and Nh = 64.
 - ID: 0x0005
 
@@ -1358,9 +1360,10 @@ byte array. Like DeserializeElement, this function validates that the element
 is a member of the scalar field and returns an error if this condition is not met.
 
 For P-256, P-384, and P-521 ciphersuites, this function ensures that the input,
-when treated as a big-endian integer, is a value between 0 and `Order() - 1`. For
+when treated as a big-endian integer, is a value between 0 and
+`Group.Order() - 1`. For
 ristretto255 and decaf448, this function ensures that the input, when treated as
-a little-endian integer, is a value between 0 and `Order() - 1`.
+a little-endian integer, is a value between 0 and `Group.Order() - 1`.
 
 ## Future Ciphersuites
 
