@@ -421,7 +421,7 @@ done by clients in the protocol.
 Generating a proof is done with the `GenerateProof` function, defined below.
 Given elements A and B, two non-empty lists of elements C and D of length
 `m`, and a scalar k; this function produces a proof that `k*A == B`
-and `k*C[i] == D[i]` for each element in the list.
+and `k*C[i] == D[i]` for each `i` in `[0, ..., m - 1]`.
 The output is a value of type Proof, which is a tuple of two Scalar
 values.
 
