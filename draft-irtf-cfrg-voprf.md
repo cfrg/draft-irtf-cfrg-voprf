@@ -362,13 +362,13 @@ prime-order group.
   non-zero element in GF(p).
 - ScalarInverse(s): Returns the inverse of input Scalar `s` on `GF(p)`.
 - SerializeElement(A): A member function of `Group` that maps a group element
-  `A` to a unique byte array `buf` of fixed length `Ne`.
+  `A` to a unique byte array `buf` of fixed length `Ne` bytes.
 - DeserializeElement(buf): A member function of `Group` that maps a byte
   array `buf` to a group element `A`, or raise a DeserializeError if the
   input is not a valid byte representation of an element.
   See {{input-validation}} for further requirements on input validation.
 - SerializeScalar(s): A member function of `Group` that maps a scalar element
-  `s` to a unique byte array `buf` of fixed length `Ns`.
+  `s` to a unique byte array `buf` of fixed length `Ns` bytes.
 - DeserializeScalar(buf): A member function of `Group` that maps a byte
   array `buf` to a scalar `s`, or raise a DeserializeError if the input
   is not a valid byte representation of a scalar.
@@ -1255,7 +1255,7 @@ See {{cryptanalysis}} for related discussion.
     {{!RISTRETTO}}. For scalars, ensure they are fully reduced modulo
     `Group.Order()`
     and in little-endian order.
-- Hash: SHA-512, and Nh = 64.
+- Hash: SHA-512, and Nh = 64 bytes.
 - ID: 0x0001
 
 ### OPRF(decaf448, SHAKE-256)
@@ -1274,7 +1274,7 @@ See {{cryptanalysis}} for related discussion.
     {{!RISTRETTO}}. For scalars, ensure they are fully reduced modulo
     `Group.Order()`
     and in little-endian order.
-- Hash: SHAKE-256, and Nh = 64.
+- Hash: SHAKE-256, and Nh = 64 bytes.
 - ID: 0x0002
 
 ### OPRF(P-256, SHA-256)
@@ -1291,7 +1291,7 @@ See {{cryptanalysis}} for related discussion.
     compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
     Ns = 32 byte strings by fully reducing the value modulo `Group.Order()` and
     in big-endian order.
-- Hash: SHA-256, and Nh = 32.
+- Hash: SHA-256, and Nh = 32 bytes.
 - ID: 0x0003
 
 ### OPRF(P-384, SHA-384)
@@ -1308,7 +1308,7 @@ See {{cryptanalysis}} for related discussion.
     compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
     Ns = 48 byte strings by fully reducing the value modulo `Group.Order()` and
     in big-endian order.
-- Hash: SHA-384, and Nh = 48.
+- Hash: SHA-384, and Nh = 48 bytes.
 - ID: 0x0004
 
 ### OPRF(P-521, SHA-512)
@@ -1325,7 +1325,7 @@ See {{cryptanalysis}} for related discussion.
     compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
     Ns = 66 byte strings by fully reducing the value modulo `Group.Order()` and
     in big-endian order.
-- Hash: SHA-512, and Nh = 64.
+- Hash: SHA-512, and Nh = 64 bytes.
 - ID: 0x0005
 
 ## Input Validation {#input-validation}
