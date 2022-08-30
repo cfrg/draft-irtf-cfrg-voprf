@@ -64,43 +64,11 @@ informative:
         org: Certicom Research
   ChaumPedersen: DOI.10.1007/3-540-48071-4_7
   Cheon06: DOI.10.1007/11761679_1
-  FS00:
-    title: "How To Prove Yourself: Practical Solutions to Identification and Signature Problems"
-    target: https://doi.org/10.1007/3-540-47721-7_12
-    date: Dec, 2000
-    author:
-      -
-        ins: A. Fiat
-        org: The Weizmann Institute of Science, Israel
-      -
-        ins: A. Shamir
-        org: The Weizmann Institute of Science, Israel
+  FS00: DOI.10.1007/3-540-47721-7_12
   JKKX16: DOI.10.1109/EuroSP.2016.30
   JKK14: DOI.10.1007/978-3-662-45608-8_13
   SJKS17: DOI.10.1109/ICDCS.2017.64
-  TCRSTW21:
-    title: A Fast and Simple Partially Oblivious PRF, with Applications
-    target: https://eprint.iacr.org/2021/864
-    date: false
-    author:
-      -
-        ins: N. Tyagi
-        org: Cornell University, USA
-      -
-        ins: S. Celi
-        org: Cloudflare, Portugal
-      -
-        ins: T. Ristenpart
-        org: Cornell Tech, USA
-      -
-        ins: N. Sullivan
-        org: Cloudflare, USA
-      -
-        ins: S. Tessaro
-        org: University of Washington, UK
-      -
-        ins: C. Wood
-        org: Cloudflare, USA
+  TCRSTW21: DOI.10.1007/978-3-031-07085-3_23
   DGSTV18: DOI.10.1515/popets-2018-0026
   SEC1:
     title: "SEC 1: Elliptic Curve Cryptography"
