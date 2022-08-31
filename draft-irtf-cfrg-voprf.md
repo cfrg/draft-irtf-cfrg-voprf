@@ -136,7 +136,7 @@ OPRFs have a variety of applications, including: password-protected secret
 sharing schemes {{JKKX16}}, privacy-preserving password stores {{SJKS17}}, and
 password-authenticated key exchange or PAKE {{!I-D.irtf-cfrg-opaque}}.
 Verifiable POPRFs are necessary in some applications such as Privacy Pass
-{{!I-D.ietf-privacypass-protocol}}. Verifiable POPRFs have also been used for
+{{!I-D.ietf-privacypass-protocol}}. Verifiable OPRFs have also been used for
 password-protected secret sharing schemes such as that of {{JKK14}}.
 
 This document specifies OPRF, VOPRF, and POPRF protocols built upon
@@ -278,9 +278,8 @@ The following terms are used throughout this document.
 
 The protocols in this document have two primary dependencies:
 
-- `Group`: A prime-order group implementing the API described below in {{pog}},
-  with base point defined in the corresponding reference for each group.
-  (See {{ciphersuites}} for these base points.)
+- `Group`: A prime-order group implementing the API described below in {{pog}}.
+  See {{ciphersuites}} for specific instances of groups.
 - `Hash`: A cryptographic hash function whose output length is `Nh` bytes.
 
 {{ciphersuites}} specifies ciphersuites as combinations of `Group` and `Hash`.
@@ -288,7 +287,9 @@ The protocols in this document have two primary dependencies:
 ## Prime-Order Group {#pog}
 
 In this document, we assume the construction of an additive, prime-order
-group `Group` for performing all mathematical operations. Such groups are
+group `Group` for performing all mathematical operations. In prime-order groups,
+any element can generate the other elements of the group. Usually, one element
+is fixed and defined as the group generator. Such groups are
 uniquely determined by the choice of the prime `p` that defines the
 order of the group. (There may, however, exist different representations
 of the group for a single `p`. {{ciphersuites}} lists specific groups which
@@ -300,9 +301,8 @@ also a member of the group. Also, for any `A` in the group, there exists an elem
 `-A` such that `A + (-A) = (-A) + A = I`. Scalar multiplication is
 equivalent to the repeated application of the group operation on an
 element A with itself `r-1` times, this is denoted as `r*A = A + ... + A`.
-For any element `A`, `p*A=I`. Scalar base multiplication is equivalent
-to the repeated application of the group operation on the fixed group
-generator with itself `r-1` times, and is denoted as `ScalarBaseMult(r)`.
+For any element `A`, `p*A=I`. The case when the scalar multiplication is
+performed on the group generator is denoted as `ScalarMultGen(r)`.
 Given two elements A and B, the discrete logarithm problem is to find
 an integer k such that B = k*A. Thus, k is the discrete logarithm of
 B with respect to the base A.
@@ -317,6 +317,7 @@ prime-order group.
 
 - Order(): Outputs the order of the group (i.e. `p`).
 - Identity(): Outputs the identity element of the group (i.e. `I`).
+- Generator(): Outputs the generator element of the group.
 - HashToGroup(x): A member function of `Group` that deterministically maps
   an array of bytes `x` to an element of `Group`. The map must ensure that,
   for any adversary receiving `R = HashToGroup(x)`, it is
@@ -329,13 +330,13 @@ prime-order group.
   non-zero element in GF(p).
 - ScalarInverse(s): Returns the inverse of input Scalar `s` on `GF(p)`.
 - SerializeElement(A): A member function of `Group` that maps a group element
-  `A` to a unique byte array `buf` of fixed length `Ne`.
+  `A` to a unique byte array `buf` of fixed length `Ne` bytes.
 - DeserializeElement(buf): A member function of `Group` that maps a byte
   array `buf` to a group element `A`, or raise a DeserializeError if the
   input is not a valid byte representation of an element.
   See {{input-validation}} for further requirements on input validation.
 - SerializeScalar(s): A member function of `Group` that maps a scalar element
-  `s` to a unique byte array `buf` of fixed length `Ns`.
+  `s` to a unique byte array `buf` of fixed length `Ns` bytes.
 - DeserializeScalar(buf): A member function of `Group` that maps a byte
   array `buf` to a scalar `s`, or raise a DeserializeError if the input
   is not a valid byte representation of a scalar.
@@ -388,7 +389,7 @@ done by clients in the protocol.
 Generating a proof is done with the `GenerateProof` function, defined below.
 Given elements A and B, two non-empty lists of elements C and D of length
 `m`, and a scalar k; this function produces a proof that `k*A == B`
-and `k*C[i] == D[i]` for each element in the list.
+and `k*C[i] == D[i]` for each `i` in `[0, ..., m - 1]`.
 The output is a value of type Proof, which is a tuple of two Scalar
 values.
 
@@ -693,12 +694,10 @@ def CreateContextString(mode, suiteID):
 
 ## Key Generation and Context Setup {#offline}
 
-In the offline setup phase, both the client and server create a context used
-for executing the online phase of the protocol after agreeing on a mode and
-ciphersuite value suiteID. The server key pair (`skS`, `pkS`) is generated
+In the offline setup phase, the server key pair (`skS`, `pkS`) is generated
 using the following function, which accepts a randomly generated seed of length
-`Ns` and optional public `info` string. The constant `Ns` corresponds to the
-size of a serialized Scalar and is defined in {{pog}}.
+`Ns` bytes and optional public `info` string. The constant `Ns` corresponds to
+the size in bytes of a serialized Scalar and is defined in {{pog}}.
 
 ~~~
 Input:
@@ -729,9 +728,15 @@ def DeriveKeyPair(seed, info):
     skS = G.HashToScalar(deriveInput || I2OSP(counter, 1),
                           DST = "DeriveKeyPair" || contextString)
     counter = counter + 1
-  pkS = G.ScalarBaseMult(skS)
+  pkS = G.ScalarMultGen(skS)
   return skS, pkS
 ~~~
+
+Also during the offline setup phase, both the client and server create a
+context used for executing the online phase of the protocol after agreeing on a
+mode and ciphersuite value `suiteID`. The context, such as `OPRFServerContext`,
+is an implementation-specific data structure that stores a context string and
+the relevant key material for each party.
 
 The OPRF variant server and client contexts are created as follows:
 
@@ -1025,7 +1030,7 @@ Errors: InvalidInputError
 def Blind(input, info):
   framedInfo = "Info" || I2OSP(len(info), 2) || info
   m = G.HashToScalar(framedInfo)
-  T = G.ScalarBaseMult(m)
+  T = G.ScalarMultGen(m)
   tweakedKey = T + pkS
   if tweakedKey == G.Identity():
     raise InvalidInputError
@@ -1072,7 +1077,7 @@ def BlindEvaluate(blindedElement, info):
 
   evaluatedElement = G.ScalarInverse(t) * blindedElement
 
-  tweakedKey = G.ScalarBaseMult(t)
+  tweakedKey = G.ScalarMultGen(t)
   evaluatedElements = [evaluatedElement] // list of length 1
   blindedElements = [blindedElement]     // list of length 1
   proof = GenerateProof(t, G.Generator(), tweakedKey,
@@ -1182,9 +1187,10 @@ on the specific instantiation is assumed throughout.
 
 A ciphersuite contains instantiations of the following functionalities:
 
-- `Group`: A prime-order Group exposing the API detailed in {{pog}}, with base
-  point defined in the corresponding reference for each group. Each group also
-  specifies HashToGroup, HashToScalar, and serialization functionalities. For
+- `Group`: A prime-order Group exposing the API detailed in {{pog}}, with the
+  generator element defined in the corresponding reference for each group. Each
+  group also specifies HashToGroup, HashToScalar, and serialization
+  functionalities. For
   HashToGroup, the domain separation tag (DST) is constructed in accordance
   with the recommendations in {{!I-D.irtf-cfrg-hash-to-curve}}, Section 3.1.
   For HashToScalar, each group specifies an integer order that is used in
@@ -1210,13 +1216,14 @@ See {{cryptanalysis}} for related discussion.
     using SHA-512.
   - HashToScalar(): Compute `uniform_bytes` using `expand_message` = `expand_message_xmd`,
     DST = "HashToScalar-" || contextString, and output length 64, interpret
-    `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the integer
-    modulo `Order()`.
+    `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the
+    integer modulo `Group.Order()`.
   - Serialization: Both group elements and scalars are encoded in Ne = Ns = 32
     bytes. For group elements, use the 'Encode' and 'Decode' functions from
-    {{!RISTRETTO}}. For scalars, ensure they are fully reduced modulo `Order()`
+    {{!RISTRETTO}}. For scalars, ensure they are fully reduced modulo
+    `Group.Order()`
     and in little-endian order.
-- Hash: SHA-512, and Nh = 64.
+- Hash: SHA-512, and Nh = 64 bytes.
 - ID: 0x0001
 
 ### OPRF(decaf448, SHAKE-256)
@@ -1228,13 +1235,14 @@ See {{cryptanalysis}} for related discussion.
     using SHAKE-256.
   - HashToScalar(): Compute `uniform_bytes` using `expand_message` = `expand_message_xof`,
     DST = "HashToScalar-" || contextString, and output length 64, interpret
-    `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the integer
-    modulo `Order()`.
+    `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the
+    integer modulo `Group.Order()`.
   - Serialization: Both group elements and scalars are encoded in Ne = Ns = 56
     bytes. For group elements, use the 'Encode' and 'Decode' functions from
-    {{!RISTRETTO}}. For scalars, ensure they are fully reduced modulo `Order()`
+    {{!RISTRETTO}}. For scalars, ensure they are fully reduced modulo
+    `Group.Order()`
     and in little-endian order.
-- Hash: SHAKE-256, and Nh = 64.
+- Hash: SHAKE-256, and Nh = 64 bytes.
 - ID: 0x0002
 
 ### OPRF(P-256, SHA-256)
@@ -1246,12 +1254,12 @@ See {{cryptanalysis}} for related discussion.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
     using L = 48, `expand_message_xmd` with SHA-256,
     DST = "HashToScalar-" || contextString, and
-    prime modulus equal to `Order()`.
+    prime modulus equal to `Group.Order()`.
   - Serialization: Elements are serialized as Ne = 33 byte strings using
     compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
-    Ns = 32 byte strings by fully reducing the value modulo `Order()` and in big-endian
-    order.
-- Hash: SHA-256, and Nh = 32.
+    Ns = 32 byte strings by fully reducing the value modulo `Group.Order()` and
+    in big-endian order.
+- Hash: SHA-256, and Nh = 32 bytes.
 - ID: 0x0003
 
 ### OPRF(P-384, SHA-384)
@@ -1263,12 +1271,12 @@ See {{cryptanalysis}} for related discussion.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
     using L = 72, `expand_message_xmd` with SHA-384,
     DST = "HashToScalar-" || contextString, and
-    prime modulus equal to `Order()`.
+    prime modulus equal to `Group.Order()`.
   - Serialization: Elements are serialized as Ne = 49 byte strings using
     compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
-    Ns = 48 byte strings by fully reducing the value modulo `Order()` and in big-endian
-    order.
-- Hash: SHA-384, and Nh = 48.
+    Ns = 48 byte strings by fully reducing the value modulo `Group.Order()` and
+    in big-endian order.
+- Hash: SHA-384, and Nh = 48 bytes.
 - ID: 0x0004
 
 ### OPRF(P-521, SHA-512)
@@ -1280,12 +1288,12 @@ See {{cryptanalysis}} for related discussion.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
     using L = 98, `expand_message_xmd` with SHA-512,
     DST = "HashToScalar-" || contextString, and
-    prime modulus equal to `Order()`.
+    prime modulus equal to `Group.Order()`.
   - Serialization: Elements are serialized as Ne = 67 byte strings using
     compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
-    Ns = 66 byte strings by fully reducing the value modulo `Order()` and in big-endian
-    order.
-- Hash: SHA-512, and Nh = 64.
+    Ns = 66 byte strings by fully reducing the value modulo `Group.Order()` and
+    in big-endian order.
+- Hash: SHA-512, and Nh = 64 bytes.
 - ID: 0x0005
 
 ## Input Validation {#input-validation}
@@ -1324,9 +1332,10 @@ byte array. Like DeserializeElement, this function validates that the element
 is a member of the scalar field and returns an error if this condition is not met.
 
 For P-256, P-384, and P-521 ciphersuites, this function ensures that the input,
-when treated as a big-endian integer, is a value between 0 and `Order() - 1`. For
+when treated as a big-endian integer, is a value between 0 and
+`Group.Order() - 1`. For
 ristretto255 and decaf448, this function ensures that the input, when treated as
-a little-endian integer, is a value between 0 and `Order() - 1`.
+a little-endian integer, is a value between 0 and `Group.Order() - 1`.
 
 ## Future Ciphersuites
 
@@ -1415,7 +1424,7 @@ admit public input.
 This section discusses the cryptographic security of our protocol, along
 with some suggestions and trade-offs that arise from the implementation
 of the OPRF variants in this document. Note that the syntax of the POPRF
-variant is different from that of the OPRF and POPRF variants since it
+variant is different from that of the OPRF and VOPRF variants since it
 admits an additional public input, but the same security considerations apply.
 
 ## Security Properties {#properties}
@@ -1423,9 +1432,9 @@ admits an additional public input, but the same security considerations apply.
 The security properties of an OPRF protocol with functionality y = F(k, x)
 include those of a standard PRF. Specifically:
 
-- Pseudorandomness: F is pseudorandom if the output y = F(k, x) on any
-  input x is indistinguishable from uniformly sampling any element in
-  F's range, for a random sampling of k.
+- Pseudorandomness: For a random sampling of k, F is pseudorandom if the output
+  y = F(k, x) on any input x is indistinguishable from uniformly sampling any
+  element in F's range.
 
 In other words, consider an adversary that picks inputs x from the
 domain of F and evaluates F on (k, x) (without knowledge of randomly
@@ -1442,10 +1451,11 @@ be non-malleable to maintain indistinguishability.
 - Unconditional input secrecy: The server does not learn anything about
   the client input x, even with unbounded computation.
 
-In other words, an attacker with infinite compute cannot recover any information
-about the client's private input x from an invocation of the protocol.
+In other words, an attacker with infinite computing power cannot recover any
+information about the client's private input x from an invocation of the
+protocol.
 
-Additionally, for the VOPRF and POPRF protocol variants, there is an additional
+For the VOPRF and POPRF protocol variants, there is an additional
 security property:
 
 - Verifiable: The client must only complete execution of the protocol if
@@ -1486,12 +1496,14 @@ that this document supports batching so that multiple evaluations can happen
 at once whilst only constructing one DLEQ proof object. This is enabled using
 an established batching technique {{DGSTV18}}.
 
-The pseudorandomness and input secrecy (and verifiability) of the OPRF (and VOPRF) variants
-is based on the assumption that the One-More Gap Computational Diffie Hellman (CDH) is computationally
-difficult to solve in the corresponding prime-order group. The original paper {{JKK14}}
-gives a security proof that the construction satisfies the security guarantees of a
-VOPRF protocol {{properties}} under the One-More Gap CDH assumption in the universal
-composability (UC) security framework.
+The pseudorandomness and input secrecy (and verifiability) of the OPRF (and
+VOPRF) variant is based on an assumption with oracle access to the
+Computational Diffie Hellman (CDH) assumption, known as the One-More Gap CDH,
+that is computationally difficult to solve in the corresponding prime-order
+group. The original paper {{JKK14}} gives a security proof that the
+construction satisfies the security guarantees of a VOPRF protocol
+(as in {{properties}}) under the One-More Gap CDH assumption in the
+universal composability (UC) security framework.
 
 ### POPRF Assumptions
 
