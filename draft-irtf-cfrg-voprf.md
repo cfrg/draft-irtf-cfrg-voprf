@@ -590,12 +590,13 @@ as defined in {{offline}}.
 
 # Protocol {#protocol}
 
-In this section, we define three OPRF protocol variants -- a base mode,
-verifiable mode, and partially-oblivious mode -- with the following properties.
+In this section, we define three protocol variants referred as the OPRF, VOPRF,
+and POPRF modes with the following properties.
 
-In the base mode, a client and server interact to compute `output = F(skS, input)`,
+In the OPRF mode, a client and server interact to compute `output = F(skS, input)`,
 where `input` is the client's private input, `skS` is the server's private key,
-and `output` is the OPRF output. The client learns `output` and the server learns nothing.
+and `output` is the OPRF output. After the execution of the protocol, the
+client learns `output` and the server learns nothing.
 This interaction is shown below.
 
 ~~~
@@ -615,8 +616,9 @@ This interaction is shown below.
 ~~~
 {: #fig-oprf title="OPRF protocol overview"}
 
-In the verifiable mode, the client additionally receives proof that the server used `skS` in
-computing the function. To achieve verifiability, as in the original work of {{JKK14}}, the
+In the VOPRF mode, the client additionally receives proof that the server used
+`skS` in computing the function. To achieve verifiability, as in the original
+work of {{JKK14}}, the
 server provides a zero-knowledge proof that the key provided as input by the server in
 the `BlindEvaluate` function is the same key as it used to produce the server's public key, `pkS`,
 which the client receives as input to the protocol. This proof does not reveal the server's
@@ -640,7 +642,7 @@ private key to the client. This interaction is shown below.
 ~~~
 {: #fig-voprf title="VOPRF protocol overview with additional proof"}
 
-The partially-oblivious mode extends the VOPRF mode such that the client and
+The POPRF mode extends the VOPRF mode such that the client and
 server can additionally provide a public input `info` that is used in computing
 the pseudorandom function. That is, the client and server interact to compute
 `output = F(skS, input, info)`. To support additional public input, the client
