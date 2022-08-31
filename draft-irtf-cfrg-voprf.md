@@ -1463,8 +1463,8 @@ For the VOPRF and POPRF protocol variants, there is an additional
 security property:
 
 - Verifiable: The client must only complete execution of the protocol if
-  it can successfully assert that the POPRF output it computes is
-  correct. This is taken with respect to the POPRF key held by the
+  it can successfully assert that the output it computes is
+  correct. This is taken with respect to the private key held by the
   server.
 
 Any VOPRF or POPRF that satisfies the 'verifiable' security property is known
@@ -1583,23 +1583,24 @@ in this document. For each ciphersuite specified in {{ciphersuites}},
 there is a set of test vectors for the protocol when run the OPRF,
 VOPRF, and POPRF modes. Each test vector lists the batch size for
 the evaluation. Each test vector value is encoded as a hexadecimal
-byte string. The label for each test vector value is described below.
+byte string. The fields of each test vector are described below.
 
 - "Input": The private client input, an opaque byte string.
-- "Info": The public info, an opaque byte string. Only present for POPRF vectors.
+- "Info": The public info, an opaque byte string. Only present for POPRF test
+   vectors.
 - "Blind": The blind value output by `Blind()`, a serialized `Scalar`
   of `Ns` bytes long.
 - "BlindedElement": The blinded value output by `Blind()`, a serialized
   `Element` of `Ne` bytes long.
 - "EvaluatedElement": The evaluated element output by `BlindEvaluate()`,
   a serialized `Element` of `Ne` bytes long.
-- "Proof": The serialized `Proof` output from `GenerateProof()` (only
-  listed for verifiable mode test vectors), composed of two serialized
-  `Scalar` values each of `Ns` bytes long. Only present for VOPRF and POPRF vectors.
-- "ProofRandomScalar": The random scalar `r` computed in `GenerateProof()`
-  (only listed for verifiable mode test vectors), a serialized `Scalar` of
-  `Ns` bytes long. Only present for VOPRF and POPRF vectors.
-- "Output": The OPRF output, a byte string of length `Nh` bytes.
+- "Proof": The serialized `Proof` output from `GenerateProof()` composed of
+  two serialized `Scalar` values each of `Ns` bytes long. Only present for
+  VOPRF and POPRF test vectors.
+- "ProofRandomScalar": The random scalar `r` computed in `GenerateProof()`, a
+  serialized `Scalar` of `Ns` bytes long. Only present for VOPRF and POPRF
+  test vectors.
+- "Output": The protocol output, a byte string of length `Nh` bytes.
 
 Test vectors with batch size B > 1 have inputs separated by a comma
 ",". Applicable test vectors will have B different values for the
