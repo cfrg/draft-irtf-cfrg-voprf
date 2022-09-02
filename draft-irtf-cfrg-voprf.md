@@ -625,14 +625,14 @@ client learns `output` and the server learns nothing.
 This interaction is shown below.
 
 ~~~
-    Client                                               Server(skS)
-  ------------------------------------------------------------------
+    Client                                                Server(skS)
+  -------------------------------------------------------------------
   blind, blindedElement = Blind(input)
 
                              blindedElement
                                ---------->
 
-               evaluatedElement = BlindEvaluate(skS, blindedElement)
+                evaluatedElement = BlindEvaluate(skS, blindedElement)
 
                              evaluatedElement
                                <----------
@@ -650,15 +650,15 @@ which the client receives as input to the protocol. This proof does not reveal t
 private key to the client. This interaction is shown below.
 
 ~~~
-    Client(pkS)           <---- pkS ------          Server(skS, pkS)
-  ------------------------------------------------------------------
+    Client(pkS)            <---- pkS ------          Server(skS, pkS)
+  -------------------------------------------------------------------
   blind, blindedElement = Blind(input)
 
                              blindedElement
                                ---------->
 
-             evaluatedElement, proof = BlindEvaluate(skS, pkS,
-                                                     blindedElement)
+              evaluatedElement, proof = BlindEvaluate(skS, pkS,
+                                                      blindedElement)
 
                          evaluatedElement, proof
                                <----------
@@ -674,22 +674,21 @@ the pseudorandom function. That is, the client and server interact to compute
 `output = F(skS, input, info)` as is shown below.
 
 ~~~
-    Client(pkS, info)     <---- pkS ------    Server(skS, pkS, info)
-  ------------------------------------------------------------------
+    Client(pkS, info)     <---- pkS ------     Server(skS, pkS, info)
+  -------------------------------------------------------------------
   blind, blindedElement, tweakedKey = Blind(input, info, pkS)
 
                              blindedElement
                                ---------->
 
-        evaluatedElement, proof = BlindEvaluate(skS, blindedElement,
-                                                info)
+         evaluatedElement, proof = BlindEvaluate(skS, blindedElement,
+                                                 info)
 
                          evaluatedElement, proof
                                <----------
 
   output = Finalize(input, blind, evaluatedElement,
-                    blindedElement, proof, info,
-                    tweakedKey)
+                    blindedElement, proof, info, tweakedKey)
 ~~~
 {: #fig-poprf title="POPRF protocol overview with additional public input"}
 
@@ -726,9 +725,9 @@ def CreateContextString(mode, suiteID):
 
 In the offline setup phase, the server key pair (`skS`, `pkS`) is generated
 using the following function, which accepts a randomly generated seed of length
-`Ns` bytes and a (possible empty) public `info` string. The constant `Ns`
-corresponds to the size in bytes of a serialized Scalar and is defined in
-{{pog}}.
+`Ns` bytes and an optional (and possible empty) public `info` string. The
+constant `Ns` corresponds to the size in bytes of a serialized Scalar and is
+defined in {{pog}}.
 
 ~~~
 Input:
@@ -1405,7 +1404,7 @@ not be a concern in practice. For example, SHA-256 has an input limit of 2^61 by
 
 In {{online}}, the interface of the protocol functions allows that some inputs
 (and outputs) to be group elements and scalars. However, implementations can
-instead operate over group elements and scalars internally, and only exposing
+instead operate over group elements and scalars internally, and only expose
 interfaces that operate with an application-specific format of messages.
 
 ## Error Considerations {#errors}
