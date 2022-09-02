@@ -67,7 +67,22 @@ informative:
   FS00: DOI.10.1007/3-540-47721-7_12
   JKKX16: DOI.10.1109/EuroSP.2016.30
   JKK14: DOI.10.1007/978-3-662-45608-8_13
-  SJKS17: DOI.10.1109/ICDCS.2017.64
+  SJKS17:
+    title: "SPHINX: A Password Store that Perfectly Hides Passwords from Itself"
+    target: https://doi.org/10.1109/ICDCS.2017.64
+    date: June, 2017
+    seriesinfo:
+      "In": "2017 IEEE 37th International Conference on Distributed Computing Systems (ICDCS)"
+      DOI: 10.1109/ICDCS.2017.64
+    author:
+      -
+        name: Maliheh Shirvanian
+      -
+        name: Stanislaw Jarecki
+      -
+        name: Hugo Krawczyk
+      -
+        name: Nitesh Saxena
   TCRSTW21: DOI.10.1007/978-3-031-07085-3_23
   DGSTV18: DOI.10.1515/popets-2018-0026
   SEC1:
