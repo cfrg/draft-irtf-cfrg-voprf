@@ -1471,6 +1471,11 @@ In other words, an attacker with infinite computing power cannot recover any
 information about the client's private input x from an invocation of the
 protocol.
 
+Essentially, input secrecy tells us that, even if the server learns
+the client's private input x at some point in the future, then the server will
+not be able to link any particular PRF evaluation to x. This property is
+also known as unlinkability {{DGSTV18}}.
+
 For the VOPRF and POPRF protocol variants, there is an additional
 security property:
 
@@ -1488,15 +1493,13 @@ commitment as a public key.
 
 Finally, the POPRF variant also has the following security property:
 
-- Partial obliviousness: The server must learn nothing about the client's
-  private input or the output of the function. In addition, the client must
-  learn nothing about the server's private key. Both client and server learn
-  the public input (info).
+- Partial obliviousness: The client and server must be able to perform the
+  PRF on client's private input and public input. The server must learn nothing
+  about the client's private input or the output of the function. In addition,
+  the client must learn nothing about the server's private key.
 
-Essentially, partial obliviousness tells us that, even if the server learns
-the client's private input x at some point in the future, then the server will
-not be able to link any particular POPRF evaluation to x. This property is
-also known as unlinkability {{DGSTV18}}.
+This property becomes useful when dealing with key management operations such as
+the rotation of server's keys.
 
 ## Security Assumptions {#cryptanalysis}
 
