@@ -670,7 +670,7 @@ the pseudorandom function. That is, the client and server interact to compute
                                <----------
 
   output = Finalize(input, blind, evaluatedElement,
-                    blindedElement, pkS, proof, info,
+                    blindedElement, proof, info,
                     tweakedKey)
 ~~~
 {: #fig-poprf title="POPRF protocol overview with additional public input"}
@@ -1012,7 +1012,9 @@ function described in {{oprf}}.
 ### POPRF Protocol {#poprf}
 
 The POPRF protocol begins with the client blinding its input, using the
-following modified `Blind` function. Note that this function can fail with an
+following modified `Blind` function. In this step, the client also binds a
+public info value, which produces an additional `tweakedKey` to be used later
+in the protocol. Note that this function can fail with an
 `InvalidInputError` error for certain private inputs that map to the group
 identity element, as well as certain public inputs that map to invalid
 public keys for server evaluation. Dealing with either failure is an
@@ -1110,7 +1112,6 @@ Input:
   Scalar blind
   Element evaluatedElement
   Element blindedElement
-  Element pkS
   Proof proof
   PublicInput info
   Element tweakedKey
@@ -1126,7 +1127,7 @@ Parameters:
 Errors: VerifyError
 
 def Finalize(input, blind, evaluatedElement, blindedElement,
-             pkS, proof, info, tweakedKey):
+             proof, info, tweakedKey):
   evaluatedElements = [evaluatedElement] // list of length 1
   blindedElements = [blindedElement]     // list of length 1
   if VerifyProof(G.Generator(), tweakedKey, evaluatedElements,
