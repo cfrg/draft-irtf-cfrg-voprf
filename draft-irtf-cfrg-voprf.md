@@ -1388,9 +1388,10 @@ not be a concern in practice. For example, SHA-256 has an input limit of 2^61 by
 
 ## External Interface Recommendations
 
-The protocol functions in {{online}} are specified in terms of prime-order group
-Elements and Scalars. However, applications can treat these as internal functions,
-and instead expose interfaces that operate in terms of wire format messages.
+In {{online}}, the interface of the protocol functions allows that some inputs
+(and outputs) to be group elements and scalars. However, implementations can
+instead operate over group elements and scalars internally, and only exposing
+interfaces that operate with an application-specific format of messages.
 
 ## Error Considerations {#errors}
 
