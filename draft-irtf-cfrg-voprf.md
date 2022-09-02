@@ -1021,9 +1021,9 @@ following modified `Blind` function. In this step, the client also binds a
 public info value, which produces an additional `tweakedKey` to be used later
 in the protocol. Note that this function can fail with an
 `InvalidInputError` error for certain private inputs that map to the group
-identity element, as well as certain public inputs that map to invalid
-public keys for server evaluation. Dealing with either failure is an
-application-specific decision; see {{errors}}.
+identity element, as well as certain public inputs that, if not detected at
+this point, will cause server evaluation to fail. Dealing with either failure
+is an application-specific decision; see {{errors}}.
 
 ~~~
 Input:
