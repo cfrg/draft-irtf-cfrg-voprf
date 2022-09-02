@@ -251,17 +251,21 @@ along with application considerations, and their security properties.
 The following functions and notation are used throughout the document.
 
 - For any object `x`, we write `len(x)` to denote its length in bytes.
-- For two byte strings `x` and `y`, write `x || y` to denote their
+- For two byte arrays `x` and `y`, write `x || y` to denote their
   concatenation.
-- I2OSP(x, xLen): Converts a non-negative integer `x` into a byte string
+- I2OSP(x, xLen): Converts a non-negative integer `x` into a byte array
   of specified length `xLen` as described in {{!RFC8017}}. Note that
-  this function returns a byte string in big-endian byte order.
+  this function returns a byte array in big-endian byte order.
 
 All algorithms and procedures described in this document are laid out
-in a Python-like pseudocode. The `PrivateInput` data type refers to information
-that must be kept in secrecy, and the `PublicInput` data type indicates that it
-is not required to keep the information secret. These data types are opaque
-byte strings of arbitrary length no larger than 2^13 octets.
+in a Python-like pseudocode. Each function takes a set of inputs and parameters
+and produces a set of output values. Parameters become constant values once the
+protocol variant and the ciphersuite are fixed.
+
+The `PrivateInput` data type refers to information that must be kept in
+secrecy, and the `PublicInput` data type indicates that it is not required to
+keep the information secret. These data types are opaque byte strings of
+arbitrary length no larger than 2^13 octets.
 
 String values such as "DeriveKeyPair", "Seed-", and "Finalize" are ASCII string literals.
 
@@ -321,26 +325,26 @@ prime-order group.
 - Identity(): Outputs the identity element of the group (i.e. `I`).
 - Generator(): Outputs the generator element of the group.
 - HashToGroup(x): A member function of `Group` that deterministically maps
-  a byte string `x` to an element of `Group`. The map must ensure that,
+  an array of bytes `x` to an element of `Group`. The map must ensure that,
   for any adversary receiving `R = HashToGroup(x)`, it is
   computationally difficult to reverse the mapping. This function is optionally
   parameterized by a domain separation tag (DST); see {{ciphersuites}}.
 - HashToScalar(x): A member function of `Group` that deterministically maps
-  a byte string `x` to an element in GF(p). This function is optionally
+  an array of bytes `x` to an element in GF(p). This function is optionally
   parameterized by a DST; see {{ciphersuites}}.
 - RandomScalar(): A member function of `Group` that chooses at random a
   non-zero element in GF(p).
 - ScalarInverse(s): Returns the inverse of input Scalar `s` on `GF(p)`.
 - SerializeElement(A): A member function of `Group` that maps a group element
-  `A` to a unique byte string `buf` of fixed length `Ne` bytes.
+  `A` to a unique byte array `buf` of fixed length `Ne` bytes.
 - DeserializeElement(buf): A member function of `Group` that maps a byte
-  string `buf` to a group element `A`, or raise a DeserializeError if the
+  array `buf` to a group element `A`, or raise a DeserializeError if the
   input is not a valid byte representation of an element.
   See {{input-validation}} for further requirements on input validation.
 - SerializeScalar(s): A member function of `Group` that maps a scalar element
-  `s` to a unique byte string `buf` of fixed length `Ns` bytes.
+  `s` to a unique byte array `buf` of fixed length `Ns` bytes.
 - DeserializeScalar(buf): A member function of `Group` that maps a byte
-  string `buf` to a scalar `s`, or raise a DeserializeError if the input
+  array `buf` to a scalar `s`, or raise a DeserializeError if the input
   is not a valid byte representation of a scalar.
   See {{input-validation}} for further requirements on input validation.
 
@@ -379,7 +383,7 @@ number of inputs.
 The specific DLEQ proof system presented below follows this latter
 construction with two modifications: (1) the transcript used to generate
 the seed includes more context information, and (2) the individual challenges
-for each proof are derived from a seed-prefixed hash-to-scalar
+for each element in the proof is derived from a seed-prefixed hash-to-scalar
 invocation rather than being sampled from a seeded PRNG.
 The description is split into
 two sub-sections: one for generating the proof, which is done by servers
@@ -540,8 +544,9 @@ def VerifyProof(A, B, C, D, proof):
             "Challenge"
 
   expectedC = G.HashToScalar(h2Input)
+  verified = (expectedC == c)
 
-  return expectedC == c
+  return verified
 ~~~
 
 The definition of `ComputeComposites` is given below.
@@ -602,14 +607,14 @@ client learns `output` and the server learns nothing.
 This interaction is shown below.
 
 ~~~
-    Client                                                Server(skS)
-  -------------------------------------------------------------------
+    Client                                               Server(skS)
+  ------------------------------------------------------------------
   blind, blindedElement = Blind(input)
 
                              blindedElement
                                ---------->
 
-                     evaluatedElement = BlindEvaluate(blindedElement)
+               evaluatedElement = BlindEvaluate(skS, blindedElement)
 
                              evaluatedElement
                                <----------
@@ -627,45 +632,46 @@ which the client receives as input to the protocol. This proof does not reveal t
 private key to the client. This interaction is shown below.
 
 ~~~
-    Client(pkS)            <---- pkS ------               Server(skS)
-  -------------------------------------------------------------------
+    Client(pkS)           <---- pkS ------          Server(skS, pkS)
+  ------------------------------------------------------------------
   blind, blindedElement = Blind(input)
 
                              blindedElement
                                ---------->
 
-              evaluatedElement, proof = BlindEvaluate(blindedElement)
+             evaluatedElement, proof = BlindEvaluate(skS, pkS,
+                                                     blindedElement)
 
                          evaluatedElement, proof
                                <----------
 
   output = Finalize(input, blind, evaluatedElement,
-                    blindedElement, proof)
+                    blindedElement, pkS, proof)
 ~~~
 {: #fig-voprf title="VOPRF protocol overview with additional proof"}
 
 The POPRF mode extends the VOPRF mode such that the client and
 server can additionally provide a public input `info` that is used in computing
 the pseudorandom function. That is, the client and server interact to compute
-`output = F(skS, input, info)`. To support additional public input, the client
-and server augment the `pkS` and `skS`, respectively, using the `info` value,
-as in {{TCRSTW21}}.
+`output = F(skS, input, info)` as is shown below.
 
 ~~~
-    Client(pkS, info)        <---- pkS ------       Server(skS, info)
-  -------------------------------------------------------------------
-  blind, blindedElement, tweakedKey = Blind(input, info)
+    Client(pkS, info)     <---- pkS ------    Server(skS, pkS, info)
+  ------------------------------------------------------------------
+  blind, blindedElement, tweakedKey = Blind(input, info, pkS)
 
                              blindedElement
                                ---------->
 
-        evaluatedElement, proof = BlindEvaluate(blindedElement, info)
+        evaluatedElement, proof = BlindEvaluate(skS, blindedElement,
+                                                info)
 
                          evaluatedElement, proof
                                <----------
 
   output = Finalize(input, blind, evaluatedElement,
-                    blindedElement, proof, info, tweakedKey)
+                    blindedElement, pkS, proof, info,
+                    tweakedKey)
 ~~~
 {: #fig-poprf title="POPRF protocol overview with additional public input"}
 
@@ -702,8 +708,9 @@ def CreateContextString(mode, suiteID):
 
 In the offline setup phase, the server key pair (`skS`, `pkS`) is generated
 using the following function, which accepts a randomly generated seed of length
-`Ns` bytes and an optional public `info` string. The constant `Ns` corresponds to
-the size in bytes of a serialized Scalar and is defined in {{pog}}.
+`Ns` bytes and a (possible empty) public `info` string. The constant `Ns`
+corresponds to the size in bytes of a serialized Scalar and is defined in
+{{pog}}.
 
 ~~~
 Input:
@@ -724,7 +731,6 @@ Parameters:
 Errors: DeriveKeyPairError
 
 def DeriveKeyPair(seed, info):
-  contextString = CreateContextString(mode, suiteID)
   deriveInput = seed || I2OSP(len(info), 2) || info
   counter = 0
   skS = 0
@@ -792,7 +798,7 @@ are assumed to exist:
 - skS and pkS, a Scalar and Element representing the private and public keys configured for client and server in {{offline}}.
 
 Applications serialize protocol messages between client and server for
-transmission. Elements and scalars are serialized to byte strings, and values
+transmission. Elements and scalars are serialized to byte arrays, and values
 of type Proof are serialized as the concatenation of two serialized scalars.
 Deserializing these values can fail, in which case the application MUST abort
 the protocol with a `DeserializeError` failure.
@@ -843,17 +849,14 @@ below.
 ~~~
 Input:
 
+  Scalar skS
   Element blindedElement
 
 Output:
 
   Element evaluatedElement
 
-Parameters:
-
-  Scalar skS
-
-def BlindEvaluate(blindedElement):
+def BlindEvaluate(skS, blindedElement):
   evaluatedElement = skS * blindedElement
   return evaluatedElement
 ~~~
@@ -895,6 +898,7 @@ Servers can compute the PRF result using a given input using the following
 ~~~
 Input:
 
+  Scalar skS
   PrivateInput input
 
 Output:
@@ -904,11 +908,10 @@ Output:
 Parameters:
 
   Group G
-  Scalar skS
 
 Errors: InvalidInputError
 
-def Evaluate(input):
+def Evaluate(skS, input):
   inputElement = G.HashToGroup(input)
   if inputElement == G.Identity():
     raise InvalidInputError
@@ -932,6 +935,8 @@ proof using the following `BlindEvaluate` function.
 ~~~
 Input:
 
+  Scalar skS
+  Element pkS
   Element blindedElement
 
 Output:
@@ -942,10 +947,8 @@ Output:
 Parameters:
 
   Group G
-  Scalar skS
-  Element pkS
 
-def BlindEvaluate(blindedElement):
+def BlindEvaluate(skS, pkS, blindedElement):
   evaluatedElement = skS * blindedElement
   blindedElements = [blindedElement]     // list of length 1
   evaluatedElements = [evaluatedElement] // list of length 1
@@ -969,6 +972,7 @@ Input:
   Scalar blind
   Element evaluatedElement
   Element blindedElement
+  Element pkS
   Proof proof
 
 Output:
@@ -978,11 +982,11 @@ Output:
 Parameters:
 
   Group G
-  Element pkS
 
 Errors: VerifyError
 
-def Finalize(input, blind, evaluatedElement, blindedElement, proof):
+def Finalize(input, blind, evaluatedElement,
+             blindedElement, pkS, proof):
   blindedElements = [blindedElement]     // list of length 1
   evaluatedElements = [evaluatedElement] // list of length 1
   if VerifyProof(G.Generator(), pkS, blindedElements,
@@ -1019,6 +1023,7 @@ Input:
 
   PrivateInput input
   PublicInput info
+  Element pkS
 
 Output:
 
@@ -1029,11 +1034,10 @@ Output:
 Parameters:
 
   Group G
-  Element pkS
 
 Errors: InvalidInputError
 
-def Blind(input, info):
+def Blind(input, info, pkS):
   framedInfo = "Info" || I2OSP(len(info), 2) || info
   m = G.HashToScalar(framedInfo)
   T = G.ScalarMultGen(m)
@@ -1058,6 +1062,7 @@ compute an evaluated element and DLEQ proof using the following `BlindEvaluate` 
 ~~~
 Input:
 
+  Scalar skS
   Element blindedElement
   PublicInput info
 
@@ -1069,12 +1074,10 @@ Output:
 Parameters:
 
   Group G
-  Scalar skS
-  Element pkS
 
 Errors: InverseError
 
-def BlindEvaluate(blindedElement, info):
+def BlindEvaluate(skS, blindedElement, info):
   framedInfo = "Info" || I2OSP(len(info), 2) || info
   m = G.HashToScalar(framedInfo)
   t = skS + m
@@ -1107,6 +1110,7 @@ Input:
   Scalar blind
   Element evaluatedElement
   Element blindedElement
+  Element pkS
   Proof proof
   PublicInput info
   Element tweakedKey
@@ -1118,12 +1122,11 @@ Output:
 Parameters:
 
   Group G
-  Element pkS
 
 Errors: VerifyError
 
 def Finalize(input, blind, evaluatedElement, blindedElement,
-             proof, info, tweakedKey):
+             pkS, proof, info, tweakedKey):
   evaluatedElements = [evaluatedElement] // list of length 1
   blindedElements = [blindedElement]     // list of length 1
   if VerifyProof(G.Generator(), tweakedKey, evaluatedElements,
@@ -1150,6 +1153,7 @@ function described below.
 ~~~
 Input:
 
+  Scalar skS
   PrivateInput input
   PublicInput info
 
@@ -1160,11 +1164,10 @@ Output:
 Parameters:
 
   Group G
-  Scalar skS
 
 Errors: InvalidInputError, InverseError
 
-def Evaluate(input, info):
+def Evaluate(skS, input, info):
   inputElement = G.HashToGroup(input)
   if inputElement == G.Identity():
     raise InvalidInputError
@@ -1232,13 +1235,13 @@ See {{cryptanalysis}} for related discussion.
 - Hash: SHA-512, and Nh = 64 bytes.
 - ID: 0x0001
 
-### OPRF(decaf448, SHAKE256)
+### OPRF(decaf448, SHAKE-256)
 
 - Group: decaf448 {{!RISTRETTO}}
   - HashToGroup(): Use hash_to_decaf448
     {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
     "HashToGroup-" || contextString, and `expand_message` = `expand_message_xof`
-    using SHAKE256.
+    using SHAKE-256.
   - HashToScalar(): Compute `uniform_bytes` using `expand_message` = `expand_message_xof`,
     DST = "HashToScalar-" || contextString, and output length 64, interpret
     `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the
@@ -1248,7 +1251,7 @@ See {{cryptanalysis}} for related discussion.
     {{!RISTRETTO}}. For scalars, ensure they are fully reduced modulo
     `Group.Order()`
     and in little-endian order.
-- Hash: SHAKE256, and Nh = 64 bytes.
+- Hash: SHAKE-256, and Nh = 64 bytes.
 - ID: 0x0002
 
 ### OPRF(P-256, SHA-256)
@@ -1315,7 +1318,7 @@ in the above ciphersuite list.
 
 ### Element Validation
 
-Recovering a group element from an arbitrary byte string must validate that
+Recovering a group element from an arbitrary byte array must validate that
 the element is a proper member of the group and is not the identity element,
 and returns an error if either condition is not met.
 
@@ -1334,7 +1337,7 @@ InputValidationError.
 ### Scalar Validation
 
 The DeserializeScalar function attempts to recover a scalar field element from an arbitrary
-byte string. Like DeserializeElement, this function validates that the element
+byte array. Like DeserializeElement, this function validates that the element
 is a member of the scalar field and returns an error if this condition is not met.
 
 For P-256, P-384, and P-521 ciphersuites, this function ensures that the input,
@@ -1348,7 +1351,7 @@ a little-endian integer, is a value between 0 and `Group.Order() - 1`.
 A critical requirement of implementing the prime-order group using
 elliptic curves is a method to instantiate the function
 `HashToGroup`, that maps inputs to group elements. In the elliptic
-curve setting, this deterministically maps inputs x (as byte strings) to
+curve setting, this deterministically maps inputs x (as byte arrays) to
 uniformly chosen points on the curve.
 
 In the security proof of the construction Hash is modeled as a random
@@ -1392,7 +1395,7 @@ conditions that lead to each error, are as follows:
 
 - `VerifyError`: Verifiable OPRF proof verification failed; {{voprf}} and {{poprf}}.
 - `DeserializeError`: Group Element or Scalar deserialization failure; {{pog}} and {{online}}.
-- `InputValidationError`: Validation of byte string inputs failed; {{input-validation}}.
+- `InputValidationError`: Validation of byte array inputs failed; {{input-validation}}.
 
 There are other explicit errors generated in this specification; however, they occur with
 negligible probability in practice. We note them here for completeness.
@@ -1806,7 +1809,7 @@ dba1a5fb5c3dd6be6c419190a84b576d91eb3d8d920d450fee0427fd24524950d72d
 a605acbc072619e8b8acefb8ee704a357556edc802648089d684baa763ce14
 ~~~
 
-## OPRF(decaf448, SHAKE256)
+## OPRF(decaf448, SHAKE-256)
 
 ### OPRF Mode
 
