@@ -256,6 +256,9 @@ The following functions and notation are used throughout the document.
 - I2OSP(x, xLen): Converts a non-negative integer `x` into a byte array
   of specified length `xLen` as described in {{!RFC8017}}. Note that
   this function returns a byte array in big-endian byte order.
+- The notation `T U[N]` refers to an array called U containing N items of type
+  T. The type `opaque` means one single byte of uninterpreted data. Items of
+  the array are zero-indexed and referred as `U[j]` such that 0 <= j < N.
 
 All algorithms and procedures described in this document are laid out
 in a Python-like pseudocode. Each function takes a set of inputs and parameters
@@ -1606,7 +1609,7 @@ byte string. The fields of each test vector are described below.
 - "ProofRandomScalar": The random scalar `r` computed in `GenerateProof()`, a
   serialized `Scalar` of `Ns` bytes long. Only present for VOPRF and POPRF
   test vectors.
-- "Output": The protocol output, a byte string of length `Nh` bytes.
+- "Output": The protocol output, an opaque byte string of length `Nh` bytes.
 
 Test vectors with batch size B > 1 have inputs separated by a comma
 ",". Applicable test vectors will have B different values for the
