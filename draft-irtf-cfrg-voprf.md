@@ -258,8 +258,10 @@ The following functions and notation are used throughout the document.
   this function returns a byte string in big-endian byte order.
 
 All algorithms and procedures described in this document are laid out
-in a Python-like pseudocode. The data types `PrivateInput` and `PublicInput`
-are opaque byte strings of arbitrary length no larger than 2^13 octets.
+in a Python-like pseudocode. The `PrivateInput` data type refers to information
+that must be kept in secrecy, and the `PublicInput` data type indicates that it
+is not required to keep the information secret. These data types are opaque
+byte strings of arbitrary length no larger than 2^13 octets.
 
 String values such as "DeriveKeyPair", "Seed-", and "Finalize" are ASCII string literals.
 
