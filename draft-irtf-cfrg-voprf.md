@@ -1583,7 +1583,7 @@ P-384 (used by 0x0004), or P-521 (used by 0x0005).
 
 ## Domain Separation {#domain-separation}
 
-Applications SHOULD construct input to the protocol to provide domain
+Applications MUST construct input to the protocol to provide domain
 separation. Any system which has multiple OPRF applications should
 distinguish client inputs to ensure the OPRF results are separate.
 Guidance for constructing info can be found in {{!I-D.irtf-cfrg-hash-to-curve, Section 3.1}}.
