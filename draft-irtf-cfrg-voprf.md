@@ -865,7 +865,9 @@ def BlindEvaluate(skS, blindedElement):
 ~~~
 
 Servers send the output `evaluatedElement` to clients for processing.
-Recall that servers may batch multiple client inputs to `BlindEvaluate`.
+Recall that servers may process multiple client inputs by applying the
+`BlindEvaluate` function to each `blindedElement` received, and returning an
+array with the corresponding `evaluatedElement`s.
 
 Upon receipt of `evaluatedElement`, clients process it to complete the
 OPRF evaluation with the `Finalize` function described below.
