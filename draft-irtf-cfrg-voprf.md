@@ -251,11 +251,11 @@ along with application considerations, and their security properties.
 The following functions and notation are used throughout the document.
 
 - For any object `x`, we write `len(x)` to denote its length in bytes.
-- For two byte arrays `x` and `y`, write `x || y` to denote their
+- For two byte strings `x` and `y`, write `x || y` to denote their
   concatenation.
-- I2OSP(x, xLen): Converts a non-negative integer `x` into a byte array
+- I2OSP(x, xLen): Converts a non-negative integer `x` into a byte string
   of specified length `xLen` as described in {{!RFC8017}}. Note that
-  this function returns a byte array in big-endian byte order.
+  this function returns a byte string in big-endian byte order.
 
 All algorithms and procedures described in this document are laid out
 in a Python-like pseudocode. The data types `PrivateInput` and `PublicInput`
@@ -319,26 +319,26 @@ prime-order group.
 - Identity(): Outputs the identity element of the group (i.e. `I`).
 - Generator(): Outputs the generator element of the group.
 - HashToGroup(x): A member function of `Group` that deterministically maps
-  an array of bytes `x` to an element of `Group`. The map must ensure that,
+  a byte string `x` to an element of `Group`. The map must ensure that,
   for any adversary receiving `R = HashToGroup(x)`, it is
   computationally difficult to reverse the mapping. This function is optionally
   parameterized by a domain separation tag (DST); see {{ciphersuites}}.
 - HashToScalar(x): A member function of `Group` that deterministically maps
-  an array of bytes `x` to an element in GF(p). This function is optionally
+  a byte string `x` to an element in GF(p). This function is optionally
   parameterized by a DST; see {{ciphersuites}}.
 - RandomScalar(): A member function of `Group` that chooses at random a
   non-zero element in GF(p).
 - ScalarInverse(s): Returns the inverse of input Scalar `s` on `GF(p)`.
 - SerializeElement(A): A member function of `Group` that maps a group element
-  `A` to a unique byte array `buf` of fixed length `Ne` bytes.
+  `A` to a unique byte string `buf` of fixed length `Ne` bytes.
 - DeserializeElement(buf): A member function of `Group` that maps a byte
-  array `buf` to a group element `A`, or raise a DeserializeError if the
+  string `buf` to a group element `A`, or raise a DeserializeError if the
   input is not a valid byte representation of an element.
   See {{input-validation}} for further requirements on input validation.
 - SerializeScalar(s): A member function of `Group` that maps a scalar element
-  `s` to a unique byte array `buf` of fixed length `Ns` bytes.
+  `s` to a unique byte string `buf` of fixed length `Ns` bytes.
 - DeserializeScalar(buf): A member function of `Group` that maps a byte
-  array `buf` to a scalar `s`, or raise a DeserializeError if the input
+  string `buf` to a scalar `s`, or raise a DeserializeError if the input
   is not a valid byte representation of a scalar.
   See {{input-validation}} for further requirements on input validation.
 
@@ -441,7 +441,9 @@ def GenerateProof(k, A, B, C, D)
   return [c, s]
 ~~~
 
-The helper function ComputeCompositesFast is as defined below.
+The helper function ComputeCompositesFast is as defined below, and is an
+optimization of the ComputeComposites function for servers since they have
+knowledge of the private key.
 
 ~~~
 Input:
@@ -669,7 +671,7 @@ for the offline phase are described in {{configuration}}.
 
 ## Configuration {#configuration}
 
-Each of the three protocol variants are identified with a one-byte value:
+Each of the three protocol variants are identified with a one-byte value (in hexadecimal):
 
 | Mode           | Value |
 |:===============|:======|
@@ -696,7 +698,7 @@ def CreateContextString(mode, suiteID):
 
 In the offline setup phase, the server key pair (`skS`, `pkS`) is generated
 using the following function, which accepts a randomly generated seed of length
-`Ns` bytes and optional public `info` string. The constant `Ns` corresponds to
+`Ns` bytes and an optional public `info` string. The constant `Ns` corresponds to
 the size in bytes of a serialized Scalar and is defined in {{pog}}.
 
 ~~~
@@ -786,7 +788,7 @@ are assumed to exist:
 - skS and pkS, a Scalar and Element representing the private and public keys configured for client and server in {{offline}}.
 
 Applications serialize protocol messages between client and server for
-transmission. Elements and scalars are serialized to byte arrays, and values
+transmission. Elements and scalars are serialized to byte strings, and values
 of type Proof are serialized as the concatenation of two serialized scalars.
 Deserializing these values can fail, in which case the application MUST abort
 the protocol with a `DeserializeError` failure.
@@ -1226,13 +1228,13 @@ See {{cryptanalysis}} for related discussion.
 - Hash: SHA-512, and Nh = 64 bytes.
 - ID: 0x0001
 
-### OPRF(decaf448, SHAKE-256)
+### OPRF(decaf448, SHAKE256)
 
 - Group: decaf448 {{!RISTRETTO}}
   - HashToGroup(): Use hash_to_decaf448
     {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
     "HashToGroup-" || contextString, and `expand_message` = `expand_message_xof`
-    using SHAKE-256.
+    using SHAKE256.
   - HashToScalar(): Compute `uniform_bytes` using `expand_message` = `expand_message_xof`,
     DST = "HashToScalar-" || contextString, and output length 64, interpret
     `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the
@@ -1242,7 +1244,7 @@ See {{cryptanalysis}} for related discussion.
     {{!RISTRETTO}}. For scalars, ensure they are fully reduced modulo
     `Group.Order()`
     and in little-endian order.
-- Hash: SHAKE-256, and Nh = 64 bytes.
+- Hash: SHAKE256, and Nh = 64 bytes.
 - ID: 0x0002
 
 ### OPRF(P-256, SHA-256)
@@ -1309,7 +1311,7 @@ in the above ciphersuite list.
 
 ### Element Validation
 
-Recovering a group element from an arbitrary byte array must validate that
+Recovering a group element from an arbitrary byte string must validate that
 the element is a proper member of the group and is not the identity element,
 and returns an error if either condition is not met.
 
@@ -1328,7 +1330,7 @@ InputValidationError.
 ### Scalar Validation
 
 The DeserializeScalar function attempts to recover a scalar field element from an arbitrary
-byte array. Like DeserializeElement, this function validates that the element
+byte string. Like DeserializeElement, this function validates that the element
 is a member of the scalar field and returns an error if this condition is not met.
 
 For P-256, P-384, and P-521 ciphersuites, this function ensures that the input,
@@ -1342,7 +1344,7 @@ a little-endian integer, is a value between 0 and `Group.Order() - 1`.
 A critical requirement of implementing the prime-order group using
 elliptic curves is a method to instantiate the function
 `HashToGroup`, that maps inputs to group elements. In the elliptic
-curve setting, this deterministically maps inputs x (as byte arrays) to
+curve setting, this deterministically maps inputs x (as byte strings) to
 uniformly chosen points on the curve.
 
 In the security proof of the construction Hash is modeled as a random
@@ -1386,9 +1388,9 @@ conditions that lead to each error, are as follows:
 
 - `VerifyError`: Verifiable OPRF proof verification failed; {{voprf}} and {{poprf}}.
 - `DeserializeError`: Group Element or Scalar deserialization failure; {{pog}} and {{online}}.
-- `InputValidationError`: Validation of byte array inputs failed; {{input-validation}}.
+- `InputValidationError`: Validation of byte string inputs failed; {{input-validation}}.
 
-There are other explicit errors generated in this specification, however they occur with
+There are other explicit errors generated in this specification; however, they occur with
 negligible probability in practice. We note them here for completeness.
 
 - `InvalidInputError`: OPRF Blind input produces an invalid output element; {{oprf}} and {{poprf}}.
@@ -1799,7 +1801,7 @@ dba1a5fb5c3dd6be6c419190a84b576d91eb3d8d920d450fee0427fd24524950d72d
 a605acbc072619e8b8acefb8ee704a357556edc802648089d684baa763ce14
 ~~~
 
-## OPRF(decaf448, SHAKE-256)
+## OPRF(decaf448, SHAKE256)
 
 ### OPRF Mode
 
