@@ -67,7 +67,22 @@ informative:
   FS00: DOI.10.1007/3-540-47721-7_12
   JKKX16: DOI.10.1109/EuroSP.2016.30
   JKK14: DOI.10.1007/978-3-662-45608-8_13
-  SJKS17: DOI.10.1109/ICDCS.2017.64
+  SJKS17:
+    title: "SPHINX: A Password Store that Perfectly Hides Passwords from Itself"
+    target: https://doi.org/10.1109/ICDCS.2017.64
+    date: June, 2017
+    seriesinfo:
+      "In": "2017 IEEE 37th International Conference on Distributed Computing Systems (ICDCS)"
+      DOI: 10.1109/ICDCS.2017.64
+    author:
+      -
+        name: Maliheh Shirvanian
+      -
+        name: Stanislaw Jarecki
+      -
+        name: Hugo Krawczyk
+      -
+        name: Nitesh Saxena
   TCRSTW21: DOI.10.1007/978-3-031-07085-3_23
   DGSTV18: DOI.10.1515/popets-2018-0026
   SEC1:
@@ -251,15 +266,24 @@ along with application considerations, and their security properties.
 The following functions and notation are used throughout the document.
 
 - For any object `x`, we write `len(x)` to denote its length in bytes.
-- For two byte strings `x` and `y`, write `x || y` to denote their
+- For two byte arrays `x` and `y`, write `x || y` to denote their
   concatenation.
-- I2OSP(x, xLen): Converts a non-negative integer `x` into a byte string
+- I2OSP(x, xLen): Converts a non-negative integer `x` into a byte array
   of specified length `xLen` as described in {{!RFC8017}}. Note that
-  this function returns a byte string in big-endian byte order.
+  this function returns a byte array in big-endian byte order.
+- The notation `T U[N]` refers to an array called U containing N items of type
+  T. The type `opaque` means one single byte of uninterpreted data. Items of
+  the array are zero-indexed and referred as `U[j]` such that 0 <= j < N.
 
 All algorithms and procedures described in this document are laid out
-in a Python-like pseudocode. The data types `PrivateInput` and `PublicInput`
-are opaque byte strings of arbitrary length no larger than 2^13 octets.
+in a Python-like pseudocode. Each function takes a set of inputs and parameters
+and produces a set of output values. Parameters become constant values once the
+protocol variant and the ciphersuite are fixed.
+
+The `PrivateInput` data type refers to inputs that are known only to the client
+in the protocol, whereas the `PublicInput` data type refers to inputs that are
+known to both client and server in the protocol. Both `PrivateInput` and
+`PublicInput` are opaque byte strings of arbitrary length no larger than 2^13 octets.
 
 String values such as "DeriveKeyPair", "Seed-", and "Finalize" are ASCII string literals.
 
@@ -319,26 +343,26 @@ prime-order group.
 - Identity(): Outputs the identity element of the group (i.e. `I`).
 - Generator(): Outputs the generator element of the group.
 - HashToGroup(x): A member function of `Group` that deterministically maps
-  a byte string `x` to an element of `Group`. The map must ensure that,
+  an array of bytes `x` to an element of `Group`. The map must ensure that,
   for any adversary receiving `R = HashToGroup(x)`, it is
   computationally difficult to reverse the mapping. This function is optionally
   parameterized by a domain separation tag (DST); see {{ciphersuites}}.
 - HashToScalar(x): A member function of `Group` that deterministically maps
-  a byte string `x` to an element in GF(p). This function is optionally
+  an array of bytes `x` to an element in GF(p). This function is optionally
   parameterized by a DST; see {{ciphersuites}}.
 - RandomScalar(): A member function of `Group` that chooses at random a
   non-zero element in GF(p).
 - ScalarInverse(s): Returns the inverse of input Scalar `s` on `GF(p)`.
 - SerializeElement(A): A member function of `Group` that maps a group element
-  `A` to a unique byte string `buf` of fixed length `Ne` bytes.
+  `A` to a unique byte array `buf` of fixed length `Ne` bytes.
 - DeserializeElement(buf): A member function of `Group` that maps a byte
-  string `buf` to a group element `A`, or raise a DeserializeError if the
+  array `buf` to a group element `A`, or raise a DeserializeError if the
   input is not a valid byte representation of an element.
   See {{input-validation}} for further requirements on input validation.
 - SerializeScalar(s): A member function of `Group` that maps a scalar element
-  `s` to a unique byte string `buf` of fixed length `Ns` bytes.
+  `s` to a unique byte array `buf` of fixed length `Ns` bytes.
 - DeserializeScalar(buf): A member function of `Group` that maps a byte
-  string `buf` to a scalar `s`, or raise a DeserializeError if the input
+  array `buf` to a scalar `s`, or raise a DeserializeError if the input
   is not a valid byte representation of a scalar.
   See {{input-validation}} for further requirements on input validation.
 
@@ -377,7 +401,7 @@ number of inputs.
 The specific DLEQ proof system presented below follows this latter
 construction with two modifications: (1) the transcript used to generate
 the seed includes more context information, and (2) the individual challenges
-for each proof are derived from a seed-prefixed hash-to-scalar
+for each element in the proof is derived from a seed-prefixed hash-to-scalar
 invocation rather than being sampled from a seeded PRNG.
 The description is split into
 two sub-sections: one for generating the proof, which is done by servers
@@ -538,8 +562,9 @@ def VerifyProof(A, B, C, D, proof):
             "Challenge"
 
   expectedC = G.HashToScalar(h2Input)
+  verified = (expectedC == c)
 
-  return expectedC == c
+  return verified
 ~~~
 
 The definition of `ComputeComposites` is given below.
@@ -590,12 +615,13 @@ as defined in {{offline}}.
 
 # Protocol {#protocol}
 
-In this section, we define three OPRF protocol variants -- a base mode,
-verifiable mode, and partially-oblivious mode -- with the following properties.
+In this section, we define three protocol variants referred as the OPRF, VOPRF,
+and POPRF modes with the following properties.
 
-In the base mode, a client and server interact to compute `output = F(skS, input)`,
+In the OPRF mode, a client and server interact to compute `output = F(skS, input)`,
 where `input` is the client's private input, `skS` is the server's private key,
-and `output` is the OPRF output. The client learns `output` and the server learns nothing.
+and `output` is the OPRF output. After the execution of the protocol, the
+client learns `output` and the server learns nothing.
 This interaction is shown below.
 
 ~~~
@@ -606,7 +632,7 @@ This interaction is shown below.
                              blindedElement
                                ---------->
 
-                     evaluatedElement = BlindEvaluate(blindedElement)
+                evaluatedElement = BlindEvaluate(skS, blindedElement)
 
                              evaluatedElement
                                <----------
@@ -615,47 +641,48 @@ This interaction is shown below.
 ~~~
 {: #fig-oprf title="OPRF protocol overview"}
 
-In the verifiable mode, the client additionally receives proof that the server used `skS` in
-computing the function. To achieve verifiability, as in the original work of {{JKK14}}, the
+In the VOPRF mode, the client additionally receives proof that the server used
+`skS` in computing the function. To achieve verifiability, as in the original
+work of {{JKK14}}, the
 server provides a zero-knowledge proof that the key provided as input by the server in
 the `BlindEvaluate` function is the same key as it used to produce the server's public key, `pkS`,
 which the client receives as input to the protocol. This proof does not reveal the server's
 private key to the client. This interaction is shown below.
 
 ~~~
-    Client(pkS)            <---- pkS ------               Server(skS)
+    Client(pkS)            <---- pkS ------          Server(skS, pkS)
   -------------------------------------------------------------------
   blind, blindedElement = Blind(input)
 
                              blindedElement
                                ---------->
 
-              evaluatedElement, proof = BlindEvaluate(blindedElement)
+              evaluatedElement, proof = BlindEvaluate(skS, pkS,
+                                                      blindedElement)
 
                          evaluatedElement, proof
                                <----------
 
   output = Finalize(input, blind, evaluatedElement,
-                    blindedElement, proof)
+                    blindedElement, pkS, proof)
 ~~~
 {: #fig-voprf title="VOPRF protocol overview with additional proof"}
 
-The partially-oblivious mode extends the VOPRF mode such that the client and
+The POPRF mode extends the VOPRF mode such that the client and
 server can additionally provide a public input `info` that is used in computing
 the pseudorandom function. That is, the client and server interact to compute
-`output = F(skS, input, info)`. To support additional public input, the client
-and server augment the `pkS` and `skS`, respectively, using the `info` value,
-as in {{TCRSTW21}}.
+`output = F(skS, input, info)` as is shown below.
 
 ~~~
-    Client(pkS, info)        <---- pkS ------       Server(skS, info)
+    Client(pkS, info)     <---- pkS ------     Server(skS, pkS, info)
   -------------------------------------------------------------------
-  blind, blindedElement, tweakedKey = Blind(input, info)
+  blind, blindedElement, tweakedKey = Blind(input, info, pkS)
 
                              blindedElement
                                ---------->
 
-        evaluatedElement, proof = BlindEvaluate(blindedElement, info)
+         evaluatedElement, proof = BlindEvaluate(skS, blindedElement,
+                                                 info)
 
                          evaluatedElement, proof
                                <----------
@@ -698,8 +725,9 @@ def CreateContextString(mode, suiteID):
 
 In the offline setup phase, the server key pair (`skS`, `pkS`) is generated
 using the following function, which accepts a randomly generated seed of length
-`Ns` bytes and an optional public `info` string. The constant `Ns` corresponds to
-the size in bytes of a serialized Scalar and is defined in {{pog}}.
+`Ns` bytes and an optional (and possible empty) public `info` string. The
+constant `Ns` corresponds to the size in bytes of a serialized Scalar and is
+defined in {{pog}}.
 
 ~~~
 Input:
@@ -720,7 +748,6 @@ Parameters:
 Errors: DeriveKeyPairError
 
 def DeriveKeyPair(seed, info):
-  contextString = CreateContextString(mode, suiteID)
   deriveInput = seed || I2OSP(len(info), 2) || info
   counter = 0
   skS = 0
@@ -788,7 +815,7 @@ are assumed to exist:
 - skS and pkS, a Scalar and Element representing the private and public keys configured for client and server in {{offline}}.
 
 Applications serialize protocol messages between client and server for
-transmission. Elements and scalars are serialized to byte strings, and values
+transmission. Elements and scalars are serialized to byte arrays, and values
 of type Proof are serialized as the concatenation of two serialized scalars.
 Deserializing these values can fail, in which case the application MUST abort
 the protocol with a `DeserializeError` failure.
@@ -839,23 +866,22 @@ below.
 ~~~
 Input:
 
+  Scalar skS
   Element blindedElement
 
 Output:
 
   Element evaluatedElement
 
-Parameters:
-
-  Scalar skS
-
-def BlindEvaluate(blindedElement):
+def BlindEvaluate(skS, blindedElement):
   evaluatedElement = skS * blindedElement
   return evaluatedElement
 ~~~
 
 Servers send the output `evaluatedElement` to clients for processing.
-Recall that servers may batch multiple client inputs to `BlindEvaluate`.
+Recall that servers may process multiple client inputs by applying the
+`BlindEvaluate` function to each `blindedElement` received, and returning an
+array with the corresponding `evaluatedElement` values.
 
 Upon receipt of `evaluatedElement`, clients process it to complete the
 OPRF evaluation with the `Finalize` function described below.
@@ -891,6 +917,7 @@ Servers can compute the PRF result using a given input using the following
 ~~~
 Input:
 
+  Scalar skS
   PrivateInput input
 
 Output:
@@ -900,11 +927,10 @@ Output:
 Parameters:
 
   Group G
-  Scalar skS
 
 Errors: InvalidInputError
 
-def Evaluate(input):
+def Evaluate(skS, input):
   inputElement = G.HashToGroup(input)
   if inputElement == G.Identity():
     raise InvalidInputError
@@ -928,6 +954,8 @@ proof using the following `BlindEvaluate` function.
 ~~~
 Input:
 
+  Scalar skS
+  Element pkS
   Element blindedElement
 
 Output:
@@ -938,10 +966,8 @@ Output:
 Parameters:
 
   Group G
-  Scalar skS
-  Element pkS
 
-def BlindEvaluate(blindedElement):
+def BlindEvaluate(skS, pkS, blindedElement):
   evaluatedElement = skS * blindedElement
   blindedElements = [blindedElement]     // list of length 1
   evaluatedElements = [evaluatedElement] // list of length 1
@@ -965,6 +991,7 @@ Input:
   Scalar blind
   Element evaluatedElement
   Element blindedElement
+  Element pkS
   Proof proof
 
 Output:
@@ -974,11 +1001,11 @@ Output:
 Parameters:
 
   Group G
-  Element pkS
 
 Errors: VerifyError
 
-def Finalize(input, blind, evaluatedElement, blindedElement, proof):
+def Finalize(input, blind, evaluatedElement,
+             blindedElement, pkS, proof):
   blindedElements = [blindedElement]     // list of length 1
   evaluatedElements = [evaluatedElement] // list of length 1
   if VerifyProof(G.Generator(), pkS, blindedElements,
@@ -1004,17 +1031,20 @@ function described in {{oprf}}.
 ### POPRF Protocol {#poprf}
 
 The POPRF protocol begins with the client blinding its input, using the
-following modified `Blind` function. Note that this function can fail with an
+following modified `Blind` function. In this step, the client also binds a
+public info value, which produces an additional `tweakedKey` to be used later
+in the protocol. Note that this function can fail with an
 `InvalidInputError` error for certain private inputs that map to the group
-identity element, as well as certain public inputs that map to invalid
-public keys for server evaluation. Dealing with either failure is an
-application-specific decision; see {{errors}}.
+identity element, as well as certain public inputs that, if not detected at
+this point, will cause server evaluation to fail. Dealing with either failure
+is an application-specific decision; see {{errors}}.
 
 ~~~
 Input:
 
   PrivateInput input
   PublicInput info
+  Element pkS
 
 Output:
 
@@ -1025,11 +1055,10 @@ Output:
 Parameters:
 
   Group G
-  Element pkS
 
 Errors: InvalidInputError
 
-def Blind(input, info):
+def Blind(input, info, pkS):
   framedInfo = "Info" || I2OSP(len(info), 2) || info
   m = G.HashToScalar(framedInfo)
   T = G.ScalarMultGen(m)
@@ -1054,6 +1083,7 @@ compute an evaluated element and DLEQ proof using the following `BlindEvaluate` 
 ~~~
 Input:
 
+  Scalar skS
   Element blindedElement
   PublicInput info
 
@@ -1065,12 +1095,10 @@ Output:
 Parameters:
 
   Group G
-  Scalar skS
-  Element pkS
 
 Errors: InverseError
 
-def BlindEvaluate(blindedElement, info):
+def BlindEvaluate(skS, blindedElement, info):
   framedInfo = "Info" || I2OSP(len(info), 2) || info
   m = G.HashToScalar(framedInfo)
   t = skS + m
@@ -1121,7 +1149,6 @@ Output:
 Parameters:
 
   Group G
-  Element pkS
 
 Errors: VerifyError
 
@@ -1153,6 +1180,7 @@ function described below.
 ~~~
 Input:
 
+  Scalar skS
   PrivateInput input
   PublicInput info
 
@@ -1163,11 +1191,10 @@ Output:
 Parameters:
 
   Group G
-  Scalar skS
 
 Errors: InvalidInputError, InverseError
 
-def Evaluate(input, info):
+def Evaluate(skS, input, info):
   inputElement = G.HashToGroup(input)
   if inputElement == G.Identity():
     raise InvalidInputError
@@ -1235,13 +1262,13 @@ See {{cryptanalysis}} for related discussion.
 - Hash: SHA-512, and Nh = 64 bytes.
 - ID: 0x0001
 
-### OPRF(decaf448, SHAKE256)
+### OPRF(decaf448, SHAKE-256)
 
 - Group: decaf448 {{!RISTRETTO}}
   - HashToGroup(): Use hash_to_decaf448
     {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
     "HashToGroup-" || contextString, and `expand_message` = `expand_message_xof`
-    using SHAKE256.
+    using SHAKE-256.
   - HashToScalar(): Compute `uniform_bytes` using `expand_message` = `expand_message_xof`,
     DST = "HashToScalar-" || contextString, and output length 64, interpret
     `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the
@@ -1251,7 +1278,7 @@ See {{cryptanalysis}} for related discussion.
     {{!RISTRETTO}}. For scalars, ensure they are fully reduced modulo
     `Group.Order()`
     and in little-endian order.
-- Hash: SHAKE256, and Nh = 64 bytes.
+- Hash: SHAKE-256, and Nh = 64 bytes.
 - ID: 0x0002
 
 ### OPRF(P-256, SHA-256)
@@ -1318,7 +1345,7 @@ in the above ciphersuite list.
 
 ### Element Validation
 
-Recovering a group element from an arbitrary byte string must validate that
+Recovering a group element from an arbitrary byte array must validate that
 the element is a proper member of the group and is not the identity element,
 and returns an error if either condition is not met.
 
@@ -1337,7 +1364,7 @@ InputValidationError.
 ### Scalar Validation
 
 The DeserializeScalar function attempts to recover a scalar field element from an arbitrary
-byte string. Like DeserializeElement, this function validates that the element
+byte array. Like DeserializeElement, this function validates that the element
 is a member of the scalar field and returns an error if this condition is not met.
 
 For P-256, P-384, and P-521 ciphersuites, this function ensures that the input,
@@ -1351,7 +1378,7 @@ a little-endian integer, is a value between 0 and `Group.Order() - 1`.
 A critical requirement of implementing the prime-order group using
 elliptic curves is a method to instantiate the function
 `HashToGroup`, that maps inputs to group elements. In the elliptic
-curve setting, this deterministically maps inputs x (as byte strings) to
+curve setting, this deterministically maps inputs x (as byte arrays) to
 uniformly chosen points on the curve.
 
 In the security proof of the construction Hash is modeled as a random
@@ -1382,9 +1409,10 @@ not be a concern in practice. For example, SHA-256 has an input limit of 2^61 by
 
 ## External Interface Recommendations
 
-The protocol functions in {{online}} are specified in terms of prime-order group
-Elements and Scalars. However, applications can treat these as internal functions,
-and instead expose interfaces that operate in terms of wire format messages.
+In {{online}}, the interface of the protocol functions allows that some inputs
+(and outputs) to be group elements and scalars. However, implementations can
+instead operate over group elements and scalars internally, and only expose
+interfaces that operate with an application-specific format of messages.
 
 ## Error Considerations {#errors}
 
@@ -1395,7 +1423,7 @@ conditions that lead to each error, are as follows:
 
 - `VerifyError`: Verifiable OPRF proof verification failed; {{voprf}} and {{poprf}}.
 - `DeserializeError`: Group Element or Scalar deserialization failure; {{pog}} and {{online}}.
-- `InputValidationError`: Validation of byte string inputs failed; {{input-validation}}.
+- `InputValidationError`: Validation of byte array inputs failed; {{input-validation}}.
 
 There are other explicit errors generated in this specification; however, they occur with
 negligible probability in practice. We note them here for completeness.
@@ -1464,12 +1492,17 @@ In other words, an attacker with infinite computing power cannot recover any
 information about the client's private input x from an invocation of the
 protocol.
 
+Essentially, input secrecy is the property that, even if the server learns
+the client's private input x at some point in the future, the server cannot
+link any particular PRF evaluation to x. This property is
+also known as unlinkability {{DGSTV18}}.
+
 For the VOPRF and POPRF protocol variants, there is an additional
 security property:
 
 - Verifiable: The client must only complete execution of the protocol if
-  it can successfully assert that the POPRF output it computes is
-  correct. This is taken with respect to the POPRF key held by the
+  it can successfully assert that the output it computes is
+  correct. This is taken with respect to the private key held by the
   server.
 
 Any VOPRF or POPRF that satisfies the 'verifiable' security property is known
@@ -1481,15 +1514,13 @@ commitment as a public key.
 
 Finally, the POPRF variant also has the following security property:
 
-- Partial obliviousness: The server must learn nothing about the client's
-  private input or the output of the function. In addition, the client must
-  learn nothing about the server's private key. Both client and server learn
-  the public input (info).
+- Partial obliviousness: The client and server must be able to perform the
+  PRF on client's private input and public input. The server must learn nothing
+  about the client's private input or the output of the function. In addition,
+  the client must learn nothing about the server's private key.
 
-Essentially, partial obliviousness tells us that, even if the server learns
-the client's private input x at some point in the future, then the server will
-not be able to link any particular POPRF evaluation to x. This property is
-also known as unlinkability {{DGSTV18}}.
+This property becomes useful when dealing with key management operations such as
+the rotation of server's keys.
 
 ## Security Assumptions {#cryptanalysis}
 
@@ -1588,23 +1619,24 @@ in this document. For each ciphersuite specified in {{ciphersuites}},
 there is a set of test vectors for the protocol when run the OPRF,
 VOPRF, and POPRF modes. Each test vector lists the batch size for
 the evaluation. Each test vector value is encoded as a hexadecimal
-byte string. The label for each test vector value is described below.
+byte string. The fields of each test vector are described below.
 
 - "Input": The private client input, an opaque byte string.
-- "Info": The public info, an opaque byte string. Only present for POPRF vectors.
+- "Info": The public info, an opaque byte string. Only present for POPRF test
+   vectors.
 - "Blind": The blind value output by `Blind()`, a serialized `Scalar`
   of `Ns` bytes long.
 - "BlindedElement": The blinded value output by `Blind()`, a serialized
   `Element` of `Ne` bytes long.
 - "EvaluatedElement": The evaluated element output by `BlindEvaluate()`,
   a serialized `Element` of `Ne` bytes long.
-- "Proof": The serialized `Proof` output from `GenerateProof()` (only
-  listed for verifiable mode test vectors), composed of two serialized
-  `Scalar` values each of `Ns` bytes long. Only present for VOPRF and POPRF vectors.
-- "ProofRandomScalar": The random scalar `r` computed in `GenerateProof()`
-  (only listed for verifiable mode test vectors), a serialized `Scalar` of
-  `Ns` bytes long. Only present for VOPRF and POPRF vectors.
-- "Output": The OPRF output, a byte string of length `Nh` bytes.
+- "Proof": The serialized `Proof` output from `GenerateProof()` composed of
+  two serialized `Scalar` values each of `Ns` bytes long. Only present for
+  VOPRF and POPRF test vectors.
+- "ProofRandomScalar": The random scalar `r` computed in `GenerateProof()`, a
+  serialized `Scalar` of `Ns` bytes long. Only present for VOPRF and POPRF
+  test vectors.
+- "Output": The protocol output, an opaque byte string of length `Nh` bytes.
 
 Test vectors with batch size B > 1 have inputs separated by a comma
 ",". Applicable test vectors will have B different values for the
@@ -1808,7 +1840,7 @@ dba1a5fb5c3dd6be6c419190a84b576d91eb3d8d920d450fee0427fd24524950d72d
 a605acbc072619e8b8acefb8ee704a357556edc802648089d684baa763ce14
 ~~~
 
-## OPRF(decaf448, SHAKE256)
+## OPRF(decaf448, SHAKE-256)
 
 ### OPRF Mode
 
