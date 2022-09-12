@@ -436,7 +436,7 @@ def GenerateProof(k, A, B, C, D)
             "Challenge"
 
   c = G.HashToScalar(h2Input)
-  s = (r - c * k) mod G.Order()
+  s = r - c * k
 
   return [c, s]
 ~~~
@@ -1091,6 +1091,13 @@ def BlindEvaluate(blindedElement, info):
 In the description above, inputs to `GenerateProof` are one-item
 lists. Using larger lists allows servers to batch the evaluation of multiple
 elements while producing a single batched DLEQ proof for them.
+
+`BlindEvaluate` triggers `InverseError` when the function is about to
+calculate the inverse of a zero scalar, which does not exist and therefore
+yields a failure in the protocol.
+This only occurs for `info` values that map to the secret key of the server. Thus, 
+clients that observe this signal are assumed to know the server secret key. Hence,
+this error can be a signal for the server to replace its secret key.
 
 The server sends both `evaluatedElement` and `proof` back to the client.
 Upon receipt, the client processes both values to complete the POPRF computation
