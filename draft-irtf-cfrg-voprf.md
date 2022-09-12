@@ -160,6 +160,10 @@ along with application considerations, and their security properties.
 
 ## Change log
 
+[draft-13](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-13):
+
+- Editorial improvements based on Crypto Panel Review.
+
 [draft-12](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-12):
 
 - Small editorial fixes
@@ -1123,7 +1127,7 @@ elements while producing a single batched DLEQ proof for them.
 `BlindEvaluate` triggers `InverseError` when the function is about to
 calculate the inverse of a zero scalar, which does not exist and therefore
 yields a failure in the protocol.
-This only occurs for `info` values that map to the secret key of the server. Thus, 
+This only occurs for `info` values that map to the secret key of the server. Thus,
 clients that observe this signal are assumed to know the server secret key. Hence,
 this error can be a signal for the server to replace its secret key.
 
