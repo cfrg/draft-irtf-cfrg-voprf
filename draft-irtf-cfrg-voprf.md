@@ -280,10 +280,10 @@ in a Python-like pseudocode. Each function takes a set of inputs and parameters
 and produces a set of output values. Parameters become constant values once the
 protocol variant and the ciphersuite are fixed.
 
-The `PrivateInput` data type refers to information that must be kept in
-secrecy, and the `PublicInput` data type indicates that it is not required to
-keep the information secret. These data types are opaque byte strings of
-arbitrary length no larger than 2^13 octets.
+The `PrivateInput` data type refers to inputs that are known only to the client
+in the protocol, whereas the `PublicInput` data type refers to inputs that are
+known to both client and server in the protocol. Both `PrivateInput` and
+`PublicInput` are opaque byte strings of arbitrary length no larger than 2^13 octets.
 
 String values such as "DeriveKeyPair", "Seed-", and "Finalize" are ASCII string literals.
 
@@ -881,7 +881,7 @@ def BlindEvaluate(skS, blindedElement):
 Servers send the output `evaluatedElement` to clients for processing.
 Recall that servers may process multiple client inputs by applying the
 `BlindEvaluate` function to each `blindedElement` received, and returning an
-array with the corresponding `evaluatedElement`s.
+array with the corresponding `evaluatedElement` values.
 
 Upon receipt of `evaluatedElement`, clients process it to complete the
 OPRF evaluation with the `Finalize` function described below.
@@ -1485,9 +1485,9 @@ In other words, an attacker with infinite computing power cannot recover any
 information about the client's private input x from an invocation of the
 protocol.
 
-Essentially, input secrecy tells us that, even if the server learns
-the client's private input x at some point in the future, then the server will
-not be able to link any particular PRF evaluation to x. This property is
+Essentially, input secrecy is the property that, even if the server learns
+the client's private input x at some point in the future, the server cannot
+link any particular PRF evaluation to x. This property is
 also known as unlinkability {{DGSTV18}}.
 
 For the VOPRF and POPRF protocol variants, there is an additional
@@ -1582,7 +1582,7 @@ P-384 (used by 0x0004), or P-521 (used by 0x0005).
 
 ## Domain Separation {#domain-separation}
 
-Applications MUST construct input to the protocol to provide domain
+Applications SHOULD construct input to the protocol to provide domain
 separation. Any system which has multiple OPRF applications should
 distinguish client inputs to ensure the OPRF results are separate.
 Guidance for constructing info can be found in {{!I-D.irtf-cfrg-hash-to-curve, Section 3.1}}.
