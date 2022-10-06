@@ -646,8 +646,7 @@ This interaction is shown below.
 {: #fig-oprf title="OPRF protocol overview"}
 
 In the VOPRF mode, the client additionally receives proof that the server used
-`skS` in computing the function. To achieve verifiability, as in the original
-work of {{JKK14}}, the
+`skS` in computing the function. To achieve verifiability, as in {{JKK14}}, the
 server provides a zero-knowledge proof that the key provided as input by the server in
 the `BlindEvaluate` function is the same key as it used to produce the server's public key, `pkS`,
 which the client receives as input to the protocol. This proof does not reveal the server's
@@ -1535,19 +1534,21 @@ that need to be made.
 ### OPRF and VOPRF Assumptions
 
 The OPRF and VOPRF protocol variants in this document are based on {{JKK14}}.
-In fact, the VOPRF construction is identical to the {{JKK14}} construction, except
-that this document supports batching so that multiple evaluations can happen
-at once whilst only constructing one DLEQ proof object. This is enabled using
-an established batching technique {{DGSTV18}}.
+In particular, the VOPRF construction is similar to the {{JKK14}} construction
+with the following distinguishing properties:
+
+1. This document does not use session identifiers to differentiate different instances of the protocol; and
+1. This document supports batching so that multiple evaluations can happen at once whilst only constructing
+one DLEQ proof object. This is enabled using an established batching technique {{DGSTV18}}.
 
 The pseudorandomness and input secrecy (and verifiability) of the OPRF (and
-VOPRF) variant is based on an assumption with oracle access to the
+VOPRF) protocols in {{JKK14}} are based on an assumption with oracle access to the
 Computational Diffie Hellman (CDH) assumption, known as the One-More Gap CDH,
 that is computationally difficult to solve in the corresponding prime-order
-group. The original paper {{JKK14}} gives a security proof that the
-construction satisfies the security guarantees of a VOPRF protocol
-(as in {{properties}}) under the One-More Gap CDH assumption in the
-universal composability (UC) security framework.
+group. {{JKK14}} proves these properties for one instance (i.e., one key) of
+the VOPRF protocol, and without batching. There is currently no security
+analysis available for the VOPRF protocol described in this document in
+a setting with multiple server keys or batching.
 
 ### POPRF Assumptions
 
