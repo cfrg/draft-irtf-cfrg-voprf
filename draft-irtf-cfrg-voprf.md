@@ -1545,8 +1545,10 @@ The pseudorandomness and input secrecy (and verifiability) of the OPRF (and
 VOPRF) protocols in {{JKK14}} are based on an assumption with oracle access to the
 Computational Diffie Hellman (CDH) assumption, known as the One-More Gap CDH,
 that is computationally difficult to solve in the corresponding prime-order
-group. The original paper {{JKK14}} gives a security proof of these properties
-in the universal composability (UC) security framework.
+group. {{JKK14}} proves these properties for one instance (i.e., one key) of
+the VOPRF protocol, and without batching. There is currently no security
+analysis available for the VOPRF protocol described in this document in
+a setting with multiple server keys or batching.
 
 ### POPRF Assumptions
 
