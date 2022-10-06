@@ -160,6 +160,10 @@ along with application considerations, and their security properties.
 
 ## Change log
 
+[draft-14](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-14):
+
+- Correct current state of formal analysis for the VOPRF protocol variant.
+
 [draft-13](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-13):
 
 - Editorial improvements based on Crypto Panel Review.
