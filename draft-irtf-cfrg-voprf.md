@@ -99,14 +99,7 @@ informative:
     author:
       -
         ins: Standards for Efficient Cryptography Group (SECG)
-  x9.62:
-    title: "Public Key Cryptography for the Financial Services Industry: the Elliptic Curve Digital Signature Algorithm (ECDSA)"
-    date: Sep, 1998
-    seriesinfo:
-      "ANSI": X9.62-1998
-    author:
-      -
-        org: ANSI
+  NISTCurves: DOI.10.6028/NIST.FIPS.186-4
   keyagreement: DOI.10.6028/NIST.SP.800-56Ar3
 
 --- abstract
@@ -361,31 +354,25 @@ prime-order group.
 - RandomScalar(): A member function of `Group` that chooses at random a
   non-zero element in GF(p).
 - ScalarInverse(s): Returns the inverse of input Scalar `s` on `GF(p)`.
-- SerializeElement(A): A member function of `Group` that maps a group element
-  `A` to a unique byte array `buf` of fixed length `Ne` bytes.
-- DeserializeElement(buf): A member function of `Group` that maps a byte
-  array `buf` to a group element `A`, or raise a DeserializeError if the
-  input is not a valid byte representation of an element.
-  See {{input-validation}} for further requirements on input validation.
-- SerializeScalar(s): A member function of `Group` that maps a scalar element
-  `s` to a unique byte array `buf` of fixed length `Ns` bytes.
-- DeserializeScalar(buf): A member function of `Group` that maps a byte
-  array `buf` to a scalar `s`, or raise a DeserializeError if the input
-  is not a valid byte representation of a scalar.
-  See {{input-validation}} for further requirements on input validation.
+- SerializeElement(A): A member function of `Group` that maps an `Element` `A`
+  to a canonical byte array `buf` of fixed length `Ne`.
+- DeserializeElement(buf): A member function of `Group` that attempts to map a byte array `buf` to an `Element` `A`,
+  and fails if the input is not the valid canonical byte representation of an element of
+  the group. This function can raise a DeserializeError if deserialization fails
+  or `A` is the identity element of the group; see {{ciphersuites}} for group-specific
+  input validation steps.
+- SerializeScalar(s): A member function of `Group` that maps a Scalar `s` to a canonical
+  byte array `buf` of fixed length `Ns`.
+- DeserializeScalar(buf): A member function of `Group` that attempts to map a byte array `buf` to a `Scalar` `s`.
+  This function can raise a DeserializeError if deserialization fails; see
+  {{ciphersuites}} for group-specific input validation steps.
 
-It is convenient in cryptographic applications to instantiate such
-prime-order groups using elliptic curves, such as those detailed in
-{{SEC2}}. For some choices of elliptic curves (e.g. those detailed in
-{{RFC7748}}, which require accounting for cofactors) there are some
-implementation issues that introduce inherent discrepancies between
-standard prime-order groups and the elliptic curve instantiation. In
-this document, all algorithms that we detail assume that the group is a
-prime-order group, and this MUST be upheld by any implementation. That is,
-any curve instantiation should be written such that any discrepancies
-with a prime-order group instantiation are removed. See {{ciphersuites}}
-for advice corresponding to the implementation of this interface for
-specific definitions of elliptic curves.
+{{ciphersuites}} contains details for the implementation of this interface
+for different prime-order groups instantiated over elliptic curves. In
+particular, for some choices of elliptic curves, e.g., those detailed in
+{{RFC7748}}, which require accounting for cofactors, {{ciphersuites}}
+describes required steps necessary to ensure the resulting group is of
+prime order.
 
 ## Discrete Logarithm Equivalence Proofs {#dleq}
 
@@ -829,8 +816,8 @@ the protocol with a `DeserializeError` failure.
 
 Applications MUST check that input Element values received over the wire
 are not the group identity element. This check is handled after deserializing
-Element values; see {{input-validation}} for more information on input
-validation.
+Element values; see ciphersuite}} for more information and requirements
+on input validation for each ciphersuite.
 
 ### OPRF Protocol {#oprf}
 
@@ -1253,6 +1240,9 @@ See {{cryptanalysis}} for related discussion.
 ### OPRF(ristretto255, SHA-512)
 
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
+  - Order(): Return 2^252 + 27742317777372353535851937790883648493 (see {{RISTRETTO}})
+  - Identity(): As defined in {{RISTRETTO}}.
+  - Generator(): As defined in {{RISTRETTO}}.
   - HashToGroup(): Use hash_to_ristretto255
     {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
     "HashToGroup-" || contextString, and `expand_message` = `expand_message_xmd`
@@ -1261,17 +1251,30 @@ See {{cryptanalysis}} for related discussion.
     DST = "HashToScalar-" || contextString, and output length 64, interpret
     `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the
     integer modulo `Group.Order()`.
-  - Serialization: Both group elements and scalars are encoded in Ne = Ns = 32
-    bytes. For group elements, use the 'Encode' and 'Decode' functions from
-    {{!RISTRETTO}}. For scalars, ensure they are fully reduced modulo
-    `Group.Order()`
-    and in little-endian order.
-- Hash: SHA-512, and Nh = 64 bytes.
+  - ScalarInverse(s): Returns the multipicative inverse of input Scalar `s` mod `Group.Order()`.
+  - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
+    \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
+  - SerializeElement(A): Implemented using the 'Encode' function from Section 4.3.2 of {{!RISTRETTO}}; Ne = 32.
+  - DeserializeElement(buf): Implemented using the 'Decode' function from Section 4.3.1 of {{!RISTRETTO}}.
+    Additionally, this function validates that the resulting element is not the group
+    identity element. If these checks fail, deserialization returns an InputValidationError error.
+  - SerializeScalar(s): Implemented by outputting the little-endian 32-byte encoding of
+    the Scalar value with the top three bits set to zero; Ns = 32.
+  - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
+    little-endian 32-byte string. This function can fail if the input does not
+    represent a Scalar in the range \[0, `G.Order()` - 1\]. Note that this means the
+    top three bits of the input MUST be zero.
+- Hash: SHA-512; Nh = 64.
 - ID: 0x0001
 
 ### OPRF(decaf448, SHAKE-256)
 
 - Group: decaf448 {{!RISTRETTO}}
+  - Order(): Return 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885
+  - Identity(): As defined in {{RISTRETTO}}.
+  - Generator(): As defined in {{RISTRETTO}}.
+  - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
+    \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - HashToGroup(): Use hash_to_decaf448
     {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
     "HashToGroup-" || contextString, and `expand_message` = `expand_message_xof`
@@ -1280,17 +1283,27 @@ See {{cryptanalysis}} for related discussion.
     DST = "HashToScalar-" || contextString, and output length 64, interpret
     `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the
     integer modulo `Group.Order()`.
-  - Serialization: Both group elements and scalars are encoded in Ne = Ns = 56
-    bytes. For group elements, use the 'Encode' and 'Decode' functions from
-    {{!RISTRETTO}}. For scalars, ensure they are fully reduced modulo
-    `Group.Order()`
-    and in little-endian order.
-- Hash: SHAKE-256, and Nh = 64 bytes.
+  - ScalarInverse(s): Returns the multipicative inverse of input Scalar `s` mod `Group.Order()`.
+  - SerializeElement(A): Implemented using the 'Encode' function from Section 5.3.2 of {{!RISTRETTO}}; Ne = 56.
+  - DeserializeElement(buf): Implemented using the 'Decode' function from Section 5.3.1 of {{!RISTRETTO}}.
+    Additionally, this function validates that the resulting element is not the group
+    identity element. If these checks fail, deserialization returns an InputValidationError error.
+  - SerializeScalar(s): Implemented by outputting the little-endian 56-byte encoding of
+    the Scalar value; Ns = 56.
+  - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
+    little-endian 56-byte string. This function can fail if the input does not
+    represent a Scalar in the range \[0, `G.Order()` - 1\].
+- Hash: SHAKE-256; Nh = 64.
 - ID: 0x0002
 
 ### OPRF(P-256, SHA-256)
 
-- Group: P-256 (secp256r1) {{x9.62}}
+- Group: P-256 (secp256r1) {{NISTCurves}}
+  - Order(): Return 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551.
+  - Identity(): As defined in {{NISTCurves}}.
+  - Generator(): As defined in {{NISTCurves}}.
+  - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
+    \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - HashToGroup(): Use hash_to_curve with suite P256_XMD:SHA-256_SSWU_RO\_
     {{!I-D.irtf-cfrg-hash-to-curve}} and DST =
     "HashToGroup-" || contextString.
@@ -1298,16 +1311,33 @@ See {{cryptanalysis}} for related discussion.
     using L = 48, `expand_message_xmd` with SHA-256,
     DST = "HashToScalar-" || contextString, and
     prime modulus equal to `Group.Order()`.
-  - Serialization: Elements are serialized as Ne = 33 byte strings using
-    compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
-    Ns = 32 byte strings by fully reducing the value modulo `Group.Order()` and
-    in big-endian order.
-- Hash: SHA-256, and Nh = 32 bytes.
+  - ScalarInverse(s): Returns the multipicative inverse of input Scalar `s` mod `Group.Order()`.
+  - SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
+    method according to {{SEC1}};  Ne = 33.
+  - DeserializeElement(buf): Implemented by attempting to deserialize a 33 byte input string to
+    a public key using the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SEC1}},
+    and then performs partial public-key validation as defined in section 5.6.2.3.4 of
+    {{!KEYAGREEMENT=DOI.10.6028/NIST.SP.800-56Ar3}}. This includes checking that the
+    coordinates of the resulting point are in the correct range, that the point is on
+    the curve, and that the point is not the point at infinity. Additionally, this function
+    validates that the resulting element is not the group identity element.
+    If these checks fail, deserialization returns an InputValidationError error.
+  - SerializeScalar(s): Implemented using the Field-Element-to-Octet-String conversion
+    according to {{SEC1}}; Ns = 32.
+  - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a 32-byte
+    string using Octet-String-to-Field-Element from {{SEC1}}. This function can fail if the
+    input does not represent a Scalar in the range \[0, `G.Order()` - 1\].
+- Hash: SHA-256; Nh = 32.
 - ID: 0x0003
 
 ### OPRF(P-384, SHA-384)
 
-- Group: P-384 (secp384r1) {{x9.62}}
+- Group: P-384 (secp384r1) {{NISTCurves}}
+  - Order(): Return 0xffffffffffffffffffffffffffffffffffffffffffffffffc7634d81f4372ddf581a0db248b0a77aecec196accc52973.
+  - Identity(): As defined in {{NISTCurves}}.
+  - Generator(): As defined in {{NISTCurves}}.
+  - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
+    \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - HashToGroup(): Use hash_to_curve with suite P384_XMD:SHA-384_SSWU_RO\_
     {{!I-D.irtf-cfrg-hash-to-curve}} and DST =
     "HashToGroup-" || contextString.
@@ -1315,16 +1345,33 @@ See {{cryptanalysis}} for related discussion.
     using L = 72, `expand_message_xmd` with SHA-384,
     DST = "HashToScalar-" || contextString, and
     prime modulus equal to `Group.Order()`.
-  - Serialization: Elements are serialized as Ne = 49 byte strings using
-    compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
-    Ns = 48 byte strings by fully reducing the value modulo `Group.Order()` and
-    in big-endian order.
-- Hash: SHA-384, and Nh = 48 bytes.
+  - ScalarInverse(s): Returns the multipicative inverse of input Scalar `s` mod `Group.Order()`.
+  - SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
+    method according to {{SEC1}}; Ne = 49.
+  - DeserializeElement(buf): Implemented by attempting to deserialize a 49 byte input string to
+    a public key using the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SEC1}},
+    and then performs partial public-key validation as defined in section 5.6.2.3.4 of
+    {{!KEYAGREEMENT=DOI.10.6028/NIST.SP.800-56Ar3}}. This includes checking that the
+    coordinates of the resulting point are in the correct range, that the point is on
+    the curve, and that the point is not the point at infinity. Additionally, this function
+    validates that the resulting element is not the group identity element.
+    If these checks fail, deserialization returns an InputValidationError error.
+  - SerializeScalar(s): Implemented using the Field-Element-to-Octet-String conversion
+    according to {{SEC1}}; Ns = 48.
+  - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a 48-byte
+    string using Octet-String-to-Field-Element from {{SEC1}}. This function can fail if the
+    input does not represent a Scalar in the range \[0, `G.Order()` - 1\].
+- Hash: SHA-384; Nh = 48.
 - ID: 0x0004
 
 ### OPRF(P-521, SHA-512)
 
-- Group: P-521 (secp521r1) {{x9.62}}
+- Group: P-521 (secp521r1) {{NISTCurves}}
+  - Order(): Return 0x01fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa51868783bf2f966b7fcc0148f709a5d03bb5c9b8899c47aebb6fb71e91386409.
+  - Identity(): As defined in {{NISTCurves}}.
+  - Generator(): As defined in {{NISTCurves}}.
+  - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
+    \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - HashToGroup(): Use hash_to_curve with suite P521_XMD:SHA-512_SSWU_RO\_
     {{!I-D.irtf-cfrg-hash-to-curve}} and DST =
     "HashToGroup-" || contextString.
@@ -1332,53 +1379,24 @@ See {{cryptanalysis}} for related discussion.
     using L = 98, `expand_message_xmd` with SHA-512,
     DST = "HashToScalar-" || contextString, and
     prime modulus equal to `Group.Order()`.
-  - Serialization: Elements are serialized as Ne = 67 byte strings using
-    compressed point encoding for the curve {{SEC1}}. Scalars are serialized as
-    Ns = 66 byte strings by fully reducing the value modulo `Group.Order()` and
-    in big-endian order.
-- Hash: SHA-512, and Nh = 64 bytes.
+  - ScalarInverse(s): Returns the multipicative inverse of input Scalar `s` mod `Group.Order()`.
+  - SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
+    method according to {{SEC1}}; Ne = 67.
+  - DeserializeElement(buf): Implemented by attempting to deserialize a 49 byte input string to
+    a public key using the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SEC1}},
+    and then performs partial public-key validation as defined in section 5.6.2.3.4 of
+    {{!KEYAGREEMENT=DOI.10.6028/NIST.SP.800-56Ar3}}. This includes checking that the
+    coordinates of the resulting point are in the correct range, that the point is on
+    the curve, and that the point is not the point at infinity. Additionally, this function
+    validates that the resulting element is not the group identity element.
+    If these checks fail, deserialization returns an InputValidationError error.
+  - SerializeScalar(s): Implemented using the Field-Element-to-Octet-String conversion
+    according to {{SEC1}}; Ns = 66.
+  - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a 66-byte
+    string using Octet-String-to-Field-Element from {{SEC1}}. This function can fail if the
+    input does not represent a Scalar in the range \[0, `G.Order()` - 1\].
+- Hash: SHA-512; Nh = 64.
 - ID: 0x0005
-
-## Input Validation {#input-validation}
-
-Since messages are serialized before transmission between client and server,
-deserialization is followed by input validation to prevent malformed or
-invalid inputs from being used in the protocol.
-The DeserializeElement and DeserializeScalar functions instantiated for a
-particular prime-order group corresponding to a ciphersuite MUST adhere
-to the description in {{pog}}. This section describes how input validation
-of elements and scalars is implemented for all prime-order groups included
-in the above ciphersuite list.
-
-### Element Validation
-
-Recovering a group element from an arbitrary byte array must validate that
-the element is a proper member of the group and is not the identity element,
-and returns an error if either condition is not met.
-
-For P-256, P-384, and P-521 ciphersuites, it is required to perform partial
-public-key validation as defined in Section 5.6.2.3.4 of {{keyagreement}}.
-This includes checking that the coordinates are in the correct range, that
-the point is on the curve, and that the point is not the identity.
-If these checks fail, validation returns an InputValidationError.
-
-For ristretto255 and decaf448, elements are deserialized by invoking the Decode
-function from {{RISTRETTO, Section 4.3.1}} and {{RISTRETTO, Section 5.3.1}}, respectively,
-which returns false if the input is invalid. If this function returns false
-or if the decoded element is the identity, validation returns an
-InputValidationError.
-
-### Scalar Validation
-
-The DeserializeScalar function attempts to recover a scalar field element from an arbitrary
-byte array. Like DeserializeElement, this function validates that the element
-is a member of the scalar field and returns an error if this condition is not met.
-
-For P-256, P-384, and P-521 ciphersuites, this function ensures that the input,
-when treated as a big-endian integer, is a value between 0 and
-`Group.Order() - 1`. For
-ristretto255 and decaf448, this function ensures that the input, when treated as
-a little-endian integer, is a value between 0 and `Group.Order() - 1`.
 
 ## Future Ciphersuites
 
@@ -1396,8 +1414,39 @@ instantiations of this functionality based on the functions described in
 must adhere to the implementation and security considerations discussed
 in {{!I-D.irtf-cfrg-hash-to-curve}} when instantiating the function.
 
+The DeserializeElement and DeserializeScalar functions instantiated for a
+particular prime-order group corresponding to a ciphersuite MUST adhere to
+the description in {{pog}}. Future ciphersuites MUST describe how input
+validation is done for DeserializeElement and DeserializeScalar.
+
 Additionally, future ciphersuites must take care when choosing the
 security level of the group. See {{limits}} for additional details.
+
+## Random Scalar Generation {#random-scalar}
+
+Two popular algorithms for generating a random integer uniformly distributed in
+the range \[0, G.Order() -1\] are as follows:
+
+### Rejection Sampling
+
+Generate a random byte array with `Ns` bytes, and attempt to map to a Scalar
+by calling `DeserializeScalar` in constant time. If it succeeds, return the
+result. If it fails, try again with another random byte array, until the
+procedure succeeds. Failure to implement `DeserializeScalar` in constant time
+can leak information about the underlying corresponding Scalar.
+
+As an optimization, if the group order is very close to a power of
+2, it is acceptable to omit the rejection test completely.  In
+particular, if the group order is p, and there is an integer b
+such that `p - 2<sup>b</sup>| < 2<sup>(b/2)</sup>`, then
+`RandomScalar` can simply return a uniformly random integer of at
+most b bits.
+
+### Wide Reduction
+
+Generate a random byte array with `l = ceil(((3 * ceil(log2(G.Order()))) / 2) / 8)`
+bytes, and interpret it as an integer; reduce the integer modulo `G.Order()` and return the
+result. See {{Section 5 of HASH-TO-CURVE}} for the underlying derivation of `l`.
 
 # Application Considerations {#apis}
 
@@ -1430,7 +1479,7 @@ conditions that lead to each error, are as follows:
 
 - `VerifyError`: Verifiable OPRF proof verification failed; {{voprf}} and {{poprf}}.
 - `DeserializeError`: Group Element or Scalar deserialization failure; {{pog}} and {{online}}.
-- `InputValidationError`: Validation of byte array inputs failed; {{input-validation}}.
+- `InputValidationError`: Validation of byte array inputs failed; {{ciphersuites}}.
 
 There are other explicit errors generated in this specification; however, they occur with
 negligible probability in practice. We note them here for completeness.
