@@ -1441,7 +1441,7 @@ such that `p - 2<sup>b</sup>| < 2<sup>(b/2)</sup>`, then
 `RandomScalar` can simply return a uniformly random integer of at
 most b bits.
 
-### Wide Reduction
+### Random Number Generation Using Extra Random Bits
 
 Generate a random byte array with `l = ceil(((3 * ceil(log2(G.Order()))) / 2) / 8)`
 bytes, and interpret it as an integer; reduce the integer modulo `G.Order()` and return the
