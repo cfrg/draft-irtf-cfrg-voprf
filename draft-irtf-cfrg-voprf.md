@@ -816,7 +816,7 @@ the protocol with a `DeserializeError` failure.
 
 Applications MUST check that input Element values received over the wire
 are not the group identity element. This check is handled after deserializing
-Element values; see ciphersuite}} for more information and requirements
+Element values; see {{ciphersuites}} for more information and requirements
 on input validation for each ciphersuite.
 
 ### OPRF Protocol {#oprf}
