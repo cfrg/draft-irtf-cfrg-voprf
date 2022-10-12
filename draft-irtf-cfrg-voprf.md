@@ -143,7 +143,7 @@ equivalent to a VOPRF.
 OPRFs have a variety of applications, including: password-protected secret
 sharing schemes {{JKKX16}}, privacy-preserving password stores {{SJKS17}}, and
 password-authenticated key exchange or PAKE {{!I-D.irtf-cfrg-opaque}}.
-Verifiable POPRFs are necessary in some applications such as Privacy Pass
+Verifiable OPRFs are necessary in some applications such as Privacy Pass
 {{!I-D.ietf-privacypass-protocol}}. Verifiable OPRFs have also been used for
 password-protected secret sharing schemes such as that of {{JKK14}}.
 
@@ -313,7 +313,8 @@ The protocols in this document have two primary dependencies:
 
 In this document, we assume the construction of an additive, prime-order
 group `Group` for performing all mathematical operations. In prime-order groups,
-any element can generate the other elements of the group. Usually, one element
+any element (other than the identity) can generate the other elements of the
+group. Usually, one element
 is fixed and defined as the group generator. Such groups are
 uniquely determined by the choice of the prime `p` that defines the
 order of the group. (There may, however, exist different representations
@@ -323,7 +324,7 @@ indicate both order and representation.)
 The fundamental group operation is addition `+` with identity element
 `I`. For any elements `A` and `B` of the group, `A + B = B + A` is
 also a member of the group. Also, for any `A` in the group, there exists an element
-`-A` such that `A + (-A) = (-A) + A = I`. Scalar multiplication is
+`-A` such that `A + (-A) = (-A) + A = I`. Scalar multiplication by `r` is
 equivalent to the repeated application of the group operation on an
 element A with itself `r-1` times, this is denoted as `r*A = A + ... + A`.
 For any element `A`, `p*A=I`. The case when the scalar multiplication is
@@ -348,9 +349,12 @@ prime-order group.
   for any adversary receiving `R = HashToGroup(x)`, it is
   computationally difficult to reverse the mapping. This function is optionally
   parameterized by a domain separation tag (DST); see {{ciphersuites}}.
+  Security properties of this function are described
+  in {{!I-D.irtf-cfrg-hash-to-curve}}.
 - HashToScalar(x): A member function of `Group` that deterministically maps
   an array of bytes `x` to an element in GF(p). This function is optionally
-  parameterized by a DST; see {{ciphersuites}}.
+  parameterized by a DST; see {{ciphersuites}}. Security properties of this
+  function are described in Section 10.5 of {{!I-D.irtf-cfrg-hash-to-curve}}.
 - RandomScalar(): A member function of `Group` that chooses at random a
   non-zero element in GF(p).
 - ScalarInverse(s): Returns the inverse of input Scalar `s` on `GF(p)`.
@@ -383,7 +387,8 @@ nothing other than whether the statement claimed by the prover is true or
 false, the proof is zero-knowledge.
 
 This section describes a noninteractive zero-knowledge proof for discrete
-logarithm equivalence (DLEQ). A DLEQ proof demonstrates that two pairs of
+logarithm equivalence (DLEQ), which is used in the construction of VOPRF and
+POPRF. A DLEQ proof demonstrates that two pairs of
 group elements have the same discrete logarithm without revealing the
 discrete logarithm.
 
@@ -905,8 +910,8 @@ def Finalize(input, blind, evaluatedElement):
   return Hash(hashInput)
 ~~~
 
-Servers can compute the PRF result using a given input using the following
-`Evaluate` function.
+An entity which knows both the secret key and the input can compute the PRF
+result using the following `Evaluate` function.
 
 ~~~
 Input:
@@ -1019,8 +1024,8 @@ As in `BlindEvaluate`, inputs to `VerifyProof` are one-item lists. Clients can
 verify multiple inputs at once whenever the server produced a batched DLEQ proof
 for them.
 
-Finally, servers can compute the PRF result using a given input using the `Evaluate`
-function described in {{oprf}}.
+Finally, an entity which knows both the secret key and the input can compute the PRF
+result using the `Evaluate` function described in {{oprf}}.
 
 ### POPRF Protocol {#poprf}
 
@@ -1168,8 +1173,8 @@ As in `BlindEvaluate`, inputs to `VerifyProof` are one-item lists.
 Clients can verify multiple inputs at once whenever the server produced a
 batched DLEQ proof for them.
 
-Finally, servers can compute the PRF result using a given input using the `Evaluate`
-function described below.
+Finally, an entity which knows both the secret key and the input can compute
+the PRF result using the `Evaluate` function described below.
 
 ~~~
 Input:
