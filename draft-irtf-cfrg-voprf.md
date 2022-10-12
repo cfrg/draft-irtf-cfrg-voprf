@@ -1443,9 +1443,9 @@ most b bits.
 
 ### Random Number Generation Using Extra Random Bits
 
-Generate a random byte array with `l = ceil(((3 * ceil(log2(G.Order()))) / 2) / 8)`
+Generate a random byte array with `L = ceil(((3 * ceil(log2(G.Order()))) / 2) / 8)`
 bytes, and interpret it as an integer; reduce the integer modulo `G.Order()` and return the
-result. See {{I-D.irtf-cfrg-hash-to-curve, Section 5}} for the underlying derivation of `l`.
+result. See {{I-D.irtf-cfrg-hash-to-curve, Section 5}} for the underlying derivation of `L`.
 
 # Application Considerations {#apis}
 
