@@ -1347,7 +1347,7 @@ See {{cryptanalysis}} for related discussion.
   - ScalarInverse(s): Returns the multipicative inverse of input Scalar `s` mod `Group.Order()`.
   - SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
     method according to {{SEC1}}; Ne = 49.
-  - DeserializeElement(buf): Implemented by attempting to deserialize a 49 byte input string to
+  - DeserializeElement(buf): Implemented by attempting to deserialize a 49-byte array  to
     a public key using the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SEC1}},
     and then performs partial public-key validation as defined in section 5.6.2.3.4 of
     {{!KEYAGREEMENT=DOI.10.6028/NIST.SP.800-56Ar3}}. This includes checking that the
