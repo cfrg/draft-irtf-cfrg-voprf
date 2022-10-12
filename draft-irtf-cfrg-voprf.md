@@ -1283,7 +1283,7 @@ See {{cryptanalysis}} for related discussion.
     DST = "HashToScalar-" || contextString, and output length 64, interpret
     `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the
     integer modulo `Group.Order()`.
-  - ScalarInverse(s): Returns the multipicative inverse of input Scalar `s` mod `Group.Order()`.
+  - ScalarInverse(s): Returns the multiplicative inverse of input Scalar `s` mod `Group.Order()`.
   - SerializeElement(A): Implemented using the 'Encode' function from Section 5.3.2 of {{!RISTRETTO}}; Ne = 56.
   - DeserializeElement(buf): Implemented using the 'Decode' function from Section 5.3.1 of {{!RISTRETTO}}.
     Additionally, this function validates that the resulting element is not the group
