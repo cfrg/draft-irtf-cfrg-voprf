@@ -1319,8 +1319,7 @@ See {{cryptanalysis}} for related discussion.
     and then performs partial public-key validation as defined in section 5.6.2.3.4 of
     {{!KEYAGREEMENT=DOI.10.6028/NIST.SP.800-56Ar3}}. This includes checking that the
     coordinates of the resulting point are in the correct range, that the point is on
-    the curve, and that the point is not the point at infinity. Additionally, this function
-    validates that the resulting element is not the group identity element.
+    the curve, and that the point is not the group identity element.
     If these checks fail, deserialization returns an InputValidationError error.
   - SerializeScalar(s): Implemented using the Field-Element-to-Octet-String conversion
     according to {{SEC1}}; Ns = 32.
