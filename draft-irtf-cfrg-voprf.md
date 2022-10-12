@@ -1251,7 +1251,7 @@ See {{cryptanalysis}} for related discussion.
     DST = "HashToScalar-" || contextString, and output length 64, interpret
     `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the
     integer modulo `Group.Order()`.
-  - ScalarInverse(s): Returns the multipicative inverse of input Scalar `s` mod `Group.Order()`.
+  - ScalarInverse(s): Returns the multiplicative inverse of input Scalar `s` mod `Group.Order()`.
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - SerializeElement(A): Implemented using the 'Encode' function from Section 4.3.2 of {{!RISTRETTO}}; Ne = 32.
@@ -1311,7 +1311,7 @@ See {{cryptanalysis}} for related discussion.
     using L = 48, `expand_message_xmd` with SHA-256,
     DST = "HashToScalar-" || contextString, and
     prime modulus equal to `Group.Order()`.
-  - ScalarInverse(s): Returns the multipicative inverse of input Scalar `s` mod `Group.Order()`.
+  - ScalarInverse(s): Returns the multiplicative inverse of input Scalar `s` mod `Group.Order()`.
   - SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
     method according to {{SEC1}};  Ne = 33.
   - DeserializeElement(buf): Implemented by attempting to deserialize a 33 byte input string to
@@ -1344,7 +1344,7 @@ See {{cryptanalysis}} for related discussion.
     using L = 72, `expand_message_xmd` with SHA-384,
     DST = "HashToScalar-" || contextString, and
     prime modulus equal to `Group.Order()`.
-  - ScalarInverse(s): Returns the multipicative inverse of input Scalar `s` mod `Group.Order()`.
+  - ScalarInverse(s): Returns the multiplicative inverse of input Scalar `s` mod `Group.Order()`.
   - SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
     method according to {{SEC1}}; Ne = 49.
   - DeserializeElement(buf): Implemented by attempting to deserialize a 49-byte array  to
@@ -1378,7 +1378,7 @@ See {{cryptanalysis}} for related discussion.
     using L = 98, `expand_message_xmd` with SHA-512,
     DST = "HashToScalar-" || contextString, and
     prime modulus equal to `Group.Order()`.
-  - ScalarInverse(s): Returns the multipicative inverse of input Scalar `s` mod `Group.Order()`.
+  - ScalarInverse(s): Returns the multiplicative inverse of input Scalar `s` mod `Group.Order()`.
   - SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
     method according to {{SEC1}}; Ne = 67.
   - DeserializeElement(buf): Implemented by attempting to deserialize a 49 byte input string to
