@@ -1446,7 +1446,7 @@ most b bits.
 
 Generate a random byte array with `l = ceil(((3 * ceil(log2(G.Order()))) / 2) / 8)`
 bytes, and interpret it as an integer; reduce the integer modulo `G.Order()` and return the
-result. See {{Section 5 of HASH-TO-CURVE}} for the underlying derivation of `l`.
+result. See {{I-D.irtf-cfrg-hash-to-curve, Section 5}} for the underlying derivation of `l`.
 
 # Application Considerations {#apis}
 
