@@ -354,7 +354,7 @@ prime-order group.
 - HashToScalar(x): Deterministically maps
   an array of bytes `x` to an element in GF(p). This function is optionally
   parameterized by a DST; see {{ciphersuites}}. Security properties of this
-  function are described in Section 10.5 of {{!I-D.irtf-cfrg-hash-to-curve}}.
+  function are described in {{!I-D.irtf-cfrg-hash-to-curve, Section 10.5}}.
 - RandomScalar(): Chooses at random a non-zero element in GF(p).
 - ScalarInverse(s): Returns the inverse of input `Scalar` `s` on `GF(p)`.
 - SerializeElement(A): Maps an `Element` `A`
@@ -614,8 +614,8 @@ as defined in {{offline}}.
 
 # Protocol {#protocol}
 
-In this section, we define three protocol variants referred as the OPRF, VOPRF,
-and POPRF modes with the following properties.
+In this section, we define three protocol variants referred to as the OPRF,
+VOPRF, and POPRF modes with the following properties.
 
 In the OPRF mode, a client and server interact to compute `output = F(skS, input)`,
 where `input` is the client's private input, `skS` is the server's private key,
@@ -703,7 +703,7 @@ Each of the three protocol variants are identified with a one-byte value (in hex
 | modeOPRF       | 0x00  |
 | modeVOPRF      | 0x01  |
 | modePOPRF      | 0x02  |
-{: #tab-modes title="Identifiers for OPRF modes"}
+{: #tab-modes title="Identifiers for protocol variants."}
 
 Additionally, each protocol variant is instantiated with a ciphersuite,
 or suite. Each ciphersuite is identified with a two-byte value, referred
