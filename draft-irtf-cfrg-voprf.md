@@ -67,7 +67,7 @@ informative:
   FS00: DOI.10.1007/3-540-47721-7_12
   JKKX16: DOI.10.1109/EuroSP.2016.30
   JKK14: DOI.10.1007/978-3-662-45608-8_13
-  SJKS17:
+  SJKS17: # added manually because DOI version has typos.
     title: "SPHINX: A Password Store that Perfectly Hides Passwords from Itself"
     target: https://doi.org/10.1109/ICDCS.2017.64
     date: June, 2017
@@ -1226,7 +1226,7 @@ A ciphersuite contains instantiations of the following functionalities:
   group also specifies HashToGroup, HashToScalar, and serialization
   functionalities. For
   HashToGroup, the domain separation tag (DST) is constructed in accordance
-  with the recommendations in {{!I-D.irtf-cfrg-hash-to-curve}}, Section 3.1.
+  with the recommendations in {{!I-D.irtf-cfrg-hash-to-curve, Section 3.1}}.
   For HashToScalar, each group specifies an integer order that is used in
   reducing integer values to a member of the corresponding scalar field.
 - `Hash`: A cryptographic hash function whose output length is Nh bytes long.
@@ -1406,7 +1406,7 @@ See {{cryptanalysis}} for related discussion.
 A critical requirement of implementing the prime-order group using
 elliptic curves is a method to instantiate the function
 `HashToGroup`, that maps inputs to group elements. In the elliptic
-curve setting, this deterministically maps inputs x (as byte arrays) to
+curve setting, this deterministically maps inputs (as byte arrays) to
 uniformly chosen points on the curve.
 
 In the security proof of the construction Hash is modeled as a random
@@ -1517,9 +1517,9 @@ admit public input.
 
 # Security Considerations {#sec}
 
-This section discusses the cryptographic security of our protocol, along
+This section discusses the security of OPRF protocols, along
 with some suggestions and trade-offs that arise from the implementation
-of the OPRF variants in this document. Note that the syntax of the POPRF
+of the protocol variants in this document. Note that the syntax of the POPRF
 variant is different from that of the OPRF and VOPRF variants since it
 admits an additional public input, but the same security considerations apply.
 
@@ -1538,7 +1538,7 @@ sampled k). Then the output distribution F(k, x) is indistinguishable
 from the output distribution of a randomly chosen function with the same
 domain and range.
 
-A consequence of showing that a function is pseudorandom, is that it is
+A consequence of showing that a function is pseudorandom is that it is
 necessarily non-malleable (i.e. we cannot compute a new evaluation of F
 from an existing evaluation). A genuinely random function will be
 non-malleable with high probability, and so a pseudorandom function must
@@ -1601,7 +1601,8 @@ The pseudorandomness and input secrecy (and verifiability) of the OPRF (and
 VOPRF) protocols in {{JKK14}} are based on an assumption with oracle access to the
 Computational Diffie Hellman (CDH) assumption, known as the One-More Gap CDH,
 that is computationally difficult to solve in the corresponding prime-order
-group. {{JKK14}} proves these properties for one instance (i.e., one key) of
+group. In {{JKK14}}, these properties are proven for one instance
+(i.e., one key) of
 the VOPRF protocol, and without batching. There is currently no security
 analysis available for the VOPRF protocol described in this document in
 a setting with multiple server keys or batching.
@@ -1611,7 +1612,7 @@ a setting with multiple server keys or batching.
 The POPRF construction in this document is based on the construction known
 as 3HashSDHI given by {{TCRSTW21}}. The construction is identical to
 3HashSDHI, except that this design can optionally perform multiple POPRF
-evaluations in one go, whilst only constructing one DLEQ proof object.
+evaluations in one batch, whilst only constructing one DLEQ proof object.
 This is enabled using an established batching technique {{DGSTV18}}.
 
 Pseudorandomness, input secrecy, verifiability, and partial obliviousness of the POPRF variant is
@@ -1632,7 +1633,7 @@ These attacks are meant to recover (bits of) the server private key.
 Best-known attacks reduce the security of the prime-order group instantiation by log_2(Q)/2
 bits, where Q is the number of `BlindEvaluate` calls made by the attacker.
 
-As a result of this class of attack, choosing prime-order groups with a 128-bit security
+As a result of this class of attacks, choosing prime-order groups with a 128-bit security
 level instantiates an OPRF with a reduced security level of 128-(log\_2(Q)/2) bits of security.
 Moreover, such attacks are only possible for those certain applications where the
 adversary can query the OPRF directly. Applications can mitigate against this problem
