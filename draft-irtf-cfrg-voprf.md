@@ -344,30 +344,29 @@ prime-order group.
 - Order(): Outputs the order of the group (i.e. `p`).
 - Identity(): Outputs the identity element of the group (i.e. `I`).
 - Generator(): Outputs the generator element of the group.
-- HashToGroup(x): A member function of `Group` that deterministically maps
+- HashToGroup(x): Deterministically maps
   an array of bytes `x` to an element of `Group`. The map must ensure that,
   for any adversary receiving `R = HashToGroup(x)`, it is
   computationally difficult to reverse the mapping. This function is optionally
   parameterized by a domain separation tag (DST); see {{ciphersuites}}.
   Security properties of this function are described
   in {{!I-D.irtf-cfrg-hash-to-curve}}.
-- HashToScalar(x): A member function of `Group` that deterministically maps
+- HashToScalar(x): Deterministically maps
   an array of bytes `x` to an element in GF(p). This function is optionally
   parameterized by a DST; see {{ciphersuites}}. Security properties of this
   function are described in Section 10.5 of {{!I-D.irtf-cfrg-hash-to-curve}}.
-- RandomScalar(): A member function of `Group` that chooses at random a
-  non-zero element in GF(p).
-- ScalarInverse(s): Returns the inverse of input Scalar `s` on `GF(p)`.
-- SerializeElement(A): A member function of `Group` that maps an `Element` `A`
+- RandomScalar(): Chooses at random a non-zero element in GF(p).
+- ScalarInverse(s): Returns the inverse of input `Scalar` `s` on `GF(p)`.
+- SerializeElement(A): Maps an `Element` `A`
   to a canonical byte array `buf` of fixed length `Ne`.
-- DeserializeElement(buf): A member function of `Group` that attempts to map a byte array `buf` to an `Element` `A`,
-  and fails if the input is not the valid canonical byte representation of an element of
-  the group. This function can raise a DeserializeError if deserialization fails
-  or `A` is the identity element of the group; see {{ciphersuites}} for group-specific
-  input validation steps.
-- SerializeScalar(s): A member function of `Group` that maps a Scalar `s` to a canonical
+- DeserializeElement(buf): Attempts to map a byte array `buf` to
+  an `Element` `A`, and fails if the input is not the valid canonical byte
+  representation of an element of the group. This function can raise a
+  DeserializeError if deserialization fails or `A` is the identity element of
+  the group; see {{ciphersuites}} for group-specific input validation steps.
+- SerializeScalar(s): Maps a `Scalar` `s` to a canonical
   byte array `buf` of fixed length `Ns`.
-- DeserializeScalar(buf): A member function of `Group` that attempts to map a byte array `buf` to a `Scalar` `s`.
+- DeserializeScalar(buf): Attempts to map a byte array `buf` to a `Scalar` `s`.
   This function can raise a DeserializeError if deserialization fails; see
   {{ciphersuites}} for group-specific input validation steps.
 
