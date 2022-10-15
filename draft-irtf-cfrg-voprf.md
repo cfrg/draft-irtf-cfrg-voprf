@@ -816,7 +816,7 @@ Applications serialize protocol messages between client and server for
 transmission. Elements and scalars are serialized to byte arrays, and values
 of type Proof are serialized as the concatenation of two serialized scalars.
 Deserializing these values can fail, in which case the application MUST abort
-the protocol with a `DeserializeError` failure.
+the protocol raising a `DeserializeError` failure.
 
 Applications MUST check that input Element values received over the wire
 are not the group identity element. This check is handled after deserializing
