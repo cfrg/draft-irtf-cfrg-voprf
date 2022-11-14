@@ -1467,6 +1467,10 @@ cases where this value is fixed or otherwise not useful to the application. In t
 case, the resulting protocol is functionally equivalent to the VOPRF, which does not
 admit public input.
 
+# IANA considerations {#iana}
+
+This document has no IANA actions.
+
 # Security Considerations {#sec}
 
 This section discusses the cryptographic security of our protocol, along
