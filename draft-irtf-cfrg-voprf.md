@@ -1624,8 +1624,9 @@ This document resulted from the work of the Privacy Pass team
 {{PrivacyPass}}. The authors would also like to acknowledge helpful
 conversations with Hugo Krawczyk. Eli-Shaoul Khedouri provided
 additional review and comments on key consistency. Daniel Bourdrez,
-Tatiana Bradley, Sofia Celi, Frank Denis, Kevin Lewi, Christopher Patton,
-and Bas Westerbaan also provided helpful input and contributions to the document.
+Tatiana Bradley, Sofia Celi, Frank Denis, Julia Hesse, Russ Housley,
+Kevin Lewi, Christopher Patton, and Bas Westerbaan also provided
+helpful input and contributions to the document.
 
 --- back
 
