@@ -122,7 +122,8 @@ specific private key during the execution of the protocol. A VOPRF can also
 be partially-oblivious, called a POPRF. A POPRF allows clients and servers
 to provide public input to the PRF computation. This document specifies an OPRF,
 VOPRF, and POPRF instantiated within standard prime-order groups, including
-elliptic curves.
+elliptic curves. This document is a product of the Crypto Forum Research Group
+(CFRG) in the IRTF.
 
 --- middle
 
@@ -157,6 +158,9 @@ password-protected secret sharing schemes such as that of {{JKK14}}.
 This document specifies OPRF, VOPRF, and POPRF protocols built upon
 prime-order groups. The document describes each protocol variant,
 along with application considerations, and their security properties.
+
+This document represents the consensus of the Crypto Forum Research
+Group (CFRG).
 
 ## Change log
 
