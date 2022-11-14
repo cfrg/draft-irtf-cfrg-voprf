@@ -434,7 +434,7 @@ generation. Applications can take advantage of this functionality to
 produce a single, constant-sized proof for `m` DLEQ inputs, rather
 than `m` proofs for `m` DLEQ inputs.
 
-~~~
+~~~ pseudocode
 Input:
 
   Scalar k
@@ -481,7 +481,7 @@ The helper function ComputeCompositesFast is as defined below, and is an
 optimization of the ComputeComposites function for servers since they have
 knowledge of the private key.
 
-~~~
+~~~ pseudocode
 Input:
 
   Scalar k
@@ -535,7 +535,7 @@ single boolean value indicating whether or not the proof is valid for the
 given DLEQ inputs. Note this function can verify proofs on lists of inputs
 whenever the proof was generated as a batched DLEQ proof with the same inputs.
 
-~~~
+~~~ pseudocode
 Input:
 
   Element A
@@ -581,7 +581,7 @@ def VerifyProof(A, B, C, D, proof):
 
 The definition of `ComputeComposites` is given below.
 
-~~~
+~~~ pseudocode
 Input:
 
   Element B
@@ -725,7 +725,7 @@ to as `suiteID`; see {{ciphersuites}} for the registry of initial values.
 The mode and ciphersuite ID values are combined to create a "context string"
 used throughout the protocol with the following function:
 
-~~~
+~~~ pseudocode
 def CreateContextString(mode, suiteID):
   return "VOPRF10-" || I2OSP(mode, 1) || I2OSP(suiteID, 2)
 ~~~
@@ -740,7 +740,7 @@ using the following function, which accepts a randomly generated seed of length
 constant `Ns` corresponds to the size in bytes of a serialized Scalar and is
 defined in {{pog}}.
 
-~~~
+~~~ pseudocode
 Input:
 
   opaque seed[Ns]
@@ -780,7 +780,7 @@ the relevant key material for each party.
 
 The OPRF variant server and client contexts are created as follows:
 
-~~~
+~~~ pseudocode
 def SetupOPRFServer(suiteID, skS):
   contextString = CreateContextString(modeOPRF, suiteID)
   return OPRFServerContext(contextString, skS)
@@ -792,7 +792,7 @@ def SetupOPRFClient(suiteID):
 
 The VOPRF variant server and client contexts are created as follows:
 
-~~~
+~~~ pseudocode
 def SetupVOPRFServer(suiteID, skS, pkS):
   contextString = CreateContextString(modeVOPRF, suiteID)
   return VOPRFServerContext(contextString, skS)
@@ -804,7 +804,7 @@ def SetupVOPRFClient(suiteID, pkS):
 
 The POPRF variant server and client contexts are created as follows:
 
-~~~
+~~~ pseudocode
 def SetupPOPRFServer(suiteID, skS, pkS):
   contextString = CreateContextString(modePOPRF, suiteID)
   return POPRFServerContext(contextString, skS)
@@ -844,7 +844,7 @@ by the `Blind` function below. Note that this function can fail with an
 element. Dealing with this failure is an application-specific decision;
 see {{errors}}.
 
-~~~
+~~~ pseudocode
 Input:
 
   PrivateInput input
@@ -874,7 +874,7 @@ Clients store `blind` locally, and send `blindedElement` to the server for evalu
 Upon receipt, servers process `blindedElement` using the `BlindEvaluate` function described
 below.
 
-~~~
+~~~ pseudocode
 Input:
 
   Scalar skS
@@ -897,7 +897,7 @@ array with the corresponding `evaluatedElement` values.
 Upon receipt of `evaluatedElement`, clients process it to complete the
 OPRF evaluation with the `Finalize` function described below.
 
-~~~
+~~~ pseudocode
 Input:
 
   PrivateInput input
@@ -925,7 +925,7 @@ def Finalize(input, blind, evaluatedElement):
 Servers can compute the PRF result using a given input using the following
 `Evaluate` function.
 
-~~~
+~~~ pseudocode
 Input:
 
   Scalar skS
@@ -962,7 +962,7 @@ and send `blindedElement` to the server for evaluation. Upon receipt,
 servers process `blindedElement` to compute an evaluated element and DLEQ
 proof using the following `BlindEvaluate` function.
 
-~~~
+~~~ pseudocode
 Input:
 
   Scalar skS
@@ -995,7 +995,7 @@ The server sends both `evaluatedElement` and `proof` back to the client.
 Upon receipt, the client processes both values to complete the VOPRF computation
 using the `Finalize` function below.
 
-~~~
+~~~ pseudocode
 Input:
 
   PrivateInput input
@@ -1050,7 +1050,7 @@ identity element, as well as certain public inputs that, if not detected at
 this point, will cause server evaluation to fail. Dealing with either failure
 is an application-specific decision; see {{errors}}.
 
-~~~
+~~~ pseudocode
 Input:
 
   PrivateInput input
@@ -1091,7 +1091,7 @@ Clients store the outputs `blind` and `tweakedKey` locally and send `blindedElem
 the server for evaluation. Upon receipt, servers process `blindedElement` to
 compute an evaluated element and DLEQ proof using the following `BlindEvaluate` function.
 
-~~~
+~~~ pseudocode
 Input:
 
   Scalar skS
@@ -1142,7 +1142,7 @@ The server sends both `evaluatedElement` and `proof` back to the client.
 Upon receipt, the client processes both values to complete the POPRF computation
 using the `Finalize` function below.
 
-~~~
+~~~ pseudocode
 Input:
 
   PrivateInput input
@@ -1188,7 +1188,7 @@ batched DLEQ proof for them.
 Finally, servers can compute the PRF result using a given input using the `Evaluate`
 function described below.
 
-~~~
+~~~ pseudocode
 Input:
 
   Scalar skS
