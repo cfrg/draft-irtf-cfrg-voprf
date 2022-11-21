@@ -157,6 +157,10 @@ Group (CFRG).
 
 ## Change log
 
+[draft-15](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-15):
+
+- Apply editorial suggestions from CFRG RGLC.
+
 [draft-14](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-14):
 
 - Correct current state of formal analysis for the VOPRF protocol variant.
