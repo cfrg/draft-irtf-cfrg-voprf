@@ -1517,7 +1517,7 @@ admit public input.
 
 # Security Considerations {#sec}
 
-This section discusses the security of OPRF protocols, along
+This section discusses the security of the protocols defined in this specification, along
 with some suggestions and trade-offs that arise from the implementation
 of the protocol variants in this document. Note that the syntax of the POPRF
 variant is different from that of the OPRF and VOPRF variants since it
