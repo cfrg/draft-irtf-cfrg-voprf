@@ -92,15 +92,7 @@ informative:
     author:
       -
         ins: Standards for Efficient Cryptography Group (SECG)
-  SEC2:
-    title: "SEC 2: Recommended Elliptic Curve Domain Parameters"
-    target: http://www.secg.org/sec2-v2.pdf
-    date: false
-    author:
-      -
-        ins: Standards for Efficient Cryptography Group (SECG)
   NISTCurves: DOI.10.6028/NIST.FIPS.186-4
-  keyagreement: DOI.10.6028/NIST.SP.800-56Ar3
 
 --- abstract
 
@@ -730,16 +722,14 @@ def CreateContextString(mode, suiteID):
 ## Key Generation and Context Setup {#offline}
 
 In the offline setup phase, the server key pair (`skS`, `pkS`) is generated
-using the following function, which accepts a randomly generated seed of length
-`Ns` bytes and an optional (and possible empty) public `info` string. The
-constant `Ns` corresponds to the size in bytes of a serialized Scalar and is
-defined in {{pog}}.
+using the following `GenerateKeyPair` function, which produces a randomly
+generate private and public key pair. {{derive-key-pair}} lists a
+deterministic key generation function `DeriveKeyPair` that can be used
+to implement `GenerateKeyPair` as `DeriveKeyPair(random(Ns), info)`, with
+optional (possibly empty) application-chosen public `info` string.
 
 ~~~ pseudocode
-Input:
-
-  opaque seed[Ns]
-  PublicInput info
+Input: None
 
 Output:
 
@@ -749,20 +739,9 @@ Output:
 Parameters:
 
   Group G
-  PublicInput contextString
 
-Errors: DeriveKeyPairError
-
-def DeriveKeyPair(seed, info):
-  deriveInput = seed || I2OSP(len(info), 2) || info
-  counter = 0
-  skS = 0
-  while skS == 0:
-    if counter > 255:
-      raise DeriveKeyPairError
-    skS = G.HashToScalar(deriveInput || I2OSP(counter, 1),
-                          DST = "DeriveKeyPair" || contextString)
-    counter = counter + 1
+def GenerateKeyPair():
+  skS = G.RandomScalar()
   pkS = G.ScalarMultGen(skS)
   return skS, pkS
 ~~~
@@ -808,6 +787,47 @@ def SetupPOPRFClient(suiteID, pkS):
   contextString = CreateContextString(modePOPRF, suiteID)
   return POPRFClientContext(contextString, pkS)
 ~~~
+
+### Deterministic Key Generation {#derive-key-pair}
+
+This section describes a deterministic key generation function, `DeriveKeyPair`.
+It accepts a randomly generated seed of length
+`Ns` bytes and an optional (possibly empty) public `info` string. The
+constant `Ns` corresponds to the size in bytes of a serialized Scalar and is
+defined in {{pog}}.
+
+~~~ pseudocode
+Input:
+
+  opaque seed[Ns]
+  PublicInput info
+
+Output:
+
+  Scalar skS
+  Element pkS
+
+Parameters:
+
+  Group G
+  PublicInput contextString
+
+Errors: DeriveKeyPairError
+
+def DeriveKeyPair(seed, info):
+  deriveInput = seed || I2OSP(len(info), 2) || info
+  counter = 0
+  skS = 0
+  while skS == 0:
+    if counter > 255:
+      raise DeriveKeyPairError
+    skS = G.HashToScalar(deriveInput || I2OSP(counter, 1),
+                          DST = "DeriveKeyPair" || contextString)
+    counter = counter + 1
+  pkS = G.ScalarMultGen(skS)
+  return skS, pkS
+~~~
+
 
 ## Online Protocol {#online}
 
@@ -1591,7 +1611,9 @@ Finally, the POPRF variant also has the following security property:
   the client must learn nothing about the server's private key.
 
 This property becomes useful when dealing with key management operations such as
-the rotation of server's keys.
+the rotation of server's keys. Note that partial obliviousness only applies
+to the POPRF variant because neither the OPRF nor VOPRF variants accept public
+input to the protocol.
 
 ## Security Assumptions {#cryptanalysis}
 
@@ -1610,11 +1632,9 @@ with the following distinguishing properties:
 one DLEQ proof object. This is enabled using an established batching technique {{DGSTV18}}.
 
 The pseudorandomness and input secrecy (and verifiability) of the OPRF (and
-VOPRF) protocols in {{JKK14}} are based on an assumption with oracle access to the
-Computational Diffie Hellman (CDH) assumption, known as the One-More Gap CDH,
-that is computationally difficult to solve in the corresponding prime-order
-group. In {{JKK14}}, these properties are proven for one instance
-(i.e., one key) of
+VOPRF) protocols in {{JKK14}} are based on the One-More Gap Computational
+Diffie Hellman assumption that is computationally difficult to solve in the corresponding prime-order group.
+In {{JKK14}}, these properties are proven for one instance (i.e., one key) of
 the VOPRF protocol, and without batching. There is currently no security
 analysis available for the VOPRF protocol described in this document in
 a setting with multiple server keys or batching.
@@ -1630,10 +1650,10 @@ This is enabled using an established batching technique {{DGSTV18}}.
 Pseudorandomness, input secrecy, verifiability, and partial obliviousness of the POPRF variant is
 based on the assumption that the One-More Gap Strong Diffie-Hellman Inversion (SDHI)
 assumption from {{TCRSTW21}} is computationally difficult to solve in the corresponding
-prime-order group. Tyagi et al. {{TCRSTW21}} show that both the One-More Gap CDH assumption
+prime-order group. Tyagi et al. {{TCRSTW21}} show that both the One-More Gap Computational Diffie Hellman assumption
 and the One-More Gap SDHI assumption reduce to the q-DL (Discrete Log) assumption
 in the algebraic group model, for some q number of `BlindEvaluate` queries.
-(The One-More Gap CDH assumption was the hardness assumption used to
+(The One-More Gap Computational Diffie Hellman assumption was the hardness assumption used to
 evaluate the OPRF and VOPRF designs based on {{JKK14}}, which is a predecessor
 to the POPRF variant in {{poprf}}.)
 
