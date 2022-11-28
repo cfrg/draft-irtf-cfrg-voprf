@@ -1633,7 +1633,7 @@ one DLEQ proof object. This is enabled using an established batching technique {
 
 The pseudorandomness and input secrecy (and verifiability) of the OPRF (and
 VOPRF) protocols in {{JKK14}} are based on the One-More Gap Computational
-Diffie Hellman (CDH) assumption that is computationally difficult to solve in the corresponding prime-order group.
+Diffie Hellman assumption that is computationally difficult to solve in the corresponding prime-order group.
 In {{JKK14}}, these properties are proven for one instance (i.e., one key) of
 the VOPRF protocol, and without batching. There is currently no security
 analysis available for the VOPRF protocol described in this document in
@@ -1650,10 +1650,10 @@ This is enabled using an established batching technique {{DGSTV18}}.
 Pseudorandomness, input secrecy, verifiability, and partial obliviousness of the POPRF variant is
 based on the assumption that the One-More Gap Strong Diffie-Hellman Inversion (SDHI)
 assumption from {{TCRSTW21}} is computationally difficult to solve in the corresponding
-prime-order group. Tyagi et al. {{TCRSTW21}} show that both the One-More Gap CDH assumption
+prime-order group. Tyagi et al. {{TCRSTW21}} show that both the One-More Gap Computational Diffie Hellman assumption
 and the One-More Gap SDHI assumption reduce to the q-DL (Discrete Log) assumption
 in the algebraic group model, for some q number of `BlindEvaluate` queries.
-(The One-More Gap CDH assumption was the hardness assumption used to
+(The One-More Gap Computational Diffie Hellman assumption was the hardness assumption used to
 evaluate the OPRF and VOPRF designs based on {{JKK14}}, which is a predecessor
 to the POPRF variant in {{poprf}}.)
 
