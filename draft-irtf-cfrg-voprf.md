@@ -149,6 +149,10 @@ Group (CFRG).
 
 ## Change log
 
+[draft-16](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-16):
+
+- Apply editorial suggestions from document shepherd.
+
 [draft-15](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-15):
 
 - Apply editorial suggestions from CFRG RGLC.
