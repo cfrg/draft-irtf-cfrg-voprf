@@ -28,7 +28,7 @@ This requires that you have the necessary software installed.  See
 | [CIRCL](https://github.com/cloudflare/circl)                              | Go         | draft-10 | All    |
 | [voprf](https://github.com/novifinancial/voprf)                           | Rust       | main     | All    |
 | [BoringSSL](https://boringssl.googlesource.com/boringssl/+/refs/heads/master/crypto/trust_token/) | C      | draft-04 | All    |
-| [ecc](https://github.com/aldenml/ecc)                                     | C          | draft-08 | All    |
+| [ecc](https://github.com/aldenml/ecc)                                     | C          | draft-16 | All    |
 
 ### Other Integrations
 
