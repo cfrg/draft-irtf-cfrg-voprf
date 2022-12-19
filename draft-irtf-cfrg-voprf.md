@@ -145,7 +145,7 @@ prime-order groups. The document describes each protocol variant,
 along with application considerations, and their security properties.
 
 This document represents the consensus of the Crypto Forum Research
-Group (CFRG).
+Group (CFRG). It is not an IETF product and is not a standard.
 
 ## Change log
 
