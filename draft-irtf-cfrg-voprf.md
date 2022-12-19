@@ -1473,7 +1473,7 @@ can leak information about the underlying corresponding Scalar.
 As an optimization, if the group order is very close to a power of
 2, it is acceptable to omit the rejection test completely.  In
 particular, if the group order is p, and there is an integer b
-such that `p - 2<sup>b</sup>| < 2<sup>(b/2)</sup>`, then
+such that `| p - 2^b | < 2^(b/2)`, then
 `RandomScalar` can simply return a uniformly random integer of at
 most b bits.
 
