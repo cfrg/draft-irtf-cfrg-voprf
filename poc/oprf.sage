@@ -14,11 +14,33 @@ except ImportError as e:
 
 _as_bytes = lambda x: x if isinstance(x, bytes) else bytes(x, "utf-8")
 
+Ciphersuite = namedtuple("Ciphersuite", ["name", "identifier", "group", "H", "hash"])
+
+ciphersuite_ristretto255_sha512 = "ristretto255-SHA512"
+ciphersuite_decaf448_shake256 = "decaf448-SHAKE256"
+ciphersuite_p256_sha256 = "P256-SHA256"
+ciphersuite_p384_sha384 = "P384-SHA384"
+ciphersuite_p521_sha512 = "P521-SHA512"
+
+oprf_ciphersuites = {
+    ciphersuite_ristretto255_sha512: Ciphersuite("OPRF(ristretto255, SHA-512)", ciphersuite_ristretto255_sha512, GroupRistretto255(), hashlib.sha512, lambda x : hashlib.sha512(x).digest()),
+    ciphersuite_decaf448_shake256: Ciphersuite("OPRF(decaf448, SHAKE256)", ciphersuite_decaf448_shake256, GroupDecaf448(), hashlib.shake_256, lambda x : hashlib.shake_256(x).digest(int(64))),
+    ciphersuite_p256_sha256: Ciphersuite("OPRF(P-256, SHA-256)", ciphersuite_p256_sha256, GroupP256(), hashlib.sha256, lambda x : hashlib.sha256(x).digest()),
+    ciphersuite_p384_sha384: Ciphersuite("OPRF(P-384, SHA-384)", ciphersuite_p384_sha384, GroupP384(), hashlib.sha384, lambda x : hashlib.sha384(x).digest()),
+    ciphersuite_p521_sha512: Ciphersuite("OPRF(P-521, SHA-512)", ciphersuite_p521_sha512, GroupP521(), hashlib.sha512, lambda x : hashlib.sha512(x).digest()),
+}
+
+def identifer_to_suite(identifier):
+    if identifier not in oprf_ciphersuites:
+        raise Exception("Unknown ciphersuite")
+    return oprf_ciphersuites[identifier]
+
 class Context(object):
-    def __init__(self, version, mode, suite):
+    def __init__(self, version, mode, identifier):
+        self.suite = identifer_to_suite(identifier)
         self.mode = mode
-        self.suite = suite
-        self.context_string = _as_bytes(version) + I2OSP(self.mode, 1) + I2OSP(self.suite.identifier, 2)
+        self.identifier = identifier
+        self.context_string = _as_bytes(version) + I2OSP(self.mode, 1) + _as_bytes("-") + _as_bytes(identifier)
 
     def group_domain_separation_tag(self):
         return _as_bytes("HashToGroup-") + self.context_string
@@ -37,9 +59,6 @@ class Evaluation(object):
 class OPRFClientContext(Context):
     def __init__(self, version, mode, suite):
         Context.__init__(self, version, mode, suite)
-
-    def identifier(self):
-        return self.identifier
 
     def blind(self, x, rng):
         blind = ZZ(self.suite.group.random_scalar(rng))
@@ -401,11 +420,11 @@ class POPRFServerContext(VOPRFServerContext):
 MODE_OPRF = 0x00
 MODE_VOPRF = 0x01
 MODE_POPRF = 0x02
+VERSION = "OPRFV1-"
 
-VERSION = "VOPRF10-"
-
-def DeriveKeyPair(mode, suite, seed, info):
-    ctx = Context(VERSION, mode, suite)
+def DeriveKeyPair(mode, identifier, seed, info):
+    ctx = Context(VERSION, mode, identifier)
+    suite = identifer_to_suite(identifier)
     deriveInput = seed + I2OSP(len(info), 2) + info
     counter = 0
     skS = ZZ(0)
@@ -418,36 +437,20 @@ def DeriveKeyPair(mode, suite, seed, info):
     pkS = skS * suite.group.generator()
     return skS, pkS
 
-def SetupOPRFServer(suite, skS):
-    return OPRFServerContext(VERSION, MODE_OPRF, suite, skS, None)
+def SetupOPRFServer(identifier, skS):
+    return OPRFServerContext(VERSION, MODE_OPRF, identifier, skS, None)
 
-def SetupOPRFClient(suite):
-    return OPRFClientContext(VERSION, MODE_OPRF, suite)
+def SetupOPRFClient(identifier):
+    return OPRFClientContext(VERSION, MODE_OPRF, identifier)
 
-def SetupVOPRFServer(suite, skS, pkS):
-    return VOPRFServerContext(VERSION, MODE_VOPRF, suite, skS, pkS)
+def SetupVOPRFServer(identifier, skS, pkS):
+    return VOPRFServerContext(VERSION, MODE_VOPRF, identifier, skS, pkS)
 
-def SetupVOPRFClient(suite, pkS):
-    return VOPRFClientContext(VERSION, MODE_VOPRF, suite, pkS)
+def SetupVOPRFClient(identifier, pkS):
+    return VOPRFClientContext(VERSION, MODE_VOPRF, identifier, pkS)
 
-def SetupPOPRFServer(suite, skS, pkS):
-    return POPRFServerContext(VERSION, MODE_POPRF, suite, skS, pkS)
+def SetupPOPRFServer(identifier, skS, pkS):
+    return POPRFServerContext(VERSION, MODE_POPRF, identifier, skS, pkS)
 
-def SetupPOPRFClient(suite, pkS):
-    return POPRFClientContext(VERSION, MODE_POPRF, suite, pkS)
-
-Ciphersuite = namedtuple("Ciphersuite", ["name", "identifier", "group", "H", "hash"])
-
-ciphersuite_ristretto255_sha512 = 0x0001
-ciphersuite_decaf448_shake256 = 0x0002
-ciphersuite_p256_sha256 = 0x0003
-ciphersuite_p384_sha384 = 0x0004
-ciphersuite_p521_sha512 = 0x0005
-
-oprf_ciphersuites = {
-    ciphersuite_ristretto255_sha512: Ciphersuite("OPRF(ristretto255, SHA-512)", ciphersuite_ristretto255_sha512, GroupRistretto255(), hashlib.sha512, lambda x : hashlib.sha512(x).digest()),
-    ciphersuite_decaf448_shake256: Ciphersuite("OPRF(decaf448, SHAKE256)", ciphersuite_decaf448_shake256, GroupDecaf448(), hashlib.shake_256, lambda x : hashlib.shake_256(x).digest(int(64))),
-    ciphersuite_p256_sha256: Ciphersuite("OPRF(P-256, SHA-256)", ciphersuite_p256_sha256, GroupP256(), hashlib.sha256, lambda x : hashlib.sha256(x).digest()),
-    ciphersuite_p384_sha384: Ciphersuite("OPRF(P-384, SHA-384)", ciphersuite_p384_sha384, GroupP384(), hashlib.sha384, lambda x : hashlib.sha384(x).digest()),
-    ciphersuite_p521_sha512: Ciphersuite("OPRF(P-521, SHA-512)", ciphersuite_p521_sha512, GroupP521(), hashlib.sha512, lambda x : hashlib.sha512(x).digest()),
-}
+def SetupPOPRFClient(identifier, pkS):
+    return POPRFClientContext(VERSION, MODE_POPRF, identifier, pkS)

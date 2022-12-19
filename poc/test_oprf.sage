@@ -11,7 +11,7 @@ try:
            SetupOPRFServer, SetupOPRFClient, MODE_OPRF, \
            SetupVOPRFServer, SetupVOPRFClient, MODE_VOPRF, \
            SetupPOPRFServer, SetupPOPRFClient, MODE_POPRF, \
-           oprf_ciphersuites, _as_bytes, \
+           _as_bytes, \
            ciphersuite_ristretto255_sha512, \
            ciphersuite_decaf448_shake256, \
            ciphersuite_p256_sha256, \
@@ -40,26 +40,27 @@ test_suites = [
 ]
 
 class Protocol(object):
-    def __init__(self, suite, mode, info):
+    def __init__(self, identifier, mode, info):
         self.inputs = [b'\x00', b'\x5A'*17]
-        self.suite = suite
+        self.identifier = identifier
         self.mode = mode
         self.info = info
         self.key_info = _as_bytes("test key")
 
-        self.seed = b'\xA3' * suite.group.scalar_byte_length()
-        skS, pkS = DeriveKeyPair(self.mode, self.suite, self.seed, self.key_info)
+        self.seed = b'\xA3' * 32
+        skS, pkS = DeriveKeyPair(self.mode, self.identifier, self.seed, self.key_info)
         if mode == MODE_OPRF:
-            self.server = SetupOPRFServer(suite, skS)
-            self.client = SetupOPRFClient(suite)
+            self.server = SetupOPRFServer(identifier, skS)
+            self.client = SetupOPRFClient(identifier)
         elif mode == MODE_VOPRF:
-            self.server = SetupVOPRFServer(suite, skS, pkS)
-            self.client = SetupVOPRFClient(suite, pkS)
+            self.server = SetupVOPRFServer(identifier, skS, pkS)
+            self.client = SetupVOPRFClient(identifier, pkS)
         elif mode == MODE_POPRF:
-            self.server = SetupPOPRFServer(suite, skS, pkS)
-            self.client = SetupPOPRFClient(suite, pkS)
+            self.server = SetupPOPRFServer(identifier, skS, pkS)
+            self.client = SetupPOPRFClient(identifier, pkS)
         else:
             raise Exception("bad mode")
+        self.suite = self.client.suite
 
     def run(self):
         group = self.client.suite.group
@@ -147,8 +148,7 @@ class Protocol(object):
             vectors.append(create_batched_test_vector_for_inputs(self.inputs, self.info))
 
         vecSuite = {}
-        vecSuite["suiteName"] = self.suite.name
-        vecSuite["suiteID"] = int(self.suite.identifier)
+        vecSuite["identifier"] = self.identifier
         vecSuite["mode"] = int(self.mode)
         vecSuite["hash"] = self.suite.H().name.upper()
         vecSuite["keyInfo"] = to_hex(self.key_info)
@@ -246,13 +246,12 @@ mode_map = {
 
 def main(path="vectors"):
     allVectors = {}
-    for suite_id in test_suites:
-        suite = oprf_ciphersuites[suite_id]
+    for identifier in test_suites:
         suiteVectors = {}
         for mode in [MODE_OPRF, MODE_VOPRF, MODE_POPRF]:
-            protocol = Protocol(suite, mode, _as_bytes("test info"))
+            protocol = Protocol(identifier, mode, _as_bytes("test info"))
             suiteVectors[str(mode)] = protocol.run()
-        allVectors[suite.name] = suiteVectors
+        allVectors[identifier] = suiteVectors
 
     flatVectors = []
     for suite in allVectors:
