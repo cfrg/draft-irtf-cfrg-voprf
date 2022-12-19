@@ -771,7 +771,7 @@ def SetupOPRFClient(suiteID):
 The VOPRF variant server and client contexts are created as follows:
 
 ~~~ pseudocode
-def SetupVOPRFServer(suiteID, skS, pkS):
+def SetupVOPRFServer(suiteID, skS):
   contextString = CreateContextString(modeVOPRF, suiteID)
   return VOPRFServerContext(contextString, skS)
 
@@ -783,7 +783,7 @@ def SetupVOPRFClient(suiteID, pkS):
 The POPRF variant server and client contexts are created as follows:
 
 ~~~ pseudocode
-def SetupPOPRFServer(suiteID, skS, pkS):
+def SetupPOPRFServer(suiteID, skS):
   contextString = CreateContextString(modePOPRF, suiteID)
   return POPRFServerContext(contextString, skS)
 
