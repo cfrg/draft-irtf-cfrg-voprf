@@ -135,9 +135,9 @@ equivalent to a VOPRF.
 
 OPRFs have a variety of applications, including: password-protected secret
 sharing schemes {{JKKX16}}, privacy-preserving password stores {{SJKS17}}, and
-password-authenticated key exchange or PAKE {{!I-D.irtf-cfrg-opaque}}.
+password-authenticated key exchange or PAKE {{?OPAQUE=I-D.irtf-cfrg-opaque}}.
 Verifiable OPRFs are necessary in some applications such as Privacy Pass
-{{!I-D.ietf-privacypass-protocol}}. Verifiable OPRFs have also been used for
+{{?PRIVACYPASS=I-D.ietf-privacypass-protocol}}. Verifiable OPRFs have also been used for
 password-protected secret sharing schemes such as that of {{JKK14}}.
 
 This document specifies OPRF, VOPRF, and POPRF protocols built upon
@@ -145,7 +145,7 @@ prime-order groups. The document describes each protocol variant,
 along with application considerations, and their security properties.
 
 This document represents the consensus of the Crypto Forum Research
-Group (CFRG).
+Group (CFRG). It is not an IETF product and is not a standard.
 
 ## Change log
 
