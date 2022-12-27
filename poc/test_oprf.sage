@@ -66,18 +66,23 @@ class Protocol(object):
         client = self.client
         server = self.server
 
-        def create_test_vector_for_input(x, info):
+        def create_test_vector_for_input(input, info):
             rng = TestDRNG("test vector seed".encode('utf-8'))
             if self.mode == MODE_POPRF:
-                blind, blinded_element, tweaked_key = client.blind(x, info, rng)
+                blind, blinded_element, tweaked_key = client.blind(input, info, rng)
                 evaluated_element, proof, proof_randomness = server.blind_evaluate(blinded_element, info, rng)
-                output = client.finalize(x, blind, evaluated_element, blinded_element, proof, info, tweaked_key)
-            else:
-                blind, blinded_element = client.blind(x, rng)
-                evaluated_element, proof, proof_randomness = server.blind_evaluate(blinded_element, info, rng)
-                output = client.finalize(x, blind, evaluated_element, blinded_element, proof, info)
-
-            assert(output == server.evaluate(x, info))
+                output = client.finalize(input, blind, evaluated_element, blinded_element, proof, info, tweaked_key)
+                assert(server.evaluate(input, output, info))
+            elif self.mode == MODE_VOPRF:
+                blind, blinded_element = client.blind(input, rng)
+                evaluated_element, proof, proof_randomness = server.blind_evaluate(blinded_element, rng)
+                output = client.finalize(input, blind, evaluated_element, blinded_element, proof)
+                assert(server.evaluate(input, output))
+            elif self.mode == MODE_OPRF:
+                blind, blinded_element = client.blind(input, rng)
+                evaluated_element = server.blind_evaluate(blinded_element, rng)
+                output = client.finalize(input, blind, evaluated_element)
+                assert(server.evaluate(input, output))
 
             vector = {}
             vector["Blind"] = to_hex(group.serialize_scalar(blind))
@@ -90,7 +95,7 @@ class Protocol(object):
                     "r": to_hex(group.serialize_scalar(proof_randomness)),
                 }
 
-            vector["Input"] = to_hex(x)
+            vector["Input"] = to_hex(input)
             if self.mode == MODE_POPRF:
                 vector["Info"] = to_hex(info)
             vector["Output"] = to_hex(output)
@@ -98,30 +103,34 @@ class Protocol(object):
 
             return vector
 
-        def create_batched_test_vector_for_inputs(xs, info):
+        def create_batched_test_vector_for_inputs(inputs, info):
             blinds = []
             blinded_elements = []
             tweaked_key = None
             rng = TestDRNG("test vector seed".encode('utf-8'))
-            for x in xs:
-                if self.mode == MODE_POPRF:
-                    blind, blinded_element, tweaked_key = client.blind(x, info, rng)
-                    blinds.append(blind)
-                    blinded_elements.append(blinded_element)
-                else:
-                    blind, blinded_element = client.blind(x, rng)
-                    blinds.append(blind)
-                    blinded_elements.append(blinded_element)
-
-            evaluated_elements, proof, proof_randomness = server.blind_evaluate_batch(blinded_elements, info, rng)
 
             if self.mode == MODE_POPRF:
-                outputs = client.finalize_batch(xs, blinds, evaluated_elements, blinded_elements, proof, info, tweaked_key)
-            else:
-                outputs = client.finalize_batch(xs, blinds, evaluated_elements, blinded_elements, proof, info)
+                tweaked_key = None
+                for input in inputs:
+                    blind, blinded_element, tweaked_key = client.blind(input, info, rng)
+                    blinds.append(blind)
+                    blinded_elements.append(blinded_element)
 
-            for i, output in enumerate(outputs):
-                assert(output == server.evaluate(xs[i], info))
+                evaluated_elements, proof, proof_randomness = server.blind_evaluate_batch(blinded_elements, info, rng)
+                outputs = client.finalize_batch(inputs, blinds, evaluated_elements, blinded_elements, proof, info, tweaked_key)
+                for i, output in enumerate(outputs):
+                    assert(server.evaluate(inputs[i], output, info))
+
+            elif self.mode == MODE_VOPRF:
+                for input in inputs:
+                    blind, blinded_element = client.blind(input, rng)
+                    blinds.append(blind)
+                    blinded_elements.append(blinded_element)
+
+                evaluated_elements, proof, proof_randomness = server.blind_evaluate_batch(blinded_elements, rng)
+                outputs = client.finalize_batch(inputs, blinds, evaluated_elements, blinded_elements, proof)
+                for i, output in enumerate(outputs):
+                    assert(server.evaluate(inputs[i], output))
 
             vector = {}
             vector["Blind"] = ",".join([to_hex(group.serialize_scalar(blind)) for blind in blinds])
@@ -134,15 +143,15 @@ class Protocol(object):
                     "r": to_hex(group.serialize_scalar(proof_randomness)),
                 }
 
-            vector["Input"] = to_hex(xs)
+            vector["Input"] = to_hex(inputs)
             if self.mode == MODE_POPRF:
                 vector["Info"] = to_hex(info)
             vector["Output"] = to_hex(outputs)
-            vector["Batch"] = int(len(xs))
+            vector["Batch"] = int(len(inputs))
 
             return vector
 
-        vectors = [create_test_vector_for_input(x, self.info) for x in self.inputs]
+        vectors = [create_test_vector_for_input(input, self.info) for input in self.inputs]
         if self.mode == MODE_VOPRF or self.mode == MODE_POPRF:
             vectors.append(create_batched_test_vector_for_inputs(self.inputs, self.info))
 

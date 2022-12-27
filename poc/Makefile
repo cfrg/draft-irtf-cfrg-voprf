@@ -21,6 +21,11 @@ setup:
 test: pyfiles
 	sage test_oprf.sage
 
+examples: pyfiles
+	sage example_oprf.sage
+	sage example_voprf.sage
+	sage example_poprf.sage
+
 vectors: pyfiles
 	@echo "Removing vectors folder, if present"
 	@rm -rf vectors
