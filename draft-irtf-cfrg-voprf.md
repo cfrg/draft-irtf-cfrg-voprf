@@ -805,7 +805,8 @@ random number generator and an optional (possibly empty) `info` string.
 The constant `Ns` corresponds to the size in bytes of a serialized Scalar
 and is defined in {{pog}}. Note that by design knowledge of `seed` and `info`
 is necessary to compute this function, which means that the secrecy of the
-output private key (`skS`) depends on the secrecy of `seed` and `info`.
+output private key (`skS`) depends on the secrecy of `seed` (since the `info`
+string is public).
 
 ~~~ pseudocode
 Input:
