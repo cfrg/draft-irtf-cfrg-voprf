@@ -293,7 +293,7 @@ protocol variant and the ciphersuite are fixed.
 The `PrivateInput` data type refers to inputs that are known only to the client
 in the protocol, whereas the `PublicInput` data type refers to inputs that are
 known to both client and server in the protocol. Both `PrivateInput` and
-`PublicInput` are opaque byte strings of arbitrary length no larger than 2^16 bytes.
+`PublicInput` are opaque byte strings of arbitrary length no larger than 2<sup>16</sup> - 1 bytes.
 This length restriction exists because `PublicInput` and `PrivateInput` values
 are length-prefixed before use throughout the protocol.
 
