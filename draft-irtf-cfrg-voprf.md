@@ -293,7 +293,9 @@ protocol variant and the ciphersuite are fixed.
 The `PrivateInput` data type refers to inputs that are known only to the client
 in the protocol, whereas the `PublicInput` data type refers to inputs that are
 known to both client and server in the protocol. Both `PrivateInput` and
-`PublicInput` are opaque byte strings of arbitrary length no larger than 2^13 octets.
+`PublicInput` are opaque byte strings of arbitrary length no larger than 2<sup>16</sup> - 1 bytes.
+This length restriction exists because `PublicInput` and `PrivateInput` values
+are length-prefixed with two bytes before use throughout the protocol.
 
 String values such as "DeriveKeyPair", "Seed-", and "Finalize" are ASCII string literals.
 
@@ -305,7 +307,7 @@ The following terms are used throughout this document.
 - POPRF: Partially Oblivious Pseudorandom Function.
 - Client: Protocol initiator. Learns pseudorandom function evaluation as
   the output of the protocol.
-- Server: Computes the pseudorandom function over a private key. Learns
+- Server: Computes the pseudorandom function using a private key. Learns
   nothing about the client's input or output.
 
 # Preliminaries
@@ -633,7 +635,7 @@ client learns `output` and the server learns nothing.
 This interaction is shown below.
 
 ~~~
-    Client                                                Server(skS)
+    Client(input)                                        Server(skS)
   -------------------------------------------------------------------
   blind, blindedElement = Blind(input)
 
@@ -657,7 +659,7 @@ which the client receives as input to the protocol. This proof does not reveal t
 private key to the client. This interaction is shown below.
 
 ~~~
-    Client(pkS)            <---- pkS ------          Server(skS, pkS)
+    Client(input, pkS)       <---- pkS ------        Server(skS, pkS)
   -------------------------------------------------------------------
   blind, blindedElement = Blind(input)
 
@@ -681,7 +683,7 @@ the pseudorandom function. That is, the client and server interact to compute
 `output = F(skS, input, info)` as is shown below.
 
 ~~~
-    Client(pkS, info)     <---- pkS ------     Server(skS, pkS, info)
+    Client(input, pkS, info) <---- pkS ------  Server(skS, pkS, info)
   -------------------------------------------------------------------
   blind, blindedElement, tweakedKey = Blind(input, info, pkS)
 
