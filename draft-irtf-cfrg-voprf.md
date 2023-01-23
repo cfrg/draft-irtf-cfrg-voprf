@@ -149,6 +149,10 @@ Group (CFRG). It is not an IETF product and is not a standard.
 
 ## Change log
 
+[draft-18](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-18):
+
+- Apply editorial suggestions from CFRG chair review.
+
 [draft-17](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-17):
 
 - Change how suites are identified and finalize test vectors.
