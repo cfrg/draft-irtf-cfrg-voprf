@@ -295,7 +295,7 @@ in the protocol, whereas the `PublicInput` data type refers to inputs that are
 known to both client and server in the protocol. Both `PrivateInput` and
 `PublicInput` are opaque byte strings of arbitrary length no larger than 2<sup>16</sup> - 1 bytes.
 This length restriction exists because `PublicInput` and `PrivateInput` values
-are length-prefixed before use throughout the protocol.
+are length-prefixed with two bytes before use throughout the protocol.
 
 String values such as "DeriveKeyPair", "Seed-", and "Finalize" are ASCII string literals.
 
