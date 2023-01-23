@@ -729,12 +729,9 @@ def CreateContextString(mode, identifier):
 
 ## Key Generation and Context Setup {#offline}
 
-In the offline setup phase, the server key pair (`skS`, `pkS`) is generated
-using the following `GenerateKeyPair` function, which produces a randomly
-generate private and public key pair. {{derive-key-pair}} lists a
-deterministic key generation function `DeriveKeyPair` that can be used
-to implement `GenerateKeyPair` as `DeriveKeyPair(random(Ns), info)`, with
-optional (possibly empty) application-chosen public `info` string.
+In the offline setup phase, the server generates a fresh, random key
+pair (`skS`, `pkS`). There are two ways to generate this key pair.
+The first of which is using the `GenerateKeyPair` function described below.
 
 ~~~ pseudocode
 Input: None
@@ -753,6 +750,10 @@ def GenerateKeyPair():
   pkS = G.ScalarMultGen(skS)
   return skS, pkS
 ~~~
+
+The second way to generate the key pair is via the deterministic key
+generation function `DeriveKeyPair` described in {{derive-key-pair}}.
+Applications and implementations can use either method in practice.
 
 Also during the offline setup phase, both the client and server create a
 context used for executing the online phase of the protocol after agreeing on a
@@ -799,10 +800,13 @@ def SetupPOPRFClient(identifier, pkS):
 ### Deterministic Key Generation {#derive-key-pair}
 
 This section describes a deterministic key generation function, `DeriveKeyPair`.
-It accepts a randomly generated seed of length
-`Ns` bytes and an optional (possibly empty) public `info` string. The
-constant `Ns` corresponds to the size in bytes of a serialized Scalar and is
-defined in {{pog}}.
+It accepts a seed of `Ns` bytes generated from a cryptographically secure
+random number generator and an optional (possibly empty) `info` string.
+The constant `Ns` corresponds to the size in bytes of a serialized Scalar
+and is defined in {{pog}}. Note that by design knowledge of `seed` and `info`
+is necessary to compute this function, which means that the secrecy of the
+output private key (`skS`) depends on the secrecy of `seed` (since the `info`
+string is public).
 
 ~~~ pseudocode
 Input:
@@ -1604,6 +1608,10 @@ the client's private input x at some point in the future, the server cannot
 link any particular PRF evaluation to x. This property is
 also known as unlinkability {{DGSTV18}}.
 
+Beyond client input secret, in the OPRF protocol, the server learns nothing about
+the output y of the function, nor does the client learn anything about the
+server's private key k.
+
 For the VOPRF and POPRF protocol variants, there is an additional
 security property:
 
@@ -1622,14 +1630,22 @@ commitment as a public key.
 Finally, the POPRF variant also has the following security property:
 
 - Partial obliviousness: The client and server must be able to perform the
-  PRF on client's private input and public input. The server must learn nothing
-  about the client's private input or the output of the function. In addition,
-  the client must learn nothing about the server's private key.
+  PRF on client's private input and public input. Both client and server know
+  the public input, but similar to the OPRF and VOPRF protocols, the server
+  learns nothing about the client's private input or the output of the function,
+  and the client learns nothing about the server's private key.
 
 This property becomes useful when dealing with key management operations such as
 the rotation of server's keys. Note that partial obliviousness only applies
 to the POPRF variant because neither the OPRF nor VOPRF variants accept public
 input to the protocol.
+
+Since the POPRF variant has a different syntax than the OPRF and VOPRF variants,
+i.e., y = F(k, x, info), the pseudorandomness property is generalized:
+
+- Pseudorandomness: For a random sampling of k, F is pseudorandom if the output
+  y = F(k, x, info) on any input pairs (x, info) is indistinguishable from uniformly
+  sampling any element in F's range.
 
 ## Security Assumptions {#cryptanalysis}
 
