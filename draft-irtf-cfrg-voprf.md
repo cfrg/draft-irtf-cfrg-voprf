@@ -1514,7 +1514,7 @@ POPRF protocol variant.
 ## Input Limits
 
 Application inputs, expressed as PrivateInput or PublicInput values, MUST be smaller
-than 2^13 bytes in length. Applications that require longer inputs can use a cryptographic
+than 2<sup>16</sup>-1 bytes in length. Applications that require longer inputs can use a cryptographic
 hash function to map these longer inputs to a fixed-length input that fits within the
 PublicInput or PrivateInput length bounds. Note that some cryptographic hash functions
 have input length restrictions themselves, but these limits are often large enough to
