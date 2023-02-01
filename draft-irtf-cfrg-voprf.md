@@ -433,7 +433,8 @@ Given elements A and B, two non-empty lists of elements C and D of length
 `m`, and a scalar k; this function produces a proof that `k*A == B`
 and `k*C[i] == D[i]` for each `i` in `[0, ..., m - 1]`.
 The output is a value of type Proof, which is a tuple of two Scalar
-values.
+values. We use the notation `proof[0]` and `proof[1]` to denote
+the first and second elements in this tuple, respectively.
 
 `GenerateProof` accepts lists of inputs to amortize the cost of proof
 generation. Applications can take advantage of this functionality to
@@ -470,14 +471,15 @@ def GenerateProof(k, A, B, C, D)
   a2 = G.SerializeElement(t2)
   a3 = G.SerializeElement(t3)
 
-  h2Input = I2OSP(len(Bm), 2) || Bm ||
-            I2OSP(len(a0), 2) || a0 ||
-            I2OSP(len(a1), 2) || a1 ||
-            I2OSP(len(a2), 2) || a2 ||
-            I2OSP(len(a3), 2) || a3 ||
-            "Challenge"
+  challengeTranscript =
+    I2OSP(len(Bm), 2) || Bm ||
+    I2OSP(len(a0), 2) || a0 ||
+    I2OSP(len(a1), 2) || a1 ||
+    I2OSP(len(a2), 2) || a2 ||
+    I2OSP(len(a3), 2) || a3 ||
+    "Challenge"
 
-  c = G.HashToScalar(h2Input)
+  c = G.HashToScalar(challengeTranscript)
   s = r - c * k
 
   return [c, s]
@@ -508,20 +510,22 @@ Parameters:
 def ComputeCompositesFast(k, B, C, D):
   Bm = G.SerializeElement(B)
   seedDST = "Seed-" || contextString
-  h1Input = I2OSP(len(Bm), 2) || Bm ||
-            I2OSP(len(seedDST), 2) || seedDST
-  seed = Hash(h1Input)
+  seedTranscript =
+    I2OSP(len(Bm), 2) || Bm ||
+    I2OSP(len(seedDST), 2) || seedDST
+  seed = Hash(seedTranscript)
 
   M = G.Identity()
   for i in range(m):
     Ci = G.SerializeElement(C[i])
     Di = G.SerializeElement(D[i])
-    h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
-              I2OSP(len(Ci), 2) || Ci ||
-              I2OSP(len(Di), 2) || Di ||
-              "Composite"
+    compositeTranscript =
+      I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
+      I2OSP(len(Ci), 2) || Ci ||
+      I2OSP(len(Di), 2) || Di ||
+      "Composite"
 
-    di = G.HashToScalar(h2Input)
+    di = G.HashToScalar(compositeTranscript)
     M = di * C[i] + M
 
   Z = k * M
@@ -572,14 +576,15 @@ def VerifyProof(A, B, C, D, proof):
   a2 = G.SerializeElement(t2)
   a3 = G.SerializeElement(t3)
 
-  h2Input = I2OSP(len(Bm), 2) || Bm ||
-            I2OSP(len(a0), 2) || a0 ||
-            I2OSP(len(a1), 2) || a1 ||
-            I2OSP(len(a2), 2) || a2 ||
-            I2OSP(len(a3), 2) || a3 ||
-            "Challenge"
+  challengeTranscript =
+    I2OSP(len(Bm), 2) || Bm ||
+    I2OSP(len(a0), 2) || a0 ||
+    I2OSP(len(a1), 2) || a1 ||
+    I2OSP(len(a2), 2) || a2 ||
+    I2OSP(len(a3), 2) || a3 ||
+    "Challenge"
 
-  expectedC = G.HashToScalar(h2Input)
+  expectedC = G.HashToScalar(challengeTranscript)
   verified = (expectedC == c)
 
   return verified
@@ -607,21 +612,23 @@ Parameters:
 def ComputeComposites(B, C, D):
   Bm = G.SerializeElement(B)
   seedDST = "Seed-" || contextString
-  h1Input = I2OSP(len(Bm), 2) || Bm ||
-            I2OSP(len(seedDST), 2) || seedDST
-  seed = Hash(h1Input)
+  seedTranscript =
+    I2OSP(len(Bm), 2) || Bm ||
+    I2OSP(len(seedDST), 2) || seedDST
+  seed = Hash(seedTranscript)
 
   M = G.Identity()
   Z = G.Identity()
   for i in range(m):
     Ci = G.SerializeElement(C[i])
     Di = G.SerializeElement(D[i])
-    h2Input = I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
-              I2OSP(len(Ci), 2) || Ci ||
-              I2OSP(len(Di), 2) || Di ||
-              "Composite"
+    compositeTranscript =
+      I2OSP(len(seed), 2) || seed || I2OSP(i, 2) ||
+      I2OSP(len(Ci), 2) || Ci ||
+      I2OSP(len(Di), 2) || Di ||
+      "Composite"
 
-    di = G.HashToScalar(h2Input)
+    di = G.HashToScalar(compositeTranscript)
     M = di * C[i] + M
     Z = di * D[i] + Z
 
@@ -633,8 +640,11 @@ as defined in {{offline}}.
 
 # Protocol {#protocol}
 
-In this section, we define three protocol variants referred to as the OPRF,
-VOPRF, and POPRF modes with the following properties.
+In this section, we define and describe three protocol variants referred to as the
+OPRF, VOPRF, and POPRF modes. Each of these variants involve two messages between
+client and server but differ slightly in terms of the security properties; see
+{{properties}} for more information. A high level description of the functionality
+of each mode follows.
 
 In the OPRF mode, a client and server interact to compute `output = F(skS, input)`,
 where `input` is the client's private input, `skS` is the server's private key,
@@ -1281,9 +1291,10 @@ A ciphersuite contains instantiations of the following functionalities:
   reducing integer values to a member of the corresponding scalar field.
 - `Hash`: A cryptographic hash function whose output length is Nh bytes long.
 
-This section specifies an initial registry of ciphersuites with supported groups
+This section includes an initial set of ciphersuites with supported groups
 and hash functions. It also includes implementation details for each ciphersuite,
-focusing on input validation, as well as requirements for future ciphersuites.
+focusing on input validation. Future documents can specify additional ciphersuites
+as needed provided they meet the requirements in {{suite-requirements}}.
 
 For each ciphersuite, `contextString` is that which is computed in the Setup functions.
 Applications should take caution in using ciphersuites targeting P-256 and ristretto255.
@@ -1459,7 +1470,7 @@ function. The value of the ciphersuite identifier is "P521-SHA512".
     input does not represent a Scalar in the range \[0, `G.Order()` - 1\].
 - Hash: SHA-512; Nh = 64.
 
-## Future Ciphersuites
+## Future Ciphersuites {#suite-requirements}
 
 A critical requirement of implementing the prime-order group using
 elliptic curves is a method to instantiate the function
