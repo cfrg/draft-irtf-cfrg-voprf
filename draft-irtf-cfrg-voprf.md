@@ -1731,8 +1731,8 @@ launch a highly expensive attack to reduce security to anything much
 below 100 bits of security. Applications that admit the aforementioned
 oracle functionality, and that cannot tolerate discrete logarithm security
 of lower than 128 bits, are RECOMMENDED to choose groups that target a
-higher security level, such as decaf448 (used by ciphersuite 0x0002),
-P-384 (used by 0x0004), or P-521 (used by 0x0005).
+higher security level, such as decaf448 (used by ciphersuite decaf448-SHAKE256),
+P-384 (used by ciphersuite P384-SHA384), or P-521 (used by ciphersuite P521-SHA512).
 
 ## Domain Separation {#domain-separation}
 
