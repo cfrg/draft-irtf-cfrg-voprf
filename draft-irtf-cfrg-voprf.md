@@ -98,9 +98,9 @@ informative:
 
 An Oblivious Pseudorandom Function (OPRF) is a two-party protocol between
 client and server for computing the output of a Pseudorandom Function (PRF).
-The server provides the PRF secret key, and the client provides the PRF
+The server provides the PRF private key, and the client provides the PRF
 input. At the end of the protocol, the client learns the PRF output without
-learning anything about the PRF secret key, and the server learns neither
+learning anything about the PRF private key, and the server learns neither
 the PRF input nor output. An OPRF can also satisfy a notion of 'verifiability',
 called a VOPRF. A VOPRF ensures clients can verify that the server used a
 specific private key during the execution of the protocol. A VOPRF can also
@@ -125,7 +125,7 @@ F(k, x) such that the client learns F(k, x) without learning anything
 about k; and the server does not learn anything about x or F(k, x).
 A Verifiable OPRF (VOPRF) is an OPRF wherein the server also proves
 to the client that F(k, x) was produced by the key k corresponding
-to the server's public key the client knows. A Partially-Oblivious PRF (POPRF)
+to the server's public key, which the client knows. A Partially-Oblivious PRF (POPRF)
 is a variant of a VOPRF wherein client and server interact in computing
 F(k, x, y), for some PRF F with server-provided key k, client-provided
 input x, and public input y, and client receives proof
@@ -973,7 +973,7 @@ def Finalize(input, blind, evaluatedElement):
   return Hash(hashInput)
 ~~~
 
-An entity which knows both the secret key and the input can compute the PRF
+An entity which knows both the private key and the input can compute the PRF
 result using the following `Evaluate` function.
 
 ~~~ pseudocode
@@ -1087,7 +1087,7 @@ As in `BlindEvaluate`, inputs to `VerifyProof` are one-item lists. Clients can
 verify multiple inputs at once whenever the server produced a batched DLEQ proof
 for them.
 
-Finally, an entity which knows both the secret key and the input can compute the PRF
+Finally, an entity which knows both the private key and the input can compute the PRF
 result using the `Evaluate` function described in {{oprf}}.
 
 ### POPRF Protocol {#poprf}
@@ -1185,9 +1185,9 @@ elements while producing a single batched DLEQ proof for them.
 `BlindEvaluate` triggers `InverseError` when the function is about to
 calculate the inverse of a zero scalar, which does not exist and therefore
 yields a failure in the protocol.
-This only occurs for `info` values that map to the secret key of the server. Thus,
-clients that observe this signal are assumed to know the server secret key. Hence,
-this error can be a signal for the server to replace its secret key.
+This only occurs for `info` values that map to the private key of the server. Thus,
+clients that cause this error should be assumed to know the server private key. Hence,
+this error can be a signal for the server to replace its private key.
 
 The server sends both `evaluatedElement` and `proof` back to the client.
 Upon receipt, the client processes both values to complete the POPRF computation
@@ -1236,7 +1236,7 @@ As in `BlindEvaluate`, inputs to `VerifyProof` are one-item lists.
 Clients can verify multiple inputs at once whenever the server produced a
 batched DLEQ proof for them.
 
-Finally, an entity which knows both the secret key and the input can compute
+Finally, an entity which knows both the private key and the input can compute
 the PRF result using the `Evaluate` function described below.
 
 ~~~ pseudocode
