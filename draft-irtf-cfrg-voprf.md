@@ -149,6 +149,10 @@ Group (CFRG). It is not an IETF product and is not a standard.
 
 ## Change log
 
+[draft-21](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-21):
+
+- Apply more IRSG review comments.
+
 [draft-20](https://tools.ietf.org/html/draft-irtf-cfrg-voprf-20):
 
 - Address IRSG comments.
