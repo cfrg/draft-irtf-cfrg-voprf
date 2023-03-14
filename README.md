@@ -36,7 +36,7 @@ This requires that you have the necessary software installed.  See
 | ------------------------------------------------------------------------- |:---------|:---------|:-------|:------|
 | [opaque-ke](https://github.com/novifinancial/opaque-ke/)                  | Rust     | draft-06 | Base   | As a component for OPAQUE |
 | [opaque](https://github.com/bytemare/opaque)                              | Go       | draft-10 | Base   | As a component for OPAQUE |
-| [libopaque](https://github.com/stef/libopaque)                            | C        | draft-09 | Base   | As a component for OPAQUE |
+| [libopaque](https://github.com/stef/libopaque)                            | C        | draft-20 | Base   | As a component for OPAQUE |
 
 Submit a PR if you have a compliant implementation!
 
