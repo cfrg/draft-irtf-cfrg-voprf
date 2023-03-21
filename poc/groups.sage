@@ -45,37 +45,40 @@ class Group(object):
         self.name = name
 
     def generator(self):
-        return None
+        raise "Not implemented"
 
     def identity(self):
-        return 0
+        raise "Not implemented"
 
     def order(self):
-        return 0
+        raise "Not implemented"
 
     def serialize(self, element):
-        return None
+        raise "Not implemented"
 
     def deserialize(self, encoded):
-        return None
+        raise "Not implemented"
 
     def serialize_scalar(self, scalar):
-        pass
+        raise "Not implemented"
 
     def element_byte_length(self):
-        pass
+        raise "Not implemented"
 
     def scalar_byte_length(self):
-        pass
+        raise "Not implemented"
 
     def hash_to_group(self, x):
-        return None
+        raise "Not implemented"
 
     def hash_to_scalar(self, x):
-        return None
+        raise "Not implemented"
 
     def random_scalar(self, rng):
         return rng.randint(1, self.order() - 1)
+
+    def scalar_mult(self, x, y):
+        raise "Not implemented"
 
     def __str__(self):
         return self.name
@@ -149,6 +152,9 @@ class GroupNISTCurve(Group):
         expander = self.expander(dst, self.H, self.k)
         return hash_to_field(msg, 1, self.order(), self.m, self.L, expander)[0][0]
 
+    def scalar_mult(self, x, y):
+        return x * y
+
 class GroupP256(GroupNISTCurve):
     def __init__(self):
         # See FIPS 186-3, section D.2.3
@@ -208,6 +214,9 @@ class GroupRistretto255(Group):
         uniform_bytes = expand_message_xmd(msg, dst, 64, hashlib.sha512, self.k)
         return OS2IP_le(uniform_bytes) % self.order()
 
+    def scalar_mult(self, x, y):
+        return x * y
+
 class GroupDecaf448(Group):
     def __init__(self):
         Group.__init__(self, "decaf448")
@@ -245,3 +254,6 @@ class GroupDecaf448(Group):
     def hash_to_scalar(self, msg, dst):
         uniform_bytes = expand_message_xof(msg, dst, int(64), hashlib.shake_256, self.k)
         return OS2IP_le(uniform_bytes) % self.order()
+
+    def scalar_mult(self, x, y):
+        return x * y
