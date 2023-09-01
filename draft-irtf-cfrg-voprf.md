@@ -47,6 +47,7 @@ normative:
 
 informative:
   RFC7748:
+  RFC9380:
   PrivacyPass:
     title: Privacy Pass
     target: https://github.com/privacypass/team
@@ -377,11 +378,11 @@ prime-order group.
   computationally difficult to reverse the mapping. This function is optionally
   parameterized by a domain separation tag (DST); see {{ciphersuites}}.
   Security properties of this function are described
-  in {{!I-D.irtf-cfrg-hash-to-curve}}.
+  in {{RFC9380}}.
 - HashToScalar(x): Deterministically maps
   an array of bytes `x` to an element in GF(p). This function is optionally
   parameterized by a DST; see {{ciphersuites}}. Security properties of this
-  function are described in {{!I-D.irtf-cfrg-hash-to-curve, Section 10.5}}.
+  function are described in {{RFC9380, Section 10.5}}.
 - RandomScalar(): Chooses at random a non-zero element in GF(p).
 - ScalarInverse(s): Returns the inverse of input `Scalar` `s` on `GF(p)`.
 - SerializeElement(A): Maps an `Element` `A`
@@ -1294,7 +1295,7 @@ A ciphersuite contains instantiations of the following functionalities:
   group also specifies HashToGroup, HashToScalar, and serialization
   functionalities. For
   HashToGroup, the domain separation tag (DST) is constructed in accordance
-  with the recommendations in {{!I-D.irtf-cfrg-hash-to-curve, Section 3.1}}.
+  with the recommendations in {{RFC9380, Section 3.1}}.
   For HashToScalar, each group specifies an integer order that is used in
   reducing integer values to a member of the corresponding scalar field.
 - `Hash`: A cryptographic hash function whose output length is Nh bytes long.
@@ -1318,7 +1319,7 @@ function. The value of the ciphersuite identifier is "ristretto255-SHA512".
   - Identity(): As defined in {{RISTRETTO}}.
   - Generator(): As defined in {{RISTRETTO}}.
   - HashToGroup(): Use hash_to_ristretto255
-    {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
+    {{RFC9380}} with DST =
     "HashToGroup-" || contextString, and `expand_message` = `expand_message_xmd`
     using SHA-512.
   - HashToScalar(): Compute `uniform_bytes` using `expand_message` = `expand_message_xmd`,
@@ -1352,7 +1353,7 @@ function. The value of the ciphersuite identifier is "decaf448-SHAKE256".
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - HashToGroup(): Use hash_to_decaf448
-    {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
+    {{RFC9380}} with DST =
     "HashToGroup-" || contextString, and `expand_message` = `expand_message_xof`
     using SHAKE-256.
   - HashToScalar(): Compute `uniform_bytes` using `expand_message` = `expand_message_xof`,
@@ -1383,9 +1384,9 @@ function. The value of the ciphersuite identifier is "P256-SHA256".
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - HashToGroup(): Use hash_to_curve with suite P256_XMD:SHA-256_SSWU_RO\_
-    {{!I-D.irtf-cfrg-hash-to-curve}} and DST =
+    {{RFC9380}} and DST =
     "HashToGroup-" || contextString.
-  - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
+  - HashToScalar(): Use hash_to_field from {{RFC9380}}
     using L = 48, `expand_message_xmd` with SHA-256,
     DST = "HashToScalar-" || contextString, and
     prime modulus equal to `Group.Order()`.
@@ -1418,9 +1419,9 @@ function. The value of the ciphersuite identifier is "P384-SHA384".
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - HashToGroup(): Use hash_to_curve with suite P384_XMD:SHA-384_SSWU_RO\_
-    {{!I-D.irtf-cfrg-hash-to-curve}} and DST =
+    {{RFC9380}} and DST =
     "HashToGroup-" || contextString.
-  - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
+  - HashToScalar(): Use hash_to_field from {{RFC9380}}
     using L = 72, `expand_message_xmd` with SHA-384,
     DST = "HashToScalar-" || contextString, and
     prime modulus equal to `Group.Order()`.
@@ -1454,9 +1455,9 @@ function. The value of the ciphersuite identifier is "P521-SHA512".
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - HashToGroup(): Use hash_to_curve with suite P521_XMD:SHA-512_SSWU_RO\_
-    {{!I-D.irtf-cfrg-hash-to-curve}} and DST =
+    {{RFC9380}} and DST =
     "HashToGroup-" || contextString.
-  - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
+  - HashToScalar(): Use hash_to_field from {{RFC9380}}
     using L = 98, `expand_message_xmd` with SHA-512,
     DST = "HashToScalar-" || contextString, and
     prime modulus equal to `Group.Order()`.
@@ -1490,9 +1491,9 @@ In the security proof of the construction Hash is modeled as a random
 oracle. This implies that any instantiation of `HashToGroup` must be
 pre-image and collision resistant. In {{ciphersuites}} we give
 instantiations of this functionality based on the functions described in
-{{!I-D.irtf-cfrg-hash-to-curve}}. Consequently, any OPRF implementation
+{{RFC9380}}. Consequently, any OPRF implementation
 must adhere to the implementation and security considerations discussed
-in {{!I-D.irtf-cfrg-hash-to-curve}} when instantiating the function.
+in {{RFC9380}} when instantiating the function.
 
 The DeserializeElement and DeserializeScalar functions instantiated for a
 particular prime-order group corresponding to a ciphersuite MUST adhere to
@@ -1526,7 +1527,7 @@ most b bits.
 
 Generate a random byte array with `L = ceil(((3 * ceil(log2(G.Order()))) / 2) / 8)`
 bytes, and interpret it as an integer; reduce the integer modulo `G.Order()` and return the
-result. See {{I-D.irtf-cfrg-hash-to-curve, Section 5}} for the underlying derivation of `L`.
+result. See {{RFC9380, Section 5}} for the underlying derivation of `L`.
 
 # Application Considerations {#apis}
 
@@ -1584,7 +1585,7 @@ This public input is known to both parties at the start of the protocol. It is R
 that this public input be constructed with some type of higher-level domain separation
 to avoid cross protocol attacks or related issues. For example, protocols using
 this construction might ensure that the public input uses a unique, prefix-free encoding.
-See {{I-D.irtf-cfrg-hash-to-curve, Section 10.4}} for further discussion on
+See {{RFC9380, Section 10.4}} for further discussion on
 constructing domain separation values.
 
 Implementations of the POPRF may choose to not let applications control `info` in
@@ -1747,7 +1748,7 @@ P-384 (used by ciphersuite P384-SHA384), or P-521 (used by ciphersuite P521-SHA5
 Applications SHOULD construct input to the protocol to provide domain
 separation. Any system which has multiple OPRF applications should
 distinguish client inputs to ensure the OPRF results are separate.
-Guidance for constructing info can be found in {{!I-D.irtf-cfrg-hash-to-curve, Section 3.1}}.
+Guidance for constructing info can be found in {{RFC9380, Section 3.1}}.
 
 ## Timing Leaks
 
