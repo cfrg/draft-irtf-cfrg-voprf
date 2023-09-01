@@ -660,20 +660,31 @@ and `output` is the OPRF output. After the execution of the protocol, the
 client learns `output` and the server learns nothing.
 This interaction is shown below.
 
-~~~
-    Client(input)                                        Server(skS)
-  -------------------------------------------------------------------
-  blind, blindedElement = Blind(input)
-
-                             blindedElement
-                               ---------->
-
-                evaluatedElement = BlindEvaluate(skS, blindedElement)
-
-                             evaluatedElement
-                               <----------
-
-  output = Finalize(input, blind, evaluatedElement)
+~~~ aasvg
+     +--------+                               +--------+
+     | Client |                               | Server |
+     +----+---+                               +----+---+
+          |                                        |
+        input                                     skS
+          |                                        |
+          v                                        v
++-----+---+----------------------------------------+----------------+
+|OPRF/    |                                        |                |
++---'     |                                        |                |
+|blind, blindedElement = Blind(input)              |                |
+|         |                                        |                |
+|         +----------- blindedElement ------------>|                |
+|         |                                        |                |
+|         |   evaluatedElement = BlindEvaluate(skS, blindedElement) |
+|         |                                        |                |
+|         |<--------- evaluatedElement ------------+                |
+|         |                                                         |
+|output = Finalize(input, blind, evaluatedElement)                  |
+|         |                                                         |
++---------+---------------------------------------------------------+
+          |
+          v
+        output
 ~~~
 {: #fig-oprf title="OPRF protocol overview"}
 
@@ -684,22 +695,33 @@ the `BlindEvaluate` function is the same key as it used to produce the server's 
 which the client receives as input to the protocol. This proof does not reveal the server's
 private key to the client. This interaction is shown below.
 
-~~~
-    Client(input, pkS)       <---- pkS ------        Server(skS, pkS)
-  -------------------------------------------------------------------
-  blind, blindedElement = Blind(input)
-
-                             blindedElement
-                               ---------->
-
-              evaluatedElement, proof = BlindEvaluate(skS, pkS,
-                                                      blindedElement)
-
-                         evaluatedElement, proof
-                               <----------
-
-  output = Finalize(input, blind, evaluatedElement,
-                    blindedElement, pkS, proof)
+~~~ aasvg
+     +--------+                               +--------+
+     | Client |                               | Server |
+     +----+---+                               +----+---+
+          |                                        |
+      input, pkS      <------ pkS ---------    skS, pkS
+          |                                        |
+          v                                        v
++------+--+----------------------------------------+----------------+
+|VOPRF/   |                                        |                |
++----'    |                                        |                |
+|blind, blindedElement = Blind(input)              |                |
+|         |                                        |                |
+|         +----------- blindedElement ------------>|                |
+|         |                                        |                |
+|         |   evaluatedElement, proof = BlindEvaluate(skS, pkS,     |
+|         |                                      blindedElement)    |
+|         |                                        |                |
+|         |<------ evaluatedElement, proof --------+                |
+|         |                                                         |
+|output = Finalize(input, blind, evaluatedElement,                  |
+|                  blindedElement, pkS, proof)                      |
+|         |                                                         |
++---------+---------------------------------------------------------+
+          |
+          v
+        output
 ~~~
 {: #fig-voprf title="VOPRF protocol overview with additional proof"}
 
@@ -708,22 +730,34 @@ server can additionally provide a public input `info` that is used in computing
 the pseudorandom function. That is, the client and server interact to compute
 `output = F(skS, input, info)` as is shown below.
 
-~~~
-    Client(input, pkS, info) <---- pkS ------  Server(skS, pkS, info)
-  -------------------------------------------------------------------
-  blind, blindedElement, tweakedKey = Blind(input, info, pkS)
-
-                             blindedElement
-                               ---------->
-
-         evaluatedElement, proof = BlindEvaluate(skS, blindedElement,
-                                                 info)
-
-                         evaluatedElement, proof
-                               <----------
-
-  output = Finalize(input, blind, evaluatedElement,
-                    blindedElement, proof, info, tweakedKey)
+~~~ aasvg
+     +--------+                               +--------+
+     | Client |                               | Server |
+     +----+---+                               +----+---+
+          |                                        |
+  input, pkS, info   <------ pkS ---------   skS, pkS, info
+          |                                        |
+          v                                        v
++------+--+----------------------------------------+----------------+
+|POPRF/   |                                        |                |
++----'    |                                        |                |
+|blind, blindedElement, tweakedKey = Blind(input,  |                |
+|                                       info, pkS) |                |
+|         |                                        |                |
+|         +----------- blindedElement ------------>|                |
+|         |                                        |                |
+|         |   evaluatedElement, proof = BlindEvaluate(skS,          |
+|         |                                 blindedElement, info)   |
+|         |                                        |                |
+|         |<------ evaluatedElement, proof --------+                |
+|         |                                                         |
+|output = Finalize(input, blind, evaluatedElement,                  |
+|                  blindedElement, proof, info, tweakedKey)         |
+|         |                                                         |
++---------+---------------------------------------------------------+
+          |
+          v
+        output
 ~~~
 {: #fig-poprf title="POPRF protocol overview with additional public input"}
 
