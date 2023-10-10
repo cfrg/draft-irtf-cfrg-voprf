@@ -24,24 +24,24 @@ VOPRF, and POPRF instantiated within standard prime-order groups, including
 elliptic curves. This document is a product of the Crypto Forum Research Group
 (CFRG) in the IRTF. 
     " name="description">
-<meta content="xml2rfc 3.18.0" name="generator">
+<meta content="xml2rfc 3.18.1" name="generator">
 <meta content="Internet-Draft" name="keyword">
 <meta content="draft-irtf-cfrg-voprf-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.18.0
-    Python 3.11.4
+  xml2rfc 3.18.1
+    Python 3.11.5
     ConfigArgParse 1.5.3
     google-i18n-address 3.1.0
     intervaltree 3.1.0
     Jinja2 3.1.2
     lxml 4.9.3
-    platformdirs 3.10.0
+    platformdirs 3.11.0
     pycountry 22.3.5
     PyYAML 6.0
     requests 2.31.0
     setuptools 67.7.2
     six 1.16.0
-    wcwidth 0.2.6
+    wcwidth 0.2.8
 -->
 <link href="draft-irtf-cfrg-voprf.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -664,7 +664,7 @@ sub, sup {
 }
 #toc nav li {
   line-height: 1.3em;
-  margin: 0.75em 0;
+  margin: 2px 0;
   padding-left: 1.2em;
   text-indent: -1.2em;
 }
@@ -757,7 +757,7 @@ hr.addr {
     z-index: 2;
     top: 0;
     right: 0;
-    padding: 0;
+    padding: 1px 0 0 0;
     margin: 0;
     border-bottom: 1px solid #ccc;
     opacity: 0.6;
@@ -881,16 +881,13 @@ hr.addr {
     border-top: none;
     padding-top: 0;
   }
-  figure, pre {
+  figure, pre, .vcard {
     page-break-inside: avoid;
-  }
-  figure {
-    overflow: scroll;
   }
   h1, h2, h3, h4, h5, h6 {
     page-break-after: avoid;
   }
-  h2+*, h3+*, h4+*, h5+*, h6+* {
+  :is(h2, h3, h4, h5, h6)+*, dd {
     page-break-before: avoid;
   }
   pre {
@@ -903,6 +900,9 @@ hr.addr {
   }
   td {
     border-top: 1px solid #ddd;
+  }
+  .toplink {
+    display: none;
   }
 }
 
@@ -1004,28 +1004,6 @@ address div.right {
   text-align: right;
 }
 
-/* Give the table caption label the same styling as the figcaption */
-
-@media print {
-  .toplink {
-    display: none;
-  }
-
-  /* avoid overwriting the top border line with the ToC header */
-  #toc {
-    padding-top: 1px;
-  }
-
-  /* Avoid page breaks inside dl and author address entries */
-  dd {
-    page-break-before: avoid;
-  }
-  .vcard {
-    page-break-inside: avoid;
-  }
-
-}
-
 /* Dark mode. */
 @media (prefers-color-scheme: dark) {
 :root {
@@ -1062,11 +1040,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">OPRFs</td>
-<td class="right">September 2023</td>
+<td class="right">October 2023</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Davidson, et al.</td>
-<td class="center">Expires 4 March 2024</td>
+<td class="center">Expires 12 April 2024</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1079,12 +1057,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-irtf-cfrg-voprf-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2023-09-01" class="published">1 September 2023</time>
+<time datetime="2023-10-10" class="published">10 October 2023</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2024-03-04">4 March 2024</time></dd>
+<dd class="expires"><time datetime="2024-04-12">12 April 2024</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1150,7 +1128,7 @@ elliptic curves. This document is a product of the Crypto Forum Research Group
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 4 March 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 12 April 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1461,200 +1439,264 @@ Group (CFRG). It is not an IETF product and is not a standard.<a href="#section-
         </h3>
 <p id="section-1.1-1"><a href="https://tools.ietf.org/html/draft-irtf-cfrg-voprf-21">draft-21</a>:<a href="#section-1.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-2.1">Apply more IRSG review comments.<a href="#section-1.1-2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-2.1">
+            <p id="section-1.1-2.1.1">Apply more IRSG review comments.<a href="#section-1.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-3"><a href="https://tools.ietf.org/html/draft-irtf-cfrg-voprf-20">draft-20</a>:<a href="#section-1.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-4.1">Address IRSG comments.<a href="#section-1.1-4.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-4.1">
+            <p id="section-1.1-4.1.1">Address IRSG comments.<a href="#section-1.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-5"><a href="https://tools.ietf.org/html/draft-irtf-cfrg-voprf-19">draft-19</a>:<a href="#section-1.1-5" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-6.1">Fix error.<a href="#section-1.1-6.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-6.1">
+            <p id="section-1.1-6.1.1">Fix error.<a href="#section-1.1-6.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-7"><a href="https://tools.ietf.org/html/draft-irtf-cfrg-voprf-18">draft-18</a>:<a href="#section-1.1-7" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-8.1">Apply editorial suggestions from CFRG chair review.<a href="#section-1.1-8.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-8.1">
+            <p id="section-1.1-8.1.1">Apply editorial suggestions from CFRG chair review.<a href="#section-1.1-8.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-9"><a href="https://tools.ietf.org/html/draft-irtf-cfrg-voprf-17">draft-17</a>:<a href="#section-1.1-9" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-10.1">Change how suites are identified and finalize test vectors.<a href="#section-1.1-10.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-10.1">
+            <p id="section-1.1-10.1.1">Change how suites are identified and finalize test vectors.<a href="#section-1.1-10.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-10.2">Apply editorial suggestions from IRTF chair review.<a href="#section-1.1-10.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-10.2">
+            <p id="section-1.1-10.2.1">Apply editorial suggestions from IRTF chair review.<a href="#section-1.1-10.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-11"><a href="https://tools.ietf.org/html/draft-irtf-cfrg-voprf-16">draft-16</a>:<a href="#section-1.1-11" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-12.1">Apply editorial suggestions from document shepherd.<a href="#section-1.1-12.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-12.1">
+            <p id="section-1.1-12.1.1">Apply editorial suggestions from document shepherd.<a href="#section-1.1-12.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-13"><a href="https://tools.ietf.org/html/draft-irtf-cfrg-voprf-15">draft-15</a>:<a href="#section-1.1-13" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-14.1">Apply editorial suggestions from CFRG RGLC.<a href="#section-1.1-14.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-14.1">
+            <p id="section-1.1-14.1.1">Apply editorial suggestions from CFRG RGLC.<a href="#section-1.1-14.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-15"><a href="https://tools.ietf.org/html/draft-irtf-cfrg-voprf-14">draft-14</a>:<a href="#section-1.1-15" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-16.1">Correct current state of formal analysis for the VOPRF protocol variant.<a href="#section-1.1-16.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-16.1">
+            <p id="section-1.1-16.1.1">Correct current state of formal analysis for the VOPRF protocol variant.<a href="#section-1.1-16.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-17"><a href="https://tools.ietf.org/html/draft-irtf-cfrg-voprf-13">draft-13</a>:<a href="#section-1.1-17" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-18.1">Editorial improvements based on Crypto Panel Review.<a href="#section-1.1-18.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-18.1">
+            <p id="section-1.1-18.1.1">Editorial improvements based on Crypto Panel Review.<a href="#section-1.1-18.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-19"><a href="https://tools.ietf.org/html/draft-irtf-cfrg-voprf-12">draft-12</a>:<a href="#section-1.1-19" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-20.1">Small editorial fixes<a href="#section-1.1-20.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-20.1">
+            <p id="section-1.1-20.1.1">Small editorial fixes<a href="#section-1.1-20.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-21"><a href="https://tools.ietf.org/html/draft-irtf-cfrg-voprf-11">draft-11</a>:<a href="#section-1.1-21" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-22.1">Change Evaluate to BlindEvaluate, and add Evaluate for PRF evaluation<a href="#section-1.1-22.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-22.1">
+            <p id="section-1.1-22.1.1">Change Evaluate to BlindEvaluate, and add Evaluate for PRF evaluation<a href="#section-1.1-22.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-23"><a href="https://tools.ietf.org/html/draft-irtf-cfrg-voprf-10">draft-10</a>:<a href="#section-1.1-23" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-24.1">Editorial improvements<a href="#section-1.1-24.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-24.1">
+            <p id="section-1.1-24.1.1">Editorial improvements<a href="#section-1.1-24.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-25"><a href="https://tools.ietf.org/html/draft-irtf-cfrg-voprf-09">draft-09</a>:<a href="#section-1.1-25" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-26.1">Split syntax for OPRF, VOPRF, and POPRF functionalities.<a href="#section-1.1-26.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-26.1">
+            <p id="section-1.1-26.1.1">Split syntax for OPRF, VOPRF, and POPRF functionalities.<a href="#section-1.1-26.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-26.2">Make Blind function fallible for invalid private and public inputs.<a href="#section-1.1-26.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-26.2">
+            <p id="section-1.1-26.2.1">Make Blind function fallible for invalid private and public inputs.<a href="#section-1.1-26.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-26.3">Specify key generation.<a href="#section-1.1-26.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-26.3">
+            <p id="section-1.1-26.3.1">Specify key generation.<a href="#section-1.1-26.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-26.4">Remove serialization steps from core protocol functions.<a href="#section-1.1-26.4" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-26.4">
+            <p id="section-1.1-26.4.1">Remove serialization steps from core protocol functions.<a href="#section-1.1-26.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-26.5">Refactor protocol presentation for clarity.<a href="#section-1.1-26.5" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-26.5">
+            <p id="section-1.1-26.5.1">Refactor protocol presentation for clarity.<a href="#section-1.1-26.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-26.6">Simplify security considerations.<a href="#section-1.1-26.6" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-26.6">
+            <p id="section-1.1-26.6.1">Simplify security considerations.<a href="#section-1.1-26.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-26.7">Update application interface considerations.<a href="#section-1.1-26.7" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-26.7">
+            <p id="section-1.1-26.7.1">Update application interface considerations.<a href="#section-1.1-26.7.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-26.8">Update test vectors.<a href="#section-1.1-26.8" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-26.8">
+            <p id="section-1.1-26.8.1">Update test vectors.<a href="#section-1.1-26.8.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-27"><a href="https://tools.ietf.org/html/draft-irtf-cfrg-voprf-08">draft-08</a>:<a href="#section-1.1-27" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-28.1">Adopt partially-oblivious PRF construction from <span>[<a href="#TCRSTW21" class="cite xref">TCRSTW21</a>]</span>.<a href="#section-1.1-28.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-28.1">
+            <p id="section-1.1-28.1.1">Adopt partially-oblivious PRF construction from <span>[<a href="#TCRSTW21" class="cite xref">TCRSTW21</a>]</span>.<a href="#section-1.1-28.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-28.2">Update P-384 suite to use SHA-384 instead of SHA-512.<a href="#section-1.1-28.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-28.2">
+            <p id="section-1.1-28.2.1">Update P-384 suite to use SHA-384 instead of SHA-512.<a href="#section-1.1-28.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-28.3">Update test vectors.<a href="#section-1.1-28.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-28.3">
+            <p id="section-1.1-28.3.1">Update test vectors.<a href="#section-1.1-28.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-28.4">Apply various editorial changes.<a href="#section-1.1-28.4" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-28.4">
+            <p id="section-1.1-28.4.1">Apply various editorial changes.<a href="#section-1.1-28.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-29"><a href="https://tools.ietf.org/html/draft-irtf-cfrg-voprf-07">draft-07</a>:<a href="#section-1.1-29" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-30.1">Bind blinding mechanism to mode (additive for verifiable mode and
-multiplicative for base mode).<a href="#section-1.1-30.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-30.1">
+            <p id="section-1.1-30.1.1">Bind blinding mechanism to mode (additive for verifiable mode and
+multiplicative for base mode).<a href="#section-1.1-30.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-30.2">Add explicit errors for deserialization.<a href="#section-1.1-30.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-30.2">
+            <p id="section-1.1-30.2.1">Add explicit errors for deserialization.<a href="#section-1.1-30.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-30.3">Document explicit errors and API considerations.<a href="#section-1.1-30.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-30.3">
+            <p id="section-1.1-30.3.1">Document explicit errors and API considerations.<a href="#section-1.1-30.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-30.4">Adopt SHAKE-256 for decaf448 ciphersuite.<a href="#section-1.1-30.4" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-30.4">
+            <p id="section-1.1-30.4.1">Adopt SHAKE-256 for decaf448 ciphersuite.<a href="#section-1.1-30.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-30.5">Normalize HashToScalar functionality for all ciphersuites.<a href="#section-1.1-30.5" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-30.5">
+            <p id="section-1.1-30.5.1">Normalize HashToScalar functionality for all ciphersuites.<a href="#section-1.1-30.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-30.6">Refactor and generalize DLEQ proof functionality and domain separation
-tags for use in other protocols.<a href="#section-1.1-30.6" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-30.6">
+            <p id="section-1.1-30.6.1">Refactor and generalize DLEQ proof functionality and domain separation
+tags for use in other protocols.<a href="#section-1.1-30.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-30.7">Update test vectors.<a href="#section-1.1-30.7" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-30.7">
+            <p id="section-1.1-30.7.1">Update test vectors.<a href="#section-1.1-30.7.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-30.8">Apply various editorial changes.<a href="#section-1.1-30.8" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-30.8">
+            <p id="section-1.1-30.8.1">Apply various editorial changes.<a href="#section-1.1-30.8.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-31"><a href="https://tools.ietf.org/html/draft-irtf-cfrg-voprf-06">draft-06</a>:<a href="#section-1.1-31" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-32.1">Specify of group element and scalar serialization.<a href="#section-1.1-32.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-32.1">
+            <p id="section-1.1-32.1.1">Specify of group element and scalar serialization.<a href="#section-1.1-32.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-32.2">Remove info parameter from the protocol API and update domain separation guidance.<a href="#section-1.1-32.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-32.2">
+            <p id="section-1.1-32.2.1">Remove info parameter from the protocol API and update domain separation guidance.<a href="#section-1.1-32.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-32.3">Fold Unblind function into Finalize.<a href="#section-1.1-32.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-32.3">
+            <p id="section-1.1-32.3.1">Fold Unblind function into Finalize.<a href="#section-1.1-32.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-32.4">Optimize ComputeComposites for servers (using knowledge of the private key).<a href="#section-1.1-32.4" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-32.4">
+            <p id="section-1.1-32.4.1">Optimize ComputeComposites for servers (using knowledge of the private key).<a href="#section-1.1-32.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-32.5">Specify deterministic key generation method.<a href="#section-1.1-32.5" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-32.5">
+            <p id="section-1.1-32.5.1">Specify deterministic key generation method.<a href="#section-1.1-32.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-32.6">Update test vectors.<a href="#section-1.1-32.6" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-32.6">
+            <p id="section-1.1-32.6.1">Update test vectors.<a href="#section-1.1-32.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-32.7">Apply various editorial changes.<a href="#section-1.1-32.7" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-32.7">
+            <p id="section-1.1-32.7.1">Apply various editorial changes.<a href="#section-1.1-32.7.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-33"><a href="https://tools.ietf.org/html/draft-irtf-cfrg-voprf-05">draft-05</a>:<a href="#section-1.1-33" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-34.1">Move to ristretto255 and decaf448 ciphersuites.<a href="#section-1.1-34.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-34.1">
+            <p id="section-1.1-34.1.1">Move to ristretto255 and decaf448 ciphersuites.<a href="#section-1.1-34.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-34.2">Clean up ciphersuite definitions.<a href="#section-1.1-34.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-34.2">
+            <p id="section-1.1-34.2.1">Clean up ciphersuite definitions.<a href="#section-1.1-34.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-34.3">Pin domain separation tag construction to draft version.<a href="#section-1.1-34.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-34.3">
+            <p id="section-1.1-34.3.1">Pin domain separation tag construction to draft version.<a href="#section-1.1-34.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-34.4">Move key generation outside of context construction functions.<a href="#section-1.1-34.4" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-34.4">
+            <p id="section-1.1-34.4.1">Move key generation outside of context construction functions.<a href="#section-1.1-34.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-34.5">Editorial changes.<a href="#section-1.1-34.5" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-34.5">
+            <p id="section-1.1-34.5.1">Editorial changes.<a href="#section-1.1-34.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-35"><a href="https://tools.ietf.org/html/draft-irtf-cfrg-voprf-04">draft-04</a>:<a href="#section-1.1-35" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-36.1">Introduce Client and Server contexts for controlling verifiability and
-required functionality.<a href="#section-1.1-36.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-36.1">
+            <p id="section-1.1-36.1.1">Introduce Client and Server contexts for controlling verifiability and
+required functionality.<a href="#section-1.1-36.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-36.2">Condense API.<a href="#section-1.1-36.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-36.2">
+            <p id="section-1.1-36.2.1">Condense API.<a href="#section-1.1-36.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-36.3">Remove batching from standard functionality (included as an extension)<a href="#section-1.1-36.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-36.3">
+            <p id="section-1.1-36.3.1">Remove batching from standard functionality (included as an extension)<a href="#section-1.1-36.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-36.4">Add Curve25519 and P-256 ciphersuites for applications that prevent
-strong-DH oracle attacks.<a href="#section-1.1-36.4" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-36.4">
+            <p id="section-1.1-36.4.1">Add Curve25519 and P-256 ciphersuites for applications that prevent
+strong-DH oracle attacks.<a href="#section-1.1-36.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-36.5">Provide explicit prime-order group API and instantiation advice for
-each ciphersuite.<a href="#section-1.1-36.5" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-36.5">
+            <p id="section-1.1-36.5.1">Provide explicit prime-order group API and instantiation advice for
+each ciphersuite.<a href="#section-1.1-36.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-36.6">Proof-of-concept implementation in sage.<a href="#section-1.1-36.6" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-36.6">
+            <p id="section-1.1-36.6.1">Proof-of-concept implementation in sage.<a href="#section-1.1-36.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-36.7">Remove privacy considerations advice as this depends on applications.<a href="#section-1.1-36.7" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-36.7">
+            <p id="section-1.1-36.7.1">Remove privacy considerations advice as this depends on applications.<a href="#section-1.1-36.7.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-37"><a href="https://tools.ietf.org/html/draft-irtf-cfrg-voprf-03">draft-03</a>:<a href="#section-1.1-37" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-38.1">Certify public key during VerifiableFinalize.<a href="#section-1.1-38.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-38.1">
+            <p id="section-1.1-38.1.1">Certify public key during VerifiableFinalize.<a href="#section-1.1-38.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-38.2">Remove protocol integration advice.<a href="#section-1.1-38.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-38.2">
+            <p id="section-1.1-38.2.1">Remove protocol integration advice.<a href="#section-1.1-38.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-38.3">Add text discussing how to perform domain separation.<a href="#section-1.1-38.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-38.3">
+            <p id="section-1.1-38.3.1">Add text discussing how to perform domain separation.<a href="#section-1.1-38.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-38.4">Drop OPRF_/VOPRF_ prefix from algorithm names.<a href="#section-1.1-38.4" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-38.4">
+            <p id="section-1.1-38.4.1">Drop OPRF_/VOPRF_ prefix from algorithm names.<a href="#section-1.1-38.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-38.5">Make prime-order group assumption explicit.<a href="#section-1.1-38.5" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-38.5">
+            <p id="section-1.1-38.5.1">Make prime-order group assumption explicit.<a href="#section-1.1-38.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-38.6">Changes to algorithms accepting batched inputs.<a href="#section-1.1-38.6" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-38.6">
+            <p id="section-1.1-38.6.1">Changes to algorithms accepting batched inputs.<a href="#section-1.1-38.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-38.7">Changes to construction of batched DLEQ proofs.<a href="#section-1.1-38.7" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-38.7">
+            <p id="section-1.1-38.7.1">Changes to construction of batched DLEQ proofs.<a href="#section-1.1-38.7.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-38.8">Updated ciphersuites to be consistent with hash-to-curve and added
-OPRF specific ciphersuites.<a href="#section-1.1-38.8" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-38.8">
+            <p id="section-1.1-38.8.1">Updated ciphersuites to be consistent with hash-to-curve and added
+OPRF specific ciphersuites.<a href="#section-1.1-38.8.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-39"><a href="https://tools.ietf.org/html/draft-irtf-cfrg-voprf-02">draft-02</a>:<a href="#section-1.1-39" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-40.1">Added section discussing cryptographic security and static DH oracles.<a href="#section-1.1-40.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-40.1">
+            <p id="section-1.1-40.1.1">Added section discussing cryptographic security and static DH oracles.<a href="#section-1.1-40.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-40.2">Updated batched proof algorithms.<a href="#section-1.1-40.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-40.2">
+            <p id="section-1.1-40.2.1">Updated batched proof algorithms.<a href="#section-1.1-40.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-41"><a href="https://tools.ietf.org/html/draft-irtf-cfrg-voprf-01">draft-01</a>:<a href="#section-1.1-41" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-42.1">Updated ciphersuites to be in line with
-https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-04.<a href="#section-1.1-42.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-42.1">
+            <p id="section-1.1-42.1.1">Updated ciphersuites to be in line with
+https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-04.<a href="#section-1.1-42.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-42.2">Made some necessary modular reductions more explicit.<a href="#section-1.1-42.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-42.2">
+            <p id="section-1.1-42.2.1">Made some necessary modular reductions more explicit.<a href="#section-1.1-42.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -1678,18 +1720,22 @@ appear in all capitals, as shown here.<a href="#section-1.2-1" class="pilcrow">�
         </h3>
 <p id="section-1.3-1">The following functions and notation are used throughout the document.<a href="#section-1.3-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.3-2.1">For any object <code>x</code>, we write <code>len(x)</code> to denote its length in bytes.<a href="#section-1.3-2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.3-2.1">
+            <p id="section-1.3-2.1.1">For any object <code>x</code>, we write <code>len(x)</code> to denote its length in bytes.<a href="#section-1.3-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.3-2.2">For two byte arrays <code>x</code> and <code>y</code>, write <code>x || y</code> to denote their
-concatenation.<a href="#section-1.3-2.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.3-2.2">
+            <p id="section-1.3-2.2.1">For two byte arrays <code>x</code> and <code>y</code>, write <code>x || y</code> to denote their
+concatenation.<a href="#section-1.3-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.3-2.3">I2OSP(x, xLen): Converts a non-negative integer <code>x</code> into a byte array
+          <li class="normal" id="section-1.3-2.3">
+            <p id="section-1.3-2.3.1">I2OSP(x, xLen): Converts a non-negative integer <code>x</code> into a byte array
 of specified length <code>xLen</code> as described in <span>[<a href="#RFC8017" class="cite xref">RFC8017</a>]</span>. Note that
-this function returns a byte array in big-endian byte order.<a href="#section-1.3-2.3" class="pilcrow">¶</a>
+this function returns a byte array in big-endian byte order.<a href="#section-1.3-2.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.3-2.4">The notation <code>T U[N]</code> refers to an array called U containing N items of type
+          <li class="normal" id="section-1.3-2.4">
+            <p id="section-1.3-2.4.1">The notation <code>T U[N]</code> refers to an array called U containing N items of type
 T. The type <code>opaque</code> means one single byte of uninterpreted data. Items of
-the array are zero-indexed and referred as <code>U[j]</code> such that 0 &lt;= j &lt; N.<a href="#section-1.3-2.4" class="pilcrow">¶</a>
+the array are zero-indexed and referred as <code>U[j]</code> such that 0 &lt;= j &lt; N.<a href="#section-1.3-2.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.3-3">All algorithms and procedures described in this document are laid out
@@ -1705,19 +1751,25 @@ are length-prefixed with two bytes before use throughout the protocol.<a href="#
 <p id="section-1.3-5">String values such as "DeriveKeyPair", "Seed-", and "Finalize" are ASCII string literals.<a href="#section-1.3-5" class="pilcrow">¶</a></p>
 <p id="section-1.3-6">The following terms are used throughout this document.<a href="#section-1.3-6" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.3-7.1">PRF: Pseudorandom Function.<a href="#section-1.3-7.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.3-7.1">
+            <p id="section-1.3-7.1.1">PRF: Pseudorandom Function.<a href="#section-1.3-7.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.3-7.2">OPRF: Oblivious Pseudorandom Function.<a href="#section-1.3-7.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.3-7.2">
+            <p id="section-1.3-7.2.1">OPRF: Oblivious Pseudorandom Function.<a href="#section-1.3-7.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.3-7.3">VOPRF: Verifiable Oblivious Pseudorandom Function.<a href="#section-1.3-7.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.3-7.3">
+            <p id="section-1.3-7.3.1">VOPRF: Verifiable Oblivious Pseudorandom Function.<a href="#section-1.3-7.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.3-7.4">POPRF: Partially Oblivious Pseudorandom Function.<a href="#section-1.3-7.4" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.3-7.4">
+            <p id="section-1.3-7.4.1">POPRF: Partially Oblivious Pseudorandom Function.<a href="#section-1.3-7.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.3-7.5">Client: Protocol initiator. Learns pseudorandom function evaluation as
-the output of the protocol.<a href="#section-1.3-7.5" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.3-7.5">
+            <p id="section-1.3-7.5.1">Client: Protocol initiator. Learns pseudorandom function evaluation as
+the output of the protocol.<a href="#section-1.3-7.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.3-7.6">Server: Computes the pseudorandom function using a private key. Learns
-nothing about the client's input or output.<a href="#section-1.3-7.6" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.3-7.6">
+            <p id="section-1.3-7.6.1">Server: Computes the pseudorandom function using a private key. Learns
+nothing about the client's input or output.<a href="#section-1.3-7.6.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -1732,11 +1784,11 @@ nothing about the client's input or output.<a href="#section-1.3-7.6" class="pil
 <p id="section-2-1">The protocols in this document have two primary dependencies:<a href="#section-2-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-2-2.1">
-          <code>Group</code>: A prime-order group implementing the API described below in <a href="#pog" class="auto internal xref">Section 2.1</a>.
-See <a href="#ciphersuites" class="auto internal xref">Section 4</a> for specific instances of groups.<a href="#section-2-2.1" class="pilcrow">¶</a>
+          <p id="section-2-2.1.1"><code>Group</code>: A prime-order group implementing the API described below in <a href="#pog" class="auto internal xref">Section 2.1</a>.
+See <a href="#ciphersuites" class="auto internal xref">Section 4</a> for specific instances of groups.<a href="#section-2-2.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-2-2.2">
-          <code>Hash</code>: A cryptographic hash function whose output length is <code>Nh</code> bytes.<a href="#section-2-2.2" class="pilcrow">¶</a>
+          <p id="section-2-2.2.1"><code>Hash</code>: A cryptographic hash function whose output length is <code>Nh</code> bytes.<a href="#section-2-2.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-2-3"><a href="#ciphersuites" class="auto internal xref">Section 4</a> specifies ciphersuites as combinations of <code>Group</code> and <code>Hash</code>.<a href="#section-2-3" class="pilcrow">¶</a></p>
@@ -1773,44 +1825,55 @@ scalars, respectively.<a href="#section-2.1-2" class="pilcrow">¶</a></p>
 <p id="section-2.1-3">We now detail a number of member functions that can be invoked on a
 prime-order group.<a href="#section-2.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-2.1-4.1">Order(): Outputs the order of the group (i.e. <code>p</code>).<a href="#section-2.1-4.1" class="pilcrow">¶</a>
+<li class="normal" id="section-2.1-4.1">
+            <p id="section-2.1-4.1.1">Order(): Outputs the order of the group (i.e. <code>p</code>).<a href="#section-2.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-2.1-4.2">Identity(): Outputs the identity element of the group (i.e. <code>I</code>).<a href="#section-2.1-4.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-2.1-4.2">
+            <p id="section-2.1-4.2.1">Identity(): Outputs the identity element of the group (i.e. <code>I</code>).<a href="#section-2.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-2.1-4.3">Generator(): Outputs the generator element of the group.<a href="#section-2.1-4.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-2.1-4.3">
+            <p id="section-2.1-4.3.1">Generator(): Outputs the generator element of the group.<a href="#section-2.1-4.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-2.1-4.4">HashToGroup(x): Deterministically maps
+          <li class="normal" id="section-2.1-4.4">
+            <p id="section-2.1-4.4.1">HashToGroup(x): Deterministically maps
 an array of bytes <code>x</code> to an element of <code>Group</code>. The map must ensure that,
 for any adversary receiving <code>R = HashToGroup(x)</code>, it is
 computationally difficult to reverse the mapping. This function is optionally
 parameterized by a domain separation tag (DST); see <a href="#ciphersuites" class="auto internal xref">Section 4</a>.
 Security properties of this function are described
-in <span>[<a href="#I-D.irtf-cfrg-hash-to-curve" class="cite xref">I-D.irtf-cfrg-hash-to-curve</a>]</span>.<a href="#section-2.1-4.4" class="pilcrow">¶</a>
+in <span>[<a href="#I-D.irtf-cfrg-hash-to-curve" class="cite xref">I-D.irtf-cfrg-hash-to-curve</a>]</span>.<a href="#section-2.1-4.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-2.1-4.5">HashToScalar(x): Deterministically maps
+          <li class="normal" id="section-2.1-4.5">
+            <p id="section-2.1-4.5.1">HashToScalar(x): Deterministically maps
 an array of bytes <code>x</code> to an element in GF(p). This function is optionally
 parameterized by a DST; see <a href="#ciphersuites" class="auto internal xref">Section 4</a>. Security properties of this
-function are described in <span>[<a href="#I-D.irtf-cfrg-hash-to-curve" class="cite xref">I-D.irtf-cfrg-hash-to-curve</a>], <a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-16#section-10.5" class="relref">Section 10.5</a></span>.<a href="#section-2.1-4.5" class="pilcrow">¶</a>
+function are described in <span>[<a href="#I-D.irtf-cfrg-hash-to-curve" class="cite xref">I-D.irtf-cfrg-hash-to-curve</a>], <a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-16#section-10.5" class="relref">Section 10.5</a></span>.<a href="#section-2.1-4.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-2.1-4.6">RandomScalar(): Chooses at random a non-zero element in GF(p).<a href="#section-2.1-4.6" class="pilcrow">¶</a>
+          <li class="normal" id="section-2.1-4.6">
+            <p id="section-2.1-4.6.1">RandomScalar(): Chooses at random a non-zero element in GF(p).<a href="#section-2.1-4.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-2.1-4.7">ScalarInverse(s): Returns the inverse of input <code>Scalar</code> <code>s</code> on <code>GF(p)</code>.<a href="#section-2.1-4.7" class="pilcrow">¶</a>
+          <li class="normal" id="section-2.1-4.7">
+            <p id="section-2.1-4.7.1">ScalarInverse(s): Returns the inverse of input <code>Scalar</code> <code>s</code> on <code>GF(p)</code>.<a href="#section-2.1-4.7.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-2.1-4.8">SerializeElement(A): Maps an <code>Element</code> <code>A</code>
-to a canonical byte array <code>buf</code> of fixed length <code>Ne</code>.<a href="#section-2.1-4.8" class="pilcrow">¶</a>
+          <li class="normal" id="section-2.1-4.8">
+            <p id="section-2.1-4.8.1">SerializeElement(A): Maps an <code>Element</code> <code>A</code>
+to a canonical byte array <code>buf</code> of fixed length <code>Ne</code>.<a href="#section-2.1-4.8.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-2.1-4.9">DeserializeElement(buf): Attempts to map a byte array <code>buf</code> to
+          <li class="normal" id="section-2.1-4.9">
+            <p id="section-2.1-4.9.1">DeserializeElement(buf): Attempts to map a byte array <code>buf</code> to
 an <code>Element</code> <code>A</code>, and fails if the input is not the valid canonical byte
 representation of an element of the group. This function can raise a
 DeserializeError if deserialization fails or <code>A</code> is the identity element of
-the group; see <a href="#ciphersuites" class="auto internal xref">Section 4</a> for group-specific input validation steps.<a href="#section-2.1-4.9" class="pilcrow">¶</a>
+the group; see <a href="#ciphersuites" class="auto internal xref">Section 4</a> for group-specific input validation steps.<a href="#section-2.1-4.9.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-2.1-4.10">SerializeScalar(s): Maps a <code>Scalar</code> <code>s</code> to a canonical
-byte array <code>buf</code> of fixed length <code>Ns</code>.<a href="#section-2.1-4.10" class="pilcrow">¶</a>
+          <li class="normal" id="section-2.1-4.10">
+            <p id="section-2.1-4.10.1">SerializeScalar(s): Maps a <code>Scalar</code> <code>s</code> to a canonical
+byte array <code>buf</code> of fixed length <code>Ns</code>.<a href="#section-2.1-4.10.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-2.1-4.11">DeserializeScalar(buf): Attempts to map a byte array <code>buf</code> to a <code>Scalar</code> <code>s</code>.
+          <li class="normal" id="section-2.1-4.11">
+            <p id="section-2.1-4.11.1">DeserializeScalar(buf): Attempts to map a byte array <code>buf</code> to a <code>Scalar</code> <code>s</code>.
 This function can raise a DeserializeError if deserialization fails; see
-<a href="#ciphersuites" class="auto internal xref">Section 4</a> for group-specific input validation steps.<a href="#section-2.1-4.11" class="pilcrow">¶</a>
+<a href="#ciphersuites" class="auto internal xref">Section 4</a> for group-specific input validation steps.<a href="#section-2.1-4.11.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-2.1-5"><a href="#ciphersuites" class="auto internal xref">Section 4</a> contains details for the implementation of this interface
@@ -2091,64 +2154,22 @@ client learns <code>output</code> and the server learns nothing.
 This interaction is shown below.<a href="#section-3-2" class="pilcrow">¶</a></p>
 <span id="name-oprf-protocol-overview"></span><div id="fig-oprf">
 <figure id="figure-1">
-        <div id="section-3-3.1">
-          <div class="alignLeft art-svg artwork" id="section-3-3.1.1">
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="416" width="560" viewBox="0 0 560 416" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
-              <path d="M 8,144 L 8,352" fill="none" stroke="black"></path>
-              <path d="M 48,32 L 48,64" fill="none" stroke="black"></path>
-              <path d="M 88,64 L 88,80" fill="none" stroke="black"></path>
-              <path d="M 88,112 L 88,176" fill="none" stroke="black"></path>
-              <path d="M 88,208 L 88,304" fill="none" stroke="black"></path>
-              <path d="M 88,336 L 88,384" fill="none" stroke="black"></path>
-              <path d="M 120,32 L 120,64" fill="none" stroke="black"></path>
-              <path d="M 376,32 L 376,64" fill="none" stroke="black"></path>
-              <path d="M 416,64 L 416,80" fill="none" stroke="black"></path>
-              <path d="M 416,112 L 416,240" fill="none" stroke="black"></path>
-              <path d="M 416,272 L 416,288" fill="none" stroke="black"></path>
-              <path d="M 448,32 L 448,64" fill="none" stroke="black"></path>
-              <path d="M 552,144 L 552,352" fill="none" stroke="black"></path>
-              <path d="M 48,32 L 120,32" fill="none" stroke="black"></path>
-              <path d="M 376,32 L 448,32" fill="none" stroke="black"></path>
-              <path d="M 48,64 L 120,64" fill="none" stroke="black"></path>
-              <path d="M 376,64 L 448,64" fill="none" stroke="black"></path>
-              <path d="M 8,144 L 552,144" fill="none" stroke="black"></path>
-              <path d="M 8,176 L 40,176" fill="none" stroke="black"></path>
-              <path d="M 88,224 L 176,224" fill="none" stroke="black"></path>
-              <path d="M 312,224 L 408,224" fill="none" stroke="black"></path>
-              <path d="M 96,288 L 168,288" fill="none" stroke="black"></path>
-              <path d="M 320,288 L 416,288" fill="none" stroke="black"></path>
-              <path d="M 8,352 L 552,352" fill="none" stroke="black"></path>
-              <path d="M 40,176 L 56,144" fill="none" stroke="black"></path>
-              <polygon class="arrowhead" points="424,136 412,130.4 412,141.6" fill="black" transform="rotate(90,416,136)"></polygon>
-              <polygon class="arrowhead" points="416,224 404,218.4 404,229.6" fill="black" transform="rotate(0,408,224)"></polygon>
-              <polygon class="arrowhead" points="104,288 92,282.4 92,293.6" fill="black" transform="rotate(180,96,288)"></polygon>
-              <polygon class="arrowhead" points="96,384 84,378.4 84,389.6" fill="black" transform="rotate(90,88,384)"></polygon>
-              <polygon class="arrowhead" points="96,136 84,130.4 84,141.6" fill="black" transform="rotate(90,88,136)"></polygon>
-              <g class="text">
-                <text x="84" y="52">Client</text>
-                <text x="412" y="52">Server</text>
-                <text x="88" y="100">input</text>
-                <text x="416" y="100">skS</text>
-                <text x="28" y="164">OPRF</text>
-                <text x="36" y="196">blind,</text>
-                <text x="124" y="196">blindedElement</text>
-                <text x="192" y="196">=</text>
-                <text x="252" y="196">Blind(input)</text>
-                <text x="244" y="228">blindedElement</text>
-                <text x="180" y="260">evaluatedElement</text>
-                <text x="256" y="260">=</text>
-                <text x="340" y="260">BlindEvaluate(skS,</text>
-                <text x="480" y="260">blindedElement)</text>
-                <text x="244" y="292">evaluatedElement</text>
-                <text x="36" y="324">output</text>
-                <text x="72" y="324">=</text>
-                <text x="144" y="324">Finalize(input,</text>
-                <text x="236" y="324">blind,</text>
-                <text x="336" y="324">evaluatedElement)</text>
-                <text x="92" y="404">output</text>
-              </g>
-            </svg><a href="#section-3-3.1.1" class="pilcrow">¶</a>
-</div>
+        <div class="alignLeft art-text artwork" id="section-3-3.1">
+<pre>
+    Client(input)                                        Server(skS)
+  -------------------------------------------------------------------
+  blind, blindedElement = Blind(input)
+
+                             blindedElement
+                               ----------&gt;
+
+                evaluatedElement = BlindEvaluate(skS, blindedElement)
+
+                             evaluatedElement
+                               &lt;----------
+
+  output = Finalize(input, blind, evaluatedElement)
+</pre>
 </div>
 <figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
 <a href="#name-oprf-protocol-overview" class="selfRef">OPRF protocol overview</a>
@@ -2162,76 +2183,24 @@ which the client receives as input to the protocol. This proof does not reveal t
 private key to the client. This interaction is shown below.<a href="#section-3-4" class="pilcrow">¶</a></p>
 <span id="name-voprf-protocol-overview-wit"></span><div id="fig-voprf">
 <figure id="figure-2">
-        <div id="section-3-5.1">
-          <div class="alignLeft art-svg artwork" id="section-3-5.1.1">
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="448" width="560" viewBox="0 0 560 448" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
-              <path d="M 8,144 L 8,384" fill="none" stroke="black"></path>
-              <path d="M 48,32 L 48,64" fill="none" stroke="black"></path>
-              <path d="M 88,64 L 88,80" fill="none" stroke="black"></path>
-              <path d="M 88,112 L 88,176" fill="none" stroke="black"></path>
-              <path d="M 88,208 L 88,320" fill="none" stroke="black"></path>
-              <path d="M 88,368 L 88,416" fill="none" stroke="black"></path>
-              <path d="M 120,32 L 120,64" fill="none" stroke="black"></path>
-              <path d="M 376,32 L 376,64" fill="none" stroke="black"></path>
-              <path d="M 416,64 L 416,80" fill="none" stroke="black"></path>
-              <path d="M 416,112 L 416,240" fill="none" stroke="black"></path>
-              <path d="M 416,288 L 416,304" fill="none" stroke="black"></path>
-              <path d="M 448,32 L 448,64" fill="none" stroke="black"></path>
-              <path d="M 552,144 L 552,384" fill="none" stroke="black"></path>
-              <path d="M 48,32 L 120,32" fill="none" stroke="black"></path>
-              <path d="M 376,32 L 448,32" fill="none" stroke="black"></path>
-              <path d="M 48,64 L 120,64" fill="none" stroke="black"></path>
-              <path d="M 376,64 L 448,64" fill="none" stroke="black"></path>
-              <path d="M 184,96 L 232,96" fill="none" stroke="black"></path>
-              <path d="M 280,96 L 344,96" fill="none" stroke="black"></path>
-              <path d="M 8,144 L 552,144" fill="none" stroke="black"></path>
-              <path d="M 8,176 L 48,176" fill="none" stroke="black"></path>
-              <path d="M 88,224 L 176,224" fill="none" stroke="black"></path>
-              <path d="M 312,224 L 408,224" fill="none" stroke="black"></path>
-              <path d="M 96,304 L 144,304" fill="none" stroke="black"></path>
-              <path d="M 352,304 L 416,304" fill="none" stroke="black"></path>
-              <path d="M 8,384 L 552,384" fill="none" stroke="black"></path>
-              <path d="M 48,176 L 64,144" fill="none" stroke="black"></path>
-              <polygon class="arrowhead" points="424,136 412,130.4 412,141.6" fill="black" transform="rotate(90,416,136)"></polygon>
-              <polygon class="arrowhead" points="416,224 404,218.4 404,229.6" fill="black" transform="rotate(0,408,224)"></polygon>
-              <polygon class="arrowhead" points="192,96 180,90.4 180,101.6" fill="black" transform="rotate(180,184,96)"></polygon>
-              <polygon class="arrowhead" points="104,304 92,298.4 92,309.6" fill="black" transform="rotate(180,96,304)"></polygon>
-              <polygon class="arrowhead" points="96,416 84,410.4 84,421.6" fill="black" transform="rotate(90,88,416)"></polygon>
-              <polygon class="arrowhead" points="96,136 84,130.4 84,141.6" fill="black" transform="rotate(90,88,136)"></polygon>
-              <g class="text">
-                <text x="84" y="52">Client</text>
-                <text x="412" y="52">Server</text>
-                <text x="76" y="100">input,</text>
-                <text x="120" y="100">pkS</text>
-                <text x="256" y="100">pkS</text>
-                <text x="396" y="100">skS,</text>
-                <text x="432" y="100">pkS</text>
-                <text x="32" y="164">VOPRF</text>
-                <text x="36" y="196">blind,</text>
-                <text x="124" y="196">blindedElement</text>
-                <text x="192" y="196">=</text>
-                <text x="252" y="196">Blind(input)</text>
-                <text x="244" y="228">blindedElement</text>
-                <text x="184" y="260">evaluatedElement,</text>
-                <text x="280" y="260">proof</text>
-                <text x="312" y="260">=</text>
-                <text x="396" y="260">BlindEvaluate(skS,</text>
-                <text x="492" y="260">pkS,</text>
-                <text x="456" y="276">blindedElement)</text>
-                <text x="224" y="308">evaluatedElement,</text>
-                <text x="320" y="308">proof</text>
-                <text x="36" y="340">output</text>
-                <text x="72" y="340">=</text>
-                <text x="144" y="340">Finalize(input,</text>
-                <text x="236" y="340">blind,</text>
-                <text x="336" y="340">evaluatedElement,</text>
-                <text x="216" y="356">blindedElement,</text>
-                <text x="300" y="356">pkS,</text>
-                <text x="348" y="356">proof)</text>
-                <text x="92" y="436">output</text>
-              </g>
-            </svg><a href="#section-3-5.1.1" class="pilcrow">¶</a>
-</div>
+        <div class="alignLeft art-text artwork" id="section-3-5.1">
+<pre>
+    Client(input, pkS)       &lt;---- pkS ------        Server(skS, pkS)
+  -------------------------------------------------------------------
+  blind, blindedElement = Blind(input)
+
+                             blindedElement
+                               ----------&gt;
+
+              evaluatedElement, proof = BlindEvaluate(skS, pkS,
+                                                      blindedElement)
+
+                         evaluatedElement, proof
+                               &lt;----------
+
+  output = Finalize(input, blind, evaluatedElement,
+                    blindedElement, pkS, proof)
+</pre>
 </div>
 <figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
 <a href="#name-voprf-protocol-overview-wit" class="selfRef">VOPRF protocol overview with additional proof</a>
@@ -2243,82 +2212,24 @@ the pseudorandom function. That is, the client and server interact to compute
 <code>output = F(skS, input, info)</code> as is shown below.<a href="#section-3-6" class="pilcrow">¶</a></p>
 <span id="name-poprf-protocol-overview-wit"></span><div id="fig-poprf">
 <figure id="figure-3">
-        <div id="section-3-7.1">
-          <div class="alignLeft art-svg artwork" id="section-3-7.1.1">
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="464" width="560" viewBox="0 0 560 464" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
-              <path d="M 8,144 L 8,400" fill="none" stroke="black"></path>
-              <path d="M 48,32 L 48,64" fill="none" stroke="black"></path>
-              <path d="M 88,64 L 88,80" fill="none" stroke="black"></path>
-              <path d="M 88,112 L 88,176" fill="none" stroke="black"></path>
-              <path d="M 88,224 L 88,336" fill="none" stroke="black"></path>
-              <path d="M 88,384 L 88,432" fill="none" stroke="black"></path>
-              <path d="M 120,32 L 120,64" fill="none" stroke="black"></path>
-              <path d="M 376,32 L 376,64" fill="none" stroke="black"></path>
-              <path d="M 416,64 L 416,80" fill="none" stroke="black"></path>
-              <path d="M 416,112 L 416,256" fill="none" stroke="black"></path>
-              <path d="M 416,304 L 416,320" fill="none" stroke="black"></path>
-              <path d="M 448,32 L 448,64" fill="none" stroke="black"></path>
-              <path d="M 552,144 L 552,400" fill="none" stroke="black"></path>
-              <path d="M 48,32 L 120,32" fill="none" stroke="black"></path>
-              <path d="M 376,32 L 448,32" fill="none" stroke="black"></path>
-              <path d="M 48,64 L 120,64" fill="none" stroke="black"></path>
-              <path d="M 376,64 L 448,64" fill="none" stroke="black"></path>
-              <path d="M 176,96 L 224,96" fill="none" stroke="black"></path>
-              <path d="M 272,96 L 336,96" fill="none" stroke="black"></path>
-              <path d="M 8,144 L 552,144" fill="none" stroke="black"></path>
-              <path d="M 8,176 L 48,176" fill="none" stroke="black"></path>
-              <path d="M 88,240 L 176,240" fill="none" stroke="black"></path>
-              <path d="M 312,240 L 408,240" fill="none" stroke="black"></path>
-              <path d="M 96,320 L 144,320" fill="none" stroke="black"></path>
-              <path d="M 352,320 L 416,320" fill="none" stroke="black"></path>
-              <path d="M 8,400 L 552,400" fill="none" stroke="black"></path>
-              <path d="M 48,176 L 64,144" fill="none" stroke="black"></path>
-              <polygon class="arrowhead" points="424,136 412,130.4 412,141.6" fill="black" transform="rotate(90,416,136)"></polygon>
-              <polygon class="arrowhead" points="416,240 404,234.4 404,245.6" fill="black" transform="rotate(0,408,240)"></polygon>
-              <polygon class="arrowhead" points="184,96 172,90.4 172,101.6" fill="black" transform="rotate(180,176,96)"></polygon>
-              <polygon class="arrowhead" points="104,320 92,314.4 92,325.6" fill="black" transform="rotate(180,96,320)"></polygon>
-              <polygon class="arrowhead" points="96,432 84,426.4 84,437.6" fill="black" transform="rotate(90,88,432)"></polygon>
-              <polygon class="arrowhead" points="96,136 84,130.4 84,141.6" fill="black" transform="rotate(90,88,136)"></polygon>
-              <g class="text">
-                <text x="84" y="52">Client</text>
-                <text x="412" y="52">Server</text>
-                <text x="44" y="100">input,</text>
-                <text x="92" y="100">pkS,</text>
-                <text x="132" y="100">info</text>
-                <text x="248" y="100">pkS</text>
-                <text x="380" y="100">skS,</text>
-                <text x="420" y="100">pkS,</text>
-                <text x="460" y="100">info</text>
-                <text x="32" y="164">POPRF</text>
-                <text x="36" y="196">blind,</text>
-                <text x="128" y="196">blindedElement,</text>
-                <text x="236" y="196">tweakedKey</text>
-                <text x="288" y="196">=</text>
-                <text x="348" y="196">Blind(input,</text>
-                <text x="344" y="212">info,</text>
-                <text x="388" y="212">pkS)</text>
-                <text x="244" y="244">blindedElement</text>
-                <text x="184" y="276">evaluatedElement,</text>
-                <text x="280" y="276">proof</text>
-                <text x="312" y="276">=</text>
-                <text x="396" y="276">BlindEvaluate(skS,</text>
-                <text x="416" y="292">blindedElement,</text>
-                <text x="504" y="292">info)</text>
-                <text x="224" y="324">evaluatedElement,</text>
-                <text x="320" y="324">proof</text>
-                <text x="36" y="356">output</text>
-                <text x="72" y="356">=</text>
-                <text x="144" y="356">Finalize(input,</text>
-                <text x="236" y="356">blind,</text>
-                <text x="336" y="356">evaluatedElement,</text>
-                <text x="216" y="372">blindedElement,</text>
-                <text x="308" y="372">proof,</text>
-                <text x="360" y="372">info,</text>
-                <text x="432" y="372">tweakedKey)</text>
-                <text x="92" y="452">output</text>
-              </g>
-            </svg><a href="#section-3-7.1.1" class="pilcrow">¶</a>
-</div>
+        <div class="alignLeft art-text artwork" id="section-3-7.1">
+<pre>
+    Client(input, pkS, info) &lt;---- pkS ------  Server(skS, pkS, info)
+  -------------------------------------------------------------------
+  blind, blindedElement, tweakedKey = Blind(input, info, pkS)
+
+                             blindedElement
+                               ----------&gt;
+
+         evaluatedElement, proof = BlindEvaluate(skS, blindedElement,
+                                                 info)
+
+                         evaluatedElement, proof
+                               &lt;----------
+
+  output = Finalize(input, blind, evaluatedElement,
+                    blindedElement, proof, info, tweakedKey)
+</pre>
 </div>
 <figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
 <a href="#name-poprf-protocol-overview-wit" class="selfRef">POPRF protocol overview with additional public input</a>
@@ -2506,11 +2417,14 @@ to compute the protocol output. This section describes the protocol details
 for each protocol variant. Throughout each description the following parameters
 are assumed to exist:<a href="#section-3.3-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.3-2.1">G, a prime-order Group implementing the API described in <a href="#pog" class="auto internal xref">Section 2.1</a>.<a href="#section-3.3-2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-3.3-2.1">
+            <p id="section-3.3-2.1.1">G, a prime-order Group implementing the API described in <a href="#pog" class="auto internal xref">Section 2.1</a>.<a href="#section-3.3-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-3.3-2.2">contextString, a PublicInput domain separation tag constructed during context setup as created in <a href="#configuration" class="auto internal xref">Section 3.1</a>.<a href="#section-3.3-2.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-3.3-2.2">
+            <p id="section-3.3-2.2.1">contextString, a PublicInput domain separation tag constructed during context setup as created in <a href="#configuration" class="auto internal xref">Section 3.1</a>.<a href="#section-3.3-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-3.3-2.3">skS and pkS, a Scalar and Element representing the private and public keys configured for client and server in <a href="#offline" class="auto internal xref">Section 3.2</a>.<a href="#section-3.3-2.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-3.3-2.3">
+            <p id="section-3.3-2.3.1">skS and pkS, a Scalar and Element representing the private and public keys configured for client and server in <a href="#offline" class="auto internal xref">Section 3.2</a>.<a href="#section-3.3-2.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-3.3-3">Applications serialize protocol messages between client and server for
@@ -2935,17 +2849,17 @@ on the specific instantiation is assumed throughout.<a href="#section-4-1" class
 <p id="section-4-2">A ciphersuite contains instantiations of the following functionalities:<a href="#section-4-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-4-3.1">
-          <code>Group</code>: A prime-order Group exposing the API detailed in <a href="#pog" class="auto internal xref">Section 2.1</a>, with the
+          <p id="section-4-3.1.1"><code>Group</code>: A prime-order Group exposing the API detailed in <a href="#pog" class="auto internal xref">Section 2.1</a>, with the
 generator element defined in the corresponding reference for each group. Each
 group also specifies HashToGroup, HashToScalar, and serialization
 functionalities. For
 HashToGroup, the domain separation tag (DST) is constructed in accordance
 with the recommendations in <span>[<a href="#I-D.irtf-cfrg-hash-to-curve" class="cite xref">I-D.irtf-cfrg-hash-to-curve</a>], <a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-16#section-3.1" class="relref">Section 3.1</a></span>.
 For HashToScalar, each group specifies an integer order that is used in
-reducing integer values to a member of the corresponding scalar field.<a href="#section-4-3.1" class="pilcrow">¶</a>
+reducing integer values to a member of the corresponding scalar field.<a href="#section-4-3.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-4-3.2">
-          <code>Hash</code>: A cryptographic hash function whose output length is Nh bytes long.<a href="#section-4-3.2" class="pilcrow">¶</a>
+          <p id="section-4-3.2.1"><code>Hash</code>: A cryptographic hash function whose output length is Nh bytes long.<a href="#section-4-3.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-4-4">This section includes an initial set of ciphersuites with supported groups
@@ -2966,44 +2880,56 @@ function. The value of the ciphersuite identifier is "ristretto255-SHA512".<a hr
 <li class="normal" id="section-4.1-2.1">
             <p id="section-4.1-2.1.1">Group: ristretto255 <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span><a href="#section-4.1-2.1.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.1-2.1.2.1">Order(): Return 2^252 + 27742317777372353535851937790883648493 (see <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>)<a href="#section-4.1-2.1.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.1-2.1.2.1">
+                <p id="section-4.1-2.1.2.1.1">Order(): Return 2^252 + 27742317777372353535851937790883648493 (see <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>)<a href="#section-4.1-2.1.2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.1-2.1.2.2">Identity(): As defined in <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>.<a href="#section-4.1-2.1.2.2" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.1-2.1.2.2">
+                <p id="section-4.1-2.1.2.2.1">Identity(): As defined in <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>.<a href="#section-4.1-2.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.1-2.1.2.3">Generator(): As defined in <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>.<a href="#section-4.1-2.1.2.3" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.1-2.1.2.3">
+                <p id="section-4.1-2.1.2.3.1">Generator(): As defined in <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>.<a href="#section-4.1-2.1.2.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.1-2.1.2.4">HashToGroup(): Use hash_to_ristretto255
+              <li class="normal" id="section-4.1-2.1.2.4">
+                <p id="section-4.1-2.1.2.4.1">HashToGroup(): Use hash_to_ristretto255
 <span>[<a href="#I-D.irtf-cfrg-hash-to-curve" class="cite xref">I-D.irtf-cfrg-hash-to-curve</a>]</span> with DST =
 "HashToGroup-" || contextString, and <code>expand_message</code> = <code>expand_message_xmd</code>
-using SHA-512.<a href="#section-4.1-2.1.2.4" class="pilcrow">¶</a>
+using SHA-512.<a href="#section-4.1-2.1.2.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.1-2.1.2.5">HashToScalar(): Compute <code>uniform_bytes</code> using <code>expand_message</code> = <code>expand_message_xmd</code>,
+              <li class="normal" id="section-4.1-2.1.2.5">
+                <p id="section-4.1-2.1.2.5.1">HashToScalar(): Compute <code>uniform_bytes</code> using <code>expand_message</code> = <code>expand_message_xmd</code>,
 DST = "HashToScalar-" || contextString, and output length 64, interpret
 <code>uniform_bytes</code> as a 512-bit integer in little-endian order, and reduce the
-integer modulo <code>Group.Order()</code>.<a href="#section-4.1-2.1.2.5" class="pilcrow">¶</a>
+integer modulo <code>Group.Order()</code>.<a href="#section-4.1-2.1.2.5.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.1-2.1.2.6">ScalarInverse(s): Returns the multiplicative inverse of input Scalar <code>s</code> mod <code>Group.Order()</code>.<a href="#section-4.1-2.1.2.6" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.1-2.1.2.6">
+                <p id="section-4.1-2.1.2.6.1">ScalarInverse(s): Returns the multiplicative inverse of input Scalar <code>s</code> mod <code>Group.Order()</code>.<a href="#section-4.1-2.1.2.6.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.1-2.1.2.7">RandomScalar(): Implemented by returning a uniformly random Scalar in the range
-[0, <code>G.Order()</code> - 1]. Refer to <a href="#random-scalar" class="auto internal xref">Section 4.7</a> for implementation guidance.<a href="#section-4.1-2.1.2.7" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.1-2.1.2.7">
+                <p id="section-4.1-2.1.2.7.1">RandomScalar(): Implemented by returning a uniformly random Scalar in the range
+[0, <code>G.Order()</code> - 1]. Refer to <a href="#random-scalar" class="auto internal xref">Section 4.7</a> for implementation guidance.<a href="#section-4.1-2.1.2.7.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.1-2.1.2.8">SerializeElement(A): Implemented using the 'Encode' function from Section 4.3.2 of <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>; Ne = 32.<a href="#section-4.1-2.1.2.8" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.1-2.1.2.8">
+                <p id="section-4.1-2.1.2.8.1">SerializeElement(A): Implemented using the 'Encode' function from Section 4.3.2 of <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>; Ne = 32.<a href="#section-4.1-2.1.2.8.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.1-2.1.2.9">DeserializeElement(buf): Implemented using the 'Decode' function from Section 4.3.1 of <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>.
+              <li class="normal" id="section-4.1-2.1.2.9">
+                <p id="section-4.1-2.1.2.9.1">DeserializeElement(buf): Implemented using the 'Decode' function from Section 4.3.1 of <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>.
 Additionally, this function validates that the resulting element is not the group
-identity element. If these checks fail, deserialization returns an InputValidationError error.<a href="#section-4.1-2.1.2.9" class="pilcrow">¶</a>
+identity element. If these checks fail, deserialization returns an InputValidationError error.<a href="#section-4.1-2.1.2.9.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.1-2.1.2.10">SerializeScalar(s): Implemented by outputting the little-endian 32-byte encoding of
-the Scalar value with the top three bits set to zero; Ns = 32.<a href="#section-4.1-2.1.2.10" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.1-2.1.2.10">
+                <p id="section-4.1-2.1.2.10.1">SerializeScalar(s): Implemented by outputting the little-endian 32-byte encoding of
+the Scalar value with the top three bits set to zero; Ns = 32.<a href="#section-4.1-2.1.2.10.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.1-2.1.2.11">DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
+              <li class="normal" id="section-4.1-2.1.2.11">
+                <p id="section-4.1-2.1.2.11.1">DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
 little-endian 32-byte string. This function can fail if the input does not
 represent a Scalar in the range [0, <code>G.Order()</code> - 1]. Note that this means the
-top three bits of the input MUST be zero.<a href="#section-4.1-2.1.2.11" class="pilcrow">¶</a>
+top three bits of the input MUST be zero.<a href="#section-4.1-2.1.2.11.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </li>
-          <li class="normal" id="section-4.1-2.2">Hash: SHA-512; Nh = 64.<a href="#section-4.1-2.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-4.1-2.2">
+            <p id="section-4.1-2.2.1">Hash: SHA-512; Nh = 64.<a href="#section-4.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -3019,43 +2945,55 @@ function. The value of the ciphersuite identifier is "decaf448-SHAKE256".<a href
 <li class="normal" id="section-4.2-2.1">
             <p id="section-4.2-2.1.1">Group: decaf448 <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span><a href="#section-4.2-2.1.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.2-2.1.2.1">Order(): Return 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885<a href="#section-4.2-2.1.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.2-2.1.2.1">
+                <p id="section-4.2-2.1.2.1.1">Order(): Return 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885<a href="#section-4.2-2.1.2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.2-2.1.2.2">Identity(): As defined in <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>.<a href="#section-4.2-2.1.2.2" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.2-2.1.2.2">
+                <p id="section-4.2-2.1.2.2.1">Identity(): As defined in <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>.<a href="#section-4.2-2.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.2-2.1.2.3">Generator(): As defined in <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>.<a href="#section-4.2-2.1.2.3" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.2-2.1.2.3">
+                <p id="section-4.2-2.1.2.3.1">Generator(): As defined in <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>.<a href="#section-4.2-2.1.2.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.2-2.1.2.4">RandomScalar(): Implemented by returning a uniformly random Scalar in the range
-[0, <code>G.Order()</code> - 1]. Refer to <a href="#random-scalar" class="auto internal xref">Section 4.7</a> for implementation guidance.<a href="#section-4.2-2.1.2.4" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.2-2.1.2.4">
+                <p id="section-4.2-2.1.2.4.1">RandomScalar(): Implemented by returning a uniformly random Scalar in the range
+[0, <code>G.Order()</code> - 1]. Refer to <a href="#random-scalar" class="auto internal xref">Section 4.7</a> for implementation guidance.<a href="#section-4.2-2.1.2.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.2-2.1.2.5">HashToGroup(): Use hash_to_decaf448
+              <li class="normal" id="section-4.2-2.1.2.5">
+                <p id="section-4.2-2.1.2.5.1">HashToGroup(): Use hash_to_decaf448
 <span>[<a href="#I-D.irtf-cfrg-hash-to-curve" class="cite xref">I-D.irtf-cfrg-hash-to-curve</a>]</span> with DST =
 "HashToGroup-" || contextString, and <code>expand_message</code> = <code>expand_message_xof</code>
-using SHAKE-256.<a href="#section-4.2-2.1.2.5" class="pilcrow">¶</a>
+using SHAKE-256.<a href="#section-4.2-2.1.2.5.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.2-2.1.2.6">HashToScalar(): Compute <code>uniform_bytes</code> using <code>expand_message</code> = <code>expand_message_xof</code>,
+              <li class="normal" id="section-4.2-2.1.2.6">
+                <p id="section-4.2-2.1.2.6.1">HashToScalar(): Compute <code>uniform_bytes</code> using <code>expand_message</code> = <code>expand_message_xof</code>,
 DST = "HashToScalar-" || contextString, and output length 64, interpret
 <code>uniform_bytes</code> as a 512-bit integer in little-endian order, and reduce the
-integer modulo <code>Group.Order()</code>.<a href="#section-4.2-2.1.2.6" class="pilcrow">¶</a>
+integer modulo <code>Group.Order()</code>.<a href="#section-4.2-2.1.2.6.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.2-2.1.2.7">ScalarInverse(s): Returns the multiplicative inverse of input Scalar <code>s</code> mod <code>Group.Order()</code>.<a href="#section-4.2-2.1.2.7" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.2-2.1.2.7">
+                <p id="section-4.2-2.1.2.7.1">ScalarInverse(s): Returns the multiplicative inverse of input Scalar <code>s</code> mod <code>Group.Order()</code>.<a href="#section-4.2-2.1.2.7.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.2-2.1.2.8">SerializeElement(A): Implemented using the 'Encode' function from Section 5.3.2 of <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>; Ne = 56.<a href="#section-4.2-2.1.2.8" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.2-2.1.2.8">
+                <p id="section-4.2-2.1.2.8.1">SerializeElement(A): Implemented using the 'Encode' function from Section 5.3.2 of <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>; Ne = 56.<a href="#section-4.2-2.1.2.8.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.2-2.1.2.9">DeserializeElement(buf): Implemented using the 'Decode' function from Section 5.3.1 of <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>.
+              <li class="normal" id="section-4.2-2.1.2.9">
+                <p id="section-4.2-2.1.2.9.1">DeserializeElement(buf): Implemented using the 'Decode' function from Section 5.3.1 of <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>.
 Additionally, this function validates that the resulting element is not the group
-identity element. If these checks fail, deserialization returns an InputValidationError error.<a href="#section-4.2-2.1.2.9" class="pilcrow">¶</a>
+identity element. If these checks fail, deserialization returns an InputValidationError error.<a href="#section-4.2-2.1.2.9.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.2-2.1.2.10">SerializeScalar(s): Implemented by outputting the little-endian 56-byte encoding of
-the Scalar value; Ns = 56.<a href="#section-4.2-2.1.2.10" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.2-2.1.2.10">
+                <p id="section-4.2-2.1.2.10.1">SerializeScalar(s): Implemented by outputting the little-endian 56-byte encoding of
+the Scalar value; Ns = 56.<a href="#section-4.2-2.1.2.10.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.2-2.1.2.11">DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
+              <li class="normal" id="section-4.2-2.1.2.11">
+                <p id="section-4.2-2.1.2.11.1">DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
 little-endian 56-byte string. This function can fail if the input does not
-represent a Scalar in the range [0, <code>G.Order()</code> - 1].<a href="#section-4.2-2.1.2.11" class="pilcrow">¶</a>
+represent a Scalar in the range [0, <code>G.Order()</code> - 1].<a href="#section-4.2-2.1.2.11.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </li>
-          <li class="normal" id="section-4.2-2.2">Hash: SHAKE-256; Nh = 64.<a href="#section-4.2-2.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-4.2-2.2">
+            <p id="section-4.2-2.2.1">Hash: SHAKE-256; Nh = 64.<a href="#section-4.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -3071,47 +3009,59 @@ function. The value of the ciphersuite identifier is "P256-SHA256".<a href="#sec
 <li class="normal" id="section-4.3-2.1">
             <p id="section-4.3-2.1.1">Group: P-256 (secp256r1) <span>[<a href="#NISTCurves" class="cite xref">NISTCurves</a>]</span><a href="#section-4.3-2.1.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3-2.1.2.1">Order(): Return 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551.<a href="#section-4.3-2.1.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.3-2.1.2.1">
+                <p id="section-4.3-2.1.2.1.1">Order(): Return 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551.<a href="#section-4.3-2.1.2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3-2.1.2.2">Identity(): As defined in <span>[<a href="#NISTCurves" class="cite xref">NISTCurves</a>]</span>.<a href="#section-4.3-2.1.2.2" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.3-2.1.2.2">
+                <p id="section-4.3-2.1.2.2.1">Identity(): As defined in <span>[<a href="#NISTCurves" class="cite xref">NISTCurves</a>]</span>.<a href="#section-4.3-2.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3-2.1.2.3">Generator(): As defined in <span>[<a href="#NISTCurves" class="cite xref">NISTCurves</a>]</span>.<a href="#section-4.3-2.1.2.3" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.3-2.1.2.3">
+                <p id="section-4.3-2.1.2.3.1">Generator(): As defined in <span>[<a href="#NISTCurves" class="cite xref">NISTCurves</a>]</span>.<a href="#section-4.3-2.1.2.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3-2.1.2.4">RandomScalar(): Implemented by returning a uniformly random Scalar in the range
-[0, <code>G.Order()</code> - 1]. Refer to <a href="#random-scalar" class="auto internal xref">Section 4.7</a> for implementation guidance.<a href="#section-4.3-2.1.2.4" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.3-2.1.2.4">
+                <p id="section-4.3-2.1.2.4.1">RandomScalar(): Implemented by returning a uniformly random Scalar in the range
+[0, <code>G.Order()</code> - 1]. Refer to <a href="#random-scalar" class="auto internal xref">Section 4.7</a> for implementation guidance.<a href="#section-4.3-2.1.2.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3-2.1.2.5">HashToGroup(): Use hash_to_curve with suite P256_XMD:SHA-256_SSWU_RO_
+              <li class="normal" id="section-4.3-2.1.2.5">
+                <p id="section-4.3-2.1.2.5.1">HashToGroup(): Use hash_to_curve with suite P256_XMD:SHA-256_SSWU_RO_
 <span>[<a href="#I-D.irtf-cfrg-hash-to-curve" class="cite xref">I-D.irtf-cfrg-hash-to-curve</a>]</span> and DST =
-"HashToGroup-" || contextString.<a href="#section-4.3-2.1.2.5" class="pilcrow">¶</a>
+"HashToGroup-" || contextString.<a href="#section-4.3-2.1.2.5.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3-2.1.2.6">HashToScalar(): Use hash_to_field from <span>[<a href="#I-D.irtf-cfrg-hash-to-curve" class="cite xref">I-D.irtf-cfrg-hash-to-curve</a>]</span>
+              <li class="normal" id="section-4.3-2.1.2.6">
+                <p id="section-4.3-2.1.2.6.1">HashToScalar(): Use hash_to_field from <span>[<a href="#I-D.irtf-cfrg-hash-to-curve" class="cite xref">I-D.irtf-cfrg-hash-to-curve</a>]</span>
 using L = 48, <code>expand_message_xmd</code> with SHA-256,
 DST = "HashToScalar-" || contextString, and
-prime modulus equal to <code>Group.Order()</code>.<a href="#section-4.3-2.1.2.6" class="pilcrow">¶</a>
+prime modulus equal to <code>Group.Order()</code>.<a href="#section-4.3-2.1.2.6.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3-2.1.2.7">ScalarInverse(s): Returns the multiplicative inverse of input Scalar <code>s</code> mod <code>Group.Order()</code>.<a href="#section-4.3-2.1.2.7" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.3-2.1.2.7">
+                <p id="section-4.3-2.1.2.7.1">ScalarInverse(s): Returns the multiplicative inverse of input Scalar <code>s</code> mod <code>Group.Order()</code>.<a href="#section-4.3-2.1.2.7.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3-2.1.2.8">SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
-method according to <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>;  Ne = 33.<a href="#section-4.3-2.1.2.8" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.3-2.1.2.8">
+                <p id="section-4.3-2.1.2.8.1">SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
+method according to <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>;  Ne = 33.<a href="#section-4.3-2.1.2.8.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3-2.1.2.9">DeserializeElement(buf): Implemented by attempting to deserialize a 33 byte input string to
+              <li class="normal" id="section-4.3-2.1.2.9">
+                <p id="section-4.3-2.1.2.9.1">DeserializeElement(buf): Implemented by attempting to deserialize a 33 byte input string to
 a public key using the compressed Octet-String-to-Elliptic-Curve-Point method according to <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>,
 and then performs partial public-key validation as defined in section 5.6.2.3.4 of
 <span>[<a href="#KEYAGREEMENT" class="cite xref">KEYAGREEMENT</a>]</span>. This includes checking that the
 coordinates of the resulting point are in the correct range, that the point is on
 the curve, and that the point is not the group identity element.
-If these checks fail, deserialization returns an InputValidationError error.<a href="#section-4.3-2.1.2.9" class="pilcrow">¶</a>
+If these checks fail, deserialization returns an InputValidationError error.<a href="#section-4.3-2.1.2.9.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3-2.1.2.10">SerializeScalar(s): Implemented using the Field-Element-to-Octet-String conversion
-according to <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>; Ns = 32.<a href="#section-4.3-2.1.2.10" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.3-2.1.2.10">
+                <p id="section-4.3-2.1.2.10.1">SerializeScalar(s): Implemented using the Field-Element-to-Octet-String conversion
+according to <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>; Ns = 32.<a href="#section-4.3-2.1.2.10.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3-2.1.2.11">DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a 32-byte
+              <li class="normal" id="section-4.3-2.1.2.11">
+                <p id="section-4.3-2.1.2.11.1">DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a 32-byte
 string using Octet-String-to-Field-Element from <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>. This function can fail if the
-input does not represent a Scalar in the range [0, <code>G.Order()</code> - 1].<a href="#section-4.3-2.1.2.11" class="pilcrow">¶</a>
+input does not represent a Scalar in the range [0, <code>G.Order()</code> - 1].<a href="#section-4.3-2.1.2.11.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </li>
-          <li class="normal" id="section-4.3-2.2">Hash: SHA-256; Nh = 32.<a href="#section-4.3-2.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-4.3-2.2">
+            <p id="section-4.3-2.2.1">Hash: SHA-256; Nh = 32.<a href="#section-4.3-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -3127,48 +3077,60 @@ function. The value of the ciphersuite identifier is "P384-SHA384".<a href="#sec
 <li class="normal" id="section-4.4-2.1">
             <p id="section-4.4-2.1.1">Group: P-384 (secp384r1) <span>[<a href="#NISTCurves" class="cite xref">NISTCurves</a>]</span><a href="#section-4.4-2.1.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.4-2.1.2.1">Order(): Return 0xffffffffffffffffffffffffffffffffffffffffffffffffc7634d81f4372ddf581a0db248b0a77aecec196accc52973.<a href="#section-4.4-2.1.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.4-2.1.2.1">
+                <p id="section-4.4-2.1.2.1.1">Order(): Return 0xffffffffffffffffffffffffffffffffffffffffffffffffc7634d81f4372ddf581a0db248b0a77aecec196accc52973.<a href="#section-4.4-2.1.2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.4-2.1.2.2">Identity(): As defined in <span>[<a href="#NISTCurves" class="cite xref">NISTCurves</a>]</span>.<a href="#section-4.4-2.1.2.2" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.4-2.1.2.2">
+                <p id="section-4.4-2.1.2.2.1">Identity(): As defined in <span>[<a href="#NISTCurves" class="cite xref">NISTCurves</a>]</span>.<a href="#section-4.4-2.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.4-2.1.2.3">Generator(): As defined in <span>[<a href="#NISTCurves" class="cite xref">NISTCurves</a>]</span>.<a href="#section-4.4-2.1.2.3" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.4-2.1.2.3">
+                <p id="section-4.4-2.1.2.3.1">Generator(): As defined in <span>[<a href="#NISTCurves" class="cite xref">NISTCurves</a>]</span>.<a href="#section-4.4-2.1.2.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.4-2.1.2.4">RandomScalar(): Implemented by returning a uniformly random Scalar in the range
-[0, <code>G.Order()</code> - 1]. Refer to <a href="#random-scalar" class="auto internal xref">Section 4.7</a> for implementation guidance.<a href="#section-4.4-2.1.2.4" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.4-2.1.2.4">
+                <p id="section-4.4-2.1.2.4.1">RandomScalar(): Implemented by returning a uniformly random Scalar in the range
+[0, <code>G.Order()</code> - 1]. Refer to <a href="#random-scalar" class="auto internal xref">Section 4.7</a> for implementation guidance.<a href="#section-4.4-2.1.2.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.4-2.1.2.5">HashToGroup(): Use hash_to_curve with suite P384_XMD:SHA-384_SSWU_RO_
+              <li class="normal" id="section-4.4-2.1.2.5">
+                <p id="section-4.4-2.1.2.5.1">HashToGroup(): Use hash_to_curve with suite P384_XMD:SHA-384_SSWU_RO_
 <span>[<a href="#I-D.irtf-cfrg-hash-to-curve" class="cite xref">I-D.irtf-cfrg-hash-to-curve</a>]</span> and DST =
-"HashToGroup-" || contextString.<a href="#section-4.4-2.1.2.5" class="pilcrow">¶</a>
+"HashToGroup-" || contextString.<a href="#section-4.4-2.1.2.5.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.4-2.1.2.6">HashToScalar(): Use hash_to_field from <span>[<a href="#I-D.irtf-cfrg-hash-to-curve" class="cite xref">I-D.irtf-cfrg-hash-to-curve</a>]</span>
+              <li class="normal" id="section-4.4-2.1.2.6">
+                <p id="section-4.4-2.1.2.6.1">HashToScalar(): Use hash_to_field from <span>[<a href="#I-D.irtf-cfrg-hash-to-curve" class="cite xref">I-D.irtf-cfrg-hash-to-curve</a>]</span>
 using L = 72, <code>expand_message_xmd</code> with SHA-384,
 DST = "HashToScalar-" || contextString, and
-prime modulus equal to <code>Group.Order()</code>.<a href="#section-4.4-2.1.2.6" class="pilcrow">¶</a>
+prime modulus equal to <code>Group.Order()</code>.<a href="#section-4.4-2.1.2.6.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.4-2.1.2.7">ScalarInverse(s): Returns the multiplicative inverse of input Scalar <code>s</code> mod <code>Group.Order()</code>.<a href="#section-4.4-2.1.2.7" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.4-2.1.2.7">
+                <p id="section-4.4-2.1.2.7.1">ScalarInverse(s): Returns the multiplicative inverse of input Scalar <code>s</code> mod <code>Group.Order()</code>.<a href="#section-4.4-2.1.2.7.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.4-2.1.2.8">SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
-method according to <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>; Ne = 49.<a href="#section-4.4-2.1.2.8" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.4-2.1.2.8">
+                <p id="section-4.4-2.1.2.8.1">SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
+method according to <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>; Ne = 49.<a href="#section-4.4-2.1.2.8.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.4-2.1.2.9">DeserializeElement(buf): Implemented by attempting to deserialize a 49-byte array  to
+              <li class="normal" id="section-4.4-2.1.2.9">
+                <p id="section-4.4-2.1.2.9.1">DeserializeElement(buf): Implemented by attempting to deserialize a 49-byte array  to
 a public key using the compressed Octet-String-to-Elliptic-Curve-Point method according to <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>,
 and then performs partial public-key validation as defined in section 5.6.2.3.4 of
 <span>[<a href="#KEYAGREEMENT" class="cite xref">KEYAGREEMENT</a>]</span>. This includes checking that the
 coordinates of the resulting point are in the correct range, that the point is on
 the curve, and that the point is not the point at infinity. Additionally, this function
 validates that the resulting element is not the group identity element.
-If these checks fail, deserialization returns an InputValidationError error.<a href="#section-4.4-2.1.2.9" class="pilcrow">¶</a>
+If these checks fail, deserialization returns an InputValidationError error.<a href="#section-4.4-2.1.2.9.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.4-2.1.2.10">SerializeScalar(s): Implemented using the Field-Element-to-Octet-String conversion
-according to <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>; Ns = 48.<a href="#section-4.4-2.1.2.10" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.4-2.1.2.10">
+                <p id="section-4.4-2.1.2.10.1">SerializeScalar(s): Implemented using the Field-Element-to-Octet-String conversion
+according to <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>; Ns = 48.<a href="#section-4.4-2.1.2.10.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.4-2.1.2.11">DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a 48-byte
+              <li class="normal" id="section-4.4-2.1.2.11">
+                <p id="section-4.4-2.1.2.11.1">DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a 48-byte
 string using Octet-String-to-Field-Element from <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>. This function can fail if the
-input does not represent a Scalar in the range [0, <code>G.Order()</code> - 1].<a href="#section-4.4-2.1.2.11" class="pilcrow">¶</a>
+input does not represent a Scalar in the range [0, <code>G.Order()</code> - 1].<a href="#section-4.4-2.1.2.11.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </li>
-          <li class="normal" id="section-4.4-2.2">Hash: SHA-384; Nh = 48.<a href="#section-4.4-2.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-4.4-2.2">
+            <p id="section-4.4-2.2.1">Hash: SHA-384; Nh = 48.<a href="#section-4.4-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -3184,48 +3146,60 @@ function. The value of the ciphersuite identifier is "P521-SHA512".<a href="#sec
 <li class="normal" id="section-4.5-2.1">
             <p id="section-4.5-2.1.1">Group: P-521 (secp521r1) <span>[<a href="#NISTCurves" class="cite xref">NISTCurves</a>]</span><a href="#section-4.5-2.1.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.5-2.1.2.1">Order(): Return 0x01fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa51868783bf2f966b7fcc0148f709a5d03bb5c9b8899c47aebb6fb71e91386409.<a href="#section-4.5-2.1.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.5-2.1.2.1">
+                <p id="section-4.5-2.1.2.1.1">Order(): Return 0x01fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa51868783bf2f966b7fcc0148f709a5d03bb5c9b8899c47aebb6fb71e91386409.<a href="#section-4.5-2.1.2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.5-2.1.2.2">Identity(): As defined in <span>[<a href="#NISTCurves" class="cite xref">NISTCurves</a>]</span>.<a href="#section-4.5-2.1.2.2" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.5-2.1.2.2">
+                <p id="section-4.5-2.1.2.2.1">Identity(): As defined in <span>[<a href="#NISTCurves" class="cite xref">NISTCurves</a>]</span>.<a href="#section-4.5-2.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.5-2.1.2.3">Generator(): As defined in <span>[<a href="#NISTCurves" class="cite xref">NISTCurves</a>]</span>.<a href="#section-4.5-2.1.2.3" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.5-2.1.2.3">
+                <p id="section-4.5-2.1.2.3.1">Generator(): As defined in <span>[<a href="#NISTCurves" class="cite xref">NISTCurves</a>]</span>.<a href="#section-4.5-2.1.2.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.5-2.1.2.4">RandomScalar(): Implemented by returning a uniformly random Scalar in the range
-[0, <code>G.Order()</code> - 1]. Refer to <a href="#random-scalar" class="auto internal xref">Section 4.7</a> for implementation guidance.<a href="#section-4.5-2.1.2.4" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.5-2.1.2.4">
+                <p id="section-4.5-2.1.2.4.1">RandomScalar(): Implemented by returning a uniformly random Scalar in the range
+[0, <code>G.Order()</code> - 1]. Refer to <a href="#random-scalar" class="auto internal xref">Section 4.7</a> for implementation guidance.<a href="#section-4.5-2.1.2.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.5-2.1.2.5">HashToGroup(): Use hash_to_curve with suite P521_XMD:SHA-512_SSWU_RO_
+              <li class="normal" id="section-4.5-2.1.2.5">
+                <p id="section-4.5-2.1.2.5.1">HashToGroup(): Use hash_to_curve with suite P521_XMD:SHA-512_SSWU_RO_
 <span>[<a href="#I-D.irtf-cfrg-hash-to-curve" class="cite xref">I-D.irtf-cfrg-hash-to-curve</a>]</span> and DST =
-"HashToGroup-" || contextString.<a href="#section-4.5-2.1.2.5" class="pilcrow">¶</a>
+"HashToGroup-" || contextString.<a href="#section-4.5-2.1.2.5.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.5-2.1.2.6">HashToScalar(): Use hash_to_field from <span>[<a href="#I-D.irtf-cfrg-hash-to-curve" class="cite xref">I-D.irtf-cfrg-hash-to-curve</a>]</span>
+              <li class="normal" id="section-4.5-2.1.2.6">
+                <p id="section-4.5-2.1.2.6.1">HashToScalar(): Use hash_to_field from <span>[<a href="#I-D.irtf-cfrg-hash-to-curve" class="cite xref">I-D.irtf-cfrg-hash-to-curve</a>]</span>
 using L = 98, <code>expand_message_xmd</code> with SHA-512,
 DST = "HashToScalar-" || contextString, and
-prime modulus equal to <code>Group.Order()</code>.<a href="#section-4.5-2.1.2.6" class="pilcrow">¶</a>
+prime modulus equal to <code>Group.Order()</code>.<a href="#section-4.5-2.1.2.6.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.5-2.1.2.7">ScalarInverse(s): Returns the multiplicative inverse of input Scalar <code>s</code> mod <code>Group.Order()</code>.<a href="#section-4.5-2.1.2.7" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.5-2.1.2.7">
+                <p id="section-4.5-2.1.2.7.1">ScalarInverse(s): Returns the multiplicative inverse of input Scalar <code>s</code> mod <code>Group.Order()</code>.<a href="#section-4.5-2.1.2.7.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.5-2.1.2.8">SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
-method according to <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>; Ne = 67.<a href="#section-4.5-2.1.2.8" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.5-2.1.2.8">
+                <p id="section-4.5-2.1.2.8.1">SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
+method according to <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>; Ne = 67.<a href="#section-4.5-2.1.2.8.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.5-2.1.2.9">DeserializeElement(buf): Implemented by attempting to deserialize a 49 byte input string to
+              <li class="normal" id="section-4.5-2.1.2.9">
+                <p id="section-4.5-2.1.2.9.1">DeserializeElement(buf): Implemented by attempting to deserialize a 49 byte input string to
 a public key using the compressed Octet-String-to-Elliptic-Curve-Point method according to <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>,
 and then performs partial public-key validation as defined in section 5.6.2.3.4 of
 <span>[<a href="#KEYAGREEMENT" class="cite xref">KEYAGREEMENT</a>]</span>. This includes checking that the
 coordinates of the resulting point are in the correct range, that the point is on
 the curve, and that the point is not the point at infinity. Additionally, this function
 validates that the resulting element is not the group identity element.
-If these checks fail, deserialization returns an InputValidationError error.<a href="#section-4.5-2.1.2.9" class="pilcrow">¶</a>
+If these checks fail, deserialization returns an InputValidationError error.<a href="#section-4.5-2.1.2.9.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.5-2.1.2.10">SerializeScalar(s): Implemented using the Field-Element-to-Octet-String conversion
-according to <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>; Ns = 66.<a href="#section-4.5-2.1.2.10" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.5-2.1.2.10">
+                <p id="section-4.5-2.1.2.10.1">SerializeScalar(s): Implemented using the Field-Element-to-Octet-String conversion
+according to <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>; Ns = 66.<a href="#section-4.5-2.1.2.10.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.5-2.1.2.11">DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a 66-byte
+              <li class="normal" id="section-4.5-2.1.2.11">
+                <p id="section-4.5-2.1.2.11.1">DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a 66-byte
 string using Octet-String-to-Field-Element from <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>. This function can fail if the
-input does not represent a Scalar in the range [0, <code>G.Order()</code> - 1].<a href="#section-4.5-2.1.2.11" class="pilcrow">¶</a>
+input does not represent a Scalar in the range [0, <code>G.Order()</code> - 1].<a href="#section-4.5-2.1.2.11.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </li>
-          <li class="normal" id="section-4.5-2.2">Hash: SHA-512; Nh = 64.<a href="#section-4.5-2.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-4.5-2.2">
+            <p id="section-4.5-2.2.1">Hash: SHA-512; Nh = 64.<a href="#section-4.5-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -3337,23 +3311,23 @@ The explicit errors generated throughout this specification, along with the
 conditions that lead to each error, are as follows:<a href="#section-5.3-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-5.3-2.1">
-            <code>VerifyError</code>: Verifiable OPRF proof verification failed; <a href="#voprf" class="auto internal xref">Section 3.3.2</a> and <a href="#poprf" class="auto internal xref">Section 3.3.3</a>.<a href="#section-5.3-2.1" class="pilcrow">¶</a>
+            <p id="section-5.3-2.1.1"><code>VerifyError</code>: Verifiable OPRF proof verification failed; <a href="#voprf" class="auto internal xref">Section 3.3.2</a> and <a href="#poprf" class="auto internal xref">Section 3.3.3</a>.<a href="#section-5.3-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.3-2.2">
-            <code>DeserializeError</code>: Group Element or Scalar deserialization failure; <a href="#pog" class="auto internal xref">Section 2.1</a> and <a href="#online" class="auto internal xref">Section 3.3</a>.<a href="#section-5.3-2.2" class="pilcrow">¶</a>
+            <p id="section-5.3-2.2.1"><code>DeserializeError</code>: Group Element or Scalar deserialization failure; <a href="#pog" class="auto internal xref">Section 2.1</a> and <a href="#online" class="auto internal xref">Section 3.3</a>.<a href="#section-5.3-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.3-2.3">
-            <code>InputValidationError</code>: Validation of byte array inputs failed; <a href="#ciphersuites" class="auto internal xref">Section 4</a>.<a href="#section-5.3-2.3" class="pilcrow">¶</a>
+            <p id="section-5.3-2.3.1"><code>InputValidationError</code>: Validation of byte array inputs failed; <a href="#ciphersuites" class="auto internal xref">Section 4</a>.<a href="#section-5.3-2.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-5.3-3">There are other explicit errors generated in this specification; however, they occur with
 negligible probability in practice. We note them here for completeness.<a href="#section-5.3-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-5.3-4.1">
-            <code>InvalidInputError</code>: OPRF Blind input produces an invalid output element; <a href="#oprf" class="auto internal xref">Section 3.3.1</a> and <a href="#poprf" class="auto internal xref">Section 3.3.3</a>.<a href="#section-5.3-4.1" class="pilcrow">¶</a>
+            <p id="section-5.3-4.1.1"><code>InvalidInputError</code>: OPRF Blind input produces an invalid output element; <a href="#oprf" class="auto internal xref">Section 3.3.1</a> and <a href="#poprf" class="auto internal xref">Section 3.3.3</a>.<a href="#section-5.3-4.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.3-4.2">
-            <code>InverseError</code>: A tweaked private key is invalid (has no multiplicative inverse); <a href="#pog" class="auto internal xref">Section 2.1</a> and <a href="#online" class="auto internal xref">Section 3.3</a>.<a href="#section-5.3-4.2" class="pilcrow">¶</a>
+            <p id="section-5.3-4.2.1"><code>InverseError</code>: A tweaked private key is invalid (has no multiplicative inverse); <a href="#pog" class="auto internal xref">Section 2.1</a> and <a href="#online" class="auto internal xref">Section 3.3</a>.<a href="#section-5.3-4.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-5.3-5">In general, the errors in this document are meant as a guide to implementors.
@@ -3412,9 +3386,10 @@ admits an additional public input, but the same security considerations apply.<a
 <p id="section-7.1-1">The security properties of an OPRF protocol with functionality y = F(k, x)
 include those of a standard PRF. Specifically:<a href="#section-7.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-7.1-2.1">Pseudorandomness: For a random sampling of k, F is pseudorandom if the output
+<li class="normal" id="section-7.1-2.1">
+            <p id="section-7.1-2.1.1">Pseudorandomness: For a random sampling of k, F is pseudorandom if the output
 y = F(k, x) on any input x is indistinguishable from uniformly sampling any
-element in F's range.<a href="#section-7.1-2.1" class="pilcrow">¶</a>
+element in F's range.<a href="#section-7.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-7.1-3">In other words, consider an adversary that picks inputs x from the
@@ -3428,8 +3403,9 @@ from an existing evaluation). A genuinely random function will be
 non-malleable with high probability, and so a pseudorandom function must
 be non-malleable to maintain indistinguishability.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-7.1-5.1">Unconditional input secrecy: The server does not learn anything about
-the client input x, even with unbounded computation.<a href="#section-7.1-5.1" class="pilcrow">¶</a>
+<li class="normal" id="section-7.1-5.1">
+            <p id="section-7.1-5.1.1">Unconditional input secrecy: The server does not learn anything about
+the client input x, even with unbounded computation.<a href="#section-7.1-5.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-7.1-6">In other words, an attacker with infinite computing power cannot recover any
@@ -3445,10 +3421,11 @@ server's private key k.<a href="#section-7.1-8" class="pilcrow">¶</a></p>
 <p id="section-7.1-9">For the VOPRF and POPRF protocol variants, there is an additional
 security property:<a href="#section-7.1-9" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-7.1-10.1">Verifiable: The client must only complete execution of the protocol if
+<li class="normal" id="section-7.1-10.1">
+            <p id="section-7.1-10.1.1">Verifiable: The client must only complete execution of the protocol if
 it can successfully assert that the output it computes is
 correct. This is taken with respect to the private key held by the
-server.<a href="#section-7.1-10.1" class="pilcrow">¶</a>
+server.<a href="#section-7.1-10.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-7.1-11">Any VOPRF or POPRF that satisfies the 'verifiable' security property is known
@@ -3459,11 +3436,12 @@ protocol using this commitment. In the following, we may also refer to this
 commitment as a public key.<a href="#section-7.1-11" class="pilcrow">¶</a></p>
 <p id="section-7.1-12">Finally, the POPRF variant also has the following security property:<a href="#section-7.1-12" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-7.1-13.1">Partial obliviousness: The client and server must be able to perform the
+<li class="normal" id="section-7.1-13.1">
+            <p id="section-7.1-13.1.1">Partial obliviousness: The client and server must be able to perform the
 PRF on client's private input and public input. Both client and server know
 the public input, but similar to the OPRF and VOPRF protocols, the server
 learns nothing about the client's private input or the output of the function,
-and the client learns nothing about the server's private key.<a href="#section-7.1-13.1" class="pilcrow">¶</a>
+and the client learns nothing about the server's private key.<a href="#section-7.1-13.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-7.1-14">This property becomes useful when dealing with key management operations such as
@@ -3473,9 +3451,10 @@ input to the protocol.<a href="#section-7.1-14" class="pilcrow">¶</a></p>
 <p id="section-7.1-15">Since the POPRF variant has a different syntax than the OPRF and VOPRF variants,
 i.e., y = F(k, x, info), the pseudorandomness property is generalized:<a href="#section-7.1-15" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-7.1-16.1">Pseudorandomness: For a random sampling of k, F is pseudorandom if the output
+<li class="normal" id="section-7.1-16.1">
+            <p id="section-7.1-16.1.1">Pseudorandomness: For a random sampling of k, F is pseudorandom if the output
 y = F(k, x, info) on any input pairs (x, info) is indistinguishable from uniformly
-sampling any element in F's range.<a href="#section-7.1-16.1" class="pilcrow">¶</a>
+sampling any element in F's range.<a href="#section-7.1-16.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -3497,10 +3476,12 @@ that need to be made.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
 In particular, the VOPRF construction is similar to the <span>[<a href="#JKK14" class="cite xref">JKK14</a>]</span> construction
 with the following distinguishing properties:<a href="#section-7.2.1-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-7.2.1-2">
-<li id="section-7.2.1-2.1">This document does not use session identifiers to differentiate different instances of the protocol; and<a href="#section-7.2.1-2.1" class="pilcrow">¶</a>
+<li id="section-7.2.1-2.1">
+              <p id="section-7.2.1-2.1.1">This document does not use session identifiers to differentiate different instances of the protocol; and<a href="#section-7.2.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-7.2.1-2.2">This document supports batching so that multiple evaluations can happen at once whilst only constructing
-one DLEQ proof object. This is enabled using an established batching technique <span>[<a href="#DGSTV18" class="cite xref">DGSTV18</a>]</span>.<a href="#section-7.2.1-2.2" class="pilcrow">¶</a>
+            <li id="section-7.2.1-2.2">
+              <p id="section-7.2.1-2.2.1">This document supports batching so that multiple evaluations can happen at once whilst only constructing
+one DLEQ proof object. This is enabled using an established batching technique <span>[<a href="#DGSTV18" class="cite xref">DGSTV18</a>]</span>.<a href="#section-7.2.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
 <p id="section-7.2.1-3">The pseudorandomness and input secrecy (and verifiability) of the OPRF (and
@@ -3603,6 +3584,7 @@ helpful input and contributions to the document.<a href="#section-8-1" class="pi
       <h2 id="name-references">
 <a href="#section-9" class="section-number selfRef">9. </a><a href="#name-references" class="section-name selfRef">References</a>
       </h2>
+<div id="sec-normative-references">
 <section id="section-9.1">
         <h3 id="name-normative-references">
 <a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
@@ -3630,10 +3612,12 @@ helpful input and contributions to the document.<a href="#section-8-1" class="pi
 <dd class="break"></dd>
 <dt id="RISTRETTO">[RISTRETTO]</dt>
       <dd>
-<span class="refAuthor">de Valence, H.</span>, <span class="refAuthor">Grigg, J.</span>, <span class="refAuthor">Hamburg, M.</span>, <span class="refAuthor">Lovecruft, I.</span>, <span class="refAuthor">Tankersley, G.</span>, and <span class="refAuthor">F. Valsorda</span>, <span class="refTitle">"The ristretto255 and decaf448 Groups"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-irtf-cfrg-ristretto255-decaf448-07</span>, <time datetime="2023-04-03" class="refDate">3 April 2023</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-ristretto255-decaf448-07">https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-ristretto255-decaf448-07</a>&gt;</span>. </dd>
+<span class="refAuthor">de Valence, H.</span>, <span class="refAuthor">Grigg, J.</span>, <span class="refAuthor">Hamburg, M.</span>, <span class="refAuthor">Lovecruft, I.</span>, <span class="refAuthor">Tankersley, G.</span>, and <span class="refAuthor">F. Valsorda</span>, <span class="refTitle">"The ristretto255 and decaf448 Groups"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-irtf-cfrg-ristretto255-decaf448-08</span>, <time datetime="2023-09-05" class="refDate">5 September 2023</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-ristretto255-decaf448-08">https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-ristretto255-decaf448-08</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
+</div>
+<div id="sec-informative-references">
 <section id="section-9.2">
         <h3 id="name-informative-references">
 <a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
@@ -3673,7 +3657,7 @@ helpful input and contributions to the document.<a href="#section-8-1" class="pi
 <dd class="break"></dd>
 <dt id="OPAQUE">[OPAQUE]</dt>
         <dd>
-<span class="refAuthor">Bourdrez, D.</span>, <span class="refAuthor">Krawczyk, H.</span>, <span class="refAuthor">Lewi, K.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"The OPAQUE Asymmetric PAKE Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-irtf-cfrg-opaque-11</span>, <time datetime="2023-06-08" class="refDate">8 June 2023</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-opaque-11">https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-opaque-11</a>&gt;</span>. </dd>
+<span class="refAuthor">Bourdrez, D.</span>, <span class="refAuthor">Krawczyk, H.</span>, <span class="refAuthor">Lewi, K.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"The OPAQUE Asymmetric PAKE Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-irtf-cfrg-opaque-12</span>, <time datetime="2023-10-05" class="refDate">5 October 2023</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-opaque-12">https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-opaque-12</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="PrivacyPass">[PrivacyPass]</dt>
         <dd>
@@ -3681,7 +3665,7 @@ helpful input and contributions to the document.<a href="#section-8-1" class="pi
 <dd class="break"></dd>
 <dt id="PRIVACYPASS">[PRIVACYPASS]</dt>
         <dd>
-<span class="refAuthor">Celi, S.</span>, <span class="refAuthor">Davidson, A.</span>, <span class="refAuthor">Valdez, S.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Privacy Pass Issuance Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-privacypass-protocol-12</span>, <time datetime="2023-08-16" class="refDate">16 August 2023</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-privacypass-protocol-12">https://datatracker.ietf.org/doc/html/draft-ietf-privacypass-protocol-12</a>&gt;</span>. </dd>
+<span class="refAuthor">Celi, S.</span>, <span class="refAuthor">Davidson, A.</span>, <span class="refAuthor">Valdez, S.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Privacy Pass Issuance Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-privacypass-protocol-16</span>, <time datetime="2023-10-03" class="refDate">3 October 2023</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-privacypass-protocol-16">https://datatracker.ietf.org/doc/html/draft-ietf-privacypass-protocol-16</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC7748">[RFC7748]</dt>
         <dd>
@@ -3701,6 +3685,7 @@ helpful input and contributions to the document.<a href="#section-8-1" class="pi
 <dd class="break"></dd>
 </dl>
 </section>
+</div>
 </section>
 <div id="test-vectors">
 <section id="appendix-A">
@@ -3714,29 +3699,37 @@ VOPRF, and POPRF modes. Each test vector lists the batch size for
 the evaluation. Each test vector value is encoded as a hexadecimal
 byte string. The fields of each test vector are described below.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="appendix-A-2.1">"Input": The private client input, an opaque byte string.<a href="#appendix-A-2.1" class="pilcrow">¶</a>
+<li class="normal" id="appendix-A-2.1">
+          <p id="appendix-A-2.1.1">"Input": The private client input, an opaque byte string.<a href="#appendix-A-2.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-A-2.2">"Info": The public info, an opaque byte string. Only present for POPRF test
- vectors.<a href="#appendix-A-2.2" class="pilcrow">¶</a>
+        <li class="normal" id="appendix-A-2.2">
+          <p id="appendix-A-2.2.1">"Info": The public info, an opaque byte string. Only present for POPRF test
+ vectors.<a href="#appendix-A-2.2.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-A-2.3">"Blind": The blind value output by <code>Blind()</code>, a serialized <code>Scalar</code>
-of <code>Ns</code> bytes long.<a href="#appendix-A-2.3" class="pilcrow">¶</a>
+        <li class="normal" id="appendix-A-2.3">
+          <p id="appendix-A-2.3.1">"Blind": The blind value output by <code>Blind()</code>, a serialized <code>Scalar</code>
+of <code>Ns</code> bytes long.<a href="#appendix-A-2.3.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-A-2.4">"BlindedElement": The blinded value output by <code>Blind()</code>, a serialized
-<code>Element</code> of <code>Ne</code> bytes long.<a href="#appendix-A-2.4" class="pilcrow">¶</a>
+        <li class="normal" id="appendix-A-2.4">
+          <p id="appendix-A-2.4.1">"BlindedElement": The blinded value output by <code>Blind()</code>, a serialized
+<code>Element</code> of <code>Ne</code> bytes long.<a href="#appendix-A-2.4.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-A-2.5">"EvaluatedElement": The evaluated element output by <code>BlindEvaluate()</code>,
-a serialized <code>Element</code> of <code>Ne</code> bytes long.<a href="#appendix-A-2.5" class="pilcrow">¶</a>
+        <li class="normal" id="appendix-A-2.5">
+          <p id="appendix-A-2.5.1">"EvaluatedElement": The evaluated element output by <code>BlindEvaluate()</code>,
+a serialized <code>Element</code> of <code>Ne</code> bytes long.<a href="#appendix-A-2.5.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-A-2.6">"Proof": The serialized <code>Proof</code> output from <code>GenerateProof()</code> composed of
+        <li class="normal" id="appendix-A-2.6">
+          <p id="appendix-A-2.6.1">"Proof": The serialized <code>Proof</code> output from <code>GenerateProof()</code> composed of
 two serialized <code>Scalar</code> values each of <code>Ns</code> bytes long. Only present for
-VOPRF and POPRF test vectors.<a href="#appendix-A-2.6" class="pilcrow">¶</a>
+VOPRF and POPRF test vectors.<a href="#appendix-A-2.6.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-A-2.7">"ProofRandomScalar": The random scalar <code>r</code> computed in <code>GenerateProof()</code>, a
+        <li class="normal" id="appendix-A-2.7">
+          <p id="appendix-A-2.7.1">"ProofRandomScalar": The random scalar <code>r</code> computed in <code>GenerateProof()</code>, a
 serialized <code>Scalar</code> of <code>Ns</code> bytes long. Only present for VOPRF and POPRF
-test vectors.<a href="#appendix-A-2.7" class="pilcrow">¶</a>
+test vectors.<a href="#appendix-A-2.7.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-A-2.8">"Output": The protocol output, an opaque byte string of length <code>Nh</code> bytes.<a href="#appendix-A-2.8" class="pilcrow">¶</a>
+        <li class="normal" id="appendix-A-2.8">
+          <p id="appendix-A-2.8.1">"Output": The protocol output, an opaque byte string of length <code>Nh</code> bytes.<a href="#appendix-A-2.8.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="appendix-A-3">Test vectors with batch size B &gt; 1 have inputs separated by a comma
@@ -4023,10 +4016,10 @@ Output = ca688351e88afb1d841fde4401c79efebb2eb75e7998fa9737bd5a82a15
 <div class="alignLeft art-text artwork" id="appendix-A.2.1-1">
 <pre>
 Seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
-3a3
+3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3
 KeyInfo = 74657374206b6579
-skSm = e8b1375371fd11ebeb224f832dcc16d371b4188951c438f751425699ed29e
-cc80c6c13e558ccd67634fd82eac94aa8d1f0d7fee990695d1e
+skSm = 06f21f0494f54fc7a4078b133a2d3ebef9e49f398751b5e4c5a3a3a42e15c
+1839adce6745c69e8d85496fde14789a866b11358d24b38f017
 </pre><a href="#appendix-A.2.1-1" class="pilcrow">¶</a>
 </div>
 <div id="test-vector-1-batch-size-1-3">
@@ -4041,11 +4034,11 @@ Blind = 64d37aed22a27f5191de1c1d69fadb899d8862b58eb4220029e036ec65fa
 3833a26e9388336361686ff1f83df55046504dfecad8549ba112
 BlindedElement = e0ae01c4095f08e03b19baf47ffdc19cb7d98e583160522a3c7
 d6a0b2111cd93a126a46b7b41b730cd7fc943d4e28e590ed33ae475885f6c
-EvaluationElement = 50ce4e60eed006e22e7027454b5a4b8319eb2bc8ced609eb
-19eb3ad42fb19e06ba12d382cbe7ae342a0cad6ead0ef8f91f00bb7f0cd9c0a2
-Output = 37d3f7922d9388a15b561de5829bbf654c4089ede89c0ce0f3f85bcdba0
-9e382ce0ab3507e021f9e79706a1798ffeac68ebd5cf62e5eb9838c7068351d97ae3
-7
+EvaluationElement = f21783377c064d243a4812b653ea2499804b251843675169
+8f26c9908e436163a8fb750db075b9292fce21338498a0f294f3511e118ed5be
+Output = adc0e36d6353efedca1300f8b6311b94df98ba855fab56131cefe7c4133
+d8d4865b502251f4a1438f9c38b35d96b503ecd58bcfceb19f3d8ebdca691e39c0e9
+a
 </pre><a href="#appendix-A.2.1.1-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -4062,11 +4055,11 @@ Blind = 64d37aed22a27f5191de1c1d69fadb899d8862b58eb4220029e036ec65fa
 3833a26e9388336361686ff1f83df55046504dfecad8549ba112
 BlindedElement = 86a88dc5c6331ecfcb1d9aacb50a68213803c462e377577cacc
 00af28e15f0ddbc2e3d716f2f39ef95f3ec1314a2c64d940a9f295d8f13bb
-EvaluationElement = 162e9fa6e9d527c3cd734a31bf122a34dbd5bcb7bb23651f
-1768a7a9274cc116c03b58afa6f0dede3994a60066c76370e7328e7062fd5819
-Output = a2a652290055cb0f6f8637a249ee45e32ef4667db0b4c80c0a70d2a6416
-4d01525cfdad5d870a694ec77972b9b6ec5d2596a5223e5336913f945101f0137f55
-e
+EvaluationElement = b28e318772dcbe887f03ccfccfebc331951a03c6e7f7153e
+8036cec7ce1e3d87cceb6cfc953b7ecf48241d710b086cdc8603edabe9b0808a
+Output = dd0bb8f325fe2b1bb6d4cc3a89f5ea2ddac37fb5a8b9365c0c1d2ac6f0a
+ab69504aba3d223f4cd8b78b6d297a9d8167ebdedc0ffd1704241e5c9f1c2a1c1731
+f
 </pre><a href="#appendix-A.2.1.2-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -4081,12 +4074,12 @@ e
 <div class="alignLeft art-text artwork" id="appendix-A.2.2-1">
 <pre>
 Seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
-3a3
+3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3
 KeyInfo = 74657374206b6579
-skSm = e3c01519a076a326a0eb566343e9b21c115fa18e6e85577ddbe890b33104f
-cc2835ddfb14a928dc3f5d79b936e17c76b99e0bf6a1680930e
-pkSm = 945fc518c47695cf65217ace04b86ac5e4cbe26ca649d52854bb16c494ce0
-9069d6add96b20d4b0ae311a87c9a73e3a146b525763ab2f955
+skSm = 88067129e7576c0dbd5d868cf5e189dd958fa4760551d8ea15c2fdabff218
+9c43f730e71e543b537ccec0bd1497173b021ec6207c37ac930
+pkSm = 7ac6049351075957923f00d5bd36c5299ee0b0724c53018c5d01ea239505e
+63a4c76f77cb77cf1567fdcdeb5f720118f3b82c9dbfbbb659d
 </pre><a href="#appendix-A.2.2-1" class="pilcrow">¶</a>
 </div>
 <div id="test-vector-1-batch-size-1-4">
@@ -4101,17 +4094,17 @@ Blind = 64d37aed22a27f5191de1c1d69fadb899d8862b58eb4220029e036ec65fa
 3833a26e9388336361686ff1f83df55046504dfecad8549ba112
 BlindedElement = 7261bbc335c664ba788f1b1a1a4cd5190cc30e787ef277665ac
 1d314f8861e3ec11854ce3ddd42035d9e0f5cddde324c332d8c880abc00eb
-EvaluationElement = ca1491a526c28d880806cf0fb0122222392cf495657be6e4
-c9d203bceffa46c86406caf8217859d3fb259077af68e5d41b3699410781f467
-Proof = f84bbeee47aedf43558dae4b95b3853635a9fc1a9ea7eac9b454c64c66c4
-f49cd1c72711c7ac2e06c681e16ea693d5500bbd7b56455df52f69e00b76b4126961
-e1562fdbaaac40b7701065cbeece3febbfe09e00160f81775d36daed99d8a2a10be0
-759e01b7ee81217203416c9db208
+EvaluationElement = b65b0074cb65cebbfe64a2ee018321742d1512fd6c14509b
+6060c8db3143749bbed9d1896617759ec7c6ebfab032cf2b5eff5f5f5f46796c
+Proof = 3fd2c796e71873b9228ccb99c29baff392fda1a8b4711e4b75dab740ef05
+d748317e7a136bd5daeaa78b7b3923ddbd67a4d9a7ea3da92836583217ac88426535
+5ec9f45326f34178db77dac821f535e941fd8f8c50c06740a6cf04d0e49c50d1cbac
+cfd01c1e140a33193b832386410c
 ProofRandomScalar = b1b748135d405ce48c6973401d9455bb8ccd18b01d0295c0
 627f67661200dbf9569f73fbb3925daa043a070e5f953d80bb464ea369e5522b
-Output = e2ac40b634f36cccd8262b285adff7c9dcc19cd308564a5f4e581d1a853
-5773b86fa4fc9f2203c370763695c5093aea4a7aedec4488b1340ba3bf663a23098c
-1
+Output = dda56f0f50047483cb9a1db473ea9c3aab15d46d99526c091e3141299fc
+de4fdd0ce3bf654542687b90fe01aab2fdf06d523317122a24beea800893583735b1
+e
 </pre><a href="#appendix-A.2.2.1-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -4128,17 +4121,17 @@ Blind = 64d37aed22a27f5191de1c1d69fadb899d8862b58eb4220029e036ec65fa
 3833a26e9388336361686ff1f83df55046504dfecad8549ba112
 BlindedElement = 88287e553939090b888ddc15913e1807dc4757215555e1c3a79
 488ef311594729c7fa74c772a732b78440b7d66d0aa35f3bb316f1d93e1b2
-EvaluationElement = c00978c73e8e4ee1d447ab0d3ad1754055e72cc85c08e3a0
-db170909a9c61cbff1f1e7015f289e3038b0f341faea5d7780c130106065c231
-Proof = 7a2831a6b237e11ac1657d440df93bc5ce00f552e6020a99d5c956ffc4d0
-7b5ade3e82ecdc257fd53d76239e733e0a1313e84ce16cc0d82734806092a693d7e8
-d3c420c2cb6ccd5d0ca32514fb78e9ad0973ebdcb52eba438fc73948d76339ee7101
-21d83e2fe6f001cfdf551aff9f36
+EvaluationElement = 088947cd184cdaff715fb47130758238ecc1f05e049dbbd9
+2cfef18a87e39e66728c79834f3fec33c96a57d34ed5c399e5e8c689331393ee
+Proof = 3771a89bfd4540c023db27251d5173640006d1ca76d4d7ad0a2236c2ee07
+3dad7863e2d88414b9bd9c0b9fa1c61620e66bdefd304a2c120fbc959de3d8188a88
+c0da281b1df1dbd2f4edb3c019363629bd2c8d5b5408792a1dabb985597e5905a9a2
+2fcd55c5b3b34c20ce81ee91560b
 ProofRandomScalar = b1b748135d405ce48c6973401d9455bb8ccd18b01d0295c0
 627f67661200dbf9569f73fbb3925daa043a070e5f953d80bb464ea369e5522b
-Output = 862952380e07ec840d9f6e6f909c5a25d16c3dacb586d89a181b4aa7380
-c959baa8c480fe8e6c64e089d68ea7aeeb5817bd524d7577905b5bab487690048c94
-1
+Output = fafbc029fef15f19545e5d1114275b21aab79bad25d7fff2fe1db99835e
+706afde10b76a6766e61ac4064a9cb559d9afcede5a06cbc0178554608b13f9f751b
+0
 </pre><a href="#appendix-A.2.2.2-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -4159,20 +4152,20 @@ BlindedElement = 7261bbc335c664ba788f1b1a1a4cd5190cc30e787ef277665ac
 1d314f8861e3ec11854ce3ddd42035d9e0f5cddde324c332d8c880abc00eb,2e15f3
 93c035492a1573627a3606e528c6294c767c8d43b8c691ef70a52cc7dc7d1b53fe45
 8350a270abb7c231b87ba58266f89164f714d9
-EvaluationElement = ca1491a526c28d880806cf0fb0122222392cf495657be6e4
-c9d203bceffa46c86406caf8217859d3fb259077af68e5d41b3699410781f467,8ec
-68e9871b296e81c55647ce64a04fe75d19932f1400544cd601468c60f998408bbb54
-6601d4a636e8be279e558d70b95c8d4a4f61892be
-Proof = 167d922f0a6ffa845eed07f8aa97b6ac746d902ecbeb18f49c009adc0521
-eab1e4d275b74a2dc266b7a194c854e85e7eb54a9a36376dfc04ec7f3bd55fc9618c
-3970cb548e064f8a2f06183a5702933dbc3e4c25a73438f2108ee1981c306181003c
-7ea92fce963ec7b4ba4f270e6d38
+EvaluationElement = b65b0074cb65cebbfe64a2ee018321742d1512fd6c14509b
+6060c8db3143749bbed9d1896617759ec7c6ebfab032cf2b5eff5f5f5f46796c,b43
+1aac4e9a620bd04e77f90ca3eeca7d69fd6c48c3d470a4bd4481cd2e81653e9df277
+74d94cfd39fdce73156da2d130ef8c025587d0fd2
+Proof = 59451d30e29ebb47e72e674f0ac2aff39d2c9c274f15f9f40930c11d6c71
+363c6a986e4ac3703bb450838414824512d2dac01088d5574718a6011ed95b40c77b
+3054290e9fc6044fe4eec801ed2f6f97aba5a87b2b4ac5f4060405f6baf91d785e35
+87357571223894a934fa31a94a2f
 ProofRandomScalar = 63798726803c9451ba405f00ef3acb633ddf0c420574a2ec
 6cbf28f840800e355c9fbaac10699686de2724ed22e797a00f3bd93d105a7f23
-Output = e2ac40b634f36cccd8262b285adff7c9dcc19cd308564a5f4e581d1a853
-5773b86fa4fc9f2203c370763695c5093aea4a7aedec4488b1340ba3bf663a23098c
-1,862952380e07ec840d9f6e6f909c5a25d16c3dacb586d89a181b4aa7380c959baa
-8c480fe8e6c64e089d68ea7aeeb5817bd524d7577905b5bab487690048c941
+Output = dda56f0f50047483cb9a1db473ea9c3aab15d46d99526c091e3141299fc
+de4fdd0ce3bf654542687b90fe01aab2fdf06d523317122a24beea800893583735b1
+e,fafbc029fef15f19545e5d1114275b21aab79bad25d7fff2fe1db99835e706afde
+10b76a6766e61ac4064a9cb559d9afcede5a06cbc0178554608b13f9f751b0
 </pre><a href="#appendix-A.2.2.3-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -4187,12 +4180,12 @@ Output = e2ac40b634f36cccd8262b285adff7c9dcc19cd308564a5f4e581d1a853
 <div class="alignLeft art-text artwork" id="appendix-A.2.3-1">
 <pre>
 Seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
-3a3
+3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3
 KeyInfo = 74657374206b6579
-skSm = 792a10dcbd3ba4a52a054f6f39186623208695301e7adb9634b74709ab22d
-e402990eb143fd7c67ac66be75e0609705ecea800992aac8e19
-pkSm = 6c9d12723a5bbcf305522cc04b4a34d9ced2e12831826018ea7b5dcf54526
-47ad262113059bf0f6e4354319951b9d513c74f29cb0eec38c1
+skSm = 3d4cd3c711a8ff4642aefcd9972c4a72d261188814286a483815a77e444a2
+fb561f1748852f33a2f3bf7d86b0e27bf9fecad341bf286b116
+pkSm = 2094323c2495a91d411d8967759cbcd694aef26ea0b5005e9e29a07d19452
+b3b9b31d4ee14c51caa47f910e0553e402b050bf32011543c98
 </pre><a href="#appendix-A.2.3-1" class="pilcrow">¶</a>
 </div>
 <div id="test-vector-1-batch-size-1-5">
@@ -4208,17 +4201,17 @@ Blind = 64d37aed22a27f5191de1c1d69fadb899d8862b58eb4220029e036ec65fa
 3833a26e9388336361686ff1f83df55046504dfecad8549ba112
 BlindedElement = 161183c13c6cb33b0e4f9b7365f8c5c12d13c72f8b62d276ca0
 9368d093dce9b42198276b9e9d870ac392dda53efd28d1b7e6e8c060cdc42
-EvaluationElement = 06ec89dfde25bb2a6f0145ac84b91ac277b35de39ad1d6f4
-02a8e46414952ce0d9ea1311a4ece283e2b01558c7078b040cfaa40dd63b3e6c
-Proof = 66caee75bf2460429f620f6ad3e811d524cb8ddd848a435fc5d89af48877
-abf6506ee341a0b6f67c2d76cd021e5f3d1c9abe5aa9f0dce016da746135fedba2af
-41ed1d01659bfd6180d96bc1b7f320c0cb6926011ce392ecca748662564892bae665
-16acaac6ca39aadf6fcca95af406
+EvaluationElement = 54ea555d854bfcfe1c36cdf7739a0442a94a90ee2a9369f4
+d59f27e51535809bf78f899365c9d6e723a6ea49628c553f6123564eb0d0605b
+Proof = be0ecfd970cacf75cf9f34ad5f5c2f6857c017048b8fe013b948b1139efb
+e68e10412fd01f174c9761964b9061e25220fa79dccfc7031b1239a1f21d6a5ddd49
+757c535a26c4b6dfcfeef06cf3a60a7504c89eae4645187c0a7b81fd5d88fa32693c
+61b58b22ab9bc80f53f16f592602
 ProofRandomScalar = b1b748135d405ce48c6973401d9455bb8ccd18b01d0295c0
 627f67661200dbf9569f73fbb3925daa043a070e5f953d80bb464ea369e5522b
-Output = 4423f6dcc1740688ea201de57d76824d59cd6b859e1f9884b7eebc49b0b
-971358cf9cb075df1536a8ea31bcf55c3e31c2ba9cfa8efe54448d17091daeb9924e
-d
+Output = 52cee2e34fe3ae382e1dea686c8de69f04a4d9ecb87b96fb03629e40c4f
+343a4e7a30a614a674bf8414f47bf57974efd4edcf507eb0d5828b117a9e04f717cc
+f
 </pre><a href="#appendix-A.2.3.1-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -4236,17 +4229,17 @@ Blind = 64d37aed22a27f5191de1c1d69fadb899d8862b58eb4220029e036ec65fa
 3833a26e9388336361686ff1f83df55046504dfecad8549ba112
 BlindedElement = 12082b6a381c6c51e85d00f2a3d828cdeab3f5cb19a10b9c014
 c33826764ab7e7cfb8b4ff6f411bddb2d64e62a472af1cd816e5b712790c6
-EvaluationElement = f2919b7eedc05ab807c221fce2b12c4ae9e19e6909c47845
-64b690d1972d2994ca623f273afc67444d84ea40cbc58fcdab7945f321a52848
-Proof = a295677c54d1bc4286330907fc2490a7de163da26f9ce03a462a452fea42
-2b19ade296ba031359b3b6841e48455d20519ad01b4ac4f0b92e76d3cf16fbef0a3f
-72791a8401ef2d7081d361e502e96b2c60608b9fa566f43d4611c2f161d83aabef7f
-8017332b26ed1daaf80440772022
+EvaluationElement = f894d02299d051a78ff671acf77acc0f8aa1b5fa2c6f46b7
+2348ee3b6ede9e9522a42722dfd67e5db5aa8a65caa0e75f6107c576cf015c4d
+Proof = 3e1ee8d20471a6127c6c7fffa7c3fc505b3cee4762ed2c5cdafaf56a59ea
+e5283510da6eeffdcfe960dd7b5830ce5af1594d6ede1bcc6921ef098970280a0ef1
+4196668522c67c8d0f05f5baa0b9984c2aad1f16362d7fbad0883b08b1f1b36a38dd
+fcf9359a35c2bf09fd0042d2b12a
 ProofRandomScalar = b1b748135d405ce48c6973401d9455bb8ccd18b01d0295c0
 627f67661200dbf9569f73fbb3925daa043a070e5f953d80bb464ea369e5522b
-Output = 8691905500510843902c44bdd9730ab9dc3925aa58ff9dd42765a2baf63
-3126de0c3adb93bef5652f38e5827b6396e87643960163a560fc4ac9738c8de4e4a8
-d
+Output = 5f750ede71e2b80e45925789c71b33309ff32c01a81d05d4f6b19b13de8
+65ea8bcedd6e8d0bf6c6ca8882020fb1d179ec7c4dcc1aaeff0c33e642c9727ba371
+2
 </pre><a href="#appendix-A.2.3.2-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -4268,20 +4261,20 @@ BlindedElement = 161183c13c6cb33b0e4f9b7365f8c5c12d13c72f8b62d276ca0
 9368d093dce9b42198276b9e9d870ac392dda53efd28d1b7e6e8c060cdc42,fc8847
 d43fb4cea4e408f585661a8f2867533fa91d22155d3127a22f18d3b007add480f7d3
 00bca93fa47fe87ae06a57b7d0f0d4c30b12f0
-EvaluationElement = 06ec89dfde25bb2a6f0145ac84b91ac277b35de39ad1d6f4
-02a8e46414952ce0d9ea1311a4ece283e2b01558c7078b040cfaa40dd63b3e6c,2e7
-4c626d07de49b1c8c21d87120fd78105f485e36816af9bde3e3efbeef76815326062
-fd333925b66c5ce5a20f100bf01770c16609f990a
-Proof = fd94db736f97ea4efe9d0d4ad2933072697a6bbeb32834057b23edf7c700
-9f011dfa72157f05d2a507c2bbf0b54cad99ab99de05921c021fda7d70e65bcecdb0
-5f9a30154127ace983c74d10fd910b554c5e95f6bd1565fd1f3dbbe3c523ece5c72d
-57a559b7be1368c4786db4a3c910
+EvaluationElement = 54ea555d854bfcfe1c36cdf7739a0442a94a90ee2a9369f4
+d59f27e51535809bf78f899365c9d6e723a6ea49628c553f6123564eb0d0605b,2c9
+621cdf875fc6a2c6d9efe62a3518b3bd9d0e44a7eab9352a4de94b45b6c103e3a2cf
+22d5621a51661f7c19dd6ef5922f25acb2e9bb5e1
+Proof = 9d949521a609be7d2c2b31e949dada02ebed264aad825857224180a3c6a9
+863515b6044eab07cb6eb9734ec3d4c0448fb0ec49f38c1ac337f1d17eced9071e71
+fd58dc4425307c1e9907bc5bb51b8a978689a6eba812e162617accf08d7817c320ec
+6354647ad2f9e8f3abf742347724
 ProofRandomScalar = 63798726803c9451ba405f00ef3acb633ddf0c420574a2ec
 6cbf28f840800e355c9fbaac10699686de2724ed22e797a00f3bd93d105a7f23
-Output = 4423f6dcc1740688ea201de57d76824d59cd6b859e1f9884b7eebc49b0b
-971358cf9cb075df1536a8ea31bcf55c3e31c2ba9cfa8efe54448d17091daeb9924e
-d,8691905500510843902c44bdd9730ab9dc3925aa58ff9dd42765a2baf633126de0
-c3adb93bef5652f38e5827b6396e87643960163a560fc4ac9738c8de4e4a8d
+Output = 52cee2e34fe3ae382e1dea686c8de69f04a4d9ecb87b96fb03629e40c4f
+343a4e7a30a614a674bf8414f47bf57974efd4edcf507eb0d5828b117a9e04f717cc
+f,5f750ede71e2b80e45925789c71b33309ff32c01a81d05d4f6b19b13de865ea8bc
+edd6e8d0bf6c6ca8882020fb1d179ec7c4dcc1aaeff0c33e642c9727ba3712
 </pre><a href="#appendix-A.2.3.3-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -4557,10 +4550,10 @@ Output = 193a92520bd8fd1f37accb918040a57108daa110dc4f659abe212636d24
 <div class="alignLeft art-text artwork" id="appendix-A.4.1-1">
 <pre>
 Seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
-3a3
+3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3
 KeyInfo = 74657374206b6579
-skSm = dfe7ddc41a4646901184f2b432616c8ba6d452f9bcd0c4f75a5150ef2b2ed
-02ef40b8b92f60ae591bcabd72a6518f188
+skSm = b16c4f85142a577411d0621516c6c48b928363575a9b27dca10e553de74af
+0c2096ed9deed1792ee9665dcbcd4bd7c35
 </pre><a href="#appendix-A.4.1-1" class="pilcrow">¶</a>
 </div>
 <div id="test-vector-1-batch-size-1-9">
@@ -4575,10 +4568,10 @@ Blind = 504650f53df8f16f6861633388936ea23338fa65ec36e0290022b48eb562
 889d89dbfa691d1cde91517fa222ed7ad364
 BlindedElement = 02a36bc90e6db34096346eaf8b7bc40ee1113582155ad379700
 3ce614c835a874343701d3f2debbd80d97cbe45de6e5f1f
-EvaluationElement = 03af2a4fc94770d7a7bf3187ca9cc4faf3732049eded2442
-ee50fbddda58b70ae2999366f72498cdbc43e6f2fc184afe30
-Output = ed84ad3f31a552f0456e58935fcc0a3039db42e7f356dcb32aa6d487b6b
-815a07d5813641fb1398c03ddab5763874357
+EvaluationElement = 033b7c36005ca1d8bb9e18198d6b379c662739bd65f716fc
+f3fdb384d61624b96c4ad3911b861ad8b1b24e85acc1613b05
+Output = 91961a85dca85527b88ac94c1642c449e944ac463b9d1696bcd2efe6d38
+f9cc8a2480f57b45536f3ce8062e8e54f16fb
 </pre><a href="#appendix-A.4.1.1-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -4595,10 +4588,10 @@ Blind = 504650f53df8f16f6861633388936ea23338fa65ec36e0290022b48eb562
 889d89dbfa691d1cde91517fa222ed7ad364
 BlindedElement = 02def6f418e3484f67a124a2ce1bfb19de7a4af568ede6a1ebb
 2733882510ddd43d05f2b1ab5187936a55e50a847a8b900
-EvaluationElement = 034e9b9a2960b536f2ef47d8608b21597ba400d5abfa1825
-fd21c36b75f927f396bf3716c96129d1fa4a77fa1d479c8d7b
-Output = dd4f29da869ab9355d60617b60da0991e22aaab243a3460601e48b07585
-9d1c526d36597326f1b985778f781a1682e75
+EvaluationElement = 022317c418d5f836d4fcab18b887111a54b5015b54f4fcae
+e8b2edc7e79b1c7f24e0a1a8a548874679c8705a547b34447d
+Output = aa385f328a0ed4dd9af751f63d27d10a41226ec095a4eec5237071579ac
+da69ccbc0d0c8a2ab4d033934e7987f2b10d4
 </pre><a href="#appendix-A.4.1.2-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -4613,12 +4606,12 @@ Output = dd4f29da869ab9355d60617b60da0991e22aaab243a3460601e48b07585
 <div class="alignLeft art-text artwork" id="appendix-A.4.2-1">
 <pre>
 Seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
-3a3
+3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3
 KeyInfo = 74657374206b6579
-skSm = 051646b9e6e7a71ae27c1e1d0b87b4381db6d3595eeeb1adb41579adbf992
-f4278f9016eafc944edaa2b43183581779d
-pkSm = 031d689686c611991b55f1a1d8f4305ccd6cb719446f660a30db61b7aa87b
-46acf59b7c0d4a9077b3da21c25dd482229a0
+skSm = afc3a71e59eaa2684d4da6f01f41977471e3efeefb11454168f9fecf384cf
+f934332355d631f83d3aec9bd36a940be5a
+pkSm = 02139a4c608f418c458409bbc9970796bd784cf5a4251578276d5a005706a
+130c75e4d440e463fa3ca9bd56394a00ae470
 </pre><a href="#appendix-A.4.2-1" class="pilcrow">¶</a>
 </div>
 <div id="test-vector-1-batch-size-1-10">
@@ -4633,15 +4626,15 @@ Blind = 504650f53df8f16f6861633388936ea23338fa65ec36e0290022b48eb562
 889d89dbfa691d1cde91517fa222ed7ad364
 BlindedElement = 02d338c05cbecb82de13d6700f09cb61190543a7b7e2c6cd4fc
 a56887e564ea82653b27fdad383995ea6d02cf26d0e24d9
-EvaluationElement = 02a7bba589b3e8672aa19e8fd258de2e6aae20101c8d7612
-46de97a6b5ee9cf105febce4327a326255a3c604f63f600ef6
-Proof = bfc6cf3859127f5fe25548859856d6b7fa1c7459f0ba5712a806fc091a30
-00c42d8ba34ff45f32a52e40533efd2a03bc87f3bf4f9f58028297ccb9ccb18ae718
-2bcd1ef239df77e3be65ef147f3acf8bc9cbfc5524b702263414f043e3b7ca2e
+EvaluationElement = 0202df7145c1fb3cf57fd4bc062d58d06034a1ae63b02b91
+ba4f57f57187f98f7cf026b5bc9a4ea1aa6e40b94b8f53a826
+Proof = 23e19b916ba705bd55d541dc11af23a99d2754ac46aa9b8158f3274d69b4
+75988a377e4ded17a319fbdc2ac1391cb4ac74b59787298ee213976accea1cada09b
+aeb5303a1b133fff96a08562864d19751a57144d3477e4c59935222f29c3e728
 ProofRandomScalar = 803d955f0e073a04aa5d92b3fb739f56f9db001266677f62
 c095021db018cd8cbb55941d4073698ce45c405d1348b7b1
-Output = 3333230886b562ffb8329a8be08fea8025755372817ec969d114d1203d0
-26b4a622beab60220bf19078bca35a529b35c
+Output = 5e6261bfb3d397c8f90dfda0782a8450c70013489cffe8f60c205843d55
+dd350da52d6fb2e96d9c779e083c5acea67b4
 </pre><a href="#appendix-A.4.2.1-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -4658,15 +4651,15 @@ Blind = 504650f53df8f16f6861633388936ea23338fa65ec36e0290022b48eb562
 889d89dbfa691d1cde91517fa222ed7ad364
 BlindedElement = 02f27469e059886f221be5f2cca03d2bdc61e55221721c3b3e5
 6fc012e36d31ae5f8dc058109591556a6dbd3a8c69c433b
-EvaluationElement = 03f16f903947035400e96b7f531a38d4a07ac89a80f89d86
-a1bf089c525a92c7f4733729ca30c56ce78b1ab4f7d92db8b4
-Proof = d005d6daaad7571414c1e0c75f7e57f2113ca9f4604e84bc90f9be52da89
-6fff3bee496dcde2a578ae9df315032585f801fb21c6080ac05672b291e575a40295
-b306d967717b28e08fcc8ad1cab47845d16af73b3e643ddcc191208e71c64630
+EvaluationElement = 0342050f2c95bc49cf48442703bb772335113dd9c54b6280
+3b2cfc3a2aed78030a6a27fa088bf491c290c7e905a3a1c781
+Proof = 13a5a0ea31ce00a35d5e90cd2d00ff0b830d3f87f23b757fa547a592b7e9
+be955528d81852869fec6d2c986a75c09f628bf3ff14d18a5c7a8b4b6bb22dced106
+34590314c4415b5f420257694052832977dfaac46bd119e8ef8c3126f3a0d312
 ProofRandomScalar = 803d955f0e073a04aa5d92b3fb739f56f9db001266677f62
 c095021db018cd8cbb55941d4073698ce45c405d1348b7b1
-Output = b91c70ea3d4d62ba922eb8a7d03809a441e1c3c7af915cbc2226f485213
-e895942cd0f8580e6d99f82221e66c40d274f
+Output = 0a3b70080afe17322a0c15411dcb7b9d64ca8a6730174446c2407499c2c
+44f2a029ab7a48d1dbebbc4507539c2a2ee35
 </pre><a href="#appendix-A.4.2.2-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -4686,18 +4679,18 @@ BlindedElement = 02d338c05cbecb82de13d6700f09cb61190543a7b7e2c6cd4fc
 a56887e564ea82653b27fdad383995ea6d02cf26d0e24d9,02fa02470d7f151018b4
 1e82223c32fad824de6ad4b5ce9f8e9f98083c9a726de9a1fc39d7a0cb6f4f188dd9
 cea01474cd
-EvaluationElement = 02a7bba589b3e8672aa19e8fd258de2e6aae20101c8d7612
-46de97a6b5ee9cf105febce4327a326255a3c604f63f600ef6,028e9e115625ff4c2
-f07bf87ce3fd73fc77994a7a0c1df03d2a630a3d845930e2e63a165b114d98fe34e6
-1b68d23c0b50a
-Proof = 6d8dcbd2fc95550a02211fb78afd013933f307d21e7d855b0b1ed0af7807
-6d8137ad8b0a1bfa05676d325249c1dbb9a52bd81b1c2b7b0efc77cf7b278e1c947f
-6283f1d4c513053fc0ad19e026fb0c30654b53d9cea4b87b037271b5d2e2d0ea
+EvaluationElement = 0202df7145c1fb3cf57fd4bc062d58d06034a1ae63b02b91
+ba4f57f57187f98f7cf026b5bc9a4ea1aa6e40b94b8f53a826,03c4ee254c71a5081
+f965280a7db1d5882dbeb1ab5ade0400e7007b730a87cfb07ae5f651572714633ec8
+26c52705cb6ec
+Proof = d5aeca08e8f2a424606fbec6bd08060310883e639210d1d4a659b0ffce29
+7f651d89b542335bc4739204d76cd97d5a7491af9e63418a559f36b5e72fa1867a45
+4fae36bf3074d0ad5dff69eb1f6ecd19083a271fa30f87c5e854057d6f98e378
 ProofRandomScalar = a097e722ed2427de86966910acba9f5c350e8040f828bf6c
 eca27405420cdf3d63cb3aef005f40ba51943c8026877963
-Output = 3333230886b562ffb8329a8be08fea8025755372817ec969d114d1203d0
-26b4a622beab60220bf19078bca35a529b35c,b91c70ea3d4d62ba922eb8a7d03809
-a441e1c3c7af915cbc2226f485213e895942cd0f8580e6d99f82221e66c40d274f
+Output = 5e6261bfb3d397c8f90dfda0782a8450c70013489cffe8f60c205843d55
+dd350da52d6fb2e96d9c779e083c5acea67b4,0a3b70080afe17322a0c15411dcb7b
+9d64ca8a6730174446c2407499c2c44f2a029ab7a48d1dbebbc4507539c2a2ee35
 </pre><a href="#appendix-A.4.2.3-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -4712,12 +4705,12 @@ a441e1c3c7af915cbc2226f485213e895942cd0f8580e6d99f82221e66c40d274f
 <div class="alignLeft art-text artwork" id="appendix-A.4.3-1">
 <pre>
 Seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
-3a3
+3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3
 KeyInfo = 74657374206b6579
-skSm = 5b2690d6954b8fbb159f19935d64133f12770c00b68422559c65431942d72
-1ff79d47d7a75906c30b7818ec0f38b7fb2
-pkSm = 02f00f0f1de81e5d6cf18140d4926ffdc9b1898c48dc49657ae36eb1e45de
-b8b951aaf1f10c82d2eaa6d02aafa3f10d2b6
+skSm = 79f09d6067bc438dcecf3299af6c38f0045681a28658a73162a5c6f1700aa
+aca21c27b9711d84e38b56fd81710488a5e
+pkSm = 023d5a2f4cf07f823e317a852935d59f4d1e426ed41d87eab1734d660818a
+fe5ede9713836d16e31edcb55ecbad35f3c9e
 </pre><a href="#appendix-A.4.3-1" class="pilcrow">¶</a>
 </div>
 <div id="test-vector-1-batch-size-1-11">
@@ -4733,15 +4726,15 @@ Blind = 504650f53df8f16f6861633388936ea23338fa65ec36e0290022b48eb562
 889d89dbfa691d1cde91517fa222ed7ad364
 BlindedElement = 03859b36b95e6564faa85cd3801175eda2949707f6aa0640ad0
 93cbf8ad2f58e762f08b56b2a1b42a64953aaf49cbf1ae3
-EvaluationElement = 0220710e2e00306453f5b4f574cb6a512453f35c45080d09
-373e190c19ce5b185914fbf36582d7e0754bb7c8b683205b91
-Proof = 82a17ef41c8b57f1e3122311b4d5cd39a63df0f67443ef18d961f9b659c1
-601ced8d3c64b294f604319ca80230380d437a49c7af0d620e22116669c008ebb767
-d90283d573b49cdb49e3725889620924c2c4b047a2a6225a3ba27e640ebddd33
+EvaluationElement = 0350c1f39f77834618ff2f98b00ad184f65e83c5f04b469b
+4f042b62c9c46cd9e50dfc946f5ee9a2a53c86824197d42dc4
+Proof = cd845a3c6329e3d1f5c9e6a2985c613fc1f71168589eac679387bed21814
+1aa2e1b92692ff3224eb30f4f17569a53ae0f302f0218cece17ac09b58663685847b
+df719c073ad97f0fbee5acb53c175ece3c96dad6d7b926a4c2439d9a9ced9d45
 ProofRandomScalar = 803d955f0e073a04aa5d92b3fb739f56f9db001266677f62
 c095021db018cd8cbb55941d4073698ce45c405d1348b7b1
-Output = 0188653cfec38119a6c7dd7948b0f0720460b4310e40824e048bf82a165
-27303ed449a08caf84272c3bbc972ede797df
+Output = 6a7b0005c9a93a50b0e8e5b70d5a903610731ca1e6dc912ed18c2c7e840
+e9b4fd0734e3f070936d9b816132c9eafaa62
 </pre><a href="#appendix-A.4.3.1-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -4759,15 +4752,15 @@ Blind = 504650f53df8f16f6861633388936ea23338fa65ec36e0290022b48eb562
 889d89dbfa691d1cde91517fa222ed7ad364
 BlindedElement = 03f7efcb4aaf000263369d8a0621cb96b81b3206e99876de2a0
 0699ed4c45acf3969cd6e2319215395955d3f8d8cc1c712
-EvaluationElement = 034993c818369927e74b77c400376fd1ae29b6ac6c6ddb77
-6cf10e4fbc487826531b3cf0b7c8ca4d92c7af90c9def85ce6
-Proof = 693471b5dff0cd6a5c00ea34d7bf127b2795164e3bdb5f39a1e5edfbd13e
-443bc516061cd5b8449a473c2ceeccada9f3e5b57302e3d7bc5e28d38d6e3a3056e1
-e73b6cc030f5180f8a1ffa45aa923ee66d2ad0a07b500f2acc7fb99b5506465c
+EvaluationElement = 02050d70ca554bde7caadbcbc94282ffdf99ae7a86097a88
+2c585222d200cb08644fa63500dbe75e41027c36bb4eb902ae
+Proof = 6900d5f3c87c4cb64d976130ba4530153de4be61975f4151baea07b1f9bf
+49b420b1639be9a96d68a40a42da4cf3da594449ba20a1868b9626a39ca9cd6ee609
+5a7435f1b0bfd83dc4baa15f375bf0bed3e7974a05d87bc4040a608bd6ad7216
 ProofRandomScalar = 803d955f0e073a04aa5d92b3fb739f56f9db001266677f62
 c095021db018cd8cbb55941d4073698ce45c405d1348b7b1
-Output = ff2a527a21cc43b251a567382677f078c6e356336aec069dea8ba369953
-43ca3b33bb5d6cf15be4d31a7e6d75b30d3f5
+Output = fcc8d222669da6b61090d961a2c6cce490f0f798d72b6b1abbe9c12a087
+45f41b43c29cdca294ddc72d1e207360cffe4
 </pre><a href="#appendix-A.4.3.2-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -4788,18 +4781,18 @@ BlindedElement = 03859b36b95e6564faa85cd3801175eda2949707f6aa0640ad0
 93cbf8ad2f58e762f08b56b2a1b42a64953aaf49cbf1ae3,021a65d618d645f1a20b
 c33b06deaa7e73d6d634c8a56a3d02b53a732b69a5c53c5a207ea33d5afdcde9a22d
 59726bce51
-EvaluationElement = 0220710e2e00306453f5b4f574cb6a512453f35c45080d09
-373e190c19ce5b185914fbf36582d7e0754bb7c8b683205b91,02017657b315ec65e
-f861505e596c8645d94685dd7602cdd092a8f1c1c0194a5d0485fe47d071d972ab51
-4370174cc23f5
-Proof = 4a0b2fe96d5b2a046a0447fe079b77859ef11a39a3520d6ff7c626aad9b4
-73b724fb0cf188974ec961710a62162a83e97e0baa9eeada73397032d928b3e97b1e
-a92ad9458208302be3681b8ba78bcc17745bac00f84e0fdc98a6a8cba009c080
+EvaluationElement = 0350c1f39f77834618ff2f98b00ad184f65e83c5f04b469b
+4f042b62c9c46cd9e50dfc946f5ee9a2a53c86824197d42dc4,03c55d2575fce00cd
+49069be4e562af213a39f32e56fd4eaabc67e5a6cba01a7121ce7f99849023a9ee88
+e9aa8b5751651
+Proof = 90b15a1b120b904deac1cdafda3dfef14764a74397d99e63c0f9e0694ee0
+17b1d3bce7c465cf663b3a958e6cca8fd276ae7ee5f1a754e4dbcc6cc6ffedb154a2
+0e2fa7b3535d1a2cde60137a386c46465431d64edc311e2970ff7b1511e68d4b
 ProofRandomScalar = a097e722ed2427de86966910acba9f5c350e8040f828bf6c
 eca27405420cdf3d63cb3aef005f40ba51943c8026877963
-Output = 0188653cfec38119a6c7dd7948b0f0720460b4310e40824e048bf82a165
-27303ed449a08caf84272c3bbc972ede797df,ff2a527a21cc43b251a567382677f0
-78c6e356336aec069dea8ba36995343ca3b33bb5d6cf15be4d31a7e6d75b30d3f5
+Output = 6a7b0005c9a93a50b0e8e5b70d5a903610731ca1e6dc912ed18c2c7e840
+e9b4fd0734e3f070936d9b816132c9eafaa62,fcc8d222669da6b61090d961a2c6cc
+e490f0f798d72b6b1abbe9c12a08745f41b43c29cdca294ddc72d1e207360cffe4
 </pre><a href="#appendix-A.4.3.3-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -4821,11 +4814,12 @@ Output = 0188653cfec38119a6c7dd7948b0f0720460b4310e40824e048bf82a165
 <div class="alignLeft art-text artwork" id="appendix-A.5.1-1">
 <pre>
 Seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
+3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
 3a3
 KeyInfo = 74657374206b6579
-skSm = 0153441b8faedb0340439036d6aed06d1217b34c42f17f8db4c5cc610a4a9
-55d698a688831b16d0dc7713a1aa3611ec60703bffc7dc9c84e3ed673b3dbe1d5fcc
-ea6
+skSm = 00df1c651aa393bcd50c7ecf06f8472706dcb2c41ceadca770569d10be389
+0f7102a720e36fc7b84fca500d76715b9356f7b4bdca20aff5ef4cd7bb344b0b2c01
+d98
 </pre><a href="#appendix-A.5.1-1" class="pilcrow">¶</a>
 </div>
 <div id="test-vector-1-batch-size-1-12">
@@ -4842,12 +4836,12 @@ d364
 BlindedElement = 0300e78bf846b0e1e1a3c320e353d758583cd876df56100a3a1
 e62bacba470fa6e0991be1be80b721c50c5fd0c672ba764457acc18c6200704e9294
 fbf28859d916351
-EvaluationElement = 030166371cf827cb2fb9b581f97907121a16e2dc5d8b10ce
-9f0ede7f7d76a0d047657735e8ad07bcda824907b3e5479bd72cdef6b839b967ba5c
-58b118b84d26f2ba07
-Output = 26232de6fff83f812adadadb6cc05d7bbeee5dca043dbb16b03488abb99
-81d0a1ef4351fad52dbd7e759649af393348f7b9717566c19a6b8856284d69375c80
-9
+EvaluationElement = 0301d6fdc5bdc3434afce77ff15072fcd99b83e608718bac
+4d05539e7e2bae12dd5475a0de4938eb3be5c1bf37f0b2c99daa9ab84cadbf068d7b
+18a5fca8de7a99790e
+Output = e18fc074d9c79168e9ce9f386969a8a999087b2b84136c952ffac454674
+f92475cb78b33fe347762924bfaae7182bb9a8a043a157c862d1d93ca12ff16ad205
+5
 </pre><a href="#appendix-A.5.1.1-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -4866,12 +4860,12 @@ d364
 BlindedElement = 0300c28e57e74361d87e0c1874e5f7cc1cc796d61f9cad50427
 cf54655cdb455613368d42b27f94bf66f59f53c816db3e95e68e1b113443d66a99b3
 693bab88afb556b
-EvaluationElement = 0301ad453607e12d0cc11a3359332a40c3a254eaa1afc642
-96528d55bed07ba322e72e22cf3bcb50570fd913cb54f7f09c17aff8787af75f6a7f
-af5640cbb2d9620a6e
-Output = ad1f76ef939042175e007738906ac0336bbd1d51e287ebaa66901abdd32
-4ea3ffa40bfc5a68e7939c2845e0fd37a5a6e76dadb9907c6cc8579629757fd4d04b
-a
+EvaluationElement = 0301bea09ae35a633a769a3af78f491325e7d66ed0939774
+df74faab4e50e344031a9ec28d8ccf95997b8a300a42bee00539bfc07c3355904278
+57d2fc6e2e5d1c0b8b
+Output = 07c31b9b01c59b3d8367ba70e521103a3b41e544613c372b445b55e4012
+4093e060b48a15c7dfbee5f00e147e180a676fc1e3343453175f7ed22ba99a1f96a2
+d
 </pre><a href="#appendix-A.5.1.2-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -4886,14 +4880,15 @@ a
 <div class="alignLeft art-text artwork" id="appendix-A.5.2-1">
 <pre>
 Seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
+3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
 3a3
 KeyInfo = 74657374206b6579
-skSm = 015c7fc1b4a0b1390925bae915bd9f3d72009d44d9241b962428aad5d13f2
-2803311e7102632a39addc61ea440810222715c9d2f61f03ea424ec9ab1fe5e31cf9
-238
-pkSm = 0301505d646f6e4c9102451eb39730c4ba1c4087618641edbdba4a60896b0
-7fd0c9414ce553cbf25b81dfcca50a8f6724ab7a2bc4d0cf736967a287bb6084cc06
-78ac0
+skSm = 015cc2356215d2d35d84f0ade8633d8da044db46b5e7eee56b60b956e9f68
+4a8a751fbf7de3d17fa9567c93b8c951030ec23ca1e4b88c0686a941d2cf809081c5
+86a
+pkSm = 0301b9339969103060f1761f4b439a88b71ba0c28a95cc12dbe051cbeffaa
+adc1305edbf11e0b8927a59fa2cd436f1a780d0d4586966d5964195fcee03d28b64b
+fec5c
 </pre><a href="#appendix-A.5.2-1" class="pilcrow">¶</a>
 </div>
 <div id="test-vector-1-batch-size-1-13">
@@ -4910,19 +4905,19 @@ d364
 BlindedElement = 0301d6e4fb545e043ddb6aee5d5ceeee1b44102615ab04430c2
 7dd0f56988dedcb1df32ef384f160e0e76e718605f14f3f582f9357553d153b99679
 5b4b3628a4f6380
-EvaluationElement = 03013fdeaf887f3d3d283a79e696a54b66ff0edcb559265e
-204a958acf840e0930cc147e2a6835148d8199eebc26c03e9394c9762a1c991dde40
-bca0f8ca003eefb045
-Proof = 0077fcc8ec6d059d7759b0a61f871e7c1dadc65333502e09a51994328f79
-e5bda3357b9a4f410a1760a3612c2f8f27cb7cb032951c047cc66da60da583df7b24
-7edd0188e5eb99c71799af1d80d643af16ffa1545acd9e9233fbb370455b10eb257e
-a12a1667c1b4ee5b0ab7c93d50ae89602006960f083ca9adc4f6276c0ad60440393c
+EvaluationElement = 0300397942f9cb70ba07d8c2f13c5d89d28dd555ee24111b
+2fbefe0669c3f1dfaab36a650178b8d8aa80cba37154002085c8ca41b769645a5b92
+ab177231b7adad246d
+Proof = 001d875491db0ff0dd080c000bf5d9b4e97febb68e1700847da591da5c6a
+5691987e07d111d578fe83b7deaed73800f376a391b278353ea3985033347ecf5866
+c5a201794d493edbc971c7f3700d56cf093f1f8b1bd4767423bfdd3474092b9abf60
+b2341b17c4e82c85f28702be03d172e60e66213a8e607516f576be20d2ebcf574cce
 ProofRandomScalar = 015e80ae32363b32cb76ad4b95a5a34e46bb803d955f0e07
 3a04aa5d92b3fb739f56f9db001266677f62c095021db018cd8cbb55941d4073698c
 e45c405d1348b7b1
-Output = 5e003d9b2fb540b3d4bab5fedd154912246da1ee5e557afd8f56415faa1
-a0fadff6517da802ee254437e4f60907b4cda146e7ba19e249eef7be405549f62954
-b
+Output = 0bf9f06d0b9dbbe112b7c448fc8e50e89a0c24034cd8eae61053ccf7d26
+0f7bfe89e923cc393f3b61d9b8aa6640507c64f4b7254d03834596c45660cdc3a8ad
+4
 </pre><a href="#appendix-A.5.2.1-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -4941,19 +4936,19 @@ d364
 BlindedElement = 03005b05e656cb609ce5ff5faf063bb746d662d67bbd07c0626
 38396f52f0392180cf2365cabb0ece8e19048961d35eeae5d5fa872328dce98df076
 ee154dd191c615e
-EvaluationElement = 0301b19fcf482b1fff04754e282292ed736c5f0aa080d4f4
-2663cd3a416c6596f03129e8e096d8671fe5b0d19838312c511d2ce08d431e43e3ef
-06199d8cab7426238d
-Proof = 01ec9fece444caa6a57032e8963df0e945286f88fbdf233fb5101f0924f7
-ea89c47023f5f72f240e61991fd33a299b5b38c45a5e2dd1a67b072e59dfe86708a3
-59c701e38d383c60cf6969463bcf13251bedad47b7941f52e409a3591398e2792441
-0b18a301c0e19f527cad504fa08388050ac634e1b05c5216d337742f2754e1fc502f
+EvaluationElement = 02008383895def4559191da26c3dd79fdf374ac6ff3c8f67
+b58bbf9e1d155c4af557fb8b3ee3efefb5b904c38dc04bf026ae48b8e6e658350724
+66adef43f14b1fa111
+Proof = 01e6264d0c12af0c856930c71750893cf7c7f018642b53974b827e263a88
+5614e612934a83ad81647c77813857745ef57693359a83e6ece547e3fad97df0f195
+66c00045a989202905671fb44bcc54399b03b19cbd2912755627d0f29fc5ce7ee684
+9c0b159ed1010393796dff4697c2be5ebcdbc70e0c54d489ebbd9f87306eaaf42d2d
 ProofRandomScalar = 015e80ae32363b32cb76ad4b95a5a34e46bb803d955f0e07
 3a04aa5d92b3fb739f56f9db001266677f62c095021db018cd8cbb55941d4073698c
 e45c405d1348b7b1
-Output = fa15eebba81ecf40954f7135cb76f69ef22c6bae394d1a4362f9b03066b
-54b6604d39f2e53369ca6762a3d9787e230e832aa85955af40ecb8deebb009a8cf47
-4
+Output = c3e58e1c8c5677f64cf36efd4f94fd4e29a297f62db161cb2dbb8388b8b
+4536fcd8696eb1474da382e3ab8eea9e8d659186314658a352fab40e80cf4d2663db
+3
 </pre><a href="#appendix-A.5.2.2-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -4976,22 +4971,22 @@ BlindedElement = 0301d6e4fb545e043ddb6aee5d5ceeee1b44102615ab04430c2
 5b4b3628a4f6380,0301403b597538b939b450c93586ba275f9711ba07e42364bac1
 d5769c6824a8b55be6f9a536df46d952b11ab2188363b3d6737635d9543d4dba14a6
 e19421b9245bf5
-EvaluationElement = 03013fdeaf887f3d3d283a79e696a54b66ff0edcb559265e
-204a958acf840e0930cc147e2a6835148d8199eebc26c03e9394c9762a1c991dde40
-bca0f8ca003eefb045,03001f96424497e38c46c904978c2fa1636c5c3dd2e634a85
-d8a7265977c5dce1f02c7e6c118479f0751767b91a39cce6561998258591b5d7c1bb
-02445a9e08e4f3e8d
-Proof = 00b4d215c8405e57c7a4b53398caf55f1f1623aaeb22408ddb9ea2913090
-9b3f95dbb1ff366e81e86e918f9f2fd8b80dbb344cd498c9499d112905e585417e00
-68c600fe5dea18b389ef6c4cc062935607b8ccbbb9a84fba3143868a3e8a58efa0bf
-6ca642804d09dc06e980f64837811227c4267b217f1099a4e28b0854f4e5ee659796
+EvaluationElement = 0300397942f9cb70ba07d8c2f13c5d89d28dd555ee24111b
+2fbefe0669c3f1dfaab36a650178b8d8aa80cba37154002085c8ca41b769645a5b92
+ab177231b7adad246d,0301a2ea923601bdacd247156627e341995a484a445434d32
+da913e71ca2d36d094a34ea02306d3465b45f5a292196db531618348a874b7d58f5d
+d3e67fb2c0f5dfaf5
+Proof = 0054b2e651d10311cf74226d4b9cb283f1ae6bbde586e3e2621b20d935a2
+0d9d73773a13bd8539a75dffa7124e94aca6b588fc7d2cf5edaac07af996ddf1a50b
+829a003ff316174d7e84b123af2476332842133339a464e833a69b8bc4c8ecb2332a
+0f828752787892423753caf5d415c649195f756ad52bdc94ea196775b21d192627d8
 ProofRandomScalar = 01ec21c7bb69b0734cb48dfd68433dd93b0fa097e722ed24
 27de86966910acba9f5c350e8040f828bf6ceca27405420cdf3d63cb3aef005f40ba
 51943c8026877963
-Output = 5e003d9b2fb540b3d4bab5fedd154912246da1ee5e557afd8f56415faa1
-a0fadff6517da802ee254437e4f60907b4cda146e7ba19e249eef7be405549f62954
-b,fa15eebba81ecf40954f7135cb76f69ef22c6bae394d1a4362f9b03066b54b6604
-d39f2e53369ca6762a3d9787e230e832aa85955af40ecb8deebb009a8cf474
+Output = 0bf9f06d0b9dbbe112b7c448fc8e50e89a0c24034cd8eae61053ccf7d26
+0f7bfe89e923cc393f3b61d9b8aa6640507c64f4b7254d03834596c45660cdc3a8ad
+4,c3e58e1c8c5677f64cf36efd4f94fd4e29a297f62db161cb2dbb8388b8b4536fcd
+8696eb1474da382e3ab8eea9e8d659186314658a352fab40e80cf4d2663db3
 </pre><a href="#appendix-A.5.2.3-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -5006,14 +5001,15 @@ d39f2e53369ca6762a3d9787e230e832aa85955af40ecb8deebb009a8cf474
 <div class="alignLeft art-text artwork" id="appendix-A.5.3-1">
 <pre>
 Seed = a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
+3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a
 3a3
 KeyInfo = 74657374206b6579
-skSm = 014893130030ce69cf714f536498a02ff6b396888f9bb507985c32928c442
-7d6d39de10ef509aca4240e8569e3a88debc0d392e3361bcd934cb9bdd59e339dff7
-b27
-pkSm = 0301de8ceb9ffe9237b1bba87c320ea0bebcfc3447fe6f278065c6c69886d
-692d1126b79b6844f829940ace9b52a5e26882cf7cbc9e57503d4cca3cd834584729
-f812a
+skSm = 01f494b76f11776ffc15f6b5613110e7db8e4a6a87721714c1e86289c192b
+1ec97d358eb0e2c445c2475f775e7b389ae35c5001ce337ae65ef5c67c7b22ca3d90
+ce0
+pkSm = 0300cb19d7aadaf3f2819ceba73a41e998eb5103b2d95e4d077b3c3b5a848
+e9a8e782a259066a43b9fc3503d9a38c79ccd59df77bed87cc5d312bb42cbe381d01
+27d3d
 </pre><a href="#appendix-A.5.3-1" class="pilcrow">¶</a>
 </div>
 <div id="test-vector-1-batch-size-1-14">
@@ -5031,19 +5027,19 @@ d364
 BlindedElement = 020095cff9d7ecf65bdfee4ea92d6e748d60b02de34ad98094f
 82e25d33a8bf50138ccc2cc633556f1a97d7ea9438cbb394df612f041c485a515849
 d5ebb2238f2f0e2
-EvaluationElement = 0301408e9c5be3ffcc1c16e5ae8f8aa68446223b0804b119
-62e856af5a6d1c65ebbb5db7278c21db4e8cc06d89a35b6804fb1738a295b691638a
-f77aa1327253f26d01
-Proof = 0106a89a61eee9dd2417d2849a8e2167bc5f56e3aed5a3ff23e22511fa1b
-37a29ed44d1bbfd6907d99cfbc558a56aec709282415a864a281e49dc53792a4a638
-a0660034306d64be12a94dcea5a6d664cf76681911c8b9a84d49bf12d4893307ec14
-436bd05f791f82446c0de4be6c582d373627b51886f76c4788256e3da7ec8fa18a86
+EvaluationElement = 0200c263a592b15ac199c6a2774aad95f755f921478b7e1a
+cbe93dac76f08e66c04b92715d187a453c9860aa542801ce86ca01c0a1292afb5ed4
+43e21b26a7a0d94f8e
+Proof = 01574b60ace43c26421cadd5bb964b68d24e08cb5bc87aa84d16dee6cdc6
+c3ef6df301df2c742f17de2e37fdffd84fe5b8abd86f10a0a35e149490a85eb2f31a
+072800186a683eacbf7a72d7586b0f86b8bab0b808eeb7ccf0d2f244bbec2a588179
+8fcd6dfd9f7500a7cee48620d58472b973a5aad9f4180fae3340b30ff831cc12bdc4
 ProofRandomScalar = 015e80ae32363b32cb76ad4b95a5a34e46bb803d955f0e07
 3a04aa5d92b3fb739f56f9db001266677f62c095021db018cd8cbb55941d4073698c
 e45c405d1348b7b1
-Output = 808ae5b87662eaaf0b39151dd85991b94c96ef214cb14a68bf5c1439548
-82d330da8953a80eea20788e552bc8bbbfff3100e89f9d6e341197b122c46a208733
-b
+Output = 062781972249cc88fc2d8776ab44d549d3b0bd1f448ae4f92ef86e26a2b
+48c4e0915b8f2906dbe9eb768745eb756cc455a0e304185f6e199e726e9a68e3a7cc
+2
 </pre><a href="#appendix-A.5.3.1-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -5063,19 +5059,19 @@ d364
 BlindedElement = 030112ea89cf9cf589496189eafc5f9eb13c9f9e170d6ecde7c
 5b940541cb1a9c5cfeec908b67efe16b81ca00d0ce216e34b3d5f46a658d3fd8573d
 671bdb6515ed508
-EvaluationElement = 0200ebc49df1e6fa61f412e6c391e6f074400ecdd2f56c4a
-8c03fe0f91d9b551f40d4b5258fd891952e8c9b28003bcfa365122e54a5714c8949d
-5d202767b31b4bf1f6
-Proof = 0082162c71a7765005cae202d4bd14b84dae63c29067e886b82506992bd9
-94a1c3aac0c1c5309222fe1af8287b6443ed6df5c2e0b0991faddd3564c73c7597ae
-cd9a003b1f1e3c65f28e58ab4e767cfb4adbcaf512441645f4c2aed8bf67d132d966
-006d35fa71a34145414bf3572c1de1a46c266a344dd9e22e7fb1e90ffba1caf556d9
+EvaluationElement = 0200aee0d2a2dbe1d7f7fbd631097b88079ec75e73660366
+85551225985a3c11de66d5fb849d43f5ae64275a0d97fc9934022e0d294745554816
+7dbfcca35a77492b1e
+Proof = 01255bbcd02f6aec5a784e369c2956497c63b8708cc5ac05168ed5fab1be
+8ee5733abe0f82ac90470961b33e49b20667191d7438d0f39af3048f29417e1ceb61
+b99501dee51fd130b9089bde60f68c92d57ed56832a07508ccd6aecac7cee5e3be5a
+eb630e262cc3fd071d97d79657456c813a80c11ef60d734aa368de22d01fde7b95ae
 ProofRandomScalar = 015e80ae32363b32cb76ad4b95a5a34e46bb803d955f0e07
 3a04aa5d92b3fb739f56f9db001266677f62c095021db018cd8cbb55941d4073698c
 e45c405d1348b7b1
-Output = 27032e24b1a52a82ab7f4646f3c5df0f070f499db98b9c5df33972bd5af
-5762c3638afae7912a6c1acdb1ae2ab2fa670bd5486c645a0e55412e08d33a4a0d6e
-3
+Output = d99d9fa0b23ccb3f92a509c48ea2ecef5d6622c6f780a46729162b2a16f
+4112b2ab863a3b3e1235ae2926b8ab090d3edcfbfacec450522dd73ff0492194db7c
+4
 </pre><a href="#appendix-A.5.3.2-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -5099,22 +5095,22 @@ BlindedElement = 020095cff9d7ecf65bdfee4ea92d6e748d60b02de34ad98094f
 d5ebb2238f2f0e2,0201a328cf9f3fdeb86b6db242dd4cbb436b3a488b70b72d2fbb
 d1e5f50d7b0878b157d6f278c6a95c488f3ad52d6898a421658a82fe7ceb000b01ae
 dea7967522d525
-EvaluationElement = 0301408e9c5be3ffcc1c16e5ae8f8aa68446223b0804b119
-62e856af5a6d1c65ebbb5db7278c21db4e8cc06d89a35b6804fb1738a295b691638a
-f77aa1327253f26d01,020062ab51ac3aa829e0f5b7ae50688bcf5f63a18a83a6e0d
-a538666b8d50c7ea2b4ef31f4ac669302318dbebe46660acdda695da30c22cee7ca2
-1f6984a720504502e
-Proof = 00731738844f739bca0cca9d1c8bea204bed4fd00285785738b985763741
-de5cdfa275152d52b6a2fdf7792ef3779f39ba34581e56d62f78ecad5b7f8083f384
-961501cd4b43713253c022692669cf076b1d382ecd8293c1de69ea569737f37a2477
-2ab73517983c1e3db5818754ba1f008076267b8058b6481949ae346cdc17a8455fe2
+EvaluationElement = 0200c263a592b15ac199c6a2774aad95f755f921478b7e1a
+cbe93dac76f08e66c04b92715d187a453c9860aa542801ce86ca01c0a1292afb5ed4
+43e21b26a7a0d94f8e,0201b4f20e1594fdaa956a84d14f44241569f96b15b598f14
+3826143da75124d2875c19d5836f3971bcaf74ccb84243bbc8fcaf72eaaca0753e22
+756529a7c1d3b383b
+Proof = 00098c47430440e6687696a4bd397653fc9f6f13084866059a7ad8729daa
+9f0895a30cc21c958d6e595d1bfad449fa70d54f97fb23c6b2aa13a8135fe97b7c84
+b58401b7a23f62ba35c49345757722e50090d59fd1a278c97d5fa588bf501d562978
+65e0f53330bf5429499b667a44889c8f864e7f367689e395172d1535fb5f5be1a68a
 ProofRandomScalar = 01ec21c7bb69b0734cb48dfd68433dd93b0fa097e722ed24
 27de86966910acba9f5c350e8040f828bf6ceca27405420cdf3d63cb3aef005f40ba
 51943c8026877963
-Output = 808ae5b87662eaaf0b39151dd85991b94c96ef214cb14a68bf5c1439548
-82d330da8953a80eea20788e552bc8bbbfff3100e89f9d6e341197b122c46a208733
-b,27032e24b1a52a82ab7f4646f3c5df0f070f499db98b9c5df33972bd5af5762c36
-38afae7912a6c1acdb1ae2ab2fa670bd5486c645a0e55412e08d33a4a0d6e3
+Output = 062781972249cc88fc2d8776ab44d549d3b0bd1f448ae4f92ef86e26a2b
+48c4e0915b8f2906dbe9eb768745eb756cc455a0e304185f6e199e726e9a68e3a7cc
+2,d99d9fa0b23ccb3f92a509c48ea2ecef5d6622c6f780a46729162b2a16f4112b2a
+b863a3b3e1235ae2926b8ab090d3edcfbfacec450522dd73ff0492194db7c4
 </pre><a href="#appendix-A.5.3.3-1" class="pilcrow">¶</a>
 </div>
 </section>
