@@ -16,7 +16,9 @@ try:
            ciphersuite_decaf448_shake256, \
            ciphersuite_p256_sha256, \
            ciphersuite_p384_sha384, \
-           ciphersuite_p521_sha512
+           ciphersuite_p521_sha512, \
+           oprf_ciphersuites
+
 except ImportError as e:
     sys.exit("Error loading preprocessed sage files. Try running `make setup && make clean pyfiles`. Full error: " + e)
 
@@ -47,7 +49,9 @@ class Protocol(object):
         self.info = info
         self.key_info = _as_bytes("test key")
 
-        self.seed = b'\xA3' * 32
+        suite = oprf_ciphersuites[identifier]
+        self.Ns = suite.group.scalar_byte_length()
+        self.seed = b'\xA3' * self.Ns
         skS, pkS = DeriveKeyPair(self.mode, self.identifier, self.seed, self.key_info)
         if mode == MODE_OPRF:
             self.server = SetupOPRFServer(identifier, skS)
