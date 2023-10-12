@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-09-07T00:47:08.840872+00:00",
+  "timestamp": "2023-10-12T00:46:33.142005+00:00",
   "repo": "cfrg/draft-irtf-cfrg-voprf",
   "labels": [
     {
@@ -5092,9 +5092,24 @@
       "labels": [],
       "body": "> There appears to be a small discrepancy in the seed size used in the draft.\r\n> Ns is defined in Section 2.1, as the fixed length scalar size encoding for a curve.\r\n> Ns is used in Section 3.2.1 Deterministic Key Generation as the input of the seed[Ns].\r\n> However, your test vectors use a fixed 32-byte seed size.\r\n\r\n\r\nTest vectors use 32-fixed size, while document recommends a size depending on the base field.  ",
       "createdAt": "2023-05-24T15:53:33Z",
-      "updatedAt": "2023-05-24T15:53:33Z",
+      "updatedAt": "2023-10-10T10:28:09Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@chris-wood here are two options:\r\n1) update the text to set `Ns=32` for all cases. This avoids to recalculate test vectors.\r\n2) set Ns correctly in the test vectors.  See #390 \r\nwhich would be the one to pursue?",
+          "createdAt": "2023-10-10T04:13:47Z",
+          "updatedAt": "2023-10-10T04:30:36Z"
+        },
+        {
+          "author": "chris-wood",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I don't think either is acceptable at this point given that we are in AUTH48. I think the best we can do is note that the test vectors deviated from `Ns` and used 32.",
+          "createdAt": "2023-10-10T10:27:54Z",
+          "updatedAt": "2023-10-10T10:28:09Z"
+        }
+      ]
     },
     {
       "number": 385,
@@ -5158,16 +5173,24 @@
       "id": "I_kwDOBphpts5wIBn6",
       "title": "investigate DST for hash to scalar",
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/389",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "armfazh",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Jonas has pointed a possible issue in the specification of DST for hash to scalar.\r\n\r\nhttps://mailarchive.ietf.org/arch/msg/cfrg/q3j7QMfb_06XlB0IyLr8OjOCuuw/\r\n",
       "createdAt": "2023-09-05T04:12:39Z",
-      "updatedAt": "2023-09-05T04:12:39Z",
-      "closedAt": null,
-      "comments": []
+      "updatedAt": "2023-10-10T04:01:04Z",
+      "closedAt": "2023-10-10T04:01:04Z",
+      "comments": [
+        {
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "body": "the issue pointed is about the Python notation used in the draft. In Python, one can specify default parameters of a function. Thus, the function can be called with or without arguments,  or passing explicitly the parameters by name. \r\n\r\ne.g.\r\n\r\n```python\r\ndef foo(param=10):\r\n    print(param)\r\n\r\nfoo()        // prints 10\r\nfoo(7)       // prints 7\r\nfoo(param=3) // prints 3\r\n```\r\n\r\n",
+          "createdAt": "2023-10-10T04:01:04Z",
+          "updatedAt": "2023-10-10T04:01:04Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -27697,20 +27720,54 @@
       "id": "PR_kwDOBphpts5ZS0V7",
       "title": "Replacing hash to curve draft with RFC9380.",
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/pull/388",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "armfazh",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Referencing to published RFC9380",
       "createdAt": "2023-09-01T01:35:08Z",
-      "updatedAt": "2023-09-01T01:35:08Z",
+      "updatedAt": "2023-10-10T16:49:36Z",
       "baseRepository": "cfrg/draft-irtf-cfrg-voprf",
       "baseRefName": "main",
       "baseRefOid": "3a651b9f148953ddedbd2a120f6c0b092b41c0d9",
       "headRepository": "armfazh/draft-irtf-cfrg-voprf",
       "headRefName": "rfc9380",
       "headRefOid": "f6d0fe6440ad36a6a52119a5eed4a611d6088bce",
+      "closedAt": "2023-10-10T16:49:36Z",
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "body": "this will be done by rfc editor",
+          "createdAt": "2023-10-10T16:49:36Z",
+          "updatedAt": "2023-10-10T16:49:36Z"
+        }
+      ],
+      "reviews": []
+    },
+    {
+      "number": 390,
+      "id": "PR_kwDOBphpts5cU_WI",
+      "title": "Set seed size to Ns, which is the size of a scalar.",
+      "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/pull/390",
+      "state": "OPEN",
+      "author": "armfazh",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "In the case we opt for updating test vectors, \r\n\r\nFixes #384 ",
+      "createdAt": "2023-10-10T04:30:12Z",
+      "updatedAt": "2023-10-10T04:30:18Z",
+      "baseRepository": "cfrg/draft-irtf-cfrg-voprf",
+      "baseRefName": "main",
+      "baseRefOid": "3a651b9f148953ddedbd2a120f6c0b092b41c0d9",
+      "headRepository": "cfrg/draft-irtf-cfrg-voprf",
+      "headRefName": "solveIssue384",
+      "headRefOid": "f6f3827a0df4c062bdfb88a3ab0909f0e7715084",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
