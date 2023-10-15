@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-10-12T00:46:33.142005+00:00",
+  "timestamp": "2023-10-15T00:52:53.367788+00:00",
   "repo": "cfrg/draft-irtf-cfrg-voprf",
   "labels": [
     {
@@ -5092,7 +5092,7 @@
       "labels": [],
       "body": "> There appears to be a small discrepancy in the seed size used in the draft.\r\n> Ns is defined in Section 2.1, as the fixed length scalar size encoding for a curve.\r\n> Ns is used in Section 3.2.1 Deterministic Key Generation as the input of the seed[Ns].\r\n> However, your test vectors use a fixed 32-byte seed size.\r\n\r\n\r\nTest vectors use 32-fixed size, while document recommends a size depending on the base field.  ",
       "createdAt": "2023-05-24T15:53:33Z",
-      "updatedAt": "2023-10-10T10:28:09Z",
+      "updatedAt": "2023-10-13T13:31:04Z",
       "closedAt": null,
       "comments": [
         {
@@ -5108,6 +5108,13 @@
           "body": "I don't think either is acceptable at this point given that we are in AUTH48. I think the best we can do is note that the test vectors deviated from `Ns` and used 32.",
           "createdAt": "2023-10-10T10:27:54Z",
           "updatedAt": "2023-10-10T10:28:09Z"
+        },
+        {
+          "author": "chris-wood",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@armfazh on more reflection, I think your first suggestion may be workable. I'll propose that to the RFC editors.",
+          "createdAt": "2023-10-13T13:31:04Z",
+          "updatedAt": "2023-10-13T13:31:04Z"
         }
       ]
     },
