@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-10-15T00:52:53.367788+00:00",
+  "timestamp": "2023-10-26T00:47:51.336006+00:00",
   "repo": "cfrg/draft-irtf-cfrg-voprf",
   "labels": [
     {
@@ -5092,7 +5092,7 @@
       "labels": [],
       "body": "> There appears to be a small discrepancy in the seed size used in the draft.\r\n> Ns is defined in Section 2.1, as the fixed length scalar size encoding for a curve.\r\n> Ns is used in Section 3.2.1 Deterministic Key Generation as the input of the seed[Ns].\r\n> However, your test vectors use a fixed 32-byte seed size.\r\n\r\n\r\nTest vectors use 32-fixed size, while document recommends a size depending on the base field.  ",
       "createdAt": "2023-05-24T15:53:33Z",
-      "updatedAt": "2023-10-13T13:31:04Z",
+      "updatedAt": "2023-10-25T14:40:28Z",
       "closedAt": null,
       "comments": [
         {
@@ -5115,6 +5115,34 @@
           "body": "@armfazh on more reflection, I think your first suggestion may be workable. I'll propose that to the RFC editors.",
           "createdAt": "2023-10-13T13:31:04Z",
           "updatedAt": "2023-10-13T13:31:04Z"
+        },
+        {
+          "author": "juhesse",
+          "authorAssociation": "NONE",
+          "body": "@armfazh @chris-wood In the alternative DeriveKeyPair method in Section 3.2.1, the random seed of length Ns is the only entropy that goes into the OPRF key (DeriveKeyPair function). If you set that to 32 fixed, the security level of the OPRF will be upper bound by 32. This is significantly lower than key derivation through RandomScalar(). Can you explain for which applications such an OPRF implementation would be suitable? Currently the draft says \"can use either\" method, and I cannot find further guidance.\r\n",
+          "createdAt": "2023-10-24T18:37:08Z",
+          "updatedAt": "2023-10-24T18:37:08Z"
+        },
+        {
+          "author": "chris-wood",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> If you set that to 32 fixed, the security level of the OPRF will be upper bound by 32. This is significantly lower than key derivation through RandomScalar()\r\n\r\nSure, it may be significantly lower, but the security bound is large enough in all cases that this difference does not matter. 32 bytes of entropy will always be enough -- we don't need anything more.",
+          "createdAt": "2023-10-24T21:15:28Z",
+          "updatedAt": "2023-10-24T21:15:28Z"
+        },
+        {
+          "author": "juhesse",
+          "authorAssociation": "NONE",
+          "body": "I was talking about a security level of 32 bits, which seems insufficient to me ;) \r\n\r\nLet's see where this confusion comes from. Section 2.1 sets Ns to be the length of the *byte* array. E.g., for a group of size 256, Ns will be 32. Then DeriveKeyPair in Section 3.2.1 uses it as \"seed[Ns]\", and from what you write, this function seed[] should interpret its input in terms of bytes, not bits as I thought. \r\n\r\nOk, I read it now in the first paragraph of 3.2.1:  \"It accepts a seed of Ns bytes generated...\" - If this is not super standard notation for RFCs I would recommend making that clear by formally defining this seed function.\r\n\r\nThank you for clarifying, Chris! And to answer the original question, it seems fine to me to set the seed entropy to 32 *bytes* fixed. ",
+          "createdAt": "2023-10-25T07:38:46Z",
+          "updatedAt": "2023-10-25T07:38:46Z"
+        },
+        {
+          "author": "chris-wood",
+          "authorAssociation": "COLLABORATOR",
+          "body": "No problem. =)",
+          "createdAt": "2023-10-25T14:40:27Z",
+          "updatedAt": "2023-10-25T14:40:27Z"
         }
       ]
     },
