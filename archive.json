@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-10-26T00:47:51.336006+00:00",
+  "timestamp": "2023-11-05T00:53:15.170903+00:00",
   "repo": "cfrg/draft-irtf-cfrg-voprf",
   "labels": [
     {
@@ -5085,15 +5085,15 @@
       "id": "I_kwDOBphpts5mxthG",
       "title": "seed size is 32 or Ns bytes?",
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/384",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "armfazh",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "> There appears to be a small discrepancy in the seed size used in the draft.\r\n> Ns is defined in Section 2.1, as the fixed length scalar size encoding for a curve.\r\n> Ns is used in Section 3.2.1 Deterministic Key Generation as the input of the seed[Ns].\r\n> However, your test vectors use a fixed 32-byte seed size.\r\n\r\n\r\nTest vectors use 32-fixed size, while document recommends a size depending on the base field.  ",
       "createdAt": "2023-05-24T15:53:33Z",
-      "updatedAt": "2023-10-25T14:40:28Z",
-      "closedAt": null,
+      "updatedAt": "2023-11-03T12:04:11Z",
+      "closedAt": "2023-11-03T12:04:10Z",
       "comments": [
         {
           "author": "armfazh",
@@ -5143,6 +5143,13 @@
           "body": "No problem. =)",
           "createdAt": "2023-10-25T14:40:27Z",
           "updatedAt": "2023-10-25T14:40:27Z"
+        },
+        {
+          "author": "chris-wood",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Closing as resolved.",
+          "createdAt": "2023-11-03T12:04:11Z",
+          "updatedAt": "2023-11-03T12:04:11Z"
         }
       ]
     },
@@ -27789,21 +27796,21 @@
       "id": "PR_kwDOBphpts5cU_WI",
       "title": "Set seed size to Ns, which is the size of a scalar.",
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/pull/390",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "armfazh",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "In the case we opt for updating test vectors, \r\n\r\nFixes #384 ",
       "createdAt": "2023-10-10T04:30:12Z",
-      "updatedAt": "2023-10-10T04:30:18Z",
+      "updatedAt": "2023-11-03T12:03:54Z",
       "baseRepository": "cfrg/draft-irtf-cfrg-voprf",
       "baseRefName": "main",
       "baseRefOid": "3a651b9f148953ddedbd2a120f6c0b092b41c0d9",
       "headRepository": "cfrg/draft-irtf-cfrg-voprf",
       "headRefName": "solveIssue384",
       "headRefOid": "f6f3827a0df4c062bdfb88a3ab0909f0e7715084",
-      "closedAt": null,
+      "closedAt": "2023-11-03T12:03:54Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
