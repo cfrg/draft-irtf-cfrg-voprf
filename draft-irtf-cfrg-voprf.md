@@ -28,11 +28,10 @@ author:
  -
     ins: N. Sullivan
     name: Nick Sullivan
-    org: Cloudflare, Inc.
-    street: 101 Townsend St
+    org: Cryptography Consulting LLC
     city: San Francisco
     country: United States of America
-    email: nick@cloudflare.com
+    email: nicholas.sullivan+ietf@gmail.com
  -
     ins: C. A. Wood
     name: Christopher A. Wood
