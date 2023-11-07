@@ -5,10 +5,12 @@
 Network Working Group                                        A. Davidson
 Internet-Draft                                            Brave Software
 Intended status: Informational                          A. Faz-Hernandez
-Expires: 22 September 2023                                   N. Sullivan
+Expires: 10 May 2024                                    Cloudflare, Inc.
+                                                             N. Sullivan
+                                             Cryptography Consulting LLC
                                                               C. A. Wood
                                                         Cloudflare, Inc.
-                                                           21 March 2023
+                                                         7 November 2023
 
 
    Oblivious Pseudorandom Functions (OPRFs) using Prime-Order Groups
@@ -54,7 +56,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 September 2023.
+   This Internet-Draft will expire on 10 May 2024.
 
 Copyright Notice
 
@@ -2032,7 +2034,7 @@ Table of Contents
               Barker, E., Chen, L., Roginsky, A., Vassilev, A., and R.
               Davis, "Recommendation for pair-wise key-establishment
               schemes using discrete logarithm cryptography", National
-              Institute of Standards and Technology report,
+              Institute of Standards and Technology,
               DOI 10.6028/nist.sp.800-56ar3, April 2018,
               <https://doi.org/10.6028/nist.sp.800-56ar3>.
 
@@ -2054,9 +2056,9 @@ Table of Contents
               de Valence, H., Grigg, J., Hamburg, M., Lovecruft, I.,
               Tankersley, G., and F. Valsorda, "The ristretto255 and
               decaf448 Groups", Work in Progress, Internet-Draft, draft-
-              irtf-cfrg-ristretto255-decaf448-06, 13 February 2023,
+              irtf-cfrg-ristretto255-decaf448-08, 5 September 2023,
               <https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-
-              ristretto255-decaf448-06>.
+              ristretto255-decaf448-08>.
 
 9.2.  Informative References
 
@@ -2065,62 +2067,68 @@ Table of Contents
 
    [ChaumPedersen]
               Chaum, D. and T. Pedersen, "Wallet Databases with
-              Observers", Advances in Cryptology - CRYPTO' 92 pp.
-              89-105, DOI 10.1007/3-540-48071-4_7, August 2007,
-              <https://doi.org/10.1007/3-540-48071-4_7>.
+              Observers", Springer Berlin Heidelberg, Advances in
+              Cryptology — CRYPTO’ 92 pp. 89-105,
+              DOI 10.1007/3-540-48071-4_7, ISBN ["9783540573401"],
+              August 2007, <https://doi.org/10.1007/3-540-48071-4_7>.
 
    [Cheon06]  Cheon, J., "Security Analysis of the Strong Diffie-Hellman
-              Problem", Advances in Cryptology - EUROCRYPT 2006 pp.
-              1-11, DOI 10.1007/11761679_1, 2006,
+              Problem", Springer Berlin Heidelberg, Advances in
+              Cryptology - EUROCRYPT 2006 pp. 1-11,
+              DOI 10.1007/11761679_1, ISBN ["9783540345466",
+              "9783540345473"], 2006,
               <https://doi.org/10.1007/11761679_1>.
 
    [DGSTV18]  Davidson, A., Goldberg, I., Sullivan, N., Tankersley, G.,
               and F. Valsorda, "Privacy Pass: Bypassing Internet
-              Challenges Anonymously", Proceedings on Privacy Enhancing
+              Challenges Anonymously", Privacy Enhancing Technologies
+              Symposium Advisory Board, Proceedings on Privacy Enhancing
               Technologies vol. 2018, no. 3, pp. 164-180, DOI 
               10.1515/popets-2018-0026, April 2018,
               <https://doi.org/10.1515/popets-2018-0026>.
 
    [FS00]     Fiat, A. and A. Shamir, "How To Prove Yourself: Practical
               Solutions to Identification and Signature Problems",
-              Advances in Cryptology - CRYPTO' 86 pp. 186-194,
-              DOI 10.1007/3-540-47721-7_12, April 2007,
+              Springer Berlin Heidelberg, Advances in Cryptology —
+              CRYPTO’ 86 pp. 186-194, DOI 10.1007/3-540-47721-7_12,
+              ISBN ["9783540180470"], April 2007,
               <https://doi.org/10.1007/3-540-47721-7_12>.
 
    [JKK14]    Jarecki, S., Kiayias, A., and H. Krawczyk, "Round-Optimal
               Password-Protected Secret Sharing and T-PAKE in the
-              Password-Only Model", Lecture Notes in Computer
-              Science pp. 233-253, DOI 10.1007/978-3-662-45608-8_13,
-              2014, <https://doi.org/10.1007/978-3-662-45608-8_13>.
+              Password-Only Model", Springer Berlin Heidelberg, Lecture
+              Notes in Computer Science pp. 233-253,
+              DOI 10.1007/978-3-662-45608-8_13, ISBN ["9783662456071",
+              "9783662456088"], 2014,
+              <https://doi.org/10.1007/978-3-662-45608-8_13>.
 
    [JKKX16]   Jarecki, S., Kiayias, A., Krawczyk, H., and J. Xu,
               "Highly-Efficient and Composable Password-Protected Secret
               Sharing (Or: How to Protect Your Bitcoin Wallet Online)",
-              2016 IEEE European Symposium on Security and
+              IEEE, 2016 IEEE European Symposium on Security and
               Privacy (EuroS&P), DOI 10.1109/eurosp.2016.30, March 2016,
               <https://doi.org/10.1109/eurosp.2016.30>.
 
    [NISTCurves]
               "Digital Signature Standard (DSS)", National Institute of
-              Standards and Technology report,
-              DOI 10.6028/nist.fips.186-4, July 2013,
-              <https://doi.org/10.6028/nist.fips.186-4>.
+              Standards and Technology, DOI 10.6028/nist.fips.186-4,
+              July 2013, <https://doi.org/10.6028/nist.fips.186-4>.
 
    [OPAQUE]   Bourdrez, D., Krawczyk, H., Lewi, K., and C. A. Wood, "The
               OPAQUE Asymmetric PAKE Protocol", Work in Progress,
-              Internet-Draft, draft-irtf-cfrg-opaque-10, 13 March 2023,
+              Internet-Draft, draft-irtf-cfrg-opaque-12, 5 October 2023,
               <https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-
-              opaque-10>.
+              opaque-12>.
 
    [PrivacyPass]
               "Privacy Pass", <https://github.com/privacypass/team>.
 
    [PRIVACYPASS]
-              Celi, S., Davidson, A., Faz-Hernandez, A., Valdez, S., and
-              C. A. Wood, "Privacy Pass Issuance Protocol", Work in
-              Progress, Internet-Draft, draft-ietf-privacypass-protocol-
-              10, 6 March 2023, <https://datatracker.ietf.org/doc/html/
-              draft-ietf-privacypass-protocol-10>.
+              Celi, S., Davidson, A., Valdez, S., and C. A. Wood,
+              "Privacy Pass Issuance Protocol", Work in Progress,
+              Internet-Draft, draft-ietf-privacypass-protocol-16, 3
+              October 2023, <https://datatracker.ietf.org/doc/html/
+              draft-ietf-privacypass-protocol-16>.
 
    [RFC7748]  Langley, A., Hamburg, M., and S. Turner, "Elliptic Curves
               for Security", RFC 7748, DOI 10.17487/RFC7748, January
@@ -2139,9 +2147,10 @@ Table of Contents
 
    [TCRSTW21] Tyagi, N., Celi, S., Ristenpart, T., Sullivan, N.,
               Tessaro, S., and C. Wood, "A Fast and Simple Partially
-              Oblivious PRF, with Applications", Advances in Cryptology
-              - EUROCRYPT 2022 pp. 674-705,
-              DOI 10.1007/978-3-031-07085-3_23, 2022,
+              Oblivious PRF, with Applications", Springer International
+              Publishing, Advances in Cryptology – EUROCRYPT 2022 pp.
+              674-705, DOI 10.1007/978-3-031-07085-3_23,
+              ISBN ["9783031070846", "9783031070853"], 2022,
               <https://doi.org/10.1007/978-3-031-07085-3_23>.
 
 Appendix A.  Test Vectors
@@ -3116,11 +3125,10 @@ Authors' Addresses
 
 
    Nick Sullivan
-   Cloudflare, Inc.
-   101 Townsend St
+   Cryptography Consulting LLC
    San Francisco,
    United States of America
-   Email: nick@cloudflare.com
+   Email: nicholas.sullivan+ietf@gmail.com
 
 
    Christopher A. Wood
