@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-11-05T00:53:15.170903+00:00",
+  "timestamp": "2023-11-07T00:50:49.824858+00:00",
   "repo": "cfrg/draft-irtf-cfrg-voprf",
   "labels": [
     {
@@ -408,7 +408,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/27",
       "state": "CLOSED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [
         "alxdavids"
       ],
@@ -420,7 +420,7 @@
       "comments": [
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "\r\nAt Section 5.1.  DLEQ_Generate,\r\n~~~\r\n3. c <- H_3(G,Y,M,Z,A,B)\r\n~~~\r\nand Section 5.2.  DLEQ_Verify:\r\n~~~\r\n3. c' <- H_3(G,Y,M,Z,A',B')\r\n~~~\r\nmust be reduced modulo the order of the curve.",
           "createdAt": "2019-03-22T22:05:29Z",
           "updatedAt": "2019-03-22T22:05:29Z"
@@ -823,7 +823,7 @@
       "comments": [
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "A similar discussion is currently running in the hash-to-curve draft. In there, the hash-to-field function is being designed.\r\n\r\nhttps://github.com/cfrg/draft-irtf-cfrg-hash-to-curve/issues/202",
           "createdAt": "2020-02-07T18:30:43Z",
           "updatedAt": "2020-02-07T18:30:43Z"
@@ -903,7 +903,7 @@
       "comments": [
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "Agree, each group must specify how to encode/decode group elements into binary strings.",
           "createdAt": "2020-05-29T00:47:16Z",
           "updatedAt": "2020-05-29T00:47:16Z"
@@ -917,7 +917,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/79",
       "state": "CLOSED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [
         "alxdavids"
       ],
@@ -950,7 +950,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/80",
       "state": "CLOSED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [
         "alxdavids"
       ],
@@ -976,7 +976,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/81",
       "state": "CLOSED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [
         "alxdavids"
       ],
@@ -1002,7 +1002,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/82",
       "state": "CLOSED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [
         "alxdavids"
       ],
@@ -1020,7 +1020,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/83",
       "state": "CLOSED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [
         "chris-wood"
       ],
@@ -1032,7 +1032,7 @@
       "comments": [
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "_Originally posted by @chris-wood in https://github.com/cfrg/draft-irtf-cfrg-voprf/pull/78_\r\nShould we unify around DST instead of `aux`?\r\n\r\n",
           "createdAt": "2020-06-01T17:08:58Z",
           "updatedAt": "2020-06-01T17:08:58Z"
@@ -1067,7 +1067,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/84",
       "state": "CLOSED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [
         "alxdavids"
       ],
@@ -1086,7 +1086,7 @@
         },
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "Curious to see these changes.",
           "createdAt": "2020-06-02T17:26:14Z",
           "updatedAt": "2020-06-02T17:26:14Z"
@@ -1100,7 +1100,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/85",
       "state": "CLOSED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [
         "alxdavids"
       ],
@@ -1119,7 +1119,7 @@
         },
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "One way to unify is avoiding the calculation of the scalar multiplication by c1.",
           "createdAt": "2020-05-29T18:04:31Z",
           "updatedAt": "2020-05-29T18:04:31Z"
@@ -1140,7 +1140,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/86",
       "state": "CLOSED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "the document mentioned two blinding methods: rH1(x) and rG+H1(x). \r\nHowever, it wasn't mentioned which one to use at suite level.",
@@ -1157,7 +1157,7 @@
         },
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "My understanding is that defining a suite implies test vectors, which implies that everyone must follow the same procedure.\r\nSo, almost every variant in the construction introduces a parameter in the suite.\r\n",
           "createdAt": "2020-06-01T16:52:27Z",
           "updatedAt": "2020-06-01T16:52:27Z"
@@ -1171,7 +1171,7 @@
         },
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "That means the proof must encode which blinding is used ?",
           "createdAt": "2020-06-02T17:15:53Z",
           "updatedAt": "2020-06-02T17:15:53Z"
@@ -1185,7 +1185,7 @@
         },
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "I got it now. The blinding method is orthogonal to the suite used.",
           "createdAt": "2020-06-03T17:29:51Z",
           "updatedAt": "2020-06-03T17:29:51Z"
@@ -1254,7 +1254,7 @@
       "comments": [
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "_Originally posted by @chris-wood in https://github.com/cfrg/draft-irtf-cfrg-voprf/pull/78_\r\n> Unrelated to this change, but what is `u` here? Is DST guaranteed to be of size `u`? (2HashDH doesn't specify the hash this way. Maybe we ought to go back to what's in the original paper?)\r\n\r\n",
           "createdAt": "2020-06-01T17:08:16Z",
           "updatedAt": "2020-06-01T17:08:16Z"
@@ -1275,7 +1275,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/90",
       "state": "CLOSED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [
         "alxdavids"
       ],
@@ -1322,7 +1322,7 @@
         },
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "Well, let's keep it simple. The purpose of listing the groups is to have a clear vision of all the parameters involved. Listing the security level is probably not required. We are adopting state-of-the-art group instances with well-known security bounds.\r\n  \r\nI think Section 7.1.4 gives a good explantion of security levels without going into the details.",
           "createdAt": "2020-06-19T21:48:26Z",
           "updatedAt": "2020-06-19T21:48:26Z"
@@ -1461,7 +1461,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/109",
       "state": "CLOSED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Warn the reader that deserialization can return error if the input bytes does not correspond to a valid group element.\r\n\r\n",
@@ -1478,7 +1478,7 @@
         },
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "I think what is missing is alerting the reader/implementor that deserialization can fail, and if this happen, the protocol cannot continue. ",
           "createdAt": "2020-06-22T18:15:31Z",
           "updatedAt": "2020-06-22T18:15:31Z"
@@ -1499,7 +1499,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/110",
       "state": "CLOSED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "1 ) There are many functions following an object-oriented design, I don't know if this helps as the only \"object\" is GG.\r\n\r\n2) The style of pseudo-code is sometimes python, other times Go/rust, I consider is better to use C-style pseudo-code. \r\n\r\n3) Enumeration of substeps, for example:\r\n\r\n~~~\r\n 4.     if x = 0 \r\n 4.1        foo()\r\n 4.2        foo() \r\n 5.     bar() \r\n~~~\r\n",
@@ -1516,7 +1516,7 @@
         },
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "This issue is not one of the higher relevance, but still it could be difficult to grasp for someone who never coded in modern languages. It's is desired that specification be easy to read for anyone.  \r\n\r\nLoops\r\n``` 3. for i = 0 to m:```  vs ``` 2. for i in 1..m:``` vs ``` for i in [ins.length]: ```\r\n\r\nThe first is go/rust syntax, while the second one is more similar to C structs.\r\n`Ev = Evaluation{ elements: elements }` and `2. Ev.proof = proof`\r\n\r\nthe `elements` starts empty.\r\n\r\n```\r\n1. elements = []\r\n2. for i in 1..m:\r\n    2.3. elements[i] = GG.Serialize(Z)\r\n```\r\n",
           "createdAt": "2020-06-22T18:13:05Z",
           "updatedAt": "2020-06-22T18:28:18Z"
@@ -1537,7 +1537,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/111",
       "state": "CLOSED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [
         "alxdavids"
       ],
@@ -1555,7 +1555,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/112",
       "state": "CLOSED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [
         "alxdavids"
       ],
@@ -1573,7 +1573,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/113",
       "state": "CLOSED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [
         "alxdavids"
       ],
@@ -1606,7 +1606,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/114",
       "state": "CLOSED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [
         "alxdavids"
       ],
@@ -1625,7 +1625,7 @@
         },
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": " `byte arrays` is singular or plural?",
           "createdAt": "2020-06-22T18:33:29Z",
           "updatedAt": "2020-06-22T18:33:29Z"
@@ -1639,7 +1639,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/115",
       "state": "CLOSED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Section 4.3 is difficult to understand as there are many undefined variables. The protocol data-flow looks clean and simple, however there are many variables that are not stated its purpose nor its domain.\r\n\r\n",
@@ -1677,7 +1677,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/116",
       "state": "CLOSED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "H2 might be better defined as H2(x) = OS2IP(H(x)) mod p. \r\nThis avoids rejection sampling on Section 5.3",
@@ -1701,7 +1701,7 @@
         },
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "> We should just use hash-to-field from the hash-to-curve document (for all groups considered). I don't see why we'd reinvent the wheel here. :-)\r\n\r\nAgree",
           "createdAt": "2020-06-22T18:45:42Z",
           "updatedAt": "2020-06-22T18:45:42Z"
@@ -1715,7 +1715,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/124",
       "state": "CLOSED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "\r\nhttps://github.com/cfrg/draft-irtf-cfrg-voprf/blob/73492d2727115a7591a3d340e31f0565465348a7/draft-irtf-cfrg-voprf.md#L662-L675\r\n\r\n1) Why `Ev` is passed as input to `Evaluate`?\r\n2) Why `Ev` is passed to `generate_proof`, if it wasn't constructed yet?\r\n",
@@ -1732,7 +1732,7 @@
         },
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "Ok, I can work on that fix.",
           "createdAt": "2020-06-25T22:20:56Z",
           "updatedAt": "2020-06-25T22:20:56Z"
@@ -1746,7 +1746,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/126",
       "state": "CLOSED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "What is `x` in these functions?\r\n\r\nhttps://github.com/cfrg/draft-irtf-cfrg-voprf/blob/73492d2727115a7591a3d340e31f0565465348a7/draft-irtf-cfrg-voprf.md#L784-L786\r\n\r\nhttps://github.com/cfrg/draft-irtf-cfrg-voprf/blob/73492d2727115a7591a3d340e31f0565465348a7/draft-irtf-cfrg-voprf.md#L1415-L1417\r\n",
@@ -1832,7 +1832,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/139",
       "state": "CLOSED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "There is a distinction between group elements (a point on the curve) and serialized elements (its compact representation).\r\nAnalogously, we can refer as SerializedScalar to the short (mod p) representation of an integer scalar.\r\n\r\ntodo(armfazh): I can create a PR to the draft for this request.",
@@ -1856,7 +1856,7 @@
         },
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "After thinking more on it, it's not necessary. ",
           "createdAt": "2020-09-10T18:53:07Z",
           "updatedAt": "2020-09-10T18:53:07Z"
@@ -1870,7 +1870,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/140",
       "state": "CLOSED",
       "author": "stef",
-      "authorAssociation": "NONE",
+      "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "`Contribute` describes the semantics better than the generic `Evaluate` name.\r\n\r\nsee the discussion here: https://github.com/cfrg/draft-irtf-cfrg-opaque/issues/53",
@@ -1894,7 +1894,7 @@
         },
         {
           "author": "stef",
-          "authorAssociation": "NONE",
+          "authorAssociation": "CONTRIBUTOR",
           "body": "which list, is there a dedicated list for this proposal or the big cfrg list?",
           "createdAt": "2020-09-14T19:47:10Z",
           "updatedAt": "2020-09-14T19:47:10Z"
@@ -1908,7 +1908,7 @@
         },
         {
           "author": "stef",
-          "authorAssociation": "NONE",
+          "authorAssociation": "CONTRIBUTOR",
           "body": "although i subscribed to the list, before writing to it i reviewed the academic literature and i apologize for making this noise.",
           "createdAt": "2020-09-16T13:35:38Z",
           "updatedAt": "2020-09-16T13:35:38Z"
@@ -1932,7 +1932,7 @@
       "comments": [
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "The correct generator point for curve25519 is the one reported in the errata report.\r\nhttps://www.rfc-editor.org/errata/eid4730\r\nSo, the v (or y) coordinate is even. ",
           "createdAt": "2020-09-24T01:25:27Z",
           "updatedAt": "2020-09-24T01:25:27Z"
@@ -2114,7 +2114,7 @@
         },
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "According to the specification [link](https://github.com/privacypass/challenge-bypass-extension/blob/master/docs/PROTOCOL.md#nizk-proofs-of-discrete-log-equality), the pair (G,Y) must be maintained.",
           "createdAt": "2020-10-16T17:28:01Z",
           "updatedAt": "2020-10-16T17:28:01Z"
@@ -2274,7 +2274,7 @@
       "comments": [
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "I think this is implementation-dependant. most implementations follow ANSI X9.62.",
           "createdAt": "2020-10-08T15:56:26Z",
           "updatedAt": "2020-10-08T15:56:26Z"
@@ -2367,7 +2367,7 @@
         },
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "agree, let's move forward with those groups",
           "createdAt": "2020-10-20T07:05:47Z",
           "updatedAt": "2020-10-20T07:05:47Z"
@@ -2419,7 +2419,7 @@
         },
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "Let's step back for a second,\r\ngiven a named suite, say e.g.  `id = \"OPRF(P256,SHA256)\" ` \r\n\r\ndoes this identifier considers the implementation of both verifiable and non-verifiable modes?\r\n\r\n- if so, \r\n -- then the `dst` used for HashToGroup could be the concatenation of suite id and the mode.\r\n- otherwise,\r\n -- `OPRF(P256,SHA256)` means only the non-verifiable mode, then we need a suite identifier for the verifiable mode, for example `VOPRF(P256,SHA256)`. Going this way,  `dst` can be equal to the suite id.\r\n",
           "createdAt": "2020-10-23T17:53:26Z",
           "updatedAt": "2020-10-23T17:53:26Z"
@@ -2443,7 +2443,7 @@
       "comments": [
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "The purpose of Setup is to generate keys and domain parameters, and this should run once during the _offline_ phase of the protocol.\r\nThere is no inline generation during the _online_ phase of the protocol.Hence, I think the specification is right.\r\n\r\n-- If needed, we could add a line saying: \"users can use pre-existing keys provided that keys were generated using a compatible  procedure as the one described in Setup\".\r\n",
           "createdAt": "2020-10-23T19:14:15Z",
           "updatedAt": "2020-10-23T19:14:15Z"
@@ -2480,7 +2480,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/174",
       "state": "CLOSED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "the list of contributors overleaps with authors",
@@ -2504,7 +2504,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/182",
       "state": "CLOSED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "> Prior to this phase, keys (skS, pkS) should be generated by calling a \"KeyGen\" functionality.\r\n\r\nKeyGen is not defined",
@@ -2716,7 +2716,7 @@
       "comments": [
         {
           "author": "bytemare",
-          "authorAssociation": "NONE",
+          "authorAssociation": "CONTRIBUTOR",
           "body": "Hello,\r\n\r\ndoesn't the serialized length depend on the cipher suite they are from? p-256 and p-521 points don't have the same length when encoded.",
           "createdAt": "2020-11-09T19:41:47Z",
           "updatedAt": "2020-11-09T19:41:47Z"
@@ -2798,7 +2798,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/199",
       "state": "CLOSED",
       "author": "bytemare",
-      "authorAssociation": "NONE",
+      "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "Hello,\r\n\r\nthe blind element used for preprocessing is not used after generating the client's own public key (i.e. scalar multiplication with the generator/base point) and blinding the server public key, but is still contained within the PreprocessedBlind structure.\r\n\r\nI suppose this is useful for debugging purposes, and thus implementation dependant. In this case, it might be useful to mention in the draft. Is my understanding correct ?\r\n\r\nThanks",
@@ -3778,7 +3778,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/266",
       "state": "CLOSED",
       "author": "FredericJacobs",
-      "authorAssociation": "NONE",
+      "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "Is there a compelling reason to use SHA-512 with P-384 as opposed to matching P-384 with SHA-384 like is commonly done for ECDSA signatures for instance? The number theoretical assumptions for ECVOPRF with P-384 make it such that you get below 192-bit of security, so is it warranted to require SHA-512 over SHA-384?",
@@ -3860,7 +3860,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/269",
       "state": "CLOSED",
       "author": "FredericJacobs",
-      "authorAssociation": "NONE",
+      "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "Spec says the following for evaluate.\r\n\r\n```\r\ndef Evaluate(skS, blindedElement, info):\r\n  R = GG.DeserializeElement(blindedElement)\r\n  context = \"Context-\" || contextString ||\r\n            I2OSP(len(info), 2) || info\r\n```\r\n\r\nBut test vectors use an undefined Metadata tag that does not exist in the spec.\r\n\r\n```\r\n   def evaluate(self, blinded_element, info):\r\n        R = self.suite.group.deserialize(blinded_element)\r\n        metadataDST = _as_bytes(\"Metadata-\") + self.context_string\r\n        metadata_input = I2OSP(len(info), 2) + info \\\r\n            + I2OSP(len(metadataDST), 2) + metadataDST\r\n        t = self.suite.group.hash_to_scalar(metadata_input, self.scalar_domain_separation_tag())\r\n\r\n```",
@@ -3884,7 +3884,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/270",
       "state": "CLOSED",
       "author": "FredericJacobs",
-      "authorAssociation": "NONE",
+      "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "The sage implementation from the test vectors does not use the private key\r\n```\r\n   def evaluate(self, blinded_element, info):\r\n        R = self.suite.group.deserialize(blinded_element)\r\n        metadataDST = _as_bytes(\"Metadata-\") + self.context_string\r\n        metadata_input = I2OSP(len(info), 2) + info \\\r\n            + I2OSP(len(metadataDST), 2) + metadataDST\r\n        tag = self.suite.group.hash_to_scalar(metadata_input, self.scalar_domain_separation_tag())\r\n\r\n        t = self.skS + tag\r\n        tag_inv = inverse_mod(tag, self.suite.group.order())\r\n        Z = tag_inv * R\r\n```\r\n\r\nNote it takes the inverse of `tag` and not `t` like it should as defined by the spec.\r\n\r\n```\r\n  m = GG.HashToScalar(context)\r\n  t = skS + m\r\n  Z = (t^(-1)) * R\r\n```",
@@ -3900,7 +3900,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/271",
       "state": "CLOSED",
       "author": "FredericJacobs",
-      "authorAssociation": "NONE",
+      "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "I assume it would be ascii but the encoded string format is defined nowhere in the spec.",
@@ -3917,7 +3917,7 @@
         },
         {
           "author": "FredericJacobs",
-          "authorAssociation": "NONE",
+          "authorAssociation": "CONTRIBUTOR",
           "body": "The spec doesn't say what string encoding is expected for strings like \"Context-\" or \"Finalize-\"",
           "createdAt": "2021-09-13T17:04:28Z",
           "updatedAt": "2021-09-13T17:04:28Z"
@@ -4048,7 +4048,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/285",
       "state": "CLOSED",
       "author": "FredericJacobs",
-      "authorAssociation": "NONE",
+      "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "Current test vectors use SHA-512",
@@ -4058,7 +4058,7 @@
       "comments": [
         {
           "author": "FredericJacobs",
-          "authorAssociation": "NONE",
+          "authorAssociation": "CONTRIBUTOR",
           "body": "Nevermind. Didn't pull the latest",
           "createdAt": "2021-09-30T16:03:19Z",
           "updatedAt": "2021-09-30T16:03:19Z"
@@ -8849,7 +8849,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/pull/78",
       "state": "MERGED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Some comments for improving draft.\r\nHappy to hear your thoughts.",
@@ -8870,7 +8870,7 @@
       "comments": [
         {
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "Most suggestions were added and some other comments are now tracked as Issues.\r\n",
           "createdAt": "2020-06-01T17:14:19Z",
           "updatedAt": "2020-06-01T17:14:19Z"
@@ -8999,7 +8999,7 @@
             "abbreviatedOid": "23803e9"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2020-05-29T18:11:26Z",
@@ -9019,7 +9019,7 @@
             "abbreviatedOid": "23803e9"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2020-05-29T18:15:08Z",
@@ -9039,7 +9039,7 @@
             "abbreviatedOid": "23803e9"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2020-05-29T18:15:41Z",
@@ -9059,7 +9059,7 @@
             "abbreviatedOid": "0fa0c3a"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2020-05-29T18:40:04Z",
@@ -9079,7 +9079,7 @@
             "abbreviatedOid": "0fa0c3a"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2020-05-29T18:40:11Z",
@@ -9168,7 +9168,7 @@
             "abbreviatedOid": "4c5177c"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2020-06-01T17:06:56Z",
@@ -9188,7 +9188,7 @@
             "abbreviatedOid": "4c5177c"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2020-06-01T17:09:11Z",
@@ -9208,7 +9208,7 @@
             "abbreviatedOid": "4c5177c"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2020-06-01T17:10:30Z",
@@ -9228,7 +9228,7 @@
             "abbreviatedOid": "4c5177c"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2020-06-01T17:11:16Z",
@@ -10823,7 +10823,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/pull/108",
       "state": "MERGED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Clarifies a bit the properties of the group. Feel free to edit if needed.",
@@ -12006,7 +12006,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/pull/125",
       "state": "MERGED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Solving some issues that I detected during the review. ",
@@ -12052,7 +12052,7 @@
             "abbreviatedOid": "a135d48"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2020-06-25T22:21:54Z",
@@ -12533,7 +12533,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/pull/138",
       "state": "MERGED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "The implementation of HashToScalar can be performed by reusing the hash_to_field function from Hash to Curve draft.\r\n\r\n\r\nCloses #135 ",
@@ -12725,7 +12725,7 @@
             "abbreviatedOid": "a0de89c"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "APPROVED",
           "body": "",
           "createdAt": "2020-09-28T17:42:59Z",
@@ -12780,7 +12780,7 @@
             "abbreviatedOid": "d3de1c5"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2020-10-06T06:43:14Z",
@@ -12800,7 +12800,7 @@
             "abbreviatedOid": "dca4dd1"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "APPROVED",
           "body": "",
           "createdAt": "2020-10-08T15:28:06Z",
@@ -12903,7 +12903,7 @@
             "abbreviatedOid": "c060030"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "CHANGES_REQUESTED",
           "body": "",
           "createdAt": "2020-10-15T18:08:18Z",
@@ -13664,7 +13664,7 @@
             "abbreviatedOid": "7c7e506"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2020-10-23T01:32:41Z",
@@ -13724,7 +13724,7 @@
             "abbreviatedOid": "e0b3d26"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "Some comments",
           "createdAt": "2020-10-23T17:56:51Z",
@@ -14051,7 +14051,7 @@
             "abbreviatedOid": "be56001"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2020-10-23T22:11:33Z",
@@ -14071,7 +14071,7 @@
             "abbreviatedOid": "be56001"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2020-10-23T22:12:07Z",
@@ -14091,7 +14091,7 @@
             "abbreviatedOid": "be56001"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "APPROVED",
           "body": "",
           "createdAt": "2020-10-23T22:12:53Z",
@@ -14204,7 +14204,7 @@
             "abbreviatedOid": "7937500"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "APPROVED",
           "body": "",
           "createdAt": "2020-10-26T17:29:21Z",
@@ -14584,7 +14584,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/pull/173",
       "state": "MERGED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "",
@@ -15291,7 +15291,7 @@
       "url": "https://github.com/cfrg/draft-irtf-cfrg-voprf/pull/184",
       "state": "MERGED",
       "author": "armfazh",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "",
@@ -15361,7 +15361,7 @@
             "abbreviatedOid": "6793936"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2020-11-02T22:33:08Z",
@@ -15381,7 +15381,7 @@
             "abbreviatedOid": "6793936"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2020-11-02T22:33:18Z",
@@ -15401,7 +15401,7 @@
             "abbreviatedOid": "6793936"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2020-11-02T22:33:38Z",
@@ -15461,7 +15461,7 @@
             "abbreviatedOid": "274ff98"
           },
           "author": "armfazh",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2020-11-02T23:06:14Z",
@@ -17325,7 +17325,7 @@
       "baseRepository": "cfrg/draft-irtf-cfrg-voprf",
       "baseRefName": "master",
       "baseRefOid": "a037abc5e3d7486a2f925c5b73a9a2dc42b67b18",
-      "headRepository": "kevinlewi/draft-irtf-cfrg-voprf",
+      "headRepository": null,
       "headRefName": "add_opaque_ke",
       "headRefOid": "9796a567716fb979597f1421b865a9c5f11d5f26",
       "closedAt": "2020-12-04T21:33:15Z",
@@ -20549,7 +20549,7 @@
       "baseRepository": "cfrg/draft-irtf-cfrg-voprf",
       "baseRefName": "master",
       "baseRefOid": "76a17edf5a33dfc95855a48c524026641b399754",
-      "headRepository": "thomwiggers/draft-irtf-cfrg-voprf",
+      "headRepository": null,
       "headRefName": "patch-1",
       "headRefOid": "6542c0fe2a70203d9eab91f74ab92850493821d9",
       "closedAt": "2021-07-27T13:14:11Z",
