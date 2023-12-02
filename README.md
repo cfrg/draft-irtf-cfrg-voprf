@@ -29,6 +29,9 @@ This requires that you have the necessary software installed.  See
 | [voprf](https://github.com/novifinancial/voprf)                           | Rust       | main     | All    |
 | [BoringSSL](https://boringssl.googlesource.com/boringssl/+/refs/heads/master/crypto/trust_token/) | C      | draft-04 | All    |
 | [ecc](https://github.com/aldenml/ecc)                                     | C          | draft-21 | All    |
+| [liboprf](https://github.com/stef/liboprf)                                | C          | draft-21 | 0+threshold|
+
+
 
 ### Other Integrations
 
