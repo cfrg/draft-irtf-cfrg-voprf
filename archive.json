@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-03-07T00:39:18.329306+00:00",
+  "timestamp": "2024-03-10T00:52:43.171002+00:00",
   "repo": "cfrg/draft-irtf-cfrg-voprf",
   "labels": [
     {
@@ -25245,7 +25245,7 @@
       "labels": [],
       "body": "Edit input validation text.\r\n\r\nChanges:\r\n- Move the non-identity requirement from DeserializeElement to Input Validation section.\r\n- Remove SerializedElement and SerializedScalar types, since they are not used.\r\n- Rename validation subsections.\r\n- Minor nits.\r\n\r\nNote: usually crypto libraries already implement a `DeserializeElement` functionality (following [SECG Sec 2.3.4](https://www.secg.org/sec1-v2.pdf)), however they do not fail if the identity element is decoded. Hence the check for non-identity must be done explicitly after deserialization. \r\n\r\n\r\nFixes #342 ",
       "createdAt": "2022-05-24T20:24:14Z",
-      "updatedAt": "2022-05-25T17:52:38Z",
+      "updatedAt": "2024-03-09T08:08:01Z",
       "baseRepository": "cfrg/draft-irtf-cfrg-voprf",
       "baseRefName": "main",
       "baseRefOid": "e937bd8607f7e13751d8dae152d3d07110eac959",
